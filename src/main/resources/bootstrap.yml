@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: prx-backbone-rest
+  cloud:
+    config:
+
+      #      discovery:
+      #        serviceId:
+#      uri: http://prx.test:8082
+      uri: http://prx.test/config-server/
+      enabled: true
+      profile: virtual
+server:
+  ssl:
+    enabled: true
+      #        #    client-auth: NEED
+    key-store: prx_backbone_rest.jks
+    key-store-password: prx-backbone-rest
+    key-store-type: JKS
+    key-alias: prx-backbone-rest

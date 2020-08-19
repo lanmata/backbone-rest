@@ -1,0 +1,51 @@
+##<><><><><><><><><><><><><><> HTTPS <><><><><><><><><><><><><><>
+#server:
+#    port: 8083
+#    http2:
+#        enabled: true
+#    ssl:
+#        enabled: true
+#        #    client-auth: NEED
+#        key-store: prx_backbone_rest.jks
+#        key-store-password: prx-backbone-rest
+#        key-store-type: JKS
+#        key-alias: prx-backbone-rest
+##<><><><><><><><><><><><><><> HTTPS PARA BASE DE DATOS <><><><><><><><><><><><><><>
+#postgres:
+#    service:
+#        url: prx.test
+#        name: postgres
+#        database: tradeskey
+#        username: usr_genweb
+#        password: 1$Pormas
+##<><><><><><><><><><><><><><> HTTPS PARA SERVICE DISCOVERY <><><><><><><><><><><><><><>
+#eureka:
+#    client:
+#        url: prx.test:8763
+#debug: false
+##<><><><><><><><><><><><><><> HTPS <><><><><><><><><><><><><><>
+#security:
+#    discovery:
+#        client:
+#            name: prx-backbone-rest
+#            trust-store-file: prx_backbone_rest_discovery.jks
+#            trust-store-password: prx-backbone-rest
+#            max-total-connections: 10
+#            max-connections-per-host: 10
+##<><><><><><><><><><><><><><> KEYCLOAK <><><><><><><><><><><><><><>
+#keycloak:
+#    enabled: true
+#    realm: prx-access-validator
+#    auth-server-url: https://srv02.prx.test:8993/auth/
+#    ssl-required: external
+#    resource: prx-services
+#    bearer-only: true
+#    public-client: true
+#    confidential-port: 0
+#    disable-trust-manager: true
+#    security-constraints:
+#        - authRoles:
+#            - rservice-rest
+#        - securityCollections:
+#            - patterns: '/user/*'
+#            - name: prx-services
