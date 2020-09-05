@@ -1,7 +1,6 @@
 package com.prx.backoffice.model;
 
 import com.prx.backoffice.converter.UserConverter;
-import com.prx.backoffice.to.user.UserAccessResponse;
 import com.prx.backoffice.util.MessageUtil;
 import com.prx.commons.pojo.Contact;
 import com.prx.commons.pojo.MessageActivity;
@@ -12,7 +11,6 @@ import com.prx.persistence.general.domain.PersonEntity;
 import com.prx.persistence.general.domain.UserEntity;
 import com.prx.persistence.general.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -49,7 +47,7 @@ public class UserModel {
         userEntity = userRepository.findById(userId).orElse(new UserEntity());
 
         if(esNoNulo(userEntity.getId())){
-            user = userConverter.convertFromDataObject(userEntity);
+            user = userConverter.convertFromB(userEntity);
             messageActivity.setObjectResponse(user);
             messageActivity.getMessages().put(200, messageUtil.getSolicitudExitosa());
         }else {
@@ -75,7 +73,7 @@ public class UserModel {
         userEntity = userRepository.findByAlias(alias);
 
         if(esNoNulo(userEntity)){
-            user = userConverter.convertFromDataObject(userEntity);
+            user = userConverter.convertFromB(userEntity);
 
             if(user.getActive()){
                 if(user.getPassword().equals(password)){

@@ -20,14 +20,30 @@ import static com.prx.commons.util.ValidatorCommons.esNoNulo;
 public class ContactConverter extends Converter<Contact, ContactEntity> {
     @Autowired
     private PersonConverter personConverter;
-    @PostConstruct
+
+
+    //    @PostConstruct
+//    @Override
+//    protected void initFunction() {
+//        setFunction(this::getContactEntity,
+//                contactEntity -> new Contact());
+//    }
+
     @Override
-    protected void initFunction() {
-        setFunction(this::getContactEntity,
-                contactEntity -> new Contact());
+    protected Contact getA(ContactEntity contactEntity) {
+        Contact contact = new Contact();
+
+        contact.setId(contactEntity.getId());
+        contact.setPerson(personConverter.getA(contactEntity.getPerson()));
+        contact.setActive(contactEntity.getActive());
+        contact.setContent(contactEntity.getContent());
+        contact.setContactTypeId(contactEntity.getContactType().ordinal());
+
+        return contact;
     }
 
-    private ContactEntity getContactEntity(Contact contact) {
+    @Override
+    protected ContactEntity getB(Contact contact) {
         PersonEntity personEntity = null;
         ContactEntity contactEntity;
 
@@ -42,4 +58,5 @@ public class ContactConverter extends Converter<Contact, ContactEntity> {
 
         return contactEntity;
     }
+
 }

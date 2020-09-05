@@ -63,7 +63,7 @@ public class PersonModel {
 
         personResult = personRepository.findByFirstNameMiddleNameLastName(person.getFirstName(), person.getMiddleName(), person.getLastName());
         if(esNoNulo(personResult)){
-            person = personConverter.convertFromDataObject(personResult);
+            person = personConverter.convertFromB(personResult);
         }
 
         return person;
