@@ -22,7 +22,7 @@ public class  ContactModel {
 
     public void saveAll(List<Contact> contacts) {
         contacts.forEach(contact -> {
-            contactRepository.save(contactConverter.convertFromPojo(contact));
+            contactRepository.save(contactConverter.convertFromA(contact));
         });
     }
 }

@@ -104,7 +104,7 @@ public class UserModel {
         userEntity = userRepository.findAll();
 
         if(!esVacio(userEntity)){
-            user = userConverter.createFromDataObject(userEntity);
+            user = userConverter.createFromB(userEntity);
         }
 
         return user;
@@ -141,7 +141,7 @@ public class UserModel {
                 contactModel.saveAll(contacts);
                 user.getPerson().setId(personEntity.getId());
 
-                userEntity = userConverter.convertFromPojo(user);
+                userEntity = userConverter.convertFromA(user);
                 userRepository.save(userEntity);
                 messageActivity.getMessages().put(200, "Usuario creado");
             }

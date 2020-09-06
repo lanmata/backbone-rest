@@ -3,25 +3,20 @@ package com.prx.backoffice.converter;
 import com.prx.commons.converter.Converter;
 import com.prx.commons.pojo.User;
 import com.prx.persistence.general.domain.UserEntity;
-import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 /**
  *
  * @author <a href="mailto:luis.antonio.mata@gmail.com">Luis Antonio Mata</a>
  */
-@Component
-@NoArgsConstructor
+@Service
 public class UserConverter extends Converter<User, UserEntity> {
     @Autowired
     private PersonConverter personConverter;
 
-//    @PostConstruct
-//    @Override
-//    protected void initFunction() {
-//        setFunction(this::getB, this::getA);
-//    }
+    public UserConverter() {
+        initFunction();}
 
     @Override
     protected User getA(UserEntity userEntity) {
@@ -32,6 +27,6 @@ public class UserConverter extends Converter<User, UserEntity> {
     @Override
     protected UserEntity getB(User user) {
         return new UserEntity(user.getId(),user.getAlias(),user.getPassword(),user.getActive(),
-                personConverter.convertFromPojo(user.getPerson()));
+                personConverter.convertFromA(user.getPerson()));
     }
 }

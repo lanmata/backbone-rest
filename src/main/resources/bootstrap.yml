@@ -26,6 +26,14 @@ spring:
       profile: virtual
 server:
   port: 8084
+
+springfox:
+  documentation:
+    swagger:
+      v2:
+        use-model-v3: false
+    swagger-ui:
+      base-url: /documentacion
 #<><><><><><><><><><><><><><> SERVICE DISCOVERY <><><><><><><><><><><><><><>
 eureka:
   client:

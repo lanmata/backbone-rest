@@ -10,6 +10,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,11 +25,11 @@ import static com.prx.commons.util.ValidatorCommons.esVacio;
 import static java.time.LocalDateTime.now;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+@Slf4j
 @CrossOrigin(origins = "*")
 @RequestMapping("/user")
 @RestController
 public class UserController {
-    private static final Logger LOGGER = LogManager.getLogger(UserController.class);
     @Autowired
     private UserModel userModel;
     @Autowired

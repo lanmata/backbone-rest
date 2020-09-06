@@ -6,9 +6,7 @@ import com.prx.commons.pojo.Contact;
 import com.prx.persistence.general.domain.ContactEntity;
 import com.prx.persistence.general.domain.PersonEntity;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
+import org.springframework.stereotype.Service;
 
 import static com.prx.commons.util.ValidatorCommons.esNoNulo;
 
@@ -16,18 +14,14 @@ import static com.prx.commons.util.ValidatorCommons.esNoNulo;
  *
  * @author <a href="mailto:luis.antonio.mata@gmail.com">Luis Antonio Mata</a>
  */
-@Component
+@Service
 public class ContactConverter extends Converter<Contact, ContactEntity> {
     @Autowired
     private PersonConverter personConverter;
 
-
-    //    @PostConstruct
-//    @Override
-//    protected void initFunction() {
-//        setFunction(this::getContactEntity,
-//                contactEntity -> new Contact());
-//    }
+    public ContactConverter() {
+        initFunction();
+    }
 
     @Override
     protected Contact getA(ContactEntity contactEntity) {
@@ -48,10 +42,10 @@ public class ContactConverter extends Converter<Contact, ContactEntity> {
         ContactEntity contactEntity;
 
         if (esNoNulo(contact.getPerson())) {
-            personEntity = personConverter.convertFromPojo(contact.getPerson());
+            personEntity = personConverter.convertFromA(contact.getPerson());
         }
 
-        personConverter.convertFromPojo(contact.getPerson());
+        personConverter.convertFromA(contact.getPerson());
         contactEntity = new ContactEntity(contact.getId(), contact.getContent(),
                 ContactType.getConctactType(contact.getContactTypeId()),
                 contact.getActive(), personEntity);

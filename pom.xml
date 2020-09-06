@@ -4,16 +4,27 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.prx.backbone</groupId>
     <artifactId>prx-backbone-rest</artifactId>
-    <version>1.0.1.20200713-01</version>
+    <version>1.0.1.20200904-01</version>
     <name>PRX Backbone REST</name>
     <description>Servicios para la gestion de las entidades del sistema</description>
 
     <parent>
         <groupId>com.prx</groupId>
         <artifactId>prx-central</artifactId>
-        <version>1.0.3.20200713-01</version>
+        <version>1.0.3.20200904-01</version>
         <relativePath>../central</relativePath>
     </parent>
+
+    <developers>
+        <developer>
+            <id>lmata</id>
+            <name>Luis Antonio Mata</name>
+            <email>luis.antonio.mata@gmail.com</email>
+            <url>www.prx-dev.com</url>
+            <organization>PRX Dev Innova</organization>
+            <organizationUrl>www.prx.com</organizationUrl>
+        </developer>
+    </developers>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -27,6 +38,11 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-config</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-boot-starter</artifactId>
+            <version>${springfox-swagger2.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -50,14 +66,14 @@
 
 
         <!--		Implementación de keycloak con Oauth2-->
-<!--        				<dependency>-->
-<!--        					<groupId>org.springframework.boot</groupId>-->
-<!--        					<artifactId>spring-boot-starter-security</artifactId>-->
-<!--        				</dependency>-->
+        <!--        				<dependency>-->
+        <!--        					<groupId>org.springframework.boot</groupId>-->
+        <!--        					<artifactId>spring-boot-starter-security</artifactId>-->
+        <!--        				</dependency>-->
         <dependency>
             <groupId>org.springframework.security.oauth.boot</groupId>
             <artifactId>spring-security-oauth2-autoconfigure</artifactId>
-            <version>2.2.4.RELEASE</version>
+            <version>${spring-boot.version}</version>
         </dependency>
         <!--Fin de implementación de keycloak con Oauth2-->
         <dependency>
@@ -75,7 +91,7 @@
         <dependency>
             <groupId>org.springframework.plugin</groupId>
             <artifactId>spring-plugin-core</artifactId>
-            <version>1.2.0.RELEASE</version>
+            <version>${spring-plugin-core.version}</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -87,18 +103,19 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>io.springfox</groupId>
-            <artifactId>springfox-swagger-ui</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.springfox</groupId>
-            <artifactId>springfox-swagger2</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.swagger</groupId>
-            <artifactId>swagger-models</artifactId>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>io.springfox</groupId>-->
+<!--            <artifactId>springfox-swagger-ui</artifactId>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>io.springfox</groupId>-->
+<!--            <artifactId>springfox-swagger2</artifactId>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>io.swagger</groupId>-->
+<!--            <artifactId>swagger-models</artifactId>-->
+<!--            <version>${swagger-models.version}</version>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-commons</artifactId>
@@ -138,7 +155,7 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>2.2.4.RELEASE</version>
+                <version>2.3.3.RELEASE</version>
             </plugin>
             <plugin>
                 <artifactId>maven-antrun-plugin</artifactId>
@@ -167,16 +184,4 @@
             </plugin>
         </plugins>
     </build>
-
-<!--    <repositories>-->
-<!--        <repository>-->
-<!--            <id>spring-milestones</id>-->
-<!--            <name>Spring Milestones</name>-->
-<!--            <url>https://repo.spring.io/milestone</url>-->
-<!--            <snapshots>-->
-<!--                <enabled>false</enabled>-->
-<!--            </snapshots>-->
-<!--        </repository>-->
-<!--    </repositories>-->
-
 </project>

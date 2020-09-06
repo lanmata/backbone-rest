@@ -52,7 +52,7 @@ public class PersonModel {
         PersonEntity personEntity = null;
 
         if(esNoNulo(person)){
-            personEntity = personRepository.save(personConverter.convertFromPojo(person));
+            personEntity = personRepository.save(personConverter.convertFromA(person));
         }
 
         return personEntity;
