@@ -12,7 +12,8 @@ spring:
     config:
       fail-fast: true
       uri:
-        - http://host.docker.internal:8082
+        - http://localhost:8082
+#        - http://host.docker.internal:8082
       retry:
         max-attempts: 6
         max-interval: 5000
@@ -31,7 +32,7 @@ springfox:
   documentation:
     swagger:
       v2:
-        use-model-v3: false
+        use-model-v3: true
     swagger-ui:
       base-url: /documentacion
 #<><><><><><><><><><><><><><> SERVICE DISCOVERY <><><><><><><><><><><><><><>

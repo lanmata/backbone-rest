@@ -1,23 +1,38 @@
-package com.prx.backoffice.model;
+/*
+ *
+ *  * @(#)UserService.java.
+ *  *
+ *  * Copyright (c) Luis Antonio Mata Mata. All rights reserved.
+ *  *
+ *  * All rights to this product are owned by Luis Antonio Mata Mata and may only
+ *  * be used under the terms of its associated license document. You may NOT
+ *  * copy, modify, sublicense, or distribute this source file or portions of
+ *  * it unless previously authorized in writing by Luis Antonio Mata Mata.
+ *  * In any event, this notice and the above copyright must always be included
+ *  * verbatim with this file.
+ *  
+ */
 
-import com.prx.backoffice.converter.UserConverter;
+package com.prx.backoffice.service;
+
+import com.prx.backoffice.mapper.UserMapper;
+import com.prx.backoffice.to.user.UserListResponse;
 import com.prx.backoffice.util.MessageUtil;
 import com.prx.commons.pojo.Contact;
 import com.prx.commons.pojo.MessageActivity;
 import com.prx.commons.pojo.Person;
 import com.prx.commons.pojo.User;
 import com.prx.commons.to.Response;
+import com.prx.commons.util.ValidatorCommonsUtil;
 import com.prx.persistence.general.domain.PersonEntity;
 import com.prx.persistence.general.domain.UserEntity;
 import com.prx.persistence.general.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
-
-import static com.prx.commons.util.ValidatorCommons.esNoNulo;
-import static com.prx.commons.util.ValidatorCommons.esVacio;
-import static java.time.LocalDateTime.now;
+import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 /**
  * Modelo para la gesti&oacute;n de usuarios
@@ -25,29 +40,25 @@ import static java.time.LocalDateTime.now;
  * @author <a href="mailto:luis.antonio.mata@gmail.com">Luis Antonio Mata</a>
  * @since 2019-10-14
  */
-@Component
-public class UserModel {
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private UserConverter userConverter;
-    @Autowired
-    private PersonModel personModel;
-    @Autowired
-    private ContactModel contactModel;
-    @Autowired
-    private MessageUtil messageUtil;
+@Service
+@RequiredArgsConstructor
+public class UserService {
+    private final ContactService contactService;
+    private final UserRepository userRepository;
+    private final PersonService personService;
+    private final MessageUtil messageUtil;
+    private final UserMapper userMapper;
 
     public MessageActivity findUserById(Long userId){
         UserEntity userEntity;
-        User user = null;
+        User user;
         MessageActivity messageActivity;
         messageActivity = new MessageActivity();
 
         userEntity = userRepository.findById(userId).orElse(new UserEntity());
 
-        if(esNoNulo(userEntity.getId())){
-            user = userConverter.convertFromB(userEntity);
+        if(ValidatorCommonsUtil.esNoNulo(userEntity.getId())){
+            user = userMapper.toTarget(userEntity);
             messageActivity.setObjectResponse(user);
             messageActivity.getMessages().put(200, messageUtil.getSolicitudExitosa());
         }else {
@@ -72,10 +83,10 @@ public class UserModel {
 
         userEntity = userRepository.findByAlias(alias);
 
-        if(esNoNulo(userEntity)){
-            user = userConverter.convertFromB(userEntity);
+        if(ValidatorCommonsUtil.esNoNulo(userEntity)){
+            user = userMapper.toTarget(userEntity);
 
-            if(user.getActive()){
+            if(user.isActive()){
                 if(user.getPassword().equals(password)){
                     //TODO - Agregar logica para generacion de token que da acceso al aplicativo
                     // Usuario valido y activo
@@ -97,17 +108,24 @@ public class UserModel {
         return messageActivity;
     }
 
-    public List<User> findAll(){
-        List<UserEntity> userEntity;
-        List<User> user = null;
+    public UserListResponse findAll(){
+        final var userListResponse = new UserListResponse();
+        List<UserEntity> userEntityList;
+        List<User> userList = null;
 
-        userEntity = userRepository.findAll();
-
-        if(!esVacio(userEntity)){
-            user = userConverter.createFromB(userEntity);
+        userEntityList = userRepository.findAll();
+        userListResponse.setDateTime(LocalDateTime.now(ZoneId.systemDefault()));
+        if(userEntityList.isEmpty()){
+            userListResponse.setCode(204);
+            userListResponse.setMessage("No existes usuarios registrados");
+        }else {
+            userList = userEntityList.stream().map(userMapper::toTarget).collect(Collectors.toList());
+            userListResponse.setCode(200);
+            userListResponse.setList(userList);
+            userListResponse.setMessage("Busqueda completada con exito");
         }
 
-        return user;
+        return userListResponse;
     }
 
     /**
@@ -125,28 +143,27 @@ public class UserModel {
 
         userEntity = userRepository.findByAlias(user.getAlias());
 
-        if(esNoNulo(userEntity)){
+        if(ValidatorCommonsUtil.esNoNulo(userEntity)){
             messageActivity.getMessages().put(402, "Nombre de usuario ya se encuentra ocupado, ingrese un nombre de usuario diferente");
         }else{
-            person = personModel.find(user.getPerson());
-            if(esNoNulo(person.getId())){
+            person = personService.find(user.getPerson());
+            if(ValidatorCommonsUtil.esNoNulo(person.getId())){
                 user.getPerson().setId(person.getId());
                 //TODO Primero se debe validar si la persona tiene un usuario ya vinculado, no se puede crear un nuevo usuario
             }else{
                 contacts = user.getPerson().getContactList();
                 user.getPerson().setContactList(null);
-                personEntity = personModel.save(user.getPerson());
+                personEntity = personService.save(user.getPerson());
                 contacts.forEach(contact -> contact.getPerson().setId(personEntity.getId()));
                 //TODO Crear contactos
-                contactModel.saveAll(contacts);
+                contactService.saveAll(contacts);
                 user.getPerson().setId(personEntity.getId());
 
-                userEntity = userConverter.convertFromA(user);
+                userEntity = userMapper.toSource(user);
                 userRepository.save(userEntity);
                 messageActivity.getMessages().put(200, "Usuario creado");
             }
         }
-
 
         return messageActivity;
     }

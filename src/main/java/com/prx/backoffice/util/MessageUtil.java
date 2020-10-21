@@ -1,8 +1,24 @@
+/*
+ *
+ *  * @(#)MessageUtil.java.
+ *  *
+ *  * Copyright (c) Luis Antonio Mata Mata. All rights reserved.
+ *  *
+ *  * All rights to this product are owned by Luis Antonio Mata Mata and may only
+ *  * be used under the terms of its associated license document. You may NOT
+ *  * copy, modify, sublicense, or distribute this source file or portions of
+ *  * it unless previously authorized in writing by Luis Antonio Mata Mata.
+ *  * In any event, this notice and the above copyright must always be included
+ *  * verbatim with this file.
+ *  
+ */
+
 package com.prx.backoffice.util;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import static com.prx.commons.util.JsonUtil.toJson;
 
@@ -12,7 +28,8 @@ import static com.prx.commons.util.JsonUtil.toJson;
  * @author Luis Antonio Mata
  */
 @Getter
-@Component
+@Service
+@NoArgsConstructor
 public class MessageUtil {
     @Value("${messages.user.solicitud-nula-vacia}")
     private String userSolicitudNulaVacia;
@@ -39,8 +56,10 @@ public class MessageUtil {
     @Value("${messages.user.solicitud-exitosa}")
     private String solicitudExitosa;
 
-
-
+    /**
+     *
+     * @return Objeto de tipo {@link String}
+     */
     @Override
     public String toString(){
         return toJson(this);

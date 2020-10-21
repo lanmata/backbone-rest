@@ -1,6 +1,6 @@
 /*
  *
- *  * @(#)UserResponse.java.
+ *  * @(#)DateRequest.java.
  *  *
  *  * Copyright (c) Luis Antonio Mata Mata. All rights reserved.
  *  *
@@ -15,30 +15,26 @@
 
 package com.prx.backoffice.to.user;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.prx.commons.pojo.User;
-import com.prx.commons.to.Response;
+import com.prx.commons.to.Request;
 import com.prx.commons.util.JsonUtil;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * DateRequest.
+ *
+ * @author &lt;a href='mailto:luis.antonio.mata@gmail.com'&gt;Luis Antonio Mata&lt;/a&gt;
+ * @version 1.0.0, 25-09-2020
+ */
 @Setter
 @Getter
 @NoArgsConstructor
-@JsonInclude
-@JsonPropertyOrder({
-        "datetimeResponse",
-        "user"
-})
-public class UserResponse extends Response {
-    @JsonProperty("user")
-    private User user;
+public class DateRequest extends Request {
 
     @Override
     public String toString() {
         return JsonUtil.toJson(this);
     }
+
 }
