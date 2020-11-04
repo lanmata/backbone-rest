@@ -10,79 +10,44 @@
  *  * it unless previously authorized in writing by Luis Antonio Mata Mata.
  *  * In any event, this notice and the above copyright must always be included
  *  * verbatim with this file.
- *  
+ *
  */
 
 package com.prx.backoffice.service;
 
-import com.prx.backoffice.mapper.PersonMapper;
+import com.prx.commons.pojo.MessageActivity;
 import com.prx.commons.pojo.Person;
-import com.prx.commons.to.Response;
-import static com.prx.commons.util.ValidatorCommonsUtil.esNoNulo;
-import com.prx.persistence.general.domain.PersonEntity;
-import com.prx.persistence.general.repository.PersonRepository;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
 /**
- * Modelo para la gesti&oacute;n de persona
+ * PersonService.
  *
- * @author <a href="mailto:luis.antonio.mata@gmail.com">Luis Antonio Mata</a>
- * @since 2019-11-14
+ * @author Luis Antonio Mata
+ * @version 1.0.1.20200904-01, 02-11-2020
  */
-@Service
-@RequiredArgsConstructor
-public class PersonService {
-    private final PersonRepository personRepository;
-    private final PersonMapper personMapper;
+public interface PersonService {
 
     /**
      * Crea un registro
      *
      * @param person Objeto de tipo {@link Person}
-     * @return Objeto de tipo {@link Response}
+     * @return Objeto de tipo {@link MessageActivity}
      */
-    public Response create(Person person){
-        PersonEntity personEntity;
-        Response response;
-        personEntity = save(person);
-        response = new Response();
-        if (esNoNulo(personEntity) && esNoNulo(personEntity.getId())){
-            response.setDateTime(LocalDateTime.now(ZoneId.systemDefault()));
-        }
-
-        return response;
-    }
+    MessageActivity create(Person person);
 
     /**
      * Crea un registro
      *
      * @param person Objeto de tipo {@link Person}
-     * @return Objeto de tipo {@link PersonEntity}
+     * @return Objeto de tipo {@link MessageActivity}
      */
-    public PersonEntity save(Person person){
-        PersonEntity personEntity = null;
+    MessageActivity save(Person person);
 
-        if(esNoNulo(person)){
-            personEntity = personRepository.save(personMapper.toSource(person));
-        }
-
-        return personEntity;
-    }
-
-    public Person find(Person person){
-        PersonEntity personResult;
-        Person personRs = null;
-
-        personResult = personRepository.findByFirstNameMiddleNameLastName(person.getFirstName(), person.getMiddleName(),
-            person.getLastName());
-        if(esNoNulo(personResult)){
-            personRs = personMapper.toTarget(personResult);
-        }
-
-        return personRs;
-    }
+    /**
+     * Realiza la busqueda de una persona
+     *
+     * @param person Objeto de tipo {@link Person}
+     * @return Objeto de tipo {@link MessageActivity}
+     */
+    MessageActivity find(Person person);
 
 }

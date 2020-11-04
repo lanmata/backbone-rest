@@ -57,54 +57,56 @@ public class UserController {
     private final MessageUtil messageUtil;
 
     @PreAuthorize("hasAnyAuthority('ms_user_test')")
-    @ApiOperation(value = "Valor identificador",
-            notes = "Provee el ultimo dato del mercado")
+    @ApiOperation(value = "Busca los usuarios a trav&eacute;s del identificador",
+        notes = "Busca los usuarios a trav&eacute;s del identificador")
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "${messages.general.user-find.ok}", response = UserResponse.class)
-            ,@ApiResponse(code = 404, message = "${messages.general.user-find.nok}", response = UserResponse.class)
-            ,@ApiResponse(code = 500, message = "${messages.general.user-find.error}", response = String.class)
+        @ApiResponse(code = 200, message = "${messages.general.user-find.ok}", response = UserResponse.class),
+        @ApiResponse(code = 404, message = "${messages.general.user-find.nok}", response = UserResponse.class),
+        @ApiResponse(code = 500, message = "${messages.general.user-find.error}", response = String.class)
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/find/{token}/{userId}")
-    public UserResponse find(@ApiParam(value = "Token de acceso", required = true) @PathVariable @NotNull String token,
-                             @ApiParam(value = "Id de usuario", required = true) @PathVariable @NotNull Long userId){
+    public UserResponse find(
+        @ApiParam(value = "Token de acceso", required = true) @PathVariable @NotNull String token,
+        @ApiParam(value = "Id de usuario", required = true) @PathVariable @NotNull Long userId){
         UserResponse userResponse;
         MessageActivity messageActivity;
 
         userResponse = new UserResponse();
         messageActivity = userService.findUserById(userId);
-        toResponse(messageActivity, userResponse);
+        MessageActivityUtil.toResponse(messageActivity, userResponse);
         userResponse.setUser((User) messageActivity.getObjectResponse());
 
         return userResponse;
     }
 
     @ApiOperation(value = "Obtiene una lista de usuarios",
-            notes = "Provee el ultimo dato del mercado")
+        notes = "Obtiene una lista de usuarios")
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "${messages.general.user-find.ok}", response = UserListResponse.class)
-            ,@ApiResponse(code = 404, message = "${messages.general.user-find.nok}", response = UserListResponse.class)
-            ,@ApiResponse(code = 500, message = "${messages.general.user-find.error}", response = String.class)
+        @ApiResponse(code = 200, message = "${messages.general.user-find.ok}", response = UserListResponse.class),
+        @ApiResponse(code = 404, message = "${messages.general.user-find.nok}", response = UserListResponse.class),
+        @ApiResponse(code = 500, message = "${messages.general.user-find.error}", response = String.class)
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/findAll/{token}/{userId}")
-    public UserListResponse findAll(@ApiParam(value = "Token de acceso", required = true) @PathVariable @NotNull String token,
-                                    @ApiParam(value = "Id de usuario", required = true) @PathVariable @NotNull Long userId){
+    public UserListResponse findAll(
+        @ApiParam(value = "Token de acceso", required = true) @PathVariable @NotNull String token,
+        @ApiParam(value = "Id de usuario", required = true) @PathVariable @NotNull Long userId){
         final var userResponse = userService.findAll();
         userResponse.setDatetimeResponse(LocalDateTime.now(ZoneId.systemDefault()));
 
         return userResponse;
     }
 
-    @ApiOperation(value = "Realiza la autenticacion de usuario",
-            notes = "Provee el ultimo dato del mercado")
+    @ApiOperation(value = "Realiza la autenticaci&oacute;n de usuario",
+        notes = "Realiza la autenticaci&oacute;n de usuario")
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "${messages.general.user-find.ok}", response = UserAccessResponse.class)
-            ,@ApiResponse(code = 401, message = "${messages.general.user-find.not-authorized}", response = UserAccessResponse.class)
-            ,@ApiResponse(code = 404, message = "${messages.general.user-find.nok}", response = UserAccessResponse.class)
-            ,@ApiResponse(code = 500, message = "${messages.general.user-find.error}", response = String.class)
+        @ApiResponse(code = 200, message = "${messages.general.user-find.ok}", response = UserAccessResponse.class),
+        @ApiResponse(code = 401, message = "${messages.general.user-find.not-authorized}", response = UserAccessResponse.class),
+        @ApiResponse(code = 404, message = "${messages.general.user-find.nok}", response = UserAccessResponse.class),
+        @ApiResponse(code = 500, message = "${messages.general.user-find.error}", response = String.class)
     })
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/login")
     public UserAccessResponse login(@ApiParam(value = "Objeto de tipo UserAccessRequest", required = true)
-                                    @RequestBody UserAccessRequest userAccessRequest){
+    @RequestBody UserAccessRequest userAccessRequest){
         UserAccessResponse userAccessResponse = new UserAccessResponse();
         MessageActivity messageActivity;
 
@@ -121,7 +123,7 @@ public class UserController {
             // TODO - Agregar logica para validar datos de usuario
             messageActivity = userService.access(userAccessRequest.getAlias(), userAccessRequest.getPassword());
             userAccessResponse.setToken(messageActivity.getObjectResponse().toString());
-            toResponse(messageActivity, userAccessResponse);
+            MessageActivityUtil.toResponse(messageActivity, userAccessResponse);
         }
         userAccessResponse.setDateTime(LocalDateTime.now(ZoneId.systemDefault()));
 
@@ -129,17 +131,17 @@ public class UserController {
     }
 
     @ApiOperation(value = "Crea un nuevo usuario",
-        notes = "Realiza la creacion de usuario para ingreso en el sistema")
+        notes = "Crea un nuevo usuario")
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "OK", response = Response.class)
-            ,@ApiResponse(code = 401, message = "No autorizado", response = Response.class)
-            ,@ApiResponse(code = 404, message = "No encontrado", response = Response.class)
-            ,@ApiResponse(code = 500, message = "Internal Server Error", response = String.class)
+        @ApiResponse(code = 200, message = "OK", response = Response.class),
+        @ApiResponse(code = 401, message = "No autorizado", response = Response.class),
+        @ApiResponse(code = 404, message = "No encontrado", response = Response.class),
+        @ApiResponse(code = 500, message = "Internal Server Error", response = String.class)
     })
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/create")
     public Response create(@ApiParam(value = "Objeto de tipo UserCreateRequest", required = true)
-                               @RequestBody UserCreateRequest userCreateRequest){
-        Response response = new Response();
+    @RequestBody UserCreateRequest userCreateRequest){
+        final var response = new Response();
 
         if(ValidatorCommonsUtil.esNulo(userCreateRequest)||ValidatorCommonsUtil.esNulo(userCreateRequest.getUser())){
             response.setMessage(messageUtil.getUserSolicitudNulaVacia());
@@ -149,25 +151,9 @@ public class UserController {
             response.setMessage(messageUtil.getUserClaveNulaVacia());
         }
 
-        toResponse(userService.create(userCreateRequest.getUser()), response);
+        MessageActivityUtil.toResponse(userService.create(userCreateRequest.getUser()), response);
 
         return response;
     }
 
-    @ApiOperation(value = "Recibe una fecha de tipo localDate y retorna su valor",
-        notes = "fecha de tipo localDate")
-    @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "OK", response = Response.class)
-        ,@ApiResponse(code = 401, message = "No autorizado", response = Response.class)
-        ,@ApiResponse(code = 404, message = "No encontrado", response = Response.class)
-        ,@ApiResponse(code = 500, message = "Internal Server Error", response = String.class)
-    })
-    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public Response getDate(@RequestBody DateRequest request){
-        Response response = new Response();
-        log.info("Datos recibidos: {}", request.toString() );
-
-        response.setMessage("Fecha recibida " + request.getDateTime().format(DATE_FORMATTER));
-        return response;
-    }
 }

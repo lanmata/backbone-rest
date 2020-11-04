@@ -10,33 +10,28 @@
  *  * it unless previously authorized in writing by Luis Antonio Mata Mata.
  *  * In any event, this notice and the above copyright must always be included
  *  * verbatim with this file.
- *  
+ *
  */
 
 package com.prx.backoffice.service;
 
-import com.prx.backoffice.mapper.ContactMapper;
 import com.prx.commons.pojo.Contact;
-import com.prx.persistence.general.repository.ContactRepository;
+import com.prx.commons.pojo.MessageActivity;
 import java.util.List;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
 /**
  * ContactService.
  *
  * @author Luis Antonio Mata
- * @version 1.0.0, 20-10-2020
+ * @version 1.0.1.20200904-01, 02-11-2020
  */
-@Service
-@RequiredArgsConstructor
-public class ContactService {
-    private final ContactRepository contactRepository;
-    private final ContactMapper contactMapper;
+public interface ContactService {
 
-    public void saveAll(List<Contact> contacts) {
-        contacts.forEach(contact ->
-            contactRepository.save(contactMapper.toSource(contact))
-        );
-    }
+    /**
+     * Registra los contactos recibidos asociados a las personas
+     *
+     * @param contacts Objeto de tipo {@link}List<{@link Contact}>
+     * @return Objeto de tipo {@link MessageActivity}
+     */
+    MessageActivity saveAll(List<Contact> contacts);
 }

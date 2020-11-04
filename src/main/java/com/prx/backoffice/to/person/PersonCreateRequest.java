@@ -1,6 +1,6 @@
 /*
  *
- *  * @(#)DateRequest.java.
+ *  * @(#)PersonCreateRequest.java.
  *  *
  *  * Copyright (c) Luis Antonio Mata Mata. All rights reserved.
  *  *
@@ -12,9 +12,9 @@
  *  * verbatim with this file.
  *
  */
+package com.prx.backoffice.to.person;
 
-package com.prx.backoffice.to.user;
-
+import com.prx.commons.pojo.Person;
 import com.prx.commons.to.Request;
 import com.prx.commons.util.JsonUtil;
 import lombok.Getter;
@@ -22,19 +22,19 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * DateRequest.
+ * PersonCreateRequest.
  *
- * @author &lt;a href='mailto:luis.antonio.mata@gmail.com'&gt;Luis Antonio Mata&lt;/a&gt;
- * @version 1.0.0, 25-09-2020
+ * @author Luis Antonio Mata
+ * @version 1.0.1.20200904-01, 04-11-2020
  */
-@Setter
 @Getter
+@Setter
 @NoArgsConstructor
-public class DateRequest extends Request {
+public class PersonCreateRequest extends Request {
+    private Person person;
 
     @Override
     public String toString() {
         return JsonUtil.toJson(this);
     }
-
 }
