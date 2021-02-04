@@ -17,10 +17,11 @@ package com.prx.backoffice.service.impl;
 
 import com.prx.backoffice.mapper.ContactMapper;
 import com.prx.commons.pojo.Contact;
-import com.prx.persistence.general.repository.ContactRepository;
-import java.util.List;
+import com.prx.persistence.general.repositories.ContactRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * ContactService.

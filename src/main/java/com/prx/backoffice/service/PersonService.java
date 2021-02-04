@@ -17,6 +17,7 @@ package com.prx.backoffice.service;
 
 import com.prx.commons.pojo.MessageActivity;
 import com.prx.commons.pojo.Person;
+import com.prx.persistence.general.domains.PersonEntity;
 
 /**
  * PersonService.
@@ -27,27 +28,27 @@ import com.prx.commons.pojo.Person;
 public interface PersonService {
 
     /**
-     * Crea un registro
+     * Crea un registro de persona
      *
      * @param person Objeto de tipo {@link Person}
-     * @return Objeto de tipo {@link MessageActivity}
+     * @return Objeto de tipo {@link MessageActivity}<{@link Person}>
      */
-    MessageActivity create(Person person);
+    MessageActivity<Person> create(Person person);
 
     /**
-     * Crea un registro
+     * Crea un registro de persona
      *
      * @param person Objeto de tipo {@link Person}
-     * @return Objeto de tipo {@link MessageActivity}
+     * @return Objeto de tipo {@link MessageActivity}<{@link Person}>
      */
-    MessageActivity save(Person person);
+    MessageActivity<PersonEntity> save(Person person);
 
     /**
      * Realiza la busqueda de una persona
      *
      * @param person Objeto de tipo {@link Person}
-     * @return Objeto de tipo {@link MessageActivity}
+     * @return Objeto de tipo {@link MessageActivity}<{@link Person}>
      */
-    MessageActivity find(Person person);
+    MessageActivity<Person> find(Person person);
 
 }

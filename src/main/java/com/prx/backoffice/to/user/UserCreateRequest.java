@@ -15,7 +15,6 @@
 
 package com.prx.backoffice.to.user;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.prx.commons.pojo.User;
 import com.prx.commons.to.Request;
@@ -31,7 +30,6 @@ import lombok.Setter;
         "user"
 })
 public class UserCreateRequest extends Request {
-    @JsonProperty("user")
     private User user;
 
     @Override

@@ -69,12 +69,12 @@ public class UserController {
         @ApiParam(value = "Token de acceso", required = true) @PathVariable @NotNull String token,
         @ApiParam(value = "Id de usuario", required = true) @PathVariable @NotNull Long userId){
         UserResponse userResponse;
-        MessageActivity messageActivity;
+        MessageActivity<User> messageActivity;
 
         userResponse = new UserResponse();
         messageActivity = userService.findUserById(userId);
         MessageActivityUtil.toResponse(messageActivity, userResponse);
-        userResponse.setUser((User) messageActivity.getObjectResponse());
+        userResponse.setUser(messageActivity.getObjectResponse());
 
         return userResponse;
     }
@@ -90,10 +90,14 @@ public class UserController {
     public UserListResponse findAll(
         @ApiParam(value = "Token de acceso", required = true) @PathVariable @NotNull String token,
         @ApiParam(value = "Id de usuario", required = true) @PathVariable @NotNull Long userId){
-        final var userResponse = userService.findAll();
-        userResponse.setDatetimeResponse(LocalDateTime.now(ZoneId.systemDefault()));
+        final var messageActivity = userService.findAll();
+        final var userListResponse = new UserListResponse();
 
-        return userResponse;
+        userListResponse.setList(messageActivity.getObjectResponse());
+        userListResponse.setDateTime(LocalDateTime.now(ZoneId.systemDefault()));
+        userListResponse.setMessage(messageActivity.getMessages().get(1));
+
+        return userListResponse;
     }
 
     @ApiOperation(value = "Realiza la autenticaci&oacute;n de usuario",
@@ -133,9 +137,8 @@ public class UserController {
     @ApiOperation(value = "Crea un nuevo usuario",
         notes = "Crea un nuevo usuario")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "OK", response = Response.class),
-        @ApiResponse(code = 401, message = "No autorizado", response = Response.class),
-        @ApiResponse(code = 404, message = "No encontrado", response = Response.class),
+        @ApiResponse(code = 200, message = "Usuario creado con éxito.", response = Response.class),
+        @ApiResponse(code = 401, message = "Acción NO autorizada", response = Response.class),
         @ApiResponse(code = 500, message = "Internal Server Error", response = String.class)
     })
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/create")

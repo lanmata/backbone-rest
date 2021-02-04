@@ -35,23 +35,6 @@ springfox:
         use-model-v3: true
     swagger-ui:
       base-url: /documentacion
-#<><><><><><><><><><><><><><> SERVICE DISCOVERY <><><><><><><><><><><><><><>
-eureka:
-  client:
-    url: prx.test
-    port: 8763
-    register-with-eureka: true
-    enable: true
-    healtcheck: true
-    serviceUrl:
-      defaultZone: https://${eureka.client.url}:${eureka.client.port}/eureka/
-  instance:
-    leaseRenewalIntervalInSeconds: 30
-    hostName: prx.test
-    preferIpAddress: true
-    status-page-url-path: https://${eureka.instance.hostName}:${server.port}/actuator/info
-    health-check-url: https://${eureka.instance.hostName}:${server.port}/actuator/health
-    home-page-url: https://${eureka.instance.hostName}:${server.port}/
 #<><><><><><><><><><><><><><> HTPS <><><><><><><><><><><><><><>
 security:
   discovery:

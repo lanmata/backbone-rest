@@ -31,10 +31,11 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @EnableDiscoveryClient
 @EnableJpaRepositories(basePackages = {"com.prx.persistence"})
 @EntityScan(basePackages = {"com.prx.persistence"})
-@ComponentScan(basePackages = {"com.prx.backoffice","com.prx.commons.config"})
+@ComponentScan(basePackages = {"com.prx.backoffice", "com.prx.commons.config", "com.prx.commons.properties"})
 @SpringBootApplication
 @RequiredArgsConstructor
 public class PrxBackofficeRestApplication  extends SpringBootServletInitializer {
+
 	public static void main(String[] args) {
 		SpringApplication.run(PrxBackofficeRestApplication.class, args);
 	}

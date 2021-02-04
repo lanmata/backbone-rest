@@ -1,6 +1,6 @@
 /*
  *
- *  * @(#)ContactService.java.
+ *  * @(#)PersonServiceImplTest.java.
  *  *
  *  * Copyright (c) Luis Antonio Mata Mata. All rights reserved.
  *  *
@@ -12,28 +12,34 @@
  *  * verbatim with this file.
  *
  */
+package com.prx.backoffice.service.impl;
 
-package com.prx.backoffice.service;
-
-import com.prx.commons.pojo.Contact;
-import com.prx.commons.pojo.MessageActivity;
-
-import java.util.List;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
- * ContactService.
+ * PersonServiceImplTest.
  *
  * @author Luis Antonio Mata
- * @version 1.0.1.20200904-01, 02-11-2020
+ * @version 1.0.1.20200904-01, 06-11-2020
  */
-public interface ContactService {
+class PersonServiceImplTest {
 
-    /**
-     * Registra los contactos recibidos asociados a las personas
-     *
-     * @param contacts Objeto de tipo {@link List}
-     *
-     * @return Objeto de tipo {@link MessageActivity}
-     */
-    MessageActivity<Contact> saveAll(List<Contact> contacts);
+    @BeforeEach
+    void setUp() {
+    }
+
+    @Test
+    void create() {
+    }
+
+    @Test
+    void save() {
+    }
+
+    @Test
+    void find() {
+    }
+
 }

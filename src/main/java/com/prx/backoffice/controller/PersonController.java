@@ -32,7 +32,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * PersonController.
+ * PersonController. Clase controladora para la exposición de los endpoint pertenecientes a la gestión de usuario
  *
  * @author Luis Antonio Mata
  * @version 1.0.1.20200904-01, 04-11-2020
@@ -45,11 +45,20 @@ import org.springframework.web.bind.annotation.RestController;
 public class PersonController {
     private final PersonService personService;
 
+    /**
+     *
+     * @param personCreateRequest {@link PersonCreateRequest}
+     * @return Objeto de tipo {@link Response}
+     */
     @ApiOperation(value = "Crea un nueva persona",
         notes = "Crea un nuevo persona")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "OK!", response = Response.class),
-        @ApiResponse(code = 401, message = "Persona no creada", response = Response.class),
+        @ApiResponse(code = 201, message = "Persona creada", response = Response.class),
+        @ApiResponse(code = 400, message = "Solicitud errada", response = Response.class),
+        @ApiResponse(code = 401, message = "Solicitante no tiene permisos, requiere autenticación", response =
+                                                                                                  Response.class),
+        @ApiResponse(code = 403, message = "Persona no creada", response = Response.class),
+        @ApiResponse(code = 405, message = "Método no permitido", response = Response.class),
         @ApiResponse(code = 500, message = "Error interno durante la creación de persona", response = String.class)
     })
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/create")

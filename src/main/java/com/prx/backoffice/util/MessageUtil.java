@@ -10,17 +10,16 @@
  *  * it unless previously authorized in writing by Luis Antonio Mata Mata.
  *  * In any event, this notice and the above copyright must always be included
  *  * verbatim with this file.
- *  
+ *
  */
 
 package com.prx.backoffice.util;
 
+import com.prx.commons.util.JsonUtil;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
-import static com.prx.commons.util.JsonUtil.toJson;
 
 /**
  * Clase utilitaria para gestion de mensajes
@@ -62,7 +61,7 @@ public class MessageUtil {
      */
     @Override
     public String toString(){
-        return toJson(this);
+        return JsonUtil.toJson(this);
     }
 
 }

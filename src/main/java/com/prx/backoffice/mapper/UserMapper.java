@@ -15,7 +15,7 @@
 package com.prx.backoffice.mapper;
 
 import com.prx.commons.pojo.User;
-import com.prx.persistence.general.domain.UserEntity;
+import com.prx.persistence.general.domains.UserEntity;
 import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
 

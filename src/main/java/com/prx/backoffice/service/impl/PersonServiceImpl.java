@@ -15,20 +15,26 @@
 
 package com.prx.backoffice.service.impl;
 
+import com.prx.backoffice.enums.keys.UserMessageKey;
 import com.prx.backoffice.mapper.PersonMapper;
 import com.prx.backoffice.service.PersonService;
+import com.prx.commons.exception.StandardException;
 import com.prx.commons.pojo.MessageActivity;
 import com.prx.commons.pojo.Person;
-import static com.prx.commons.util.ValidatorCommonsUtil.esNoNulo;
-import com.prx.persistence.general.domain.PersonEntity;
-import com.prx.persistence.general.repository.PersonRepository;
+import static com.prx.commons.util.ValidatorCommonsUtil.esNulo;
+import com.prx.persistence.general.domains.PersonEntity;
+import com.prx.persistence.general.repositories.PersonRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import javax.ws.rs.core.Response;
+
 /**
- * Modelo para la gesti&oacute;n de persona
+ * Modelo para la gesti&oacute;n de persona.
  *
- * @author <a href="mailto:luis.antonio.mata@gmail.com">Luis Antonio Mata</a>
+ * @author <a href="mailto:luis.antonio.mata@gmail.com">Luis Antonio Mata.</a>
  * @version 1.0.1.20200904-01, 2019-11-14
  */
 @Service
@@ -36,6 +42,7 @@ import org.springframework.stereotype.Service;
 public class PersonServiceImpl implements PersonService {
     private final PersonRepository personRepository;
     private final PersonMapper personMapper;
+    private static final Logger LOGGER = LoggerFactory.getLogger(PersonServiceImpl.class);
 
     /** {@inheritDoc}
      * @return*/
@@ -53,28 +60,32 @@ public class PersonServiceImpl implements PersonService {
     public MessageActivity<PersonEntity> save(Person person){
         final var messageActivity = new MessageActivity<PersonEntity>();
 
-        if(esNoNulo(person)){
+        if (!esNulo(person)) {
             messageActivity.setObjectResponse(personRepository.save(personMapper.toSource(person)));
-            messageActivity.getMessages().put(200, "Persona registrada correctamente");
+            messageActivity.getMessages().put(Response.Status.CREATED.getStatusCode(),
+                Response.Status.CREATED.toString());
         }
 
         return messageActivity;
     }
 
     /** {@inheritDoc} */
-    public MessageActivity<Person> find(Person person){
-        final var messageActivity = new MessageActivity<Person>();
-        final var personResult = personRepository.findByFirstNameMiddleNameLastName(
-            person.getFirstName(),
-            person.getMiddleName(),
-            person.getLastName());
-        if(esNoNulo(personResult)){
-            messageActivity.setObjectResponse(personMapper.toTarget(personResult));
-            //PENDING Colocar un mensaje parametrizado
-            messageActivity.getMessages().put(200, "Persona encontrada");
-        }
+    public MessageActivity<Person> find(Person person) {
+        try {
+            final var messageActivity = new MessageActivity<Person>();
+            final var personResult = personRepository.findByFirstNameMiddleNameLastName(person.getFirstName(),
+                person.getMiddleName(), person.getLastName());
+            if (!esNulo(personResult)) {
+                messageActivity.setObjectResponse(personMapper.toTarget(personResult));
+                messageActivity.getMessages().put(Response.Status.CREATED.getStatusCode(),
+                    Response.Status.CREATED.toString());
+            }
 
-        return messageActivity;
+            return messageActivity;
+        } catch (Exception e) {
+            LOGGER.warn("Se ha producido un error inesperado");
+            throw new StandardException(UserMessageKey.USER_CREATE_ERROR, e);
+        }
     }
 
 }

@@ -16,7 +16,7 @@ package com.prx.backoffice.mapper;
 
 import com.prx.commons.enums.types.ContactType;
 import com.prx.commons.pojo.Contact;
-import com.prx.persistence.general.domain.ContactEntity;
+import com.prx.persistence.general.domains.ContactEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -28,21 +28,23 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @RequiredArgsConstructor
+
 public abstract class ContactMapperDecorator implements ContactMapper {
 
     private final ContactMapper contactMapper;
+    private final ContactTypeMapper contactTypeMapper;
 
     @Override
     public Contact toTarget(final ContactEntity contactEntity) {
         var contact = contactMapper.toTarget(contactEntity);
-        contact.setContactTypeId(contactEntity.getContactType().ordinal());
+        contact.setContactType(contactTypeMapper.toTarget(contactEntity.getContactType()));
         return contact;
     }
 
     @Override
     public ContactEntity toSource(final Contact contact) {
         var contactEntity = contactMapper.toSource(contact);
-        contactEntity.setContactType(ContactType.getConctactType(contact.getContactTypeId()));
+        contactEntity.setContactType(contactTypeMapper.toSource(contact.getContactType()));
         return contactEntity;
     }
 
