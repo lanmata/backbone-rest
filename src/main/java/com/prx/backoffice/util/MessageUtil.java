@@ -24,7 +24,8 @@ import org.springframework.stereotype.Service;
 /**
  * Clase utilitaria para gestion de mensajes
  *
- * @author Luis Antonio Mata
+ * @author <a href="mailto:luis.antonio.mata@gmail.com">Luis Antonio Mata</a>
+ * @version 1.0.1.20200904-01, 2019-10-14
  */
 @Getter
 @Service

@@ -26,6 +26,12 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
+/**
+ * MessageUtilTest.
+ *
+ * @author Luis Antonio Mata
+ * @version 1.0.1.20200904-01, 26-10-2020
+ */
 @FeignClient
 @EnableEurekaClient
 @EnableDiscoveryClient

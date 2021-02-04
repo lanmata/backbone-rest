@@ -12,9 +12,10 @@
  *  * verbatim with this file.
  *
  */
-package com.prx.backoffice.mapper;
+package com.prx.backoffice.mapper.decorator;
 
-import com.prx.commons.enums.types.ContactType;
+import com.prx.backoffice.mapper.ContactMapper;
+import com.prx.backoffice.mapper.ContactTypeMapper;
 import com.prx.commons.pojo.Contact;
 import com.prx.persistence.general.domains.ContactEntity;
 import lombok.RequiredArgsConstructor;

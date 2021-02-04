@@ -15,7 +15,7 @@
 
 package com.prx.backoffice.controller;
 
-import com.prx.backoffice.to.user.DateRequest;
+import com.prx.backoffice.service.UserService;
 import com.prx.backoffice.to.user.UserAccessRequest;
 import com.prx.backoffice.to.user.UserAccessResponse;
 import com.prx.backoffice.to.user.UserCreateRequest;
@@ -25,8 +25,7 @@ import com.prx.backoffice.util.MessageUtil;
 import com.prx.commons.pojo.MessageActivity;
 import com.prx.commons.pojo.User;
 import com.prx.commons.to.Response;
-import static com.prx.commons.util.DateUtil.DATE_FORMATTER;
-import static com.prx.commons.util.MessageActivityUtil.toResponse;
+import com.prx.commons.util.MessageActivityUtil;
 import com.prx.commons.util.ValidatorCommonsUtil;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -53,7 +52,7 @@ import org.springframework.web.bind.annotation.RestController;
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class UserController {
-    private final com.prx.backoffice.service.UserService userService;
+    private final UserService userService;
     private final MessageUtil messageUtil;
 
     @PreAuthorize("hasAnyAuthority('ms_user_test')")

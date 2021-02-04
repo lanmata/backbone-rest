@@ -44,7 +44,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 
 /**
  * @author <a href="mailto:luis.antonio.mata@gmail.com">Luis Antonio Mata</a>
- * @since 2020-03-01
+ * @version 1.0.1.20200904-01, 26-10-2020
  */
 @KeycloakConfiguration
 @RequiredArgsConstructor
