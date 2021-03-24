@@ -163,7 +163,6 @@ public class RolServiceImpl implements RolService {
 			messageActivity.setMessage(Response.Status.OK.toString());
 			log.info("Fueron encontrados los roles en base a los id indicados");
 		}
-
 		return messageActivity;
 	}
 
@@ -195,7 +194,7 @@ public class RolServiceImpl implements RolService {
 			messageActivityResult.setCode(RolMessageKey.ROL_OK.getCode());
 			messageActivityResult.setMessage(RolMessageKey.ROL_OK.getStatus());
 			log.info("Roles encontrados");
-		}else {
+		} else {
 			messageActivityResult.setCode(RolMessageKey.ROL_NOT_FOUND.getCode());
 			messageActivityResult.setMessage(RolMessageKey.ROL_NOT_FOUND.getStatus());
 			log.info("Roles NO encontrados");
