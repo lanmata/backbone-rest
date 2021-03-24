@@ -14,8 +14,14 @@
  */
 package com.prx.backoffice.service.impl;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import javax.ws.rs.core.Response;
+
 import com.prx.backoffice.enums.keys.UserMessageKey;
 import com.prx.backoffice.mapper.UserMapper;
+import com.prx.backoffice.service.PersonService;
 import com.prx.backoffice.service.UserService;
 import com.prx.backoffice.util.MessageUtil;
 import com.prx.commons.enums.keys.FailCode;
@@ -28,10 +34,8 @@ import com.prx.persistence.general.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import org.springframework.stereotype.Service;
 
 /**
  * Modelo para la gesti&oacute;n de usuarios
@@ -44,9 +48,9 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UserServiceImpl.class);
-    private final UserRepository userRepository;
-    private final PersonServiceImpl personService;
-    private final MessageUtil messageUtil;
+	private final UserRepository userRepository;
+	private final PersonService personService;
+	private final MessageUtil messageUtil;
     private final UserMapper userMapper;
 
     /**
@@ -58,13 +62,15 @@ public class UserServiceImpl implements UserService {
         final var userEntity = userRepository.findById(userId).orElse(new UserEntity());
 
         if (ValidatorCommonsUtil.esNulo(userEntity.getId())) {
-            messageActivity.getMessages().put(UserMessageKey.USER_NOT_FOUND.getCode(), messageUtil.getSinDatos());
-            LOGGER.warn(UserMessageKey.USER_NOT_FOUND.getStatus());
-        } else {
-            messageActivity.setObjectResponse(userMapper.toTarget(userEntity));
-            messageActivity.getMessages().put(UserMessageKey.USER_OK.getCode(), UserMessageKey.USER_OK.getStatus());
-            LOGGER.info(UserMessageKey.USER_OK.getStatus());
-        }
+			messageActivity.setCode(UserMessageKey.USER_NOT_FOUND.getCode());
+			messageActivity.setMessage(messageUtil.getSinDatos());
+			LOGGER.warn(UserMessageKey.USER_NOT_FOUND.getStatus());
+		} else {
+			messageActivity.setObjectResponse(userMapper.toTarget(userEntity));
+			messageActivity.setCode(UserMessageKey.USER_OK.getCode());
+			messageActivity.setMessage(UserMessageKey.USER_OK.getStatus());
+			LOGGER.info(UserMessageKey.USER_OK.getStatus());
+		}
 
         return messageActivity;
     }
@@ -76,19 +82,16 @@ public class UserServiceImpl implements UserService {
     public MessageActivity<User> findUserByAlias(final String alias) {
         final var userEntity = userRepository.findByAlias(alias);
         final var messageActivity = new MessageActivity<User>();
-        User user;
 
         if (ValidatorCommonsUtil.esNulo(userEntity)) {
-            messageActivity.getMessages().put(UserMessageKey.USER_CREATED.getCode(),
-                UserMessageKey.USER_CREATED.getStatus());
-            LOGGER.warn(UserMessageKey.USER_CREATED.getStatus());
-        } else {
-            user = userMapper.toTarget(userEntity);
-            messageActivity.setObjectResponse(user);
-            messageActivity.getMessages().put(UserMessageKey.USER_CREATED.getCode(),
-                UserMessageKey.USER_CREATED.getStatus());
-            LOGGER.info(UserMessageKey.USER_CREATED.getStatus());
-        }
+			messageActivity.setObjectResponse(null);
+			LOGGER.warn(UserMessageKey.USER_NOT_FOUND.getStatus());
+		} else {
+			messageActivity.setObjectResponse(userMapper.toTarget(userEntity));
+			messageActivity.setCode(UserMessageKey.USER_CREATED.getCode());
+			messageActivity.setMessage(UserMessageKey.USER_CREATED.getStatus());
+			LOGGER.info(UserMessageKey.USER_CREATED.getStatus());
+		}
         return messageActivity;
     }
 
@@ -101,28 +104,29 @@ public class UserServiceImpl implements UserService {
         final var messageActivityResult = new MessageActivity<String>();
 
         if (ValidatorCommonsUtil.esNulo(messageActivity)) {
-            messageActivityResult.getMessages().put(FailCode.UNAUTHORIZED.getCode(), FailCode.FORBIDDEN.getStatus());
-            LOGGER.warn(FailCode.UNAUTHORIZED.getStatus());
-        } else {
+			messageActivityResult.setCode(FailCode.UNAUTHORIZED.getCode());
+			messageActivityResult.setMessage(FailCode.UNAUTHORIZED.getStatus());
+			LOGGER.warn(FailCode.UNAUTHORIZED.getStatus());
+		} else {
             final var user = messageActivity.getObjectResponse();
             if (user.isActive()) {
                 if (user.getPassword().equals(password)) {
-                    // Usuario valido y activo
-                    messageActivityResult.setObjectResponse(UserMessageKey.USER_OK.getStatus());
-                    messageActivityResult.setMessages(messageActivity.getMessages());
-                    LOGGER.info(UserMessageKey.USER_OK.getStatus());
-                } else {
-                    // Clave errada de usuario
-                    messageActivityResult.getMessages().put(UserMessageKey.USER_PASSWORD_WRONG.getCode(),
-                        UserMessageKey.USER_PASSWORD_WRONG.getStatus());
-                    LOGGER.warn(UserMessageKey.USER_PASSWORD_WRONG.getStatus());
-                }
+					// Usuario valido y activo
+					messageActivityResult.setCode(UserMessageKey.USER_OK.getCode());
+					messageActivityResult.setMessage(messageActivity.getMessage());
+					LOGGER.info(UserMessageKey.USER_OK.getStatus());
+				} else {
+					// Clave errada de usuario
+					messageActivityResult.setCode(UserMessageKey.USER_PASSWORD_WRONG.getCode());
+					messageActivityResult.setMessage(UserMessageKey.USER_PASSWORD_WRONG.getStatus());
+					LOGGER.warn(UserMessageKey.USER_PASSWORD_WRONG.getStatus());
+				}
             } else {
-                // Usuario inactivo
-                messageActivityResult.getMessages().put(UserMessageKey.USER_BLOCKED.getCode(),
-                    UserMessageKey.USER_BLOCKED.getStatus());
-                LOGGER.warn(UserMessageKey.USER_BLOCKED.getStatus());
-            }
+				// Usuario inactivo
+				messageActivityResult.setCode(UserMessageKey.USER_BLOCKED.getCode());
+				messageActivityResult.setMessage(UserMessageKey.USER_BLOCKED.getStatus());
+				LOGGER.warn(UserMessageKey.USER_BLOCKED.getStatus());
+			}
         }
 
         return messageActivityResult;
@@ -137,14 +141,16 @@ public class UserServiceImpl implements UserService {
         final var listMessageActivity = new MessageActivity<List<User>>();
 
         if (userEntityList.isEmpty()) {
-            listMessageActivity.getMessages().put(UserMessageKey.USER_NOT_FOUND.getCode(),
-                UserMessageKey.USER_NOT_FOUND.getStatus());
-            LOGGER.warn(UserMessageKey.USER_NOT_FOUND.getStatus());
-        } else {
-            listMessageActivity.setObjectResponse(userEntityList.stream().map(userMapper::toTarget).collect(Collectors.toList()));
-            listMessageActivity.getMessages().put(UserMessageKey.USER_OK.getCode(), UserMessageKey.USER_OK.getStatus());
-            LOGGER.info(UserMessageKey.USER_OK.getStatus());
-        }
+			listMessageActivity.setCode(UserMessageKey.USER_NOT_FOUND.getCode());
+			listMessageActivity.setMessage(UserMessageKey.USER_NOT_FOUND.getStatus());
+			LOGGER.warn(UserMessageKey.USER_NOT_FOUND.getStatus());
+		} else {
+			listMessageActivity
+					.setObjectResponse(userEntityList.stream().map(userMapper::toTarget).collect(Collectors.toList()));
+			listMessageActivity.setCode(UserMessageKey.USER_OK.getCode());
+			listMessageActivity.setMessage(UserMessageKey.USER_OK.getStatus());
+			LOGGER.info(UserMessageKey.USER_OK.getStatus());
+		}
 
         return listMessageActivity;
     }
@@ -154,22 +160,35 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public MessageActivity<User> create(User user) {
-        final var messageActivity = findUserByAlias(user.getAlias());
+		final var messageActivity = findUserByAlias(user.getAlias());
 
-        if (ValidatorCommonsUtil.esNulo(messageActivity.getObjectResponse())) {
-            user.setPerson(getPerson(user));
-            messageActivity.setObjectResponse(userMapper.toTarget(userRepository.save(userMapper.toSource(user))));
-            messageActivity.getMessages().put(UserMessageKey.USER_CREATED.getCode(),
-                UserMessageKey.USER_CREATED.getStatus());
-            LOGGER.info(UserMessageKey.USER_CREATED.getStatus());
-        } else {
-            messageActivity.getMessages().put(UserMessageKey.USER_PREVIOUS_EXIST.getCode(),
-                UserMessageKey.USER_PREVIOUS_EXIST.getStatus());
-            LOGGER.warn(UserMessageKey.USER_PREVIOUS_EXIST.getStatus());
-        }
+		try {
+			if (ValidatorCommonsUtil.esNulo(messageActivity.getObjectResponse())) {
+				user.setPerson(getPerson(user));
+				final var userEntity = userMapper.toSource(user);
+				userEntity.getUserRol().forEach(userRolEntity -> {
+					userRolEntity.setUser(userEntity);
+					userRolEntity.setActive(true);
+				});
+				messageActivity.setObjectResponse(userMapper.toTarget(userRepository.save(userEntity)));
+				messageActivity.setCode(UserMessageKey.USER_CREATED.getCode());
+				messageActivity.setMessage(UserMessageKey.USER_CREATED.getStatus());
+				LOGGER.info(UserMessageKey.USER_CREATED.getStatus());
+			}
+			else {
+				messageActivity.setCode(UserMessageKey.USER_PREVIOUS_EXIST.getCode());
+				messageActivity.setMessage(UserMessageKey.USER_PREVIOUS_EXIST.getStatus());
+				LOGGER.warn(UserMessageKey.USER_PREVIOUS_EXIST.getStatus());
+			}
+		}
+		catch (Exception ex) {
+			LOGGER.error(UserMessageKey.USER_ERROR_CREATED.getStatus(), ex);
+			messageActivity.setCode(UserMessageKey.USER_ERROR_CREATED.getCode());
+			messageActivity.setMessage(UserMessageKey.USER_ERROR_CREATED.getStatus());
+		}
 
-        return messageActivity;
-    }
+		return messageActivity;
+	}
 
     /**
      * Obtiene el objeto persona asociado al usuario o lo crea en caso de existir.
@@ -179,11 +198,36 @@ public class UserServiceImpl implements UserService {
      * @return {@link Person}
      */
     private Person getPerson(User user) {
-        MessageActivity<Person> messageActivityPerson = personService.find(user.getPerson());
-        if (ValidatorCommonsUtil.esNulo(messageActivityPerson.getObjectResponse())) {
-            return personService.create(user.getPerson()).getObjectResponse();
-        }
-        return messageActivityPerson.getObjectResponse();
-    }
+		MessageActivity<Person> messageActivityPerson = personService.find(user.getPerson());
+
+		if (ValidatorCommonsUtil.esNulo(messageActivityPerson.getObjectResponse())) {
+			final var messageActivityResult = personService.create(user.getPerson());
+
+			if (Response.Status.CREATED.getStatusCode() == messageActivityResult.getCode()) {
+				return messageActivityResult.getObjectResponse();
+			}
+			else {
+				messageActivityPerson.setCode(UserMessageKey.USER_ERROR_CREATED.getCode());
+				messageActivityPerson.setMessage(UserMessageKey.USER_ERROR_CREATED.getStatus());
+			}
+		}
+
+		return messageActivityPerson.getObjectResponse();
+	}
+
+//    /**
+//     *
+//     * @param rolId {@link Long}
+//     *
+//     * @return {@link Rol}
+//     */
+//    private Rol getRol(Long rolId){
+//        final var rol = new Rol();
+//        rol.setId(rolId);
+//        MessageActivity<Rol> messageActivity = rolService.find(rol);
+//
+//
+//        return  messageActivity.getObjectResponse();
+//    }
 
 }

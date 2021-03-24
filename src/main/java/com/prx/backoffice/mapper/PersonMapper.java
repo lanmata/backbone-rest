@@ -29,7 +29,7 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface PersonMapper {
 
-    @Mapping( source = "name", target = "firstName")
+    @Mapping(source = "name", target = "firstName")
     Person toTarget(PersonEntity personEntity);
 
     @InheritInverseConfiguration

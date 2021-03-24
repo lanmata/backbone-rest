@@ -28,27 +28,27 @@ import com.prx.persistence.general.domains.PersonEntity;
 public interface PersonService {
 
     /**
-     * Crea un registro de persona
-     *
-     * @param person Objeto de tipo {@link Person}
-     * @return Objeto de tipo {@link MessageActivity}<{@link Person}>
-     */
+	 * Crea un registro de persona
+	 *
+	 * @param person Objeto de tipo {@link Person}
+	 * @return Objeto de tipo {@link MessageActivity}
+	 */
     MessageActivity<Person> create(Person person);
 
-    /**
-     * Crea un registro de persona
-     *
-     * @param person Objeto de tipo {@link Person}
-     * @return Objeto de tipo {@link MessageActivity}<{@link Person}>
-     */
+	/**
+	 * Crea un registro de persona
+	 *
+	 * @param person Objeto de tipo {@link Person}
+	 * @return Objeto de tipo {@link MessageActivity}
+	 */
     MessageActivity<PersonEntity> save(Person person);
 
-    /**
-     * Realiza la busqueda de una persona
-     *
-     * @param person Objeto de tipo {@link Person}
-     * @return Objeto de tipo {@link MessageActivity}<{@link Person}>
-     */
+	/**
+	 * Realiza la busqueda de una persona
+	 *
+	 * @param person Objeto de tipo {@link Person}
+	 * @return Objeto de tipo {@link MessageActivity}
+	 */
     MessageActivity<Person> find(Person person);
 
 }

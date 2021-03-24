@@ -15,8 +15,18 @@
 
 package com.prx.backoffice.controller;
 
-import static org.junit.jupiter.api.Assertions.*;
+import com.prx.backoffice.MockLoaderBase;
+import com.prx.backoffice.enums.keys.PersonMessageKey;
+import com.prx.backoffice.service.PersonService;
+import com.prx.backoffice.to.person.PersonCreateRequest;
+import com.prx.commons.pojo.MessageActivity;
+import com.prx.commons.pojo.Person;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.*;
+
+import java.time.LocalDate;
 
 /**
  * PersonControllerTest.
@@ -24,10 +34,38 @@ import org.junit.jupiter.api.BeforeEach;
  * @author Luis Antonio Mata
  * @version 1.0.1.20200904-01, 06-11-2020
  */
-class PersonControllerTest {
+public class PersonControllerTest extends MockLoaderBase {
+    /** personService */
+    @Mock
+    private PersonService personService;
+    /** personController */
+    @InjectMocks
+    private PersonController personController;
 
+    /** setup */
     @BeforeEach
-    void setUp() {
+    public void setup() throws Exception {
+        MockitoAnnotations.openMocks(this);
+    }
+
+    @Test
+    public void testCreate() {
+//        final var personCreateRequest = new PersonCreateRequest();
+//        final var person = new Person();
+//        person.setBirthdate(LocalDate.of(1979,4,14));
+//        person.setFirstName("Pepe");
+//        person.setGender("M");
+//        person.setId(1);
+//        person.setLastName("Perez");
+//        person.setMiddleName("Peter");
+//        personCreateRequest.setPerson(person);
+//        final var response = new MessageActivity<Person>();
+//        response.setObjectResponse(person);
+//        response.setCode(PersonMessageKey.PERSON_CREATED.getCode());
+//        response.setMessage(PersonMessageKey.PERSON_CREATED.getStatus());
+//
+//        Mockito.when(this.personService.create(ArgumentMatchers.any())).thenReturn(response);
+//        Assertions.assertNotNull(this.personController.create(personCreateRequest));
     }
 
 }

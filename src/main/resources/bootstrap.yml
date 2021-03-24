@@ -1,47 +1,12 @@
 spring:
+  profiles:
+    active: virtual
   application:
     name: prx-backbone-rest
   cloud:
-    discovery:
-      enabled: true
-      client:
-        health-indicator:
-          enabled: true
-        composite-indicator:
-          enabled: true
     config:
-      fail-fast: true
-      uri:
-        - http://localhost:8082
-#        - http://host.docker.internal:8082
-      retry:
-        max-attempts: 6
-        max-interval: 5000
-        initial-interval: 5000
-      request-connect-timeout: 15000
-#      discovery:
-#        enabled: true
-#        service-id: prx-config-server
-#      uri: https://prx.test/config-server/
-      enabled: true
       profile: virtual
-server:
-  port: 8084
-
-springfox:
-  documentation:
-    swagger:
-      v2:
-        use-model-v3: true
-    swagger-ui:
-      base-url: /documentacion
-#<><><><><><><><><><><><><><> HTPS <><><><><><><><><><><><><><>
-security:
-  discovery:
-    client:
-      name: prx-backbone-rest
-      trust-store-file: prx_backbone_rest_discovery.jks
-      trust-store-password: prx-backbone-rest
-      max-total-connections: 10
-      max-connections-per-host: 10
-debug: false
+      label: developer
+      uri: http://localhost:8082
+    inetutils:
+      default-hostname: prx.test

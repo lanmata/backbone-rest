@@ -15,13 +15,12 @@
 package com.prx.backoffice.util;
 
 import com.prx.backoffice.PrxBackofficeRestApplication;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * MessageUtilTest.
@@ -29,7 +28,6 @@ import org.springframework.test.context.junit4.SpringRunner;
  * @author Luis Antonio Mata
  * @version 1.0.1.20200904-01, 26-10-2020
  */
-@RunWith(SpringRunner.class)
 @SpringBootTest(classes = PrxBackofficeRestApplication.class,
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = {""})

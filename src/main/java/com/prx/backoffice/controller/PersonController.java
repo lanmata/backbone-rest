@@ -24,6 +24,7 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -43,6 +44,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/v1/person")
 @CrossOrigin(origins = "*")
 public class PersonController {
+    /** personService */
     private final PersonService personService;
 
     /**
@@ -56,14 +58,22 @@ public class PersonController {
         @ApiResponse(code = 201, message = "Persona creada", response = Response.class),
         @ApiResponse(code = 400, message = "Solicitud errada", response = Response.class),
         @ApiResponse(code = 401, message = "Solicitante no tiene permisos, requiere autenticación", response =
-                                                                                                  Response.class),
-        @ApiResponse(code = 403, message = "Persona no creada", response = Response.class),
-        @ApiResponse(code = 405, message = "Método no permitido", response = Response.class),
-        @ApiResponse(code = 500, message = "Error interno durante la creación de persona", response = String.class)
+                Response.class),
+            @ApiResponse(code = 403, message = "Persona no creada", response = Response.class),
+            @ApiResponse(code = 405, message = "Método no permitido", response = Response.class),
+            @ApiResponse(code = 500, message = "Error interno durante la creación de persona", response = String.class)
     })
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/create")
     public Response create(@ApiParam(value = "Solicitud para crear persona", required = true, readOnly = true)
-    @RequestBody final PersonCreateRequest personCreateRequest){
+    @RequestBody final PersonCreateRequest personCreateRequest) {
         return MessageActivityUtil.toResponse(personService.create(personCreateRequest.getPerson()));
     }
+
+    //TODO - metodo get para obtener los usuarios vinculados a una persona
+
+    //TODO - metodo post para actualizas los datos de una persona
+
+    //TODO - metodo post para obtener agregar un nuevo usuario a una persona
+
+    //TODO - metodo post para obtener elminar un usuario a una persona
 }

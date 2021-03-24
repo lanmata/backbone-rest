@@ -10,7 +10,7 @@
  *  * it unless previously authorized in writing by Luis Antonio Mata Mata.
  *  * In any event, this notice and the above copyright must always be included
  *  * verbatim with this file.
- *  
+ *
  */
 
 package com.prx.backoffice.config.keycloak;

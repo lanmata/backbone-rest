@@ -12,25 +12,22 @@
  *  * verbatim with this file.
  *
  */
-
 package com.prx.backoffice.to.user;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.prx.commons.to.Request;
 import com.prx.commons.util.JsonUtil;
-import javax.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import javax.validation.constraints.NotNull;
+
 @Getter
 @Setter
+@JsonNaming
 @NoArgsConstructor
-@JsonPropertyOrder({
-        "alias",
-        "password"
-})
 public class UserAccessRequest extends Request {
     @NotNull
     @JsonProperty("alias")

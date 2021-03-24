@@ -16,11 +16,7 @@
 package com.prx.backoffice.controller;
 
 import com.prx.backoffice.service.UserService;
-import com.prx.backoffice.to.user.UserAccessRequest;
-import com.prx.backoffice.to.user.UserAccessResponse;
-import com.prx.backoffice.to.user.UserCreateRequest;
-import com.prx.backoffice.to.user.UserListResponse;
-import com.prx.backoffice.to.user.UserResponse;
+import com.prx.backoffice.to.user.*;
 import com.prx.backoffice.util.MessageUtil;
 import com.prx.commons.pojo.MessageActivity;
 import com.prx.commons.pojo.User;
@@ -31,20 +27,15 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import javax.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import javax.validation.constraints.NotNull;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Slf4j
 @RestController
@@ -94,7 +85,8 @@ public class UserController {
 
         userListResponse.setList(messageActivity.getObjectResponse());
         userListResponse.setDateTime(LocalDateTime.now(ZoneId.systemDefault()));
-        userListResponse.setMessage(messageActivity.getMessages().get(1));
+        userListResponse.setCode(messageActivity.getCode());
+        userListResponse.setMessage(messageActivity.getMessage());
 
         return userListResponse;
     }
@@ -157,5 +149,9 @@ public class UserController {
 
         return response;
     }
+
+    //TODO - metodo get para obtener los roles vinculados a un usuario
+
+    //TODO - metodo get para obtener datos de usuario con el campo alias
 
 }
