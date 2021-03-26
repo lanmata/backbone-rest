@@ -18,7 +18,6 @@ import com.prx.commons.pojo.User;
 import com.prx.persistence.general.domains.UserEntity;
 import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 
 /**
  * UserMapper.
@@ -26,10 +25,9 @@ import org.mapstruct.Mapping;
  * @author Luis Antonio Mata
  * @version 1.0.0, 20-10-2020
  */
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {RolMapper.class, PersonMapper.class})
 public interface UserMapper {
 
-    @Mapping(target = "roles", source = "userRol")
     User toTarget(UserEntity userEntity);
 
     @InheritInverseConfiguration

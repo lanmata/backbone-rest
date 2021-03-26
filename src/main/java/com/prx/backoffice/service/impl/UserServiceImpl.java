@@ -14,17 +14,13 @@
  */
 package com.prx.backoffice.service.impl;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import javax.ws.rs.core.Response;
-
 import com.prx.backoffice.enums.keys.UserMessageKey;
+import com.prx.backoffice.mapper.RolMapper;
 import com.prx.backoffice.mapper.UserMapper;
 import com.prx.backoffice.service.PersonService;
 import com.prx.backoffice.service.UserService;
-import com.prx.backoffice.util.MessageUtil;
 import com.prx.commons.enums.keys.FailCode;
+import com.prx.commons.enums.types.MessageType;
 import com.prx.commons.pojo.MessageActivity;
 import com.prx.commons.pojo.Person;
 import com.prx.commons.pojo.User;
@@ -32,10 +28,13 @@ import com.prx.commons.util.ValidatorCommonsUtil;
 import com.prx.persistence.general.domains.UserEntity;
 import com.prx.persistence.general.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import javax.ws.rs.core.Response;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Modelo para la gesti&oacute;n de usuarios
@@ -43,125 +42,105 @@ import org.springframework.stereotype.Service;
  * @author <a href="mailto:luis.antonio.mata@gmail.com">Luis Antonio Mata</a>
  * @version 1.0.1.20200904-01, 2019-10-14
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(UserServiceImpl.class);
 	private final UserRepository userRepository;
 	private final PersonService personService;
-	private final MessageUtil messageUtil;
-    private final UserMapper userMapper;
+	private final UserMapper userMapper;
+	private final RolMapper rolMapper;
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public MessageActivity<User> findUserById(Long userId) {
-        final var messageActivity = new MessageActivity<User>();
-        final var userEntity = userRepository.findById(userId).orElse(new UserEntity());
-
-        if (ValidatorCommonsUtil.esNulo(userEntity.getId())) {
-			messageActivity.setCode(UserMessageKey.USER_NOT_FOUND.getCode());
-			messageActivity.setMessage(messageUtil.getSinDatos());
-			LOGGER.warn(UserMessageKey.USER_NOT_FOUND.getStatus());
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public MessageActivity<User> findUserById(Long userId) {
+		final var userEntity = userRepository.findById(userId).orElse(new UserEntity());
+		if (ValidatorCommonsUtil.esNulo(userEntity.getId())) {
+			log.info(UserMessageKey.USER_NOT_FOUND.getStatus() + "| userId:{}", userId);
+			return getMessageActivity(null, UserMessageKey.USER_NOT_FOUND);
 		} else {
-			messageActivity.setObjectResponse(userMapper.toTarget(userEntity));
-			messageActivity.setCode(UserMessageKey.USER_OK.getCode());
-			messageActivity.setMessage(UserMessageKey.USER_OK.getStatus());
-			LOGGER.info(UserMessageKey.USER_OK.getStatus());
+			log.info(UserMessageKey.USER_OK.getStatus());
+			return getMessageActivity(userEntity, UserMessageKey.USER_OK);
 		}
+	}
 
-        return messageActivity;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public MessageActivity<User> findUserByAlias(final String alias) {
-        final var userEntity = userRepository.findByAlias(alias);
-        final var messageActivity = new MessageActivity<User>();
-
-        if (ValidatorCommonsUtil.esNulo(userEntity)) {
-			messageActivity.setObjectResponse(null);
-			LOGGER.warn(UserMessageKey.USER_NOT_FOUND.getStatus());
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public MessageActivity<User> findUserByAlias(final String alias) {
+		final var userEntity = userRepository.findByAlias(alias);
+		if (ValidatorCommonsUtil.esNulo(userEntity)) {
+			log.warn(UserMessageKey.USER_NOT_FOUND.getStatus() + "| alias:{}", alias);
+			return getMessageActivity(null, UserMessageKey.USER_NOT_FOUND);
 		} else {
-			messageActivity.setObjectResponse(userMapper.toTarget(userEntity));
-			messageActivity.setCode(UserMessageKey.USER_CREATED.getCode());
-			messageActivity.setMessage(UserMessageKey.USER_CREATED.getStatus());
-			LOGGER.info(UserMessageKey.USER_CREATED.getStatus());
+			log.info(UserMessageKey.USER_FOUND.getStatus());
+			return getMessageActivity(userEntity, UserMessageKey.USER_FOUND);
 		}
-        return messageActivity;
-    }
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public MessageActivity<String> access(String alias, String password) {
-        final var messageActivity = findUserByAlias(alias);
-        final var messageActivityResult = new MessageActivity<String>();
-
-        if (ValidatorCommonsUtil.esNulo(messageActivity)) {
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public MessageActivity<String> access(String alias, String password) {
+		final var messageActivity = findUserByAlias(alias);
+		final var messageActivityResult = new MessageActivity<String>();
+		if (ValidatorCommonsUtil.esNulo(messageActivity)) {
 			messageActivityResult.setCode(FailCode.UNAUTHORIZED.getCode());
 			messageActivityResult.setMessage(FailCode.UNAUTHORIZED.getStatus());
-			LOGGER.warn(FailCode.UNAUTHORIZED.getStatus());
+			log.warn(FailCode.UNAUTHORIZED.getStatus() + "| alias: {}, password {}", alias, password);
 		} else {
-            final var user = messageActivity.getObjectResponse();
-            if (user.isActive()) {
-                if (user.getPassword().equals(password)) {
-					// Usuario valido y activo
+			final var user = messageActivity.getObjectResponse();
+			if (user.isActive()) {
+				if (user.getPassword().equals(password)) {
 					messageActivityResult.setCode(UserMessageKey.USER_OK.getCode());
 					messageActivityResult.setMessage(messageActivity.getMessage());
-					LOGGER.info(UserMessageKey.USER_OK.getStatus());
+					log.info(UserMessageKey.USER_OK.getStatus());
 				} else {
-					// Clave errada de usuario
 					messageActivityResult.setCode(UserMessageKey.USER_PASSWORD_WRONG.getCode());
 					messageActivityResult.setMessage(UserMessageKey.USER_PASSWORD_WRONG.getStatus());
-					LOGGER.warn(UserMessageKey.USER_PASSWORD_WRONG.getStatus());
+					log.warn(UserMessageKey.USER_PASSWORD_WRONG.getStatus());
 				}
-            } else {
-				// Usuario inactivo
+			} else {
 				messageActivityResult.setCode(UserMessageKey.USER_BLOCKED.getCode());
 				messageActivityResult.setMessage(UserMessageKey.USER_BLOCKED.getStatus());
-				LOGGER.warn(UserMessageKey.USER_BLOCKED.getStatus());
+				log.warn(UserMessageKey.USER_BLOCKED.getStatus());
 			}
-        }
+		}
+		return messageActivityResult;
+	}
 
-        return messageActivityResult;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public MessageActivity<List<User>> findAll() {
-        final var userEntityList = userRepository.findAll();
-        final var listMessageActivity = new MessageActivity<List<User>>();
-
-        if (userEntityList.isEmpty()) {
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public MessageActivity<List<User>> findAll() {
+		final var userEntityList = userRepository.findAll();
+		final var listMessageActivity = new MessageActivity<List<User>>();
+		if (userEntityList.isEmpty()) {
 			listMessageActivity.setCode(UserMessageKey.USER_NOT_FOUND.getCode());
 			listMessageActivity.setMessage(UserMessageKey.USER_NOT_FOUND.getStatus());
-			LOGGER.warn(UserMessageKey.USER_NOT_FOUND.getStatus());
+			log.warn(UserMessageKey.USER_NOT_FOUND.getStatus());
 		} else {
 			listMessageActivity
 					.setObjectResponse(userEntityList.stream().map(userMapper::toTarget).collect(Collectors.toList()));
 			listMessageActivity.setCode(UserMessageKey.USER_OK.getCode());
 			listMessageActivity.setMessage(UserMessageKey.USER_OK.getStatus());
-			LOGGER.info(UserMessageKey.USER_OK.getStatus());
+			log.info(UserMessageKey.USER_OK.getStatus());
 		}
+		return listMessageActivity;
+	}
 
-        return listMessageActivity;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public MessageActivity<User> create(User user) {
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public MessageActivity<User> create(User user) {
 		final var messageActivity = findUserByAlias(user.getAlias());
-
 		try {
 			if (ValidatorCommonsUtil.esNulo(messageActivity.getObjectResponse())) {
 				user.setPerson(getPerson(user));
@@ -170,64 +149,58 @@ public class UserServiceImpl implements UserService {
 					userRolEntity.setUser(userEntity);
 					userRolEntity.setActive(true);
 				});
-				messageActivity.setObjectResponse(userMapper.toTarget(userRepository.save(userEntity)));
-				messageActivity.setCode(UserMessageKey.USER_CREATED.getCode());
-				messageActivity.setMessage(UserMessageKey.USER_CREATED.getStatus());
-				LOGGER.info(UserMessageKey.USER_CREATED.getStatus());
+				log.info(UserMessageKey.USER_CREATED.getStatus());
+				return getMessageActivity(userRepository.save(userEntity), UserMessageKey.USER_CREATED);
+			} else {
+				log.warn(UserMessageKey.USER_PREVIOUS_EXIST.getStatus() + "| {}", user.toString());
+				return getMessageActivity(null, UserMessageKey.USER_PREVIOUS_EXIST);
 			}
-			else {
-				messageActivity.setCode(UserMessageKey.USER_PREVIOUS_EXIST.getCode());
-				messageActivity.setMessage(UserMessageKey.USER_PREVIOUS_EXIST.getStatus());
-				LOGGER.warn(UserMessageKey.USER_PREVIOUS_EXIST.getStatus());
-			}
+		} catch (Exception ex) {
+			log.error(UserMessageKey.USER_ERROR_CREATED.getStatus()+ "| {}", user.toString(), ex);
+			return getMessageActivity(null, UserMessageKey.USER_ERROR_CREATED);
 		}
-		catch (Exception ex) {
-			LOGGER.error(UserMessageKey.USER_ERROR_CREATED.getStatus(), ex);
-			messageActivity.setCode(UserMessageKey.USER_ERROR_CREATED.getCode());
-			messageActivity.setMessage(UserMessageKey.USER_ERROR_CREATED.getStatus());
-		}
-
-		return messageActivity;
 	}
 
-    /**
-     * Obtiene el objeto persona asociado al usuario o lo crea en caso de existir.
-     *
-     * @param user {@link User}
-     *
-     * @return {@link Person}
-     */
-    private Person getPerson(User user) {
-		MessageActivity<Person> messageActivityPerson = personService.find(user.getPerson());
-
+	/**
+	 * Obtiene el objeto persona asociado al usuario o lo crea en caso de existir.
+	 *
+	 * @param user {@link User}
+	 *
+	 * @return {@link Person}
+	 */
+	private Person getPerson(User user) {
+		final var messageActivityPerson = personService.find(user.getPerson());
 		if (ValidatorCommonsUtil.esNulo(messageActivityPerson.getObjectResponse())) {
 			final var messageActivityResult = personService.create(user.getPerson());
-
 			if (Response.Status.CREATED.getStatusCode() == messageActivityResult.getCode()) {
 				return messageActivityResult.getObjectResponse();
-			}
-			else {
+			} else {
 				messageActivityPerson.setCode(UserMessageKey.USER_ERROR_CREATED.getCode());
 				messageActivityPerson.setMessage(UserMessageKey.USER_ERROR_CREATED.getStatus());
 			}
 		}
-
 		return messageActivityPerson.getObjectResponse();
 	}
 
-//    /**
-//     *
-//     * @param rolId {@link Long}
-//     *
-//     * @return {@link Rol}
-//     */
-//    private Rol getRol(Long rolId){
-//        final var rol = new Rol();
-//        rol.setId(rolId);
-//        MessageActivity<Rol> messageActivity = rolService.find(rol);
-//
-//
-//        return  messageActivity.getObjectResponse();
-//    }
-
+	/**
+	 * Obtiene la respuesta de tipo {@link MessageActivity}<{@link User}>
+	 *
+	 * @param userEntity {@link UserEntity}
+	 * @param messageType {@link MessageType}
+	 * @return Objeto de tipo {@link MessageActivity}<{@link User}>
+	 */
+	private MessageActivity<User> getMessageActivity(UserEntity userEntity, MessageType messageType) {
+		final var messageActivity = new MessageActivity<User>();
+		if (null != userEntity){
+			final var user = userMapper.toTarget(userEntity);
+			user.setRoles(new ArrayList<>());
+			if(null != userEntity.getUserRol()) {
+				userEntity.getUserRol().forEach(userRolEntity -> user.getRoles().add(rolMapper.userRoltoRol(userRolEntity)));
+			}
+			messageActivity.setObjectResponse(user);
+		}
+		messageActivity.setCode(messageType.getCode());
+		messageActivity.setMessage(messageType.getStatus());
+		return messageActivity;
+	}
 }

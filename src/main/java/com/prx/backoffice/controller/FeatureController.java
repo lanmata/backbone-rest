@@ -14,6 +14,7 @@ package com.prx.backoffice.controller;
 
 import com.prx.backoffice.service.FeatureService;
 import com.prx.backoffice.to.feature.FeatureListResponse;
+import com.prx.backoffice.to.feature.FeatureRequest;
 import com.prx.backoffice.to.feature.FeatureResponse;
 import com.prx.backoffice.to.rol.RolFindResponse;
 import com.prx.commons.to.Response;
@@ -41,6 +42,7 @@ import java.util.List;
 @RequestMapping("/v1/feature")
 @CrossOrigin(origins = "*")
 public class FeatureController {
+
     private final FeatureService featureService;
 
     /**
@@ -62,10 +64,8 @@ public class FeatureController {
     @PathVariable final Long featureId) {
         final var featureResponse = new FeatureResponse();
         final var messageActivity = featureService.find(featureId);
-
         MessageActivityUtil.toResponse(messageActivity, featureResponse);
         featureResponse.setFeature(messageActivity.getObjectResponse());
-
         return featureResponse;
     }
 
@@ -81,11 +81,15 @@ public class FeatureController {
         final var messageActivity = featureService.list(featureIds,includeInactive);
         MessageActivityUtil.toResponse(messageActivity, featureListResponse);
         featureListResponse.setList(messageActivity.getObjectResponse());
-
         return featureListResponse;
     }
 
     //TODO - metodo post para crear feature
+    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/create")
+    public Response create(@ApiParam(value = "Propiedades del Feature") @RequestBody FeatureRequest featureRequest) {
+        log.info("Inicia llamada al servicio para la creación del feature.");
+        return MessageActivityUtil.toResponse(featureService.create(featureRequest.getFeature()));
+    }
 
     //TODO - metodo get para actualizar feature
 

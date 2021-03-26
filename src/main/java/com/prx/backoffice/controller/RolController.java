@@ -63,11 +63,11 @@ public class RolController {
     public RolFindResponse find(@ApiParam(value = "Solicitud para buscar un rol", required = true, readOnly = true)
                            @PathVariable final Integer rolId){
         final var rolFindResponse = new RolFindResponse();
-        log.info("Inicia la búsqueda de rol");
+        log.info("Inicia llamada al metodo /find/{rolId}");
         final var messageActivity = rolService.find(rolId);
         MessageActivityUtil.toResponse(messageActivity, rolFindResponse);
         rolFindResponse.setRol(messageActivity.getObjectResponse());
-        log.info("Termina la búsqueda de rol");
+        log.info("Termina llamada al metodo /find/{rolId}");
         return rolFindResponse;
     }
 
@@ -82,9 +82,9 @@ public class RolController {
             @ApiResponse(code = 500, message = "Error interno durante la creación del rol", response = String.class)
     })
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/create")
-    public Response create(@ApiParam(value = "Crea un rol", required = true, readOnly = true)
+    public Response create(@ApiParam(value = "Propiedades del rol", required = true, readOnly = true)
                                     @RequestBody final RolRequest rolCreateRequest){
-        log.info("Inicia la creación de rol");
+        log.info("Llamada al metodo /create");
         return MessageActivityUtil.toResponse(rolService.create(rolCreateRequest.getRol()));
     }
 
@@ -100,7 +100,7 @@ public class RolController {
     })
     @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/update/{idRol}")
     public Response update(@RequestBody final RolRequest rolRequest){
-        log.info("Inicia la actualización de rol");
+        log.info("Llamada al metodo /update/{idRol}");
         return MessageActivityUtil.toResponse(rolService.update(rolRequest.getRol()));
     }
 
@@ -116,7 +116,7 @@ public class RolController {
     })
     @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/unlink/{idRol}")
     public Response unlink(@RequestParam Integer idRol, @RequestBody final RolLinkRequest rolLinkRequest){
-        log.info("Inicia la desvinculación de rol y features");
+        log.info("Llamada al metodo /unlink/{idRol}");
         return MessageActivityUtil.toResponse(rolService.unlink(idRol, rolLinkRequest.getFeatureIdList()));
     }
 
@@ -132,7 +132,7 @@ public class RolController {
     })
     @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/link/{idRol}")
     public Response link(@RequestParam Integer idRol, @RequestBody final RolLinkRequest rolLinkRequest){
-        log.info("Inicia la vinculación de rol y feature");
+        log.info("llamada al metodo /link/{idRol}");
         return MessageActivityUtil.toResponse(rolService.link(idRol, rolLinkRequest.getFeatureIdList()));
     }
 
@@ -152,14 +152,14 @@ public class RolController {
                                           @PathVariable boolean includeInactive,
                                       @ApiParam(value = "Id de roles para a ser buscados ")
                                       @PathVariable List<Integer> roles){
+        log.info("Inicia llamada al metodo /list/{includeInactive}/{roles}");
         final var rolCollectionResponse = new RolCollectionResponse();
         final var messageActivity = rolService.list(includeInactive, roles);
-        log.info("Inicia la búsqueda de rol en base a diversos id de roles");
         rolCollectionResponse.setMessage(messageActivity.getMessage());
         rolCollectionResponse.setCode(messageActivity.getCode());
         rolCollectionResponse.setRoles(messageActivity.getObjectResponse());
         rolCollectionResponse.setDateTime(LocalDateTime.now(ZoneId.systemDefault()));
-        log.info("Termina la búsqueda de rol en base a diversos id de roles");
+        log.info("Termina llamada al metodo /list/{includeInactive}/{roles}");
         return getRolCollectioResponse(rolService.list(includeInactive, roles));
     }
 
@@ -176,7 +176,7 @@ public class RolController {
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/list/{includeInactive}")
     public RolCollectionResponse list(@ApiParam(value = "Incluye/excluye la obtención de roles inactivos")
                                       @PathVariable boolean includeInactive) {
-        log.info("Inicia la búsqueda de rol");
+        log.info("llamada al metodo /list/{includeInactive}");
         return getRolCollectioResponse(rolService.list(includeInactive, null));
     }
 
@@ -192,7 +192,7 @@ public class RolController {
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/listByUser/{userId}")
     public RolCollectionResponse list(@PathVariable long userId) {
-        log.info("Inicia la búsqueda de rol en base al id de usuario");
+        log.info("llamada al metodo /listByUser/{userId}");
         return getRolCollectioResponse(rolService.list(userId));
     }
 

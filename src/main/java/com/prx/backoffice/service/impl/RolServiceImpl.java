@@ -59,12 +59,12 @@ public class RolServiceImpl implements RolService {
 		if (esNulo(rolEntity.getId())) {
 			messageActivity.setCode(Response.Status.NOT_FOUND.getStatusCode());
 			messageActivity.setMessage(Response.Status.NOT_FOUND.toString().concat(". Rol id: " + rolId));
-			log.info("Rol con id {} no encontrado.", rolId);
+			log.info(Response.Status.NOT_FOUND.getStatusCode() + "| rolId {}", rolId);
 		} else {
 			messageActivity.setObjectResponse(rolMapper.toTarget(rolEntity));
 			messageActivity.setCode(Response.Status.OK.getStatusCode());
-			messageActivity.setMessage(Response.Status.OK.toString());
-			log.info("Rol con id {} encontrado.", rolId);
+			messageActivity.setMessage(Response.Status.OK.getReasonPhrase());
+			log.info(Response.Status.OK.getReasonPhrase());
 		}
 		return messageActivity;
 	}
@@ -77,7 +77,7 @@ public class RolServiceImpl implements RolService {
 		messageActivity.setObjectResponse(rolMapper.toTarget(rolRepository.save(rolMapper.toSource(rol))));
 		messageActivity.setCode(RolMessageKey.ROL_CREATED.getCode());
 		messageActivity.setMessage(RolMessageKey.ROL_CREATED.getStatus());
-		log.info("Se ha creado el Rol {}.", rol.toString());
+		log.info(RolMessageKey.ROL_CREATED.getStatus() + "| Rol {}.", rol.toString());
 		return messageActivity;
 	}
 
@@ -128,11 +128,11 @@ public class RolServiceImpl implements RolService {
 			messageActivityResult.setObjectResponse(rolMapper.toTarget(rolRepository.save(rolEntity)));
 			messageActivityResult.setCode(RolMessageKey.ROL_UPDATE.getCode());
 			messageActivityResult.setMessage(RolMessageKey.ROL_UPDATE.getStatus());
-			log.info("El rol con id {} ha sido actualizado.", rol.getId());
+			log.info(RolMessageKey.ROL_UPDATE.getStatus() + "| Rol {}", rol.toString());
 		} else {
 			messageActivityResult.setCode(RolMessageKey.ROL_NOT_FOUND.getCode());
 			messageActivityResult.setMessage(RolMessageKey.ROL_NOT_FOUND.getStatus());
-			log.info("No ha sido encontrado con el rol el id {} indicado.", rol.getId());
+			log.info(RolMessageKey.ROL_NOT_FOUND.getStatus() + "| Rol {}", rol.toString());
 		}
 		return messageActivityResult;
 	}
@@ -155,13 +155,13 @@ public class RolServiceImpl implements RolService {
 		messageActivity.setObjectResponse(rolList);
 		if (null == messageActivity.getObjectResponse() || messageActivity.getObjectResponse().isEmpty()) {
 			messageActivity.setCode(Response.Status.NOT_FOUND.getStatusCode());
-			messageActivity.setMessage(Response.Status.NOT_FOUND.toString());
-			log.info("No fueron encontrados los roles en base a los id indicados");
+			messageActivity.setMessage(Response.Status.NOT_FOUND.getReasonPhrase());
+			log.info(Response.Status.NOT_FOUND.getReasonPhrase() + "| roles {}", (null == roles) ? "": roles.toString());
 		}
 		else {
 			messageActivity.setCode(Response.Status.OK.getStatusCode());
-			messageActivity.setMessage(Response.Status.OK.toString());
-			log.info("Fueron encontrados los roles en base a los id indicados");
+			messageActivity.setMessage(Response.Status.OK.getReasonPhrase());
+			log.info(Response.Status.OK.toString());
 		}
 		return messageActivity;
 	}
@@ -177,7 +177,8 @@ public class RolServiceImpl implements RolService {
 		messageActivityResult.setMessage(Response.Status.OK.getReasonPhrase());
 		messageActivityResult.setCode(Response.Status.OK.getStatusCode());
 		messageActivityResult.setObjectResponse(rolMapper.toTarget(rolEntity));
-		log.info("Se ha completado la desvinculación del rol y los features");
+		//TODO - Falta cubrir casos bordes para el metodo unlink
+		log.info(Response.Status.OK.getReasonPhrase());
 		return messageActivityResult;
 	}
 
@@ -193,11 +194,11 @@ public class RolServiceImpl implements RolService {
 			messageActivityResult.setObjectResponse(rolList);
 			messageActivityResult.setCode(RolMessageKey.ROL_OK.getCode());
 			messageActivityResult.setMessage(RolMessageKey.ROL_OK.getStatus());
-			log.info("Roles encontrados");
+			log.info(RolMessageKey.ROL_OK.getStatus());
 		} else {
 			messageActivityResult.setCode(RolMessageKey.ROL_NOT_FOUND.getCode());
 			messageActivityResult.setMessage(RolMessageKey.ROL_NOT_FOUND.getStatus());
-			log.info("Roles NO encontrados");
+			log.info(RolMessageKey.ROL_NOT_FOUND.getStatus() + "| userId {}", userId);
 		}
 		return messageActivityResult;
 	}

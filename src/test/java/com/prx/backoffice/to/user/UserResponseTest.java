@@ -15,10 +15,11 @@
 package com.prx.backoffice.to.user;
 
 import com.prx.commons.pojo.User;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import static org.junit.jupiter.api.Assertions.*;
-import org.junit.jupiter.api.Test;
 
 /**
  * UserResponseTest.
@@ -31,20 +32,18 @@ class UserResponseTest {
     @Test
     void gettersAndSetters(){
         final var userResponse = new UserResponse();
-
         userResponse.setUser(new User());
         userResponse.setCode(100);
         userResponse.setDateTime(LocalDateTime.now(ZoneId.systemDefault()));
         userResponse.setMessage("Mensaje de respuestas");
-
-        assertAll("Test Getters and Setters",
-            () -> assertNotNull(userResponse.getUser()),
-            () -> assertNotNull(userResponse.getCode()),
-            () -> assertNotNull(userResponse.getDateTime()),
-            () -> assertNotNull(userResponse.getMessage()),
-            () -> assertNotNull(userResponse.toString()),
-            () -> assertNotEquals(1, userResponse.hashCode()),
-            () -> assertNotEquals(new UserResponse(), userResponse)
+        Assertions.assertAll("Test Getters and Setters",
+            () -> Assertions.assertNotNull(userResponse.getUser()),
+            () -> Assertions.assertNotNull(userResponse.getCode()),
+            () -> Assertions.assertNotNull(userResponse.getDateTime()),
+            () -> Assertions.assertNotNull(userResponse.getMessage()),
+            () -> Assertions.assertNotNull(userResponse.toString()),
+            () -> Assertions.assertNotEquals(1, userResponse.hashCode()),
+            () -> Assertions.assertNotEquals(new UserResponse(), userResponse)
                  );
     }
 

@@ -28,6 +28,7 @@ public enum UserMessageKey implements MessageType {
     USER_CREATED(201,"Usuario creado"),
     USER_PASSWORD_WRONG(401,"Clave invalida"),
     USER_BLOCKED(403,"Usuario bloqueado o inactivo"),
+    USER_FOUND(200,"Usuario encontrado"),
     USER_NOT_FOUND(404,"Usuario no encontrado"),
     USER_CREATE_ERROR(404,"Error durante la creación de usuario"),
     USER_PREVIOUS_EXIST(409,"Nombre de usuario ya se encuentra ocupado, ingrese un nombre de usuario diferente");
