@@ -8,5 +8,6 @@ spring:
       profile: virtual
       label: developer
       uri: http://localhost:8082
+      send-state: true
     inetutils:
       default-hostname: prx.test

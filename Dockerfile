@@ -9,7 +9,7 @@ WORKDIR /usr/local/runme
 ARG JAR_FILE=target/prx-backbone-rest.jar
 COPY ${JAR_FILE} "prx-backbone-rest.jar"
 COPY prx_backbone_rest.jks prx_backbone_rest.jks
-COPY prx_backbone_rest_discovery.jks prx_backbone_rest_discovery.jks
+COPY prx_srv_monitor.jks prx_srv_monitor.jks
 
 EXPOSE 8085
 ENTRYPOINT ["java", "-jar", "prx-backbone-rest.jar"]

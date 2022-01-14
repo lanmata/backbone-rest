@@ -5,14 +5,14 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.prx.backbone</groupId>
     <artifactId>prx-backbone-rest</artifactId>
-    <version>1.0.2.20210220-01</version>
+    <version>1.0.2.20211214-01</version>
     <name>PRX Backbone REST</name>
     <description>Servicios para la gestión de las entidades del sistema</description>
 
     <parent>
         <groupId>com.prx</groupId>
         <artifactId>prx-central</artifactId>
-        <version>1.0.3.20210220-01</version>
+        <version>1.0.3.20211214-01</version>
     </parent>
 
     <developers>
@@ -39,17 +39,15 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-config</artifactId>
-            <version>3.0.2</version>
+            <version>3.1.0</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-            <version>2.4.3</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
-            <version>2.4.3</version>
         </dependency>
         <!--				Implementacion de Keycloak-->
         <dependency>
@@ -79,26 +77,13 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-openfeign</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-core</artifactId>
-            <version>${spring-core.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-bootstrap</artifactId>
-            <version>3.0.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.plugin</groupId>
-            <artifactId>spring-plugin-core</artifactId>
-            <version>${spring-plugin-core.version}</version>
-        </dependency>
+<!--        Object -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
+<!--        Converter-->
         <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
@@ -106,8 +91,8 @@
         <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct-processor</artifactId>
-            <version>${org.mapstruct.version}</version>
         </dependency>
+<!--        PRX Dependencies-->
         <dependency>
             <groupId>com.prx.commons</groupId>
             <artifactId>prx-commons</artifactId>
@@ -116,17 +101,20 @@
             <groupId>com.prx.persistence</groupId>
             <artifactId>prx-persistence</artifactId>
         </dependency>
-        <!--           START - OpenDoc | Documentation -->
+<!--        TEST-->
         <dependency>
-            <groupId>io.springfox</groupId>
-            <artifactId>springfox-boot-starter</artifactId>
-        </dependency>
-        <!--           END - OpenDoc | Documentation -->
-        <!--            Dependencias para test-->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-contract-verifier</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-contract-stub-runner</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
@@ -136,7 +124,6 @@
         <dependency>
             <groupId>org.mock-server</groupId>
             <artifactId>mockserver-junit-jupiter</artifactId>
-            <version>5.11.2</version>
             <scope>test</scope>
             <exclusions>
                 <exclusion>
@@ -148,23 +135,22 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-junit-jupiter</artifactId>
-            <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
+            <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
+
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-configuration-processor</artifactId>
-            <optional>true</optional>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
         </dependency>
     </dependencies>
 
@@ -187,7 +173,7 @@
             <dependency>
                 <groupId>org.junit</groupId>
                 <artifactId>junit-bom</artifactId>
-                <version>${junit.version}</version>
+                <version>${junit.jupiter.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
