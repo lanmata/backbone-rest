@@ -18,7 +18,9 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.runner.RunWith;
 import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerExtension;
 import org.mockserver.junit.jupiter.MockServerSettings;
@@ -31,6 +33,8 @@ import org.mockserver.model.MediaType;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -40,14 +44,25 @@ import org.springframework.web.context.request.ServletRequestAttributes;
  * @author <a href='mailto:luis.antonio.mata@gmail.com'>Luis Antonio Mata</a>
  * @version 1.0.0, 19-02-2021
  */
-@ExtendWith(MockServerExtension.class)
+@SpringBootTest
+@ActiveProfiles("local")
+@RunWith(MockitoJUnitRunner.class)
 @MockServerSettings(perTestSuite = true)
+@ExtendWith(value = {MockServerExtension.class})
 public class MockLoaderBase {
+
+	@Autowired
+	WebApplicationContext applicationContext;
 
 	/** URL de prueba */
 	public static final String TEST_URL = "https://localhost:";
 	/** clientAndServer */
 	private ClientAndServer clientAndServer;
+
+	@BeforeEach
+	void init(){
+		RestAssuredMockMvc.webAppContextSetup(applicationContext);
+	}
 
 	/**
 	 * Carga un archivo de Respuesta.

@@ -15,7 +15,6 @@
 
 package com.prx.backoffice;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -33,7 +32,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @FeignClient
 @SpringBootApplication
 @EnableEurekaClient
-@RequiredArgsConstructor
 @EntityScan(basePackages = {"com.prx.persistence"})
 @EnableJpaRepositories(basePackages = {"com.prx.persistence"})
 @ComponentScan(basePackages = {"com.prx.backoffice", "com.prx.commons.config", "com.prx.commons.properties"})

@@ -17,6 +17,7 @@ package com.prx.backoffice;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
 /**
@@ -25,13 +26,13 @@ import org.springframework.test.context.TestPropertySource;
  * @author <a href="mailto:luis.antonio.mata@gmail.com">Luis Antonio Mata</a>
  * @version 1.0.1.20200904-01, 26-10-2020
  */
+@ActiveProfiles("local")
 @SpringBootTest(classes = PrxBackofficeRestApplication.class)
 @TestPropertySource(properties = "startup.beans.inspect=true")
-public class PrxBackofficeRestApplicationTest {
+class PrxBackofficeRestApplicationTest {
 
     @Test
-    public void testLoadContext() {
-//        PrxBackofficeRestApplication.main(new String[] {});
+    void testLoadContext() {
         Assertions.assertTrue(true);
     }
 
