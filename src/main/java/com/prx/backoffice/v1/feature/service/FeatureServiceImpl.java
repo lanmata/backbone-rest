@@ -87,16 +87,26 @@ public class FeatureServiceImpl implements FeatureService {
 	public ResponseEntity<List<Feature>> list(List<Long> featureIds, boolean includeInactive) {
 		ResponseEntity<List<Feature>> listResponseEntity;
 		final var featureListResult = new ArrayList<Feature>();
-		final var featureEntityListResult = featureRepository.findAllById(featureIds);
-		//TODO Falta manejo de casos bordes en el metodo
+		Iterable<FeatureEntity> featureEntityListResult;
+		if(null == featureIds) {
+			featureEntityListResult = featureRepository.findAll();
+		} else {
+			featureEntityListResult = featureRepository.findAllById(featureIds);
+		}
+
 		featureEntityListResult.forEach(featureEntity -> {
-			if (includeInactive || featureEntity.getActive()) {
+			if (includeInactive || Boolean.TRUE.equals(featureEntity.getActive())) {
 				featureListResult.add(featureMapper.toTarget(featureEntity));
 			}
 		});
-		listResponseEntity = new ResponseEntity<>(featureListResult, HttpStatus.FOUND);
-		log.info(listResponseEntity.getStatusCode().toString());
-		return listResponseEntity;
+
+		if(featureListResult.isEmpty()) {
+			return ResponseEntity.notFound().build();
+		} else {
+			listResponseEntity = new ResponseEntity<>(featureListResult, HttpStatus.OK);
+			log.info(listResponseEntity.getStatusCode().toString());
+			return listResponseEntity;
+		}
 	}
 
 	/** {@inheritDoc} */

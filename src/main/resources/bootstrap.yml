@@ -9,3 +9,5 @@ spring:
       label: developer
       uri: http://localhost:8082
       send-state: true
+  jpa:
+    defer-datasource-initialization: true
