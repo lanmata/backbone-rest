@@ -11,11 +11,10 @@
  * verbatim with this file.
  */
 
-package com.prx.backoffice.to.rol;
+package com.prx.backoffice.v1.role.api.to;
 
-import com.prx.backoffice.v1.role.api.to.RoleCollectionResponse;
 import com.prx.commons.pojo.Feature;
-import com.prx.commons.pojo.Rol;
+import com.prx.commons.pojo.Role;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
@@ -31,18 +30,18 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * @author <a href='mailto:luis.antonio.mata@gmail.com'>Luis Antonio Mata</a>
  * @version 1.0.0, 18-02-2021
  */
-public class RolCollectionResponseTest {
+public class RoleCollectionResponseTest {
 
     @Test
     public void testGettersAndSetters(){
-        final var rolCollectionResponse = new RolCollectionResponse();
-        final var rol = new Rol();
+        final var rolCollectionResponse = new RoleCollectionResponse();
+        final var rol = new Role();
         final var feature = new Feature();
         feature.setId(1L);
         feature.setActive(true);
         feature.setName("Nombre de feature");
         feature.setDescription("Descripcion de feature");
-        rol.setId(1);
+        rol.setId(1L);
         rol.setActive(true);
         rol.setName("Nombre de rol");
         rol.setFeatures(new ArrayList<>());

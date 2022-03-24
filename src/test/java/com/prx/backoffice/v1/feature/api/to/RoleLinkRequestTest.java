@@ -11,7 +11,7 @@
  * verbatim with this file.
  */
 
-package com.prx.backoffice.to.featurerol;
+package com.prx.backoffice.v1.feature.api.to;
 
 import com.prx.backoffice.v1.role.api.to.RoleLinkRequest;
 import org.junit.jupiter.api.Test;
@@ -27,24 +27,24 @@ import static org.junit.jupiter.api.Assertions.*;
  * @version 1.0.0, 18-02-2021
  */
 
-public class RolLinkRequestTest {
+class RoleLinkRequestTest {
 
 	@Test
-	public void testGettersAndSetters() {
-		final var rolLinkRequest = new RolLinkRequest();
-		rolLinkRequest.setFeatureIdList(new ArrayList<>());
-		rolLinkRequest.getFeatureIdList().add(1L);
-		rolLinkRequest.getFeatureIdList().add(2L);
-		rolLinkRequest.getFeatureIdList().add(3L);
+	void testGettersAndSetters() {
+		final var roleLinkRequest = new RoleLinkRequest();
+		roleLinkRequest.setFeatureIdList(new ArrayList<>());
+		roleLinkRequest.getFeatureIdList().add(1L);
+		roleLinkRequest.getFeatureIdList().add(2L);
+		roleLinkRequest.getFeatureIdList().add(3L);
 
 		assertAll(
-				() -> assertNotNull(rolLinkRequest),
-				() -> assertNotNull(rolLinkRequest.toString()),
-				() -> assertNotNull(rolLinkRequest.getFeatureIdList())
+				() -> assertNotNull(roleLinkRequest),
+				() -> assertNotNull(roleLinkRequest.toString()),
+				() -> assertNotNull(roleLinkRequest.getFeatureIdList())
 		);
 
-		Long[] b = new Long[rolLinkRequest.getFeatureIdList().size()];
-		b = rolLinkRequest.getFeatureIdList().toArray(b);
+		Long[] b = new Long[roleLinkRequest.getFeatureIdList().size()];
+		b = roleLinkRequest.getFeatureIdList().toArray(b);
 		assertArrayEquals(new Long[] {1L, 2L, 3L}, b);
 
 	}

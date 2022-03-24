@@ -50,7 +50,7 @@ public class UserServiceImpl implements UserService {
 	private final RoleMapper roleMapper;
 
 	@Override
-	public ResponseEntity<User> update(User user) {
+	public ResponseEntity<User> update(Long userId, User user) {
 		ResponseEntity<User> responseEntity;
 		final var userResponseEntity = findUserByAlias(user.getAlias());
 		try {
@@ -79,7 +79,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public ResponseEntity<User> delete(User user) {
+	public ResponseEntity<User> delete(Long userId, User user) {
 		return null;
 	}
 

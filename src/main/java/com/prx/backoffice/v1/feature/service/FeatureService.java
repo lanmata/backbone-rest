@@ -29,21 +29,6 @@ import java.util.List;
 public interface FeatureService extends CrudService <Feature> {
 
     /**
-     * Crea un {@link Feature}.
-     *
-     * @param feature {@link Feature}.
-     * @return Objeto de tipo {@link MessageActivity}
-     */
-    ResponseEntity<Feature> create(Feature feature);
-
-    /**
-     * Actualiza un {@link Feature}.
-     * @param feature {@link Feature}
-     * @return Objeto de tipo {@link MessageActivity}
-     */
-    ResponseEntity<Feature> update(Feature feature);
-
-    /**
      * Busca uno o más {@link Feature} en base a uno o más id´s.
      *
      * @param featureIds {@link List}
@@ -51,13 +36,5 @@ public interface FeatureService extends CrudService <Feature> {
      * @return Objeto de tipo {@link MessageActivity}
      */
     ResponseEntity<List<Feature>> list(List<Long> featureIds, boolean includeInactive);
-
-    /**
-     * Busca un {@link Feature} en base a uno id.
-     *
-     * @param featureId {@link Long}
-     * @return Objeto de tipo {@link MessageActivity}
-     */
-    ResponseEntity<Feature> find(Long featureId);
 
 }

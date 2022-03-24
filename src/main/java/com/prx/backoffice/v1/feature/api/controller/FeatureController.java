@@ -60,7 +60,7 @@ public class FeatureController {
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/find/{featureId}")
     public ResponseEntity<Feature> find(@Parameter(description = "Id de feature", required = true)
-    @PathVariable final Long featureId) {
+                                        @PathVariable final Long featureId) {
         log.info("{} find", MessageUtil.LOG_START_MSG);
         final var responseEntity = featureService.find(featureId);
         log.info("{} find", MessageUtil.LOG_END_MSG);
@@ -74,36 +74,37 @@ public class FeatureController {
 //            @ApiResponse(responseCode = "401", description = "Solicitud no valida")
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/list/{includeInactive}/{featuresIds}")
-    public ResponseEntity<List<Feature>> list(@Parameter(description = "Incluye/excluye feature inactivos", required = true) boolean includeInactive,
-                                    @Parameter(description = "lista de id requeridos") List<Long> featureIds){
+    public ResponseEntity<List<Feature>> list(@Parameter(description = "Non/Include the features inactive", required = true)
+                                              @PathVariable boolean includeInactive,
+                                              @Parameter(description = "Features id list") @PathVariable List<Long> featuresIds){
         log.info("{} list", MessageUtil.LOG_START_MSG);
-        final var responseEntity = featureService.list(featureIds,includeInactive);
+        final var responseEntity = featureService.list(featuresIds,includeInactive);
         log.info("{} list", MessageUtil.LOG_END_MSG);
         return responseEntity;
     }
 
-    @Operation(description = "Crea un Feature")
+    @Operation(description = "Create a Feature")
     @ApiResponses(value = {
             @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "Ok")
 //            ,
 //            @ApiResponse(responseCode = "401", description = "Solicitud no valida")
     })
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/create")
-    public ResponseEntity<Feature> create(@Parameter(description = "Propiedades del Feature", required = true) @RequestBody FeatureRequest featureRequest) {
+    public ResponseEntity<Feature> create(@Parameter(description = "Feature properties", required = true) @RequestBody FeatureRequest featureRequest) {
         log.info("{} create", MessageUtil.LOG_START_MSG);
         return featureService.create(featureRequest.getFeature());
     }
 
-    @Operation(description = "Actualiza un Feature")
+    @Operation(description = "Update a Feature")
     @ApiResponses(value = {
             @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "Ok")
 //            ,
 //            @ApiResponse(responseCode = "401", description = "Solicitud no valida")
     })
-    @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/update/{idFeature}")
-    public ResponseEntity<Feature> update(@Parameter(description = "id de Feature", required = true) @PathVariable Long idFeature,
-                                          @Parameter(description = "Propiedades de Feature", required = true) FeatureRequest featureRequest){
+    @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/update/{featureId}")
+    public ResponseEntity<Feature> update(@PathVariable Long featureId,
+                                          @Parameter(description = "Feature properties", required = true) FeatureRequest featureRequest){
         log.info("{} /update/{idFeature}", MessageUtil.LOG_START_MSG);
-        return featureService.update(featureRequest.getFeature());
+        return featureService.update(featureId, featureRequest.getFeature());
     }
 }

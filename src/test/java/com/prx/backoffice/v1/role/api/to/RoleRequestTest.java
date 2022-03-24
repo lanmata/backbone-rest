@@ -11,11 +11,10 @@
  * verbatim with this file.
  */
 
-package com.prx.backoffice.to.rol;
+package com.prx.backoffice.v1.role.api.to;
 
-import com.prx.backoffice.v1.role.api.to.RoleRequest;
 import com.prx.commons.pojo.Feature;
-import com.prx.commons.pojo.Rol;
+import com.prx.commons.pojo.Role;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
@@ -31,43 +30,43 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * @author <a href='mailto:luis.antonio.mata@gmail.com'>Luis Antonio Mata</a>
  * @version 1.0.0, 18-02-2021
  */
-public class RolRequestTest {
+public class RoleRequestTest {
 
     @Test
     public void testGettersAndSetters(){
-        final var rolRequest = new RolRequest();
-        final var rol = new Rol();
+        final var rolRequest = new RoleRequest();
+        final var rol = new Role();
         final var feature = new Feature();
         feature.setId(1L);
         feature.setActive(true);
         feature.setName("Nombre de feature");
         feature.setDescription("Descripcion de feature");
-        rol.setId(1);
+        rol.setId(1L);
         rol.setActive(true);
         rol.setName("Nombre de rol");
         rol.setFeatures(new ArrayList<>());
         rol.getFeatures().add(feature);
         rol.setDescription("Descrptcion de rol");
-        rolRequest.setRol(rol);
+        rolRequest.setRole(rol);
         rolRequest.setAppName("APP-TEST");
         rolRequest.setAppToken("SDFGHJKLKJHGFrty865dfds");
         rolRequest.setDateTime(LocalDateTime.now(ZoneId.systemDefault()));
 
         assertAll(
                 () -> assertNotNull(rolRequest),
-                () -> assertNotNull(rolRequest.getRol()),
-                () -> assertNotNull(rolRequest.getRol().getId()),
-                () -> assertNotNull(rolRequest.getRol().getName()),
-                () -> assertNotNull(rolRequest.getRol().toString()),
-                () -> assertNotNull(rolRequest.getRol().getActive()),
-                () -> assertNotNull(rolRequest.getRol().getFeatures()),
-                () -> assertNotNull(rolRequest.getRol().getDescription()),
+                () -> assertNotNull(rolRequest.getRole()),
+                () -> assertNotNull(rolRequest.getRole().getId()),
+                () -> assertNotNull(rolRequest.getRole().getName()),
+                () -> assertNotNull(rolRequest.getRole().toString()),
+                () -> assertNotNull(rolRequest.getRole().getActive()),
+                () -> assertNotNull(rolRequest.getRole().getFeatures()),
+                () -> assertNotNull(rolRequest.getRole().getDescription()),
                 () -> assertNotNull(rolRequest.toString()),
                 () -> assertNotNull(rolRequest.getAppName()),
                 () -> assertNotNull(rolRequest.getAppToken()),
                 () -> assertNotNull(rolRequest.getDateTime())
         );
-        rolRequest.getRol().getFeatures().forEach(feature1 -> {
+        rolRequest.getRole().getFeatures().forEach(feature1 -> {
             assertNotNull(feature1.getId());
             assertNotNull(feature1.getName());
             assertNotNull(feature1.toString());

@@ -56,6 +56,14 @@ public class MessageUtil {
     @Value("${messages.user.solicitud-exitosa}")
     private String solicitudExitosa;
 
+    public static final String OK_VALUE = "200";
+    public static final String CREATED_VALUE = "201";
+    public static final String ACCEPTED_VALUE = "202";
+
+    public static final String LOG_PATH_SEPARATOR = "|";
+    public static final String LOG_END_MSG = "Termina llamado al método ";
+    public static final String LOG_START_MSG = "Inicia llamado al método ";
+
     /**
      *
      * @return Objeto de tipo {@link String}

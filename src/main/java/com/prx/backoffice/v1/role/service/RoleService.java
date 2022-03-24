@@ -53,10 +53,11 @@ public interface RoleService extends CrudService<Role> {
 
     /**
      * Actualiza los campos de nombre y descripción, y activa o inactiva el estado del {@link Role}.
+     * @param rolId {@link Long}
      * @param role {@link Role}
      * @return Objeto de tipo {@link ResponseEntity}
      */
-    ResponseEntity<Role> update(Role role);
+    ResponseEntity<Role> update(Long rolId, Role role);
 
     /**
      * Lista un conjunto de roles en base a los id recibidos, el parametro booleano determina la obtención de roles
