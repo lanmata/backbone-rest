@@ -12,8 +12,8 @@
  */
 package com.prx.backoffice.v1.feature.service;
 
-import com.prx.backoffice.v1.feature.mapper.FeatureMapper;
 import com.prx.backoffice.util.MessageUtil;
+import com.prx.backoffice.v1.feature.mapper.FeatureMapper;
 import com.prx.commons.pojo.Feature;
 import com.prx.persistence.general.domains.FeatureEntity;
 import com.prx.persistence.general.repositories.FeatureRepository;
@@ -46,9 +46,9 @@ public class FeatureServiceImpl implements FeatureService {
 	/** {@inheritDoc} */
 	@Override
 	public ResponseEntity<Feature> create(Feature feature) {
-		log.info("Inicia la creación de feature");
+		log.info("Starting feature creation");
 		ResponseEntity<Feature> responseEntity;
-		log.info("Se valida que no exista duplicidad en el nombre del feature");
+		log.info("Feature name duplication validation.");
 		final var optFeature = featureRepository.findByName(feature.getName());
 		//TODO Falta manejo de casos bordes en el metodo
 		if (optFeature.isPresent()) {
@@ -63,7 +63,7 @@ public class FeatureServiceImpl implements FeatureService {
 
 	/** {@inheritDoc} */
 	@Override
-	public ResponseEntity<Feature> update(Feature feature) {
+	public ResponseEntity<Feature> update(Long featureId, Feature feature) {
 		ResponseEntity<Feature> responseEntity;
 		//TODO Falta manejo de casos bordes en el metodo
 		responseEntity = ResponseEntity.accepted().body(featureMapper.toTarget(
@@ -73,7 +73,7 @@ public class FeatureServiceImpl implements FeatureService {
 	}
 
 	@Override
-	public ResponseEntity<Feature> delete(Feature feature) {
+	public ResponseEntity<Feature> delete(Long featureId, Feature feature) {
 		throw new NotImplementedException();
 	}
 

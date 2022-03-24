@@ -15,7 +15,6 @@ package com.prx.backoffice.v1.user.service;
 import com.prx.backoffice.MockLoaderBase;
 import com.prx.backoffice.v1.person.service.PersonService;
 import com.prx.backoffice.v1.role.mapper.RoleMapper;
-import com.prx.backoffice.v1.user.service.UserServiceImpl;
 import com.prx.backoffice.v1.user.mapper.UserMapper;
 import com.prx.commons.pojo.*;
 import com.prx.persistence.general.domains.PersonEntity;
@@ -137,7 +136,7 @@ class UserServiceImplTest extends MockLoaderBase {
 	void testFindAll() {
 		Mockito.when(this.userRepository.findByAlias(ArgumentMatchers.anyString())).thenReturn(userEntity);
 		Mockito.when(this.userMapper.toTarget(ArgumentMatchers.any(UserEntity.class))).thenReturn(user);
-		Mockito.when(this.roleMapper.userRoletoRole(ArgumentMatchers.any(UserRoleEntity.class))).thenReturn(role);
+		Mockito.when(this.roleMapper.userRoleToRole(ArgumentMatchers.any(UserRoleEntity.class))).thenReturn(role);
 		Assertions.assertNotNull(this.userService.findUserByAlias("pepe"));
 	}
 

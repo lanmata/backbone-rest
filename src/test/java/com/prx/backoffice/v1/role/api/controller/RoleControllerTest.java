@@ -116,7 +116,7 @@ class RoleControllerTest extends MockLoaderBase {
     void update() throws JsonProcessingException {
         var role = getRole();
         //when:
-        Mockito.when(roleService.update(Mockito.any(Role.class))).thenReturn(ResponseEntity.status(HttpStatus.ACCEPTED).body(role));
+        Mockito.when(roleService.update(Mockito.anyLong(), Mockito.any(Role.class))).thenReturn(ResponseEntity.status(HttpStatus.ACCEPTED).body(role));
         //then:
         given().contentType(MediaType.APPLICATION_JSON_VALUE).body(objectMapper.writeValueAsString(getRoleRequest(role)))
                 .accept(MediaType.APPLICATION_JSON_VALUE).when().put(PATH_UPDATE.concat("1")).then().assertThat()

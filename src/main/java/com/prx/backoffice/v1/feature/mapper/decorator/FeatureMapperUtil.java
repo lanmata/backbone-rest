@@ -52,7 +52,6 @@ public class FeatureMapperUtil {
 		rolFeatureEntities.forEach(rolFeatureEntity -> {
 			features.add(featureMapper.toTarget(rolFeatureEntity.getFeature()));
 		});
-
 		return features;
 	}
 

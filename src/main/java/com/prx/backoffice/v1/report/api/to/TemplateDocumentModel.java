@@ -10,29 +10,33 @@
  * In any event, this notice and the above copyright must always be included
  * verbatim with this file.
  */
-package com.prx.backoffice.v1.person.api.to;
 
-import com.prx.commons.pojo.Person;
-import com.prx.commons.to.Request;
-import com.prx.commons.util.JsonUtil;
+package com.prx.backoffice.v1.report.api.to;
+
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
+
 /**
- * PersonCreateRequest.
+ * TemplateDocumentModel.
  *
- * @author Luis Antonio Mata
- * @version 1.0.1.20200904-01, 04-11-2020
+ * @author &lt;a href='mailto:luis.antonio.mata@gmail.com'&gt;Luis Antonio Mata&lt;/a&gt;
+ * @version 1.0.0, 14-01-2022
+ * @since 11
  */
 @Getter
 @Setter
+@JsonNaming
 @NoArgsConstructor
-public class PersonCreateRequest extends Request {
-    private Person person;
-
-    @Override
-    public String toString() {
-        return JsonUtil.toJson(this);
-    }
+public class TemplateDocumentModel {
+    private Long versionId;
+    private String templateName;
+    private String description;
+    private String createdBy;
+    private LocalDate createdTimestamp;
+    private String lastModifiedBy;
+    private LocalDate lastModifiedTimestamp;
 }

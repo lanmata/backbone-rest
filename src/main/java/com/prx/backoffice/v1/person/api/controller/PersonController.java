@@ -13,7 +13,7 @@
 package com.prx.backoffice.v1.person.api.controller;
 
 import com.prx.backoffice.v1.person.service.PersonService;
-import com.prx.backoffice.v1.person.api.to.PersonCreateRequest;
+import com.prx.backoffice.v1.person.api.to.PersonRequest;
 import com.prx.backoffice.util.MessageUtil;
 import com.prx.commons.pojo.Person;
 import com.prx.commons.to.Response;
@@ -25,10 +25,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * PersonController. Clase controladora para la exposición de los endpoint pertenecientes a la gestión de usuario
@@ -46,12 +43,12 @@ public class PersonController {
 
     /**
      *
-     * @param personCreateRequest {@link PersonCreateRequest}
+     * @param personRequest {@link PersonRequest}
      * @return Objeto de tipo {@link Response}
      */
-    @Operation(description = "Crea un nueva persona")
+    @Operation(description = "Create a persona")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "Persona creada")
+        @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "Person created")
 //        @ApiResponse(responseCode = "400", description = "Solicitud errada"),
 //        @ApiResponse(responseCode = "401", description = "Solicitante no tiene permisos, requiere autenticación"),
 //            @ApiResponse(responseCode = "403", description = "Persona no creada"),
@@ -59,12 +56,20 @@ public class PersonController {
 //            @ApiResponse(responseCode = "500", description = "Error interno durante la creación de persona")
     })
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/create")
-    public ResponseEntity<Person> create(@Parameter(description = "Solicitud para crear persona", required = true)
-    @RequestBody final PersonCreateRequest personCreateRequest) {
-        return personService.create(personCreateRequest.getPerson());
+    public ResponseEntity<Person> create(@Parameter(description = "Request to create a person", required = true)
+    @RequestBody final PersonRequest personRequest) {
+        return personService.create(personRequest.getPerson());
     }
 
-    //TODO - metodo get para obtener los usuarios vinculados a una persona
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/find/{personId}")
+    public ResponseEntity<Person> find(@PathVariable final Long personId) {
+        return personService.find(personId);
+    }
+
+    @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/update/{personId}")
+    public ResponseEntity<Person> update(@PathVariable final Long personId, @RequestBody final PersonRequest personRequest) {
+        return personService.update(personId, personRequest.getPerson());
+    }
 
     //TODO - metodo post para actualizas los datos de una persona
 

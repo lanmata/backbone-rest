@@ -21,7 +21,6 @@ import com.prx.persistence.general.domains.UserRoleEntity;
 import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Mappings;
 
 /**
  * RolMapper.
@@ -43,5 +42,5 @@ public interface RoleMapper {
     @Mapping(target = "description", source = "role.description")
     @Mapping(target = "active", source = "role.active")
     @Mapping(target = "features", source = "role.roleFeatures")
-    Role userRoletoRole(UserRoleEntity userRoleEntity);
+    Role userRoleToRole(UserRoleEntity userRoleEntity);
 }

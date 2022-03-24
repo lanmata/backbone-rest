@@ -12,11 +12,11 @@
  */
 package com.prx.backoffice.v1.user.api.controller;
 
-import com.prx.backoffice.v1.user.service.UserService;
+import com.prx.backoffice.util.MessageUtil;
 import com.prx.backoffice.v1.user.api.to.UserAccessRequest;
 import com.prx.backoffice.v1.user.api.to.UserAccessResponse;
 import com.prx.backoffice.v1.user.api.to.UserCreateRequest;
-import com.prx.backoffice.util.MessageUtil;
+import com.prx.backoffice.v1.user.service.UserService;
 import com.prx.commons.pojo.User;
 import com.prx.commons.util.ValidatorCommonsUtil;
 import io.swagger.v3.oas.annotations.Operation;
@@ -69,15 +69,9 @@ public class UserController {
     @Operation(description = "Obtiene una lista de usuarios")
     @ApiResponses(value = {
             @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "Usuario encontrado")
-//            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "${messages.general.user-find.ok}")
-//            ,
-//            @ApiResponse(responseCode = "404", description = "${messages.general.user-find.nok}"),
-//            @ApiResponse(responseCode = "500", description = "${messages.general.user-find.error}")
     })
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/findAll/{token}/{userId}")
-    public ResponseEntity<List<User>> findAll(
-            @Parameter(description = "Token de acceso", required = true) @PathVariable @NotNull String token,
-            @Parameter(description = STR_ID_USER, required = true) @PathVariable @NotNull Long userId){
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/findAll")
+    public ResponseEntity<List<User>> findAll(){
         log.info("{} /findAll/{token}/{userId}", MessageUtil.LOG_START_MSG);
         final var listResponseEntity = userService.findAll();
         log.info("{} /findAll/{token}/{userId}", MessageUtil.LOG_END_MSG);
@@ -87,11 +81,6 @@ public class UserController {
     @Operation(description = "Realiza la autenticación de usuario")
     @ApiResponses(value = {
             @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "Usuario encontrado")
-//            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "${messages.general.user-find.ok}")
-//            ,
-//            @ApiResponse(responseCode = "401", description = "${messages.general.user-find.not-authorized}"),
-//            @ApiResponse(responseCode = "404", description = "${messages.general.user-find.nok}"),
-//            @ApiResponse(responseCode = "500", description = "${messages.general.user-find.error}")
     })
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/login")
     public ResponseEntity<String> login(@Parameter(description = "Objeto de tipo UserAccessRequest", required = true)
@@ -116,9 +105,6 @@ public class UserController {
     @Operation(description = "Crea un nuevo usuario")
     @ApiResponses(value = {
             @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "Usuario creado con éxito.")
-//            ,
-//            @ApiResponse(responseCode = "401", description = "Acción NO autorizada"),
-//            @ApiResponse(responseCode = "500", description = "Internal Server Error")
     })
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/create")
     public ResponseEntity<User> create(@Parameter(description = "Objeto de tipo UserCreateRequest", required = true)
@@ -138,9 +124,6 @@ public class UserController {
     @Operation(description = "Busca un usuario por un alias")
     @ApiResponses(value = {
             @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "Usuario encontrado.")
-//            ,
-//            @ApiResponse(responseCode = "401", description = "Acción buscar usuario por alias NO autorizada"),
-//            @ApiResponse(responseCode = "500", description = "Internal Server Error")
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/findByAlias/{alias}")
     public ResponseEntity<User> findByAlias(@Parameter(description = "Alias de usuario", required = true)

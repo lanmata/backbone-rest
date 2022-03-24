@@ -52,18 +52,29 @@ public class PersonServiceImpl implements PersonService {
 	}
 
 	@Override
-	public ResponseEntity<Person> update(Person person) {
+	public ResponseEntity<Person> update(Long personId, Person person) {
+		if(esNulo(personId)){
+			return ResponseEntity.badRequest().header("Message-header", "PersonId invalid").build();
+		}
+		if(esNulo(person)){
+			return ResponseEntity.badRequest().header("Message-header", "Person request invalid").build();
+		}
+		return ResponseEntity.ok().build();
+	}
+
+	@Override
+	public ResponseEntity<Person> delete(Long personId, Person person) {
 		return null;
 	}
 
 	@Override
-	public ResponseEntity<Person> delete(Person person) {
-		return null;
-	}
-
-	@Override
-	public ResponseEntity<Person> find(Long id) {
-		return null;
+	public ResponseEntity<Person> find(Long personId) {
+		if (esNulo(personId)) {
+			return ResponseEntity.unprocessableEntity().build();
+		}
+		var personEntity = personRepository.findById(personId);
+		return personEntity.map(entity -> ResponseEntity.ok(personMapper.toTarget(entity)))
+				.orElseGet(() -> ResponseEntity.notFound().build());
 	}
 
 	@Override

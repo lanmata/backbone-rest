@@ -47,16 +47,14 @@ class RoleController {
 
     private final RoleService roleService;
 
-    private static final String document = "C:\\ambients\\tempo\\test_word\\dgng_spotrest.docx";
-
     /**
      *
      * @param roleId {@link RoleRequest}
      * @return Objeto de tipo {@link RoleFindResponse}
      */
-    @Operation(description = "Look for a rol")
+    @Operation          (description = "Look for a rol")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "Rol encontrado")
+            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "Role founded")
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/find/{roleId}")
     public ResponseEntity<Role> find(@Parameter(description = "Request to find a role", required = true)
@@ -72,14 +70,14 @@ class RoleController {
      * @param roleCreateRequest {@link RoleRequest}
      * @return {@link Response}
      */
-    @Operation(description = "Crea un rol")
+    @Operation(description = "Create a role")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "Rol creado")
+            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "Role created.")
     })
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/create")
-    public ResponseEntity<Role> create(@Parameter(description = "Propiedades del rol", required = true)
+    public ResponseEntity<Role> create(@Parameter(description = "Role properties", required = true)
                                        @RequestBody final RoleRequest roleCreateRequest){
-        log.info("Llamada al metodo /create");
+        log.info("Called the /create operation.");
         return roleService.create(roleCreateRequest.getRole());
     }
 
@@ -88,15 +86,14 @@ class RoleController {
      * @param roleRequest {@link RoleRequest}
      * @return {@link Response}
      */
-    @Operation(description = "Actualiza un rol")
+    @Operation(description = "Update a role")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "Rol actualiza")
+            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "Update a role")
     })
-    @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/update/{idRole}")
-    public ResponseEntity<Role> update(@PathVariable(value = "idRole") Long idRole, @RequestBody final RoleRequest roleRequest){
+    @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/update/{roleId}")
+    public ResponseEntity<Role> update(@PathVariable(value = "roleId") Long roleId, @RequestBody final RoleRequest roleRequest){
         log.info("{} /update/{idRole}", MessageUtil.LOG_START_MSG);
-        roleRequest.getRole().setId(idRole);
-        return roleService.update(roleRequest.getRole());
+        return roleService.update(roleId, roleRequest.getRole());
     }
 
     /**
@@ -104,9 +101,9 @@ class RoleController {
      * @param roleLinkRequest {@link RoleRequest}
      * @return {@link Response}
      */
-    @Operation(description = "Desvincula un rol con uno o mas features")
+    @Operation(description = "Unlink a role with one or more features")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "Operación unlink realizada")
+            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "Unlink completed")
     })
     @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/unlink/{idRole}")
     public ResponseEntity<Role> unlink(@PathVariable Long idRole, @RequestBody final RoleLinkRequest roleLinkRequest){
@@ -119,7 +116,7 @@ class RoleController {
      * @param roleLinkRequest {@link RoleRequest}
      * @return {@link Response}
      */
-    @Operation(description = "Vincula un rol con uno o mas features")
+    @Operation(description = "Link a role with one or more features.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "Operación link realizada")
     })

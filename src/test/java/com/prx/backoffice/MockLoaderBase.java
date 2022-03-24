@@ -12,8 +12,7 @@
  */
 package com.prx.backoffice;
 
-import java.nio.charset.StandardCharsets;
-
+import io.restassured.module.mockmvc.RestAssuredMockMvc;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,12 +23,9 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerExtension;
 import org.mockserver.junit.jupiter.MockServerSettings;
-import org.mockserver.model.Header;
-import org.mockserver.model.HttpRequest;
-import org.mockserver.model.HttpResponse;
-import org.mockserver.model.HttpStatusCode;
-import org.mockserver.model.MediaType;
-
+import org.mockserver.model.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -37,6 +33,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+
+import java.nio.charset.StandardCharsets;
 
 /**
  * MockLoaderBase.

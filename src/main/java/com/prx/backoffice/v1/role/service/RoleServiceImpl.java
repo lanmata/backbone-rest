@@ -58,23 +58,28 @@ public class RoleServiceImpl implements RoleService {
 	/** {@inheritDoc} */
 	@Override
 	public ResponseEntity<List<Role>> list(Long... id) {
-		List<Role> rolesList = new ArrayList<>();
+		List<Role> roleList = new ArrayList<>();
 		final var roleEntity = roleRepository.findAllById(Arrays.asList(id));
 		return roleEntity.map(roleEntities -> {
 			roleEntities.forEach(roleEntity1 -> {
 				Role roleResult = roleMapper.toTarget(roleEntity1);
-				rolesList.add(roleResult);
+				roleList.add(roleResult);
 			});
-			return  ResponseEntity.ok(rolesList);
+			return ResponseEntity.ok(sort(roleList));
 		}).orElseGet(() -> ResponseEntity.notFound().build());
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public ResponseEntity<Role> create(Role role) {
-		log.info("Inicia creación de Rol.");
+		log.info("Init create new role");
+		if(null == role ){
+			log.warn("Role null.");
+			return ResponseEntity.badRequest().build();
+		}
 		var roleEntity = roleMapper.toSource(role);
-		if(null == roleEntity || null == roleEntity.getId()){
+		if(null == roleEntity ){
+			log.warn("Role with bad content.");
 			return ResponseEntity.unprocessableEntity().build();
 		}
 		var roleFeatureEntities = roleEntity.getRoleFeatures();
@@ -84,9 +89,10 @@ public class RoleServiceImpl implements RoleService {
 			roleFeatureEntity.setRole(roleEntityResult);
 			roleFeatureEntity.setActive(roleFeatureEntity.getFeature().getActive());
 		});
-		roleEntity.setRoleFeatures(roleFeatureEntities);
+		roleEntityResult.setRoleFeatures(roleFeatureEntities);
 		roleRepository.save(roleEntityResult);
-		return new ResponseEntity<>(roleMapper.toTarget(roleEntity), HttpStatus.CREATED);
+		log.info("Role created.");
+		return new ResponseEntity<>(roleMapper.toTarget(roleEntityResult), HttpStatus.CREATED);
 	}
 
 	/** {@inheritDoc} */
@@ -103,11 +109,13 @@ public class RoleServiceImpl implements RoleService {
 			log.info("El Rol no tiene features previamente vinculados.");
 			roleEntity.setRoleFeatures(new HashSet<>());
 		}
-		if(null == listResponseEntity || null == listResponseEntity.getBody() || listResponseEntity.getBody().isEmpty()){
+		if(null == listResponseEntity){
 			log.info("Se ha vinculado el Rol con los features indicados.");
 			return ResponseEntity.noContent().build();
+		}
+		if(null == listResponseEntity.getBody() || listResponseEntity.getBody().isEmpty()) {
+			return ResponseEntity.noContent().build();
 		} else {
-			//TODO - Falta caso alterno concerniente al fallo de registro al vincular un rol con uno o mas feature
 			listResponseEntity.getBody().forEach(feature -> {
 				RoleFeatureEntity rolFeatureEntity = new RoleFeatureEntity();
 				rolFeatureEntity.setRole(roleEntity);
@@ -121,7 +129,7 @@ public class RoleServiceImpl implements RoleService {
 
 	/** {@inheritDoc} */
 	@Override
-	public ResponseEntity<Role> update(Role role) {
+	public ResponseEntity<Role> update(Long rolId, Role role) {
 		log.info("Inicia la actualización del role.");
 		final ResponseEntity<Role> roleResponseEntity;
 		log.info("Se busca el role solicitado para actualizar los datos.");
@@ -140,14 +148,14 @@ public class RoleServiceImpl implements RoleService {
 	}
 
 	@Override
-	public ResponseEntity<Role> delete(Role role) {
+	public ResponseEntity<Role> delete(Long rolId, Role role) {
 		return null;
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public ResponseEntity<List<Role>> list(boolean includeInactive, List<Long> roles) {
-		ResponseEntity<List<Role>> responseEntity = null;
+		ResponseEntity<List<Role>> responseEntity;
 		final var roleList = new ArrayList<Role>();
 		Optional<List<RoleEntity>> optionalRoleEntityList;
 
@@ -155,7 +163,7 @@ public class RoleServiceImpl implements RoleService {
 			log.info("Inicia la búsqueda de los roles.");
 			optionalRoleEntityList = findAll(includeInactive);
 		} else {
-			log.info("Ids pendientes por buscar en DDBB {}.", roles.toString());
+			log.info("Ids pendientes por buscar en DDBB {}.", roles);
 			optionalRoleEntityList = findAll(includeInactive, roles);
 		}
 
@@ -165,10 +173,9 @@ public class RoleServiceImpl implements RoleService {
 							.forEach(roleEntity -> {
 								var role = roleMapper.toTarget(roleEntity);
 								roleList.add(role);
-							})
-					);
+							}));
 		}
-		responseEntity = roleList.isEmpty() ? ResponseEntity.notFound().build() : ResponseEntity.ok(roleList);
+		responseEntity = roleList.isEmpty()?  ResponseEntity.notFound().build() : ResponseEntity.ok(sort(roleList));
 		log.info(responseEntity.getStatusCode().getReasonPhrase() + "| roles {}", (null == roles) ? "": roles.toString());
 		return responseEntity;
 	}
@@ -262,6 +269,13 @@ public class RoleServiceImpl implements RoleService {
 			}
 		}
 		return true;
+	}
+
+	private List<Role> sort(List<Role> roleEntities) {
+		roleEntities.sort((o1, o2) -> {
+			return o1.getId() < o2.getId() ? -1 : 1;
+		});
+		return roleEntities;
 	}
 
 }

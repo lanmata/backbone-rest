@@ -10,27 +10,29 @@
  * In any event, this notice and the above copyright must always be included
  * verbatim with this file.
  */
-package com.prx.backoffice.v1.person.mapper;
+package com.prx.backoffice.v1.person.api.to;
 
 import com.prx.commons.pojo.Person;
-import com.prx.persistence.general.domains.PersonEntity;
-import org.mapstruct.InheritInverseConfiguration;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import com.prx.commons.to.Request;
+import com.prx.commons.util.JsonUtil;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
- * PersonMapper.
+ * PersonCreateRequest.
  *
  * @author Luis Antonio Mata
- * @version 1.0.0, 20-10-2020
+ * @version 1.0.1.20200904-01, 04-11-2020
  */
-@Mapper(componentModel = "spring")
-public interface PersonMapper {
+@Getter
+@Setter
+@NoArgsConstructor
+public class PersonRequest extends Request {
+    private Person person;
 
-
-    @Mapping(target = "firstName", source = "name")
-    Person toTarget(PersonEntity personEntity);
-
-    @InheritInverseConfiguration
-    PersonEntity toSource(Person person);
+    @Override
+    public String toString() {
+        return JsonUtil.toJson(this);
+    }
 }

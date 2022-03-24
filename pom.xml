@@ -29,7 +29,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <java.version>13</java.version>
+        <java.version>11</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <spring-security-aouth2-autoconfigure.version>2.4.2</spring-security-aouth2-autoconfigure.version>
@@ -49,6 +49,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <optional>true</optional>
+        </dependency>
         <!--				Implementacion de Keycloak-->
         <dependency>
             <groupId>org.keycloak</groupId>
@@ -61,13 +66,22 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <!--		Fin de implementacion de keycloak-->
+<!--        Fin de implementacion de keycloak-->
 
         <!--		Implementación de keycloak con Oauth2-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+        </dependency>
+        <!--        <dependency>-->
+        <!--            <groupId>com.okta.spring</groupId>-->
+        <!--            <artifactId>okta-spring-boot-starter</artifactId>-->
+        <!--            <version>2.1.0</version>-->
+        <!--        </dependency>-->
         <!--Fin de implementación de keycloak con Oauth2-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -77,13 +91,13 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-openfeign</artifactId>
         </dependency>
-<!--        Object -->
+        <!--        Object -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
-<!--        Converter-->
+        <!--        Converter-->
         <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
@@ -92,7 +106,7 @@
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct-processor</artifactId>
         </dependency>
-<!--        PRX Dependencies-->
+        <!--        PRX Dependencies-->
         <dependency>
             <groupId>com.prx.commons</groupId>
             <artifactId>prx-commons</artifactId>
@@ -101,7 +115,7 @@
             <groupId>com.prx.persistence</groupId>
             <artifactId>prx-persistence</artifactId>
         </dependency>
-<!--        TEST-->
+        <!--        TEST-->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-contract-verifier</artifactId>
@@ -152,6 +166,7 @@
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
         </dependency>
+
     </dependencies>
 
     <dependencyManagement>
@@ -163,13 +178,13 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
-            <dependency>
-                <groupId>org.keycloak.bom</groupId>
-                <artifactId>keycloak-adapter-bom</artifactId>
-                <version>11.0.2</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
+            <!--            <dependency>-->
+            <!--                <groupId>org.keycloak.bom</groupId>-->
+            <!--                <artifactId>keycloak-adapter-bom</artifactId>-->
+            <!--                <version>11.0.2</version>-->
+            <!--                <type>pom</type>-->
+            <!--                <scope>import</scope>-->
+            <!--            </dependency>-->
             <dependency>
                 <groupId>org.junit</groupId>
                 <artifactId>junit-bom</artifactId>
@@ -307,7 +322,6 @@
                 <configuration>
                     <show>public</show>
                     <nohelp>true</nohelp>
-                    <aggregate>true</aggregate>
                 </configuration>
             </plugin>
             <plugin>

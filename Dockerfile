@@ -11,5 +11,5 @@ COPY ${JAR_FILE} "prx-backbone-rest.jar"
 COPY prx_backbone_rest.jks prx_backbone_rest.jks
 COPY prx_srv_monitor.jks prx_srv_monitor.jks
 
-EXPOSE 8085
+EXPOSE 8084
 ENTRYPOINT ["java", "-jar", "prx-backbone-rest.jar"]

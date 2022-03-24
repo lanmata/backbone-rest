@@ -11,17 +11,14 @@
  * verbatim with this file.
  */
 
-package com.prx.backoffice.to.person;
+package com.prx.backoffice.v1.person.api.to;
 
-import java.time.LocalDate;
-
-import com.prx.backoffice.v1.person.api.to.PersonCreateRequest;
 import com.prx.commons.pojo.Person;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import java.time.LocalDate;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * PersonCreateRequestTest.
@@ -29,11 +26,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * @author <a href='mailto:luis.antonio.mata@gmail.com'>Luis Antonio Mata</a>
  * @version 1.0.0, 18-02-2021
  */
-public class PersonCreateRequestTest {
+class PersonRequestTest {
 
 	@Test
-	public void testGettersAndSetters() {
-		final var personCreateRequest = new PersonCreateRequest();
+	void testGettersAndSetters() {
+		final var personCreateRequest = new PersonRequest();
 		final var person = new Person();
 		person.setBirthdate(LocalDate.of(1979, 4, 14));
 		person.setFirstName("Pepe");

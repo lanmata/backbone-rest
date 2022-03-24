@@ -11,28 +11,24 @@
  * verbatim with this file.
  */
 
-package com.prx.backoffice.v1.contact.service;
+package com.prx.backoffice.v1.report.service;
 
-import com.prx.backoffice.MockLoaderBase;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.springframework.core.io.Resource;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.multipart.MultipartFile;
 
-import static org.junit.jupiter.api.Assertions.*;
+import java.util.List;
+import java.util.Map;
 
 /**
- * ContactServiceImplTest.
+ * DocumentService.
  *
  * @author &lt;a href='mailto:luis.antonio.mata@gmail.com'&gt;Luis Antonio Mata&lt;/a&gt;
- * @version 1.0.0, 08-12-2021
+ * @version 1.0.0, 27-12-2021
  * @since 11
  */
-class ContactServiceImplTest extends MockLoaderBase {
+public interface DocumentService {
+    ResponseEntity<Resource> process(Map<String,String> values, MultipartFile documentTemplate);
 
-    @BeforeEach
-    void setUp() {
-    }
-
-    @Test
-    void saveAll() {
-    }
+    ResponseEntity<List<String>> findPlaceholderValues(MultipartFile documentTemplate);
 }
