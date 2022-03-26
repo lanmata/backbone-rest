@@ -50,7 +50,9 @@ public class FeatureMapperUtil {
 		List<Feature> features = new ArrayList<>();
 
 		rolFeatureEntities.forEach(rolFeatureEntity -> {
-			features.add(featureMapper.toTarget(rolFeatureEntity.getFeature()));
+			var feature = new Feature();
+			feature.setId(rolFeatureEntity.getFeature());
+			features.add(feature);
 		});
 		return features;
 	}
@@ -67,7 +69,7 @@ public class FeatureMapperUtil {
 		if (!ValidatorCommonsUtil.esNulo(features) && !features.isEmpty()) {
 			features.forEach(feature -> {
 				final var roleFeatureEntity = new RoleFeatureEntity();
-				roleFeatureEntity.setFeature(featureMapper.toSource(feature));
+				roleFeatureEntity.setFeature(feature.getId());
 				rolFeatureEntities.add(roleFeatureEntity);
 			});
 
@@ -93,8 +95,8 @@ public class FeatureMapperUtil {
 
 		features.forEach(feature -> {
 			final var rolFeatureEntity = new RoleFeatureEntity();
-			rolFeatureEntity.setRole(roleEntity);
-			rolFeatureEntity.setFeature(featureMapper.toSource(feature));
+			rolFeatureEntity.setRole(roleEntity.getId());
+			rolFeatureEntity.setFeature(feature.getId());
 			rolFeatureEntity.setActive(true);
 			roleFeatureEntities.add(rolFeatureEntity);
 		});

@@ -73,8 +73,8 @@ class RoleServiceImplTest extends MockLoaderBase {
         roleEntity.setName("Role name");
         roleEntity.setDescription("Role description");
         roleFeatureEntity.setActive(true);
-        roleFeatureEntity.setRole(roleEntity);
-        roleFeatureEntity.setFeature(featureEntity);
+        roleFeatureEntity.setRole(roleEntity.getId());
+        roleFeatureEntity.setFeature(featureEntity.getId());
         var optionalRole = Optional.of(roleEntity);
 
         Mockito.when(roleRepository.findById(Mockito.anyLong())).thenReturn(optionalRole);
@@ -100,8 +100,8 @@ class RoleServiceImplTest extends MockLoaderBase {
         roleEntity.setName("Rol name");
         roleEntity.setDescription("Rol description");
         roleFeatureEntity.setActive(true);
-        roleFeatureEntity.setRole(roleEntity);
-        roleFeatureEntity.setFeature(featureEntity);
+        roleFeatureEntity.setRole(roleEntity.getId());
+        roleFeatureEntity.setFeature(featureEntity.getId());
 
         Mockito.doReturn(featureEntity).when(featureMapper).toSource(ArgumentMatchers.any(Feature.class));
         Mockito.doReturn(roleEntity.getRoleFeatures()).when(featureMapperUtil).toRoleFeatureEntity(ArgumentMatchers.anyList());
