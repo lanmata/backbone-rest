@@ -17,10 +17,7 @@
     <deployment type="dockerfile">
       <settings>
         <option name="imageTag" value="prx-dev/backbone-rest" />
-        <option name="buildCliOptions" value="" />
-        <option name="command" value="" />
         <option name="containerName" value="prx-backbone-rest" />
-        <option name="entrypoint" value="" />
         <option name="commandLineOptions" value="" />
         <option name="sourceFilePath" value="Dockerfile" />
       </settings>

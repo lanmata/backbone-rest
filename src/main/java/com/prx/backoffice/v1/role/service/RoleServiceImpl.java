@@ -19,6 +19,7 @@ import com.prx.commons.pojo.Feature;
 import com.prx.commons.pojo.Role;
 import com.prx.persistence.general.domains.RoleEntity;
 import com.prx.persistence.general.domains.RoleFeatureEntity;
+import com.prx.persistence.general.repositories.RoleFeatureRepository;
 import com.prx.persistence.general.repositories.RoleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +28,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Named;
+import javax.transaction.Transactional;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 /**
@@ -43,6 +46,7 @@ import java.util.stream.Collectors;
 public class RoleServiceImpl implements RoleService {
 
 	private final RoleRepository roleRepository;
+	private final RoleFeatureRepository roleFeatureRepository;
 	private final FeatureService featureService;
 	private final FeatureMapper featureMapper;
 	private final RoleMapper roleMapper;
@@ -71,6 +75,7 @@ public class RoleServiceImpl implements RoleService {
 
 	/** {@inheritDoc} */
 	@Override
+	@Transactional
 	public ResponseEntity<Role> create(Role role) {
 		log.info("Init create new role");
 		if(null == role ){
@@ -86,8 +91,9 @@ public class RoleServiceImpl implements RoleService {
 		roleEntity.setRoleFeatures(null);
 		var roleEntityResult = roleRepository.save(roleEntity);
 		roleFeatureEntities.forEach(roleFeatureEntity -> {
-			roleFeatureEntity.setRole(roleEntityResult);
-			roleFeatureEntity.setActive(roleFeatureEntity.getFeature().getActive());
+			roleFeatureEntity.setRole(roleEntityResult.getId());
+			roleFeatureEntity.setActive(true);
+			roleFeatureRepository.save(roleFeatureEntity);
 		});
 		roleEntityResult.setRoleFeatures(roleFeatureEntities);
 		roleRepository.save(roleEntityResult);
@@ -118,8 +124,8 @@ public class RoleServiceImpl implements RoleService {
 		} else {
 			listResponseEntity.getBody().forEach(feature -> {
 				RoleFeatureEntity rolFeatureEntity = new RoleFeatureEntity();
-				rolFeatureEntity.setRole(roleEntity);
-				rolFeatureEntity.setFeature(featureMapper.toSource(feature));
+				rolFeatureEntity.setRole(roleEntity.getId());
+				rolFeatureEntity.setFeature(feature.getId());
 				rolFeatureEntity.setActive(true);
 				roleEntity.getRoleFeatures().add(rolFeatureEntity);
 			});
@@ -129,22 +135,49 @@ public class RoleServiceImpl implements RoleService {
 
 	/** {@inheritDoc} */
 	@Override
-	public ResponseEntity<Role> update(Long rolId, Role role) {
+	@Transactional
+	public ResponseEntity<Role> update(Long roleId, Role role) {
 		log.info("Inicia la actualización del role.");
 		final ResponseEntity<Role> roleResponseEntity;
 		log.info("Se busca el role solicitado para actualizar los datos.");
 		final var optionRoleEntity = roleRepository.findById(role.getId());
 		if (optionRoleEntity.isPresent()) {
 			final var roleEntity = optionRoleEntity.get();
+			roleEntity.setId(roleId);
 			roleEntity.setName(role.getName());
 			roleEntity.setDescription(role.getDescription());
 			roleEntity.setActive(role.getActive());
+			removeRoleFeature(role.getFeatures(), roleEntity);
+			role.getFeatures().forEach(feature -> {
+				AtomicBoolean mustInclude = new AtomicBoolean(true);
+				roleEntity.getRoleFeatures().forEach(roleFeatureEntity -> {
+					if(Objects.equals(roleFeatureEntity.getFeature(), feature.getId())) {
+						mustInclude.set(false);
+					}
+				});
+				if(mustInclude.get()){
+					var roleFeatureEntity = new RoleFeatureEntity();
+					roleFeatureEntity.setActive(true);
+					roleFeatureEntity.setRole(roleId);
+					roleFeatureEntity.setFeature(feature.getId());
+					roleFeatureRepository.save(roleFeatureEntity);
+				}
+			});
 			roleResponseEntity = ResponseEntity.accepted().body(roleMapper.toTarget(roleRepository.save(roleEntity)));
 		} else {
 			roleResponseEntity = ResponseEntity.notFound().build();
 		}
 		log.info(roleResponseEntity.getStatusCode().getReasonPhrase() + "| Rol {}", role);
 		return roleResponseEntity;
+	}
+
+	private void removeRoleFeature(List<Feature> featuresToLink, RoleEntity roleEntity) {
+		Set<Long> listResult;
+		Set<Long> newFeatures = featuresToLink.stream().map(Feature::getId).collect(Collectors.toSet());
+		Set<Long> oldFeatures = roleEntity.getRoleFeatures().stream().map(RoleFeatureEntity::getFeature).collect(Collectors.toSet());
+		listResult = oldFeatures.stream().filter(aLong -> !newFeatures.contains(aLong)).collect(Collectors.toSet());
+		listResult.forEach(roleFeatureEntity -> roleFeatureRepository
+				.deleteRoleFeatureByRoleIdAndFeatureId(roleEntity.getId(), roleFeatureEntity));
 	}
 
 	@Override
@@ -264,7 +297,7 @@ public class RoleServiceImpl implements RoleService {
 	 */
 	private boolean validFeatureInRole(Set<RoleFeatureEntity> roleFeatureEntitySet, Long featureId) {
 		for (var roleFeatureEntity : roleFeatureEntitySet) {
-			if (roleFeatureEntity.getFeature().getId().equals(featureId)) {
+			if (roleFeatureEntity.getFeature().equals(featureId)) {
 				return false;
 			}
 		}

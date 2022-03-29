@@ -31,6 +31,7 @@ import org.mockito.*;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -73,8 +74,8 @@ class RoleServiceImplTest extends MockLoaderBase {
         roleEntity.setName("Role name");
         roleEntity.setDescription("Role description");
         roleFeatureEntity.setActive(true);
-        roleFeatureEntity.setRole(roleEntity);
-        roleFeatureEntity.setFeature(featureEntity);
+        roleFeatureEntity.setRole(roleEntity.getId());
+        roleFeatureEntity.setFeature(featureEntity.getId());
         var optionalRole = Optional.of(roleEntity);
 
         Mockito.when(roleRepository.findById(Mockito.anyLong())).thenReturn(optionalRole);
@@ -84,6 +85,11 @@ class RoleServiceImplTest extends MockLoaderBase {
 
     @Test
     void list() {
+        final var roles = new ArrayList<RoleEntity>();
+        final Optional<List<RoleEntity>> rolesOption = Optional.of(roles);
+        Mockito.when(roleRepository.findAllById(Mockito.anyList())).thenReturn(rolesOption);
+        final var response = roleService.list(1L,2L,3L,5L);
+        Assertions.assertNotNull(response);
     }
 
     @Test
@@ -100,8 +106,8 @@ class RoleServiceImplTest extends MockLoaderBase {
         roleEntity.setName("Rol name");
         roleEntity.setDescription("Rol description");
         roleFeatureEntity.setActive(true);
-        roleFeatureEntity.setRole(roleEntity);
-        roleFeatureEntity.setFeature(featureEntity);
+        roleFeatureEntity.setRole(roleEntity.getId());
+        roleFeatureEntity.setFeature(featureEntity.getId());
 
         Mockito.doReturn(featureEntity).when(featureMapper).toSource(ArgumentMatchers.any(Feature.class));
         Mockito.doReturn(roleEntity.getRoleFeatures()).when(featureMapperUtil).toRoleFeatureEntity(ArgumentMatchers.anyList());
