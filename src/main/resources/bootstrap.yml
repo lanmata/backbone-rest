@@ -7,7 +7,7 @@ spring:
     config:
       profile: virtual
       label: developer
-      uri: http://localhost:8082
+      uri: prx.test/config-server
       send-state: true
   jpa:
     defer-datasource-initialization: true

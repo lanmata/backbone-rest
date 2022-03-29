@@ -31,6 +31,7 @@ import org.mockito.*;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -84,6 +85,11 @@ class RoleServiceImplTest extends MockLoaderBase {
 
     @Test
     void list() {
+        final var roles = new ArrayList<RoleEntity>();
+        final Optional<List<RoleEntity>> rolesOption = Optional.of(roles);
+        Mockito.when(roleRepository.findAllById(Mockito.anyList())).thenReturn(rolesOption);
+        final var response = roleService.list(1L,2L,3L,5L);
+        Assertions.assertNotNull(response);
     }
 
     @Test
