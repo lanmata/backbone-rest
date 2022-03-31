@@ -55,7 +55,7 @@ public class PersonController {
 //            @ApiResponse(responseCode = "405", description = "Método no permitido"),
 //            @ApiResponse(responseCode = "500", description = "Error interno durante la creación de persona")
     })
-    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/create")
+    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/")
     public ResponseEntity<Person> create(@Parameter(description = "Request to create a person", required = true)
     @RequestBody final PersonRequest personRequest) {
         return personService.create(personRequest.getPerson());

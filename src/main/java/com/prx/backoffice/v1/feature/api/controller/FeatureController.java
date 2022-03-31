@@ -12,10 +12,9 @@
  */
 package com.prx.backoffice.v1.feature.api.controller;
 
-import com.prx.backoffice.v1.feature.service.FeatureService;
-import com.prx.backoffice.v1.feature.api.to.FeatureRequest;
-import com.prx.backoffice.v1.role.api.to.RoleFindResponse;
 import com.prx.backoffice.util.MessageUtil;
+import com.prx.backoffice.v1.feature.api.to.FeatureRequest;
+import com.prx.backoffice.v1.feature.service.FeatureService;
 import com.prx.commons.pojo.Feature;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -48,7 +47,7 @@ public class FeatureController {
     /**
      *
      * @param featureId {@link Long}
-     * @return Objeto de tipo {@link RoleFindResponse}
+     * @return Objeto de tipo {@link ResponseEntity}
      */
     @Operation(description = "Realiza la busqueda da un feature")
     @ApiResponses(value = {
@@ -59,7 +58,7 @@ public class FeatureController {
 //            @ApiResponse(responseCode = "405", description = "Método no permitido"),
 //            @ApiResponse(responseCode = "500", description = "Error interno durante la creación del feature")
     })
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/{featureId}")
+    @GetMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE, path = "/{featureId}")
     public ResponseEntity<Feature> find(@Parameter(description = "Id de feature", required = true)
                                         @PathVariable final Long featureId) {
         log.info("{} find", MessageUtil.LOG_START_MSG);
@@ -115,8 +114,7 @@ public class FeatureController {
 //            @ApiResponse(responseCode = "401", description = "Solicitud no valida")
     })
     @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/{featureId}")
-    public ResponseEntity<Feature> update(@PathVariable Long featureId,
-                                          @Parameter(description = "Feature properties", required = true) FeatureRequest featureRequest){
+    public ResponseEntity<Feature> update(@PathVariable Long featureId, @RequestBody FeatureRequest featureRequest){
         log.info("{} /update/{idFeature}", MessageUtil.LOG_START_MSG);
         return featureService.update(featureId, featureRequest.getFeature());
     }
