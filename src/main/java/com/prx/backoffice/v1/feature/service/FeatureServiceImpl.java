@@ -117,7 +117,7 @@ public class FeatureServiceImpl implements FeatureService {
 		if (esNulo(featureEntity.getId())) {
 			responseEntity = ResponseEntity.notFound().build();
 		} else {
-			responseEntity = new ResponseEntity<>(featureMapper.toTarget(featureEntity), HttpStatus.FOUND);
+			responseEntity = new ResponseEntity<>(featureMapper.toTarget(featureEntity), HttpStatus.OK);
 		}
 		log.info(responseEntity.getStatusCode() + MessageUtil.LOG_PATH_SEPARATOR + featureId);
 		return responseEntity;
