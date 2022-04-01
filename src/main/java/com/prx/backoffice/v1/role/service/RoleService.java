@@ -33,14 +33,14 @@ public interface RoleService extends CrudService<Role> {
      * @param roleId {@link Long}
      * @return Objeto de tipo {@link ResponseEntity}
      */
-    ResponseEntity<Role> find(Long roleId);
+//    ResponseEntity<Role> find(Long roleId);
 
     /**
      * Realiza la creación de un rol.
      * @param role {@link Role}
      * @return Objeto de tipo {@link ResponseEntity}
      */
-    ResponseEntity<Role> create(Role role);
+//    ResponseEntity<Role> create(Role role);
 
     /**
      * Vincula un rol con uno o mas features
@@ -57,7 +57,7 @@ public interface RoleService extends CrudService<Role> {
      * @param role {@link Role}
      * @return Objeto de tipo {@link ResponseEntity}
      */
-    ResponseEntity<Role> update(Long rolId, Role role);
+//    ResponseEntity<Role> update(Long rolId, Role role);
 
     /**
      * Lista un conjunto de roles en base a los id recibidos, el parametro booleano determina la obtención de roles

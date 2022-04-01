@@ -14,8 +14,8 @@
 package com.prx.backoffice.v1.person.service;
 
 import com.prx.backoffice.enums.keys.UserMessageKey;
-import com.prx.backoffice.v1.person.mapper.PersonMapper;
 import com.prx.backoffice.util.MessageUtil;
+import com.prx.backoffice.v1.person.mapper.PersonMapper;
 import com.prx.commons.exception.StandardException;
 import com.prx.commons.pojo.Person;
 import com.prx.persistence.general.domains.PersonEntity;
@@ -27,6 +27,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.prx.commons.util.ValidatorCommonsUtil.esNulo;
@@ -40,13 +42,13 @@ import static com.prx.commons.util.ValidatorCommonsUtil.esNulo;
 @Service
 @RequiredArgsConstructor
 public class PersonServiceImpl implements PersonService {
-    private final PersonRepository personRepository;
-    private final PersonMapper personMapper;
-    private static final Logger LOGGER = LoggerFactory.getLogger(PersonServiceImpl.class);
+	private final PersonRepository personRepository;
+	private final PersonMapper personMapper;
+	private static final Logger LOGGER = LoggerFactory.getLogger(PersonServiceImpl.class);
 
 	/** {@inheritDoc} */
-    public ResponseEntity<Person> create(Person person) {
-    	final var responseEntity = save(person);
+	public ResponseEntity<Person> create(Person person) {
+		final var responseEntity = save(person);
 		return new ResponseEntity<>(
 				personMapper.toTarget(responseEntity.getBody()), responseEntity.getStatusCode());
 	}
@@ -78,12 +80,23 @@ public class PersonServiceImpl implements PersonService {
 	}
 
 	@Override
-	public ResponseEntity<List<Person>> list(Long... id) {
-		return null;
+	public ResponseEntity<List<Person>> list(Long... ids) {
+		Iterable<PersonEntity> personEntityListResult;
+		List<Person> personList = new ArrayList<>();
+		personEntityListResult = null == ids || ids.length <= 0 || null == ids[0]?
+				personRepository.findAll():personRepository.findAllById(Arrays.asList(ids));
+		personEntityListResult.forEach(personEntity ->
+				personList.add(personMapper.toTarget(personEntity))
+		);
+		if(personList.isEmpty()) {
+			return ResponseEntity.notFound().build();
+		} else {
+			return ResponseEntity.ok(sort(personList));
+		}
 	}
 
 	/** {@inheritDoc} */
-    public ResponseEntity<PersonEntity> save(Person person) {
+	public ResponseEntity<PersonEntity> save(Person person) {
 		ResponseEntity<PersonEntity> responseEntity;
 		if (esNulo(person)) {
 			responseEntity = ResponseEntity.notFound().build();
@@ -94,23 +107,27 @@ public class PersonServiceImpl implements PersonService {
 		return responseEntity;
 	}
 
-    /** {@inheritDoc} */
-    public ResponseEntity<Person> find(Person person) {
+	/** {@inheritDoc} */
+	public ResponseEntity<Person> find(Person person) {
 		ResponseEntity<Person> responseEntity;
-        try {
-            final var personResult = personRepository.findByFirstNameMiddleNameLastName(person.getFirstName(),
-                person.getMiddleName(), person.getLastName());
-            if (esNulo(personResult)) {
-            	responseEntity = ResponseEntity.notFound().build();
-			} else {
-				responseEntity = new ResponseEntity<>(personMapper.toTarget(personResult), HttpStatus.FOUND);
-			}
-            LOGGER.info("{} {} {}",responseEntity.getStatusCode() , MessageUtil.LOG_PATH_SEPARATOR , person);
-            return responseEntity;
-        } catch (Exception e) {
-            LOGGER.warn("Se ha producido un error inesperado");
-            throw new StandardException(UserMessageKey.USER_CREATE_ERROR, e);
-        }
-    }
+		try {
+			final var personResult = personRepository.findByFirstNameMiddleNameLastName(
+					person.getFirstName(), person.getMiddleName(), person.getLastName());
+			responseEntity = esNulo(personResult)? ResponseEntity.notFound().build()
+					:new ResponseEntity<>(personMapper.toTarget(personResult), HttpStatus.FOUND);
+			LOGGER.info("{} {} {}",responseEntity.getStatusCode() , MessageUtil.LOG_PATH_SEPARATOR , person);
+			return responseEntity;
+		} catch (Exception e) {
+			LOGGER.warn("Se ha producido un error inesperado");
+			throw new StandardException(UserMessageKey.USER_CREATE_ERROR, e);
+		}
+	}
+
+	private List<Person> sort(List<Person> personList) {
+		personList.sort((o1, o2) -> {
+			return o1.getId() < o2.getId() ? -1 : 1;
+		});
+		return personList;
+	}
 
 }

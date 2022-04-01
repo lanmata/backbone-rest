@@ -85,7 +85,6 @@ public class FeatureServiceImpl implements FeatureService {
 	/** {@inheritDoc} */
 	@Override
 	public ResponseEntity<List<Feature>> list(List<Long> featureIds, boolean includeInactive) {
-		ResponseEntity<List<Feature>> listResponseEntity;
 		final var featureListResult = new ArrayList<Feature>();
 		Iterable<FeatureEntity> featureEntityListResult;
 		if(null == featureIds) {
@@ -103,9 +102,7 @@ public class FeatureServiceImpl implements FeatureService {
 		if(featureListResult.isEmpty()) {
 			return ResponseEntity.notFound().build();
 		} else {
-			listResponseEntity = new ResponseEntity<>(featureListResult, HttpStatus.OK);
-			log.info(listResponseEntity.getStatusCode().toString());
-			return listResponseEntity;
+			return ResponseEntity.ok(sort(featureListResult));
 		}
 	}
 
@@ -121,5 +118,12 @@ public class FeatureServiceImpl implements FeatureService {
 		}
 		log.info(responseEntity.getStatusCode() + MessageUtil.LOG_PATH_SEPARATOR + featureId);
 		return responseEntity;
+	}
+
+	private List<Feature> sort(List<Feature> featureEntities) {
+		featureEntities.sort((o1, o2) -> {
+			return o1.getId() < o2.getId() ? -1 : 1;
+		});
+		return featureEntities;
 	}
 }

@@ -56,7 +56,7 @@ class RoleServiceImplTest extends MockLoaderBase {
     FeatureMapperUtil featureMapperUtil;
 
     @BeforeEach
-    void initService(){
+    void setUp() {
         MockitoAnnotations.openMocks(this);
     }
 

@@ -12,8 +12,19 @@
  */
 package com.prx.backoffice.v1.person.service;
 
+import com.prx.backoffice.MockLoaderBase;
+import com.prx.persistence.general.domains.PersonEntity;
+import com.prx.persistence.general.repositories.PersonRepository;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.ActiveProfiles;
+
+import java.time.LocalDate;
 
 /**
  * PersonServiceImplTest.
@@ -21,14 +32,32 @@ import org.junit.jupiter.api.Test;
  * @author Luis Antonio Mata
  * @version 1.0.1.20200904-01, 06-11-2020
  */
-class PersonServiceImplTest {
+class PersonServiceImplTest extends MockLoaderBase {
+
+    @Mock
+    PersonRepository personRepository;
+
+    @MockBean
+    PersonServiceImpl personService;
 
     @BeforeEach
     void setUp() {
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
     void create() {
+        var personEntity = new PersonEntity();
+        personEntity.setId(1L);
+        personEntity.setName("Fausto");
+        personEntity.setMiddleName("Joaquin");
+        personEntity.setLastName("Perez");
+        personEntity.setGender("M");
+        personEntity.setBirthdate(LocalDate.of(1983, 12,23));
+
+        Mockito.when(personRepository.save(Mockito.any(PersonEntity.class))).thenReturn(personEntity);
+        var response = personRepository.save(personEntity);
+        Assertions.assertNotNull(response);
     }
 
     @Test
@@ -39,4 +68,31 @@ class PersonServiceImplTest {
     void find() {
     }
 
+    @Test
+    void testCreate() {
+    }
+
+    @Test
+    void update() {
+    }
+
+    @Test
+    void delete() {
+    }
+
+    @Test
+    void testFind() {
+    }
+
+    @Test
+    void list() {
+    }
+
+    @Test
+    void testSave() {
+    }
+
+    @Test
+    void testFind1() {
+    }
 }
