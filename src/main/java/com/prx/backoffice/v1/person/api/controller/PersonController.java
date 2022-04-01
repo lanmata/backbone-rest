@@ -27,6 +27,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * PersonController. Clase controladora para la exposición de los endpoint pertenecientes a la gestión de usuario
  *
@@ -36,7 +38,8 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/v1/person")
+@CrossOrigin(origins = "*")
+@RequestMapping("v1/person")
 public class PersonController {
     /** personService */
     private final PersonService personService;
@@ -61,14 +64,19 @@ public class PersonController {
         return personService.create(personRequest.getPerson());
     }
 
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/find/{personId}")
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/{personId}")
     public ResponseEntity<Person> find(@PathVariable final Long personId) {
         return personService.find(personId);
     }
 
-    @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/update/{personId}")
+    @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/{personId}")
     public ResponseEntity<Person> update(@PathVariable final Long personId, @RequestBody final PersonRequest personRequest) {
         return personService.update(personId, personRequest.getPerson());
+    }
+
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/")
+    public ResponseEntity<List<Person>> list() {
+        return personService.list((Long) null);
     }
 
     //TODO - metodo post para actualizas los datos de una persona

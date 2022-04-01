@@ -43,7 +43,7 @@ import java.nio.charset.StandardCharsets;
  * @version 1.0.0, 19-02-2021
  */
 @SpringBootTest
-@ActiveProfiles("local")
+@ActiveProfiles("qa")
 @RunWith(MockitoJUnitRunner.class)
 @MockServerSettings(perTestSuite = true)
 @ExtendWith(value = {MockServerExtension.class})
