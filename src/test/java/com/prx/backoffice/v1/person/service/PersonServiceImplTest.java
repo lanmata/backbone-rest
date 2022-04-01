@@ -22,9 +22,9 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 
 /**
  * PersonServiceImplTest.
@@ -86,6 +86,18 @@ class PersonServiceImplTest extends MockLoaderBase {
 
     @Test
     void list() {
+        var response = new ArrayList<PersonEntity>();
+        var personEntity = new PersonEntity();
+        personEntity.setId(1L);
+        personEntity.setName("Fausto");
+        personEntity.setMiddleName("Joaquin");
+        personEntity.setLastName("Perez");
+        personEntity.setGender("M");
+        personEntity.setBirthdate(LocalDate.of(1983, 12,23));
+        response.add(personEntity);
+        Mockito.when(personRepository.findAll()).thenReturn(response);
+        var responseResult = personRepository.findAll();
+        Assertions.assertNotNull(responseResult);
     }
 
     @Test
