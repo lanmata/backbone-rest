@@ -88,22 +88,14 @@ public class PersonServiceImpl implements PersonService {
 		personEntityListResult.forEach(personEntity ->
 				personList.add(personMapper.toTarget(personEntity))
 		);
-		if(personList.isEmpty()) {
-			return ResponseEntity.notFound().build();
-		} else {
-			return ResponseEntity.ok(sort(personList));
-		}
+		return personList.isEmpty() ? ResponseEntity.notFound().build(): ResponseEntity.ok(sort(personList));
 	}
 
 	/** {@inheritDoc} */
 	public ResponseEntity<PersonEntity> save(Person person) {
-		ResponseEntity<PersonEntity> responseEntity;
-		if (esNulo(person)) {
-			responseEntity = ResponseEntity.notFound().build();
-		} else {
-			responseEntity = new ResponseEntity<>(personRepository.save(personMapper.toSource(person)), HttpStatus.CREATED);
-		}
-		LOGGER.info(responseEntity.getStatusCode().toString());
+		ResponseEntity<PersonEntity> responseEntity = esNulo(person) ?
+				ResponseEntity.notFound().build(): new ResponseEntity<>(personRepository.save(personMapper.toSource(person)), HttpStatus.CREATED);
+		LOGGER.info(responseEntity.getStatusCode().getReasonPhrase());
 		return responseEntity;
 	}
 
