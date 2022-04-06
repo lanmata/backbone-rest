@@ -64,6 +64,7 @@ public class MessageUtil {
     public static final String LOG_PATH_SEPARATOR = "|";
     public static final String LOG_END_MSG = "Termina llamado al método ";
     public static final String LOG_START_MSG = "Inicia llamado al método ";
+    public static final String MESSAGE_HEADER_STR = "Message-header";
 
     /**
      *

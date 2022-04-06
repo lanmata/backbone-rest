@@ -55,13 +55,19 @@ public class PersonServiceImpl implements PersonService {
 
 	@Override
 	public ResponseEntity<Person> update(Long personId, Person person) {
-		if(esNulo(personId)){
-			return ResponseEntity.badRequest().header("Message-header", "PersonId invalid").build();
+		if(esNulo(personId)) {
+			return ResponseEntity.badRequest().header(MessageUtil.MESSAGE_HEADER_STR, "PersonId invalid").build();
 		}
 		if(esNulo(person)){
-			return ResponseEntity.badRequest().header("Message-header", "Person request invalid").build();
+			return ResponseEntity.badRequest().header(MessageUtil.MESSAGE_HEADER_STR, "Person request invalid").build();
 		}
-		return ResponseEntity.ok().build();
+		var personEntity = personRepository.findById(personId);
+		if(personEntity.isEmpty()){
+			return ResponseEntity.badRequest().header(MessageUtil.MESSAGE_HEADER_STR, "Person not founded").build();
+		}
+		var newValuePersonEntity = personMapper.toSource(person);
+		newValuePersonEntity.setId(personId);
+		return ResponseEntity.ok(personMapper.toTarget(personRepository.save(newValuePersonEntity)));
 	}
 
 	@Override
@@ -111,7 +117,7 @@ public class PersonServiceImpl implements PersonService {
 			return responseEntity;
 		} catch (Exception e) {
 			LOGGER.warn("Se ha producido un error inesperado");
-			throw new StandardException(UserMessageKey.USER_CREATE_ERROR, e);
+			throw new StandardException(UserMessageKey.USER_NOT_FOUND, e);
 		}
 	}
 
