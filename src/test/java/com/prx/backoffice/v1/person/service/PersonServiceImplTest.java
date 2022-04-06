@@ -13,15 +13,15 @@
 package com.prx.backoffice.v1.person.service;
 
 import com.prx.backoffice.MockLoaderBase;
+import com.prx.backoffice.v1.person.mapper.PersonMapper;
+import com.prx.commons.pojo.Person;
 import com.prx.persistence.general.domains.PersonEntity;
 import com.prx.persistence.general.repositories.PersonRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.mockito.*;
+import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -36,8 +36,10 @@ class PersonServiceImplTest extends MockLoaderBase {
 
     @Mock
     PersonRepository personRepository;
+    @Mock
+    PersonMapper personMapper;
 
-    @MockBean
+    @InjectMocks
     PersonServiceImpl personService;
 
     @BeforeEach
@@ -54,14 +56,35 @@ class PersonServiceImplTest extends MockLoaderBase {
         personEntity.setLastName("Perez");
         personEntity.setGender("M");
         personEntity.setBirthdate(LocalDate.of(1983, 12,23));
+        var person = new Person();
+        person.setId(1L);
+        person.setFirstName("Fausto");
+        person.setMiddleName("Joaquin");
+        person.setLastName("Perez");
+        person.setGender("M");
+        person.setBirthdate(LocalDate.of(1983, 12,23));
+        var responseEntityPerson = ResponseEntity.ok(person);
+        var responseEntity = ResponseEntity.ok(personEntity);
 
+        Mockito.doReturn(personEntity).when(personMapper).toSource(ArgumentMatchers.any(Person.class));
         Mockito.when(personRepository.save(Mockito.any(PersonEntity.class))).thenReturn(personEntity);
-        var response = personRepository.save(personEntity);
+        Mockito.doReturn(person).when(personMapper).toTarget(ArgumentMatchers.any(PersonEntity.class));
+        var response = personService.create(person);
         Assertions.assertNotNull(response);
     }
 
     @Test
     void save() {
+        var personEntity = new PersonEntity();
+        personEntity.setId(1L);
+        personEntity.setName("Fausto");
+        personEntity.setMiddleName("Joaquin");
+        personEntity.setLastName("Perez");
+        personEntity.setGender("M");
+        personEntity.setBirthdate(LocalDate.of(1983, 12,23));
+        Mockito.when(personRepository.save(Mockito.any(PersonEntity.class))).thenReturn(personEntity);
+        var response = personRepository.save(personEntity);
+        Assertions.assertNotNull(response);
     }
 
     @Test
@@ -74,6 +97,28 @@ class PersonServiceImplTest extends MockLoaderBase {
 
     @Test
     void update() {
+        var personEntity = new PersonEntity();
+        personEntity.setId(1L);
+        personEntity.setName("Fausto");
+        personEntity.setMiddleName("Joaquin");
+        personEntity.setLastName("Perez");
+        personEntity.setGender("M");
+        personEntity.setBirthdate(LocalDate.of(1983, 12,23));
+        var person = new Person();
+        person.setId(1L);
+        person.setFirstName("Fausto");
+        person.setMiddleName("Joaquin");
+        person.setLastName("Perez");
+        person.setGender("M");
+        person.setBirthdate(LocalDate.of(1983, 12,23));
+        var responseEntityPerson = ResponseEntity.ok(person);
+        var responseEntity = ResponseEntity.ok(personEntity);
+
+        Mockito.doReturn(personEntity).when(personMapper).toSource(ArgumentMatchers.any(Person.class));
+        Mockito.when(personRepository.save(Mockito.any(PersonEntity.class))).thenReturn(personEntity);
+        Mockito.doReturn(person).when(personMapper).toTarget(ArgumentMatchers.any(PersonEntity.class));
+        var response = personService.update(1L, person);
+        Assertions.assertNotNull(response);
     }
 
     @Test

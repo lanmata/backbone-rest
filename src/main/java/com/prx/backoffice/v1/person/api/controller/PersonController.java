@@ -52,11 +52,6 @@ public class PersonController {
     @Operation(description = "Create a persona")
     @ApiResponses(value = {
         @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "Person created")
-//        @ApiResponse(responseCode = "400", description = "Solicitud errada"),
-//        @ApiResponse(responseCode = "401", description = "Solicitante no tiene permisos, requiere autenticación"),
-//            @ApiResponse(responseCode = "403", description = "Persona no creada"),
-//            @ApiResponse(responseCode = "405", description = "Método no permitido"),
-//            @ApiResponse(responseCode = "500", description = "Error interno durante la creación de persona")
     })
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/")
     public ResponseEntity<Person> create(@Parameter(description = "Request to create a person", required = true)
