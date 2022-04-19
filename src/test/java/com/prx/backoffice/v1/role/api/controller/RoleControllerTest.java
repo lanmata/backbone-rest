@@ -36,6 +36,8 @@ import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 
+import static com.prx.backoffice.util.ConstantUtilTest.APP_NAME_VALUE;
+import static com.prx.backoffice.util.ConstantUtilTest.APP_TOKEN_VALUE;
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -68,7 +70,7 @@ class RoleControllerTest extends MockLoaderBase {
         PATH_LIST_BY_USER = "/v1/role/listByUser/";
         PATH_UPDATE = "/v1/role/update/";
         PATH_UNLINK = "/v1/role/unlink/";
-        PATH_CREATE = "/v1/role/create";
+        PATH_CREATE = "/v1/role/";
         PATH_LINK = "/v1/role/link/";
         PATH_FIND = "/v1/role/find/";
         PATH_LIST = "/v1/role/list/";
@@ -207,8 +209,8 @@ class RoleControllerTest extends MockLoaderBase {
     private @NotNull RoleRequest getRoleRequest(Role role) {
         final var roleRequest = new RoleRequest();
         roleRequest.setRole(role);
-        roleRequest.setAppName("APP-TEST");
-        roleRequest.setAppToken("SDFGHJKLKJHGFrty865dfds");
+        roleRequest.setAppName(APP_NAME_VALUE);
+        roleRequest.setAppToken(APP_TOKEN_VALUE);
 
         return roleRequest;
     }
@@ -231,8 +233,8 @@ class RoleControllerTest extends MockLoaderBase {
 
     private @NotNull RoleLinkRequest getRoleLinkRequest() {
         var roleLinkRequest = new RoleLinkRequest();
-        roleLinkRequest.setAppName("APP-TEST-001");
-        roleLinkRequest.setAppToken("T000X");
+        roleLinkRequest.setAppName(APP_NAME_VALUE);
+        roleLinkRequest.setAppToken(APP_TOKEN_VALUE);
         roleLinkRequest.setDateTime(LocalDateTime.now());
         return roleLinkRequest;
     }

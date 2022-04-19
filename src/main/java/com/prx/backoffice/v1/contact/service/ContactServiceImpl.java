@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 /**
  * ContactService.
  *
- * @author Luis Antonio Mata
+ * @author <a href="mailto:luis.antonio.mata@gmail.com">Luis Antonio Mata</a>
  * @version 1.0.0, 20-10-2020
  */
 @Service
