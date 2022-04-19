@@ -14,13 +14,16 @@
 package com.prx.backoffice.v1.user.api.controller;
 
 import com.prx.backoffice.MockLoaderBase;
+import com.prx.backoffice.v1.role.api.to.RoleLinkRequest;
 import com.prx.backoffice.v1.user.api.to.UserAccessRequest;
 import com.prx.backoffice.v1.user.api.to.UserCreateRequest;
+import com.prx.backoffice.v1.user.mapper.UserMapper;
 import com.prx.backoffice.v1.user.service.UserService;
 import com.prx.commons.pojo.Feature;
 import com.prx.commons.pojo.Person;
 import com.prx.commons.pojo.Role;
 import com.prx.commons.pojo.User;
+import io.restassured.module.mockmvc.specification.MockMvcRequestSpecification;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,12 +32,21 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.web.servlet.MvcResult;
 
+import javax.validation.constraints.NotNull;
+import java.net.URI;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+
+import static com.prx.backoffice.util.ConstantUtilTest.APP_NAME_VALUE;
+import static com.prx.backoffice.util.ConstantUtilTest.APP_TOKEN_VALUE;
+import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
+import static org.apache.http.HttpHeaders.CONTENT_TYPE;
 
 /**
  * UserControllerTest.
@@ -44,22 +56,77 @@ import java.util.ArrayList;
  */
 class UserControllerTest extends MockLoaderBase {
 
+    private static final String PATH_CREATE;
+
     @Mock
     UserService userService;
+
     @InjectMocks
     UserController userController;
 
-    Role role;
-    User user;
-    Person person;
-    Feature feature;
+    private MockMvcRequestSpecification mockMvcRequestSpecification;
+
+    static {
+        PATH_CREATE = "/v1/user/";
+    }
 
     @BeforeEach
     void setUp() {
-        role = new Role();
-        user = new User();
-        person = new Person();
-        feature = new Feature();
+        mockMvcRequestSpecification = given().header(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+    }
+
+    @Test
+    void find() {
+        Mockito.when(this.userService.findUserById(ArgumentMatchers.anyLong()))
+                .thenReturn(ResponseEntity.status(HttpStatus.FOUND).build());
+        Assertions.assertNotNull(this.userController.find("ABS125", 12L));
+    }
+
+    @Test
+    void findAll() {
+        var users = new ArrayList<User>();
+        users.add(getUser());
+        Mockito.when(this.userService.findAll()).thenReturn(ResponseEntity.ok(users));
+        Assertions.assertNotNull(this.userController.findAll());
+    }
+
+    @Test
+    void login() {
+        final var userAccessRequest = new UserAccessRequest();
+
+        ResponseEntity.ok().build();
+        userAccessRequest.setAlias("pepe");
+        userAccessRequest.setPassword("123456789");
+        userAccessRequest.setDateTime(LocalDateTime.now(ZoneId.systemDefault()));
+        userAccessRequest.setAppName("TEST-APP");
+        userAccessRequest.setAppToken("TEST-APP/00252336");
+        Mockito.when(this.userService.access(ArgumentMatchers.anyString(),ArgumentMatchers.anyString()))
+                .thenReturn(ResponseEntity.ok().build());
+        Assertions.assertNotNull(this.userController.login(userAccessRequest));
+    }
+
+    @Test
+    void create() {
+        final var response = ResponseEntity.status(HttpStatus.CREATED).body(getUser());
+        //when:
+        Mockito.when(this.userService.create(ArgumentMatchers.any(User.class))).thenReturn(ResponseEntity.ok(getUser()));
+        //then:
+        given().contentType(MediaType.APPLICATION_JSON_VALUE).body(getUserCreateRequest())
+                .accept(MediaType.APPLICATION_JSON_VALUE).when().post(PATH_CREATE).then().assertThat()
+                .statusCode(HttpStatus.CREATED.value()).expect(MvcResult::getResponse);
+    }
+
+    @Test
+    void findByAlias() {
+        Mockito.when(this.userService.findUserByAlias(ArgumentMatchers.anyString())).thenReturn(ResponseEntity.ok(getUser()));
+        Assertions.assertNotNull(this.userController.findByAlias("pperez"));
+    }
+
+    private User getUser() {
+        final var user = new User();
+        final var role = new Role();
+        final var person = new Person();
+        final var feature = new Feature();
         feature.setId(1L);
         feature.setActive(true);
         feature.setName("Feature name");
@@ -83,53 +150,16 @@ class UserControllerTest extends MockLoaderBase {
         user.setPerson(person);
         user.setRoles(new ArrayList<>());
         user.getRoles().add(role);
+        return user;
     }
 
-    @Test
-    void find() {
-        Mockito.when(this.userService.findUserById(ArgumentMatchers.anyLong()))
-                .thenReturn(ResponseEntity.status(HttpStatus.FOUND).build());
-        Assertions.assertNotNull(this.userController.find("ABS125", 12L));
-    }
-
-    @Test
-    void findAll() {
-        var users = new ArrayList<User>();
-        users.add(user);
-        Mockito.when(this.userService.findAll()).thenReturn(ResponseEntity.ok(users));
-        Assertions.assertNotNull(this.userController.findAll());
-    }
-
-    @Test
-    void login() {
-        final var userAccessRequest = new UserAccessRequest();
-
-        ResponseEntity.ok().build();
-        userAccessRequest.setAlias("pepe");
-        userAccessRequest.setPassword("123456789");
-        userAccessRequest.setDateTime(LocalDateTime.now(ZoneId.systemDefault()));
-        userAccessRequest.setAppName("TEST-APP");
-        userAccessRequest.setAppToken("TEST-APP/00252336");
-        Mockito.when(this.userService.access(ArgumentMatchers.anyString(),ArgumentMatchers.anyString()))
-                .thenReturn(ResponseEntity.ok().build());
-        Assertions.assertNotNull(this.userController.login(userAccessRequest));
-    }
-
-    @Test
-    void create() {
-        final var userCreateRequest = new UserCreateRequest();
-        userCreateRequest.setUser(user);
+    private @NotNull UserCreateRequest getUserCreateRequest() {
+        var userCreateRequest = new UserCreateRequest();
+        userCreateRequest.setAppName(APP_NAME_VALUE);
+        userCreateRequest.setAppToken(APP_TOKEN_VALUE);
         userCreateRequest.setDateTime(LocalDateTime.now(ZoneId.systemDefault()));
-        userCreateRequest.setAppName("TEST-APP");
-        userCreateRequest.setAppToken("TEST-APP/00252336");
-        Mockito.when(this.userService.create(ArgumentMatchers.any(User.class))).thenReturn(ResponseEntity.ok(user));
-//        Assertions.assertNotNull(this.userController.create(userCreateRequest));
-    }
-
-    @Test
-    void findByAlias() {
-        Mockito.when(this.userService.findUserByAlias(ArgumentMatchers.anyString())).thenReturn(ResponseEntity.ok(user));
-        Assertions.assertNotNull(this.userController.findByAlias("pperez"));
+        userCreateRequest.setUser(getUser());
+        return userCreateRequest;
     }
 
 }

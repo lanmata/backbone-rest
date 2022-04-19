@@ -11,28 +11,21 @@
  * verbatim with this file.
  */
 
-package com.prx.backoffice.v1.contact.service;
+package com.prx.backoffice.v1.contacttype.service;
 
-import com.prx.backoffice.v1.contact.api.ContactApi;
-import com.prx.commons.pojo.Contact;
-import com.prx.commons.pojo.MessageActivity;
+import com.prx.commons.pojo.ContactType;
+import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 
 /**
- * ContactService.
+ * ContactType.
  *
  * @author <a href="mailto:luis.antonio.mata@gmail.com">Luis Antonio Mata</a>
- * @version 1.0.1.20200904-01, 02-11-2020
+ * @version 1.0.0, 14-04-2022
+ * @since 11
  */
-public interface ContactService extends ContactApi {
+public interface ContactTypeService {
 
-    /**
-     * Registra los contactos recibidos asociados a las personas
-     *
-     * @param contacts Objeto de tipo {@link List}
-     *
-     * @return Objeto de tipo {@link MessageActivity}
-     */
-    List<Contact> saveAll(List<Contact> contacts);
+    ResponseEntity<List<ContactType>> list();
 }
