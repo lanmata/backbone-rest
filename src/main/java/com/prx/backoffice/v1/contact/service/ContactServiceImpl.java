@@ -13,10 +13,12 @@
 package com.prx.backoffice.v1.contact.service;
 
 import com.prx.backoffice.v1.contact.mapper.ContactMapper;
+import com.prx.backoffice.v1.contact.to.ContactRequest;
 import com.prx.commons.pojo.Contact;
 import com.prx.persistence.general.domains.ContactEntity;
 import com.prx.persistence.general.repositories.ContactRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -44,5 +46,15 @@ public class ContactServiceImpl implements ContactService{
         }
 
         return new ArrayList<>();
+    }
+
+    @Override
+    public ResponseEntity<Contact> create(ContactRequest contactRequest) {
+        if (null == contactRequest || null == contactRequest.getContact()) {
+           return ResponseEntity.notFound().build();
+        }
+        var contactEntity = contactMapper.toSource(contactRequest.getContact());
+        var response = contactRepository.save(contactEntity);
+        return ResponseEntity.ok(contactMapper.toTarget(response));
     }
 }

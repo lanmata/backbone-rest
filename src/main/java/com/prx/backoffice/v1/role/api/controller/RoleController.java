@@ -74,7 +74,7 @@ class RoleController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "Role created.")
     })
-    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/create")
+    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/")
     public ResponseEntity<Role> create(@Parameter(description = "Role properties", required = true)
                                        @RequestBody final RoleRequest roleCreateRequest){
         log.info("Called the /create operation.");

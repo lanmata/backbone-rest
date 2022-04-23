@@ -106,7 +106,7 @@ public class UserController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "Usuario creado con éxito.")
     })
-    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/create")
+    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/")
     public ResponseEntity<User> create(@Parameter(description = "Objeto de tipo UserCreateRequest", required = true)
                            @RequestBody UserCreateRequest userCreateRequest) {
         log.info("{} /create", MessageUtil.LOG_START_MSG);
