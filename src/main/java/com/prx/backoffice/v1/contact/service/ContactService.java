@@ -13,9 +13,10 @@
 
 package com.prx.backoffice.v1.contact.service;
 
-import com.prx.backoffice.v1.contact.api.ContactApi;
+import com.prx.backoffice.v1.contact.to.ContactRequest;
 import com.prx.commons.pojo.Contact;
 import com.prx.commons.pojo.MessageActivity;
+import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 
@@ -25,7 +26,7 @@ import java.util.List;
  * @author <a href="mailto:luis.antonio.mata@gmail.com">Luis Antonio Mata</a>
  * @version 1.0.1.20200904-01, 02-11-2020
  */
-public interface ContactService extends ContactApi {
+public interface ContactService {
 
     /**
      * Registra los contactos recibidos asociados a las personas
@@ -35,4 +36,6 @@ public interface ContactService extends ContactApi {
      * @return Objeto de tipo {@link MessageActivity}
      */
     List<Contact> saveAll(List<Contact> contacts);
+
+    ResponseEntity<Contact> create(ContactRequest contactRequest);
 }
