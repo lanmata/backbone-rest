@@ -93,6 +93,20 @@ class ContactServiceImplTest extends MockLoaderBase {
         Assertions.assertNotNull(responseEntity);
     }
 
+    @Test
+    void find() {
+        var contactEntity = getContactEntity();
+        var contactTypeEntity = contactEntity.getContactType();
+        var contact = getContact();
+        Mockito.doReturn(contact.getContactType()).when(contactTypeMapper)
+                .toTarget(ArgumentMatchers.any(ContactTypeEntity.class));
+        Mockito.doReturn(contact.getPerson()).when(personMapper)
+                .toTarget(ArgumentMatchers.any(PersonEntity.class));
+        Mockito.doReturn(contactEntity).when(contactMapper).toSource(ArgumentMatchers.any(Contact.class));
+        final var responseEntity = contactService.find(BigInteger.valueOf(1));
+        Assertions.assertNotNull(responseEntity);
+    }
+
     private static ContactEntity getContactEntity() {
         var contactEntity = new ContactEntity();
         var contactTypeEntity = new ContactTypeEntity();
