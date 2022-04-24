@@ -13,7 +13,7 @@
 
 package com.prx.backoffice.v1.contacttype.service;
 
-import com.prx.backoffice.v1.contact.mapper.ContactTypeMapper;
+import com.prx.backoffice.v1.contacttype.mapper.ContactTypeMapper;
 import com.prx.commons.pojo.ContactType;
 import com.prx.persistence.general.repositories.ContactTypeRepository;
 import lombok.RequiredArgsConstructor;

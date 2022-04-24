@@ -12,6 +12,8 @@
  */
 package com.prx.backoffice.v1.contact.mapper;
 
+import com.prx.backoffice.v1.contacttype.mapper.ContactTypeMapper;
+import com.prx.backoffice.v1.person.mapper.PersonMapper;
 import com.prx.commons.pojo.Contact;
 import com.prx.persistence.general.domains.ContactEntity;
 import org.mapstruct.InheritInverseConfiguration;
@@ -23,7 +25,7 @@ import org.mapstruct.Mapper;
  * @author Luis Antonio Mata
  * @version 1.0.0, 20-10-2020
  */
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {ContactTypeMapper.class, PersonMapper.class})
 public interface ContactMapper {
 
     Contact toTarget(ContactEntity contactEntity);

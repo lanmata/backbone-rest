@@ -34,6 +34,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.math.BigInteger;
 import java.time.LocalDate;
 
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
@@ -93,7 +94,28 @@ class ContactControllerTest extends MockLoaderBase {
                 .statusCode(HttpStatus.NOT_FOUND.value()).expect(MvcResult::getResponse);
     }
 
+    @Test
+    @DisplayName("update a contact.")
+    void update() throws JsonProcessingException {
+        final var contact = getContact();
+        final var response = ResponseEntity.status(HttpStatus.OK).body(contact);
+        //When:
+        Mockito.when(contactService.create(Mockito.any(ContactRequest.class))).thenReturn(response);
+        //Then:
+        given().contentType(MediaType.APPLICATION_JSON_VALUE).body(objectMapper.writeValueAsString(contact))
+                .accept(MediaType.APPLICATION_JSON_VALUE).when().put(PATH_CREATE.concat("/" + BigInteger.valueOf(1)))
+                .then().assertThat().statusCode(HttpStatus.OK.value()).expect(MvcResult::getResponse);
+    }
+
     private static ContactRequest getContactRequest() {
+        var contactRequest = new ContactRequest();
+        contactRequest.setContact(getContact());
+        contactRequest.setAppName(ConstantUtilTest.APP_NAME_VALUE);
+        contactRequest.setAppToken(ConstantUtilTest.APP_TOKEN_VALUE);
+        return contactRequest;
+    }
+
+    private static Contact getContact() {
         var person = new Person();
         person.setId(1L);
         person.setFirstName("Fausto");
@@ -112,10 +134,6 @@ class ContactControllerTest extends MockLoaderBase {
         contact.setId(null);
         contact.setContent("Contact description");
         contact.setPerson(person);
-        var contactRequest = new ContactRequest();
-        contactRequest.setContact(contact);
-        contactRequest.setAppName(ConstantUtilTest.APP_NAME_VALUE);
-        contactRequest.setAppToken(ConstantUtilTest.APP_TOKEN_VALUE);
-        return contactRequest;
+        return contact;
     }
 }

@@ -18,6 +18,7 @@ import com.prx.commons.pojo.Contact;
 import com.prx.commons.pojo.MessageActivity;
 import org.springframework.http.ResponseEntity;
 
+import java.math.BigInteger;
 import java.util.List;
 
 /**
@@ -38,4 +39,12 @@ public interface ContactService {
     List<Contact> saveAll(List<Contact> contacts);
 
     ResponseEntity<Contact> create(ContactRequest contactRequest);
+
+    /**
+     * Update a contact exist.
+     * @param contact {@link Contact} object type.
+     * @return {@link ResponseEntity} object type with a {@link Contact} object type.
+     */
+    ResponseEntity<Contact> update(Contact contact, BigInteger contactId);
+
 }
