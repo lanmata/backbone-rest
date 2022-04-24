@@ -14,7 +14,7 @@
 package com.prx.backoffice.v1.contacttype.service;
 
 import com.prx.backoffice.MockLoaderBase;
-import com.prx.backoffice.v1.contact.mapper.ContactTypeMapper;
+import com.prx.backoffice.v1.contacttype.mapper.ContactTypeMapper;
 import com.prx.commons.pojo.ContactType;
 import com.prx.persistence.general.domains.ContactTypeEntity;
 import com.prx.persistence.general.repositories.ContactTypeRepository;
@@ -23,9 +23,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * ContactTypeServiceImplTest.
@@ -54,7 +53,7 @@ class ContactTypeServiceImplTest extends MockLoaderBase {
     void list() {
         var result = new ArrayList<ContactTypeEntity>();
         var contactTypeEntity = new ContactTypeEntity();
-        contactTypeEntity.setId(1);
+        contactTypeEntity.setId(BigInteger.valueOf(1));
         contactTypeEntity.setName("Messenger");
         contactTypeEntity.setActive(true);
         contactTypeEntity.setDescription("Instant message app");

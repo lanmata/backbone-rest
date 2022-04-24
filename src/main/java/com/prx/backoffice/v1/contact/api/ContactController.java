@@ -26,6 +26,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigInteger;
 import java.util.List;
 
 /**
@@ -52,12 +53,21 @@ public class ContactController {
         return contactService.create(contactRequest);
     }
 
+    @Operation(description = "Update a contact.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "OK")
+    })
+    @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/{contactId}")
+    public ResponseEntity<Contact> update(@PathVariable final BigInteger contactId, @RequestBody Contact contact) {
+        return contactService.update(contact, contactId);
+    }
+
     @Operation(description = "Find a contact list.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "OK")
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/{contactId}")
-    public ResponseEntity<Contact> find(@PathVariable final Long contactId) {
+    public ResponseEntity<Contact> find(@PathVariable final BigInteger contactId) {
         return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
     }
 
@@ -66,7 +76,7 @@ public class ContactController {
             @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "OK")
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/list/{contactIds}")
-    public ResponseEntity<List<Contact>> list(@PathVariable List<Long> contactIds){
+    public ResponseEntity<List<Contact>> list(@PathVariable List<BigInteger> contactIds){
         return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
     }
 
@@ -84,7 +94,7 @@ public class ContactController {
             @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "OK")
     })
     @DeleteMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/")
-    public ResponseEntity<Contact> delete(@PathVariable final Long contactId) {
+    public ResponseEntity<Contact> delete(@PathVariable final BigInteger contactId) {
         return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
     }
 

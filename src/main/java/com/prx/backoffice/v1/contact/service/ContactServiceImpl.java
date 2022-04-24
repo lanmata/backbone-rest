@@ -14,6 +14,7 @@ package com.prx.backoffice.v1.contact.service;
 
 import com.prx.backoffice.v1.contact.mapper.ContactMapper;
 import com.prx.backoffice.v1.contact.to.ContactRequest;
+import com.prx.backoffice.v1.contacttype.mapper.ContactTypeMapper;
 import com.prx.commons.pojo.Contact;
 import com.prx.persistence.general.domains.ContactEntity;
 import com.prx.persistence.general.repositories.ContactRepository;
@@ -21,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,6 +38,7 @@ import java.util.stream.Collectors;
 public class ContactServiceImpl implements ContactService{
     private final ContactRepository contactRepository;
     private final ContactMapper contactMapper;
+    private final ContactTypeMapper contactTypeMapper;
 
     public List<Contact> saveAll(List<Contact> contacts) {
         final List<ContactEntity> results = new ArrayList<>();
@@ -56,5 +59,27 @@ public class ContactServiceImpl implements ContactService{
         var contactEntity = contactMapper.toSource(contactRequest.getContact());
         var response = contactRepository.save(contactEntity);
         return ResponseEntity.ok(contactMapper.toTarget(response));
+    }
+
+    @Override
+    public ResponseEntity<Contact> update(Contact contact, BigInteger contactId) {
+        if(null == contactId || null == contact){
+            return ResponseEntity.notFound().build();
+        }
+        var contactOptionResult = contactRepository.findById(contactId);
+        if(contactOptionResult.isPresent()) {
+            var contactEntity = contactOptionResult.get();
+            contactEntity.setContent(contact.getContent());
+            contactEntity.setActive(contact.getActive());
+            contactEntity.setContactType(contactTypeMapper.toSource(contact.getContactType()));
+            var contactResult = contactRepository.save(contactEntity);
+            // PENDING to fix
+            contact.setId(contactResult.getId().intValue());
+            contact.setContent(contactEntity.getContent());
+            contact.setActive(contactEntity.getActive());
+            return ResponseEntity.ok(contact);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 }
