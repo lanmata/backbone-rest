@@ -39,6 +39,7 @@ import java.time.LocalDate;
 
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * ContactControllerTest.
@@ -105,6 +106,15 @@ class ContactControllerTest extends MockLoaderBase {
         given().contentType(MediaType.APPLICATION_JSON_VALUE).body(objectMapper.writeValueAsString(contact))
                 .accept(MediaType.APPLICATION_JSON_VALUE).when().put(PATH_CREATE.concat("/" + BigInteger.valueOf(1)))
                 .then().assertThat().statusCode(HttpStatus.OK.value()).expect(MvcResult::getResponse);
+    }
+
+    @Test
+    @DisplayName("Find a contact.")
+    void find() {
+        //when:
+        var response = mockMvcRequestSpecification.get(PATH_CREATE.concat("5"));
+        // then:
+        assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value());
     }
 
     private static ContactRequest getContactRequest() {

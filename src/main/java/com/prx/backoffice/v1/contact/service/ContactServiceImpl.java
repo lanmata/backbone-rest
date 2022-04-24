@@ -72,11 +72,20 @@ public class ContactServiceImpl implements ContactService{
             contactEntity.setContent(contact.getContent());
             contactEntity.setActive(contact.getActive());
             contactEntity.setContactType(contactTypeMapper.toSource(contact.getContactType()));
-            var contactResult = contactRepository.save(contactEntity);
-            // PENDING to fix
-            contact.setId(contactResult.getId().intValue());
-            contact.setContent(contactEntity.getContent());
-            contact.setActive(contactEntity.getActive());
+            return ResponseEntity.ok(contactMapper.toTarget(contactRepository.save(contactEntity)));
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @Override
+    public ResponseEntity<Contact> find(BigInteger contactId) {
+        if(null == contactId) {
+            return ResponseEntity.badRequest().build();
+        }
+        var contactEntityResult = contactRepository.findById(contactId);
+        if(contactEntityResult.isPresent()) {
+            var contact = contactMapper.toTarget(contactEntityResult.get());
             return ResponseEntity.ok(contact);
         } else {
             return ResponseEntity.notFound().build();

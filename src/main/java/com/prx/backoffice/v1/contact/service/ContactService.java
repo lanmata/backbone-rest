@@ -47,4 +47,10 @@ public interface ContactService {
      */
     ResponseEntity<Contact> update(Contact contact, BigInteger contactId);
 
+    /**
+     * Find contact by contact id.
+     * @param contactId {@link BigInteger} object type.
+     * @return {@link ResponseEntity} object type with a {@link Contact} object type.
+     */
+    ResponseEntity<Contact> find(BigInteger contactId);
 }

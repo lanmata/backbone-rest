@@ -68,7 +68,7 @@ public class ContactController {
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/{contactId}")
     public ResponseEntity<Contact> find(@PathVariable final BigInteger contactId) {
-        return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+        return contactService.find(contactId);
     }
 
     @Operation(description = "Find a contact list by ids.")
