@@ -78,7 +78,7 @@ class UserControllerTest extends MockLoaderBase {
     @Test
     void find() {
         Mockito.when(this.userService.findUserById(ArgumentMatchers.anyLong()))
-                .thenReturn(ResponseEntity.status(HttpStatus.FOUND).build());
+                .thenReturn(ResponseEntity.status(HttpStatus.OK).build());
         Assertions.assertNotNull(this.userController.find("ABS125", 12L));
     }
 

@@ -152,7 +152,7 @@ public class UserServiceImpl implements UserService {
 			listResponseEntity = ResponseEntity.notFound().build();
 		} else {
 			listResponseEntity = new ResponseEntity<>(userEntityList.stream()
-					.map(userMapper::toTarget).collect(Collectors.toList()), HttpStatus.FOUND);
+					.map(userMapper::toTarget).collect(Collectors.toList()), HttpStatus.OK);
 		}
 		log.info(listResponseEntity.getStatusCode().toString());
 		return listResponseEntity;
