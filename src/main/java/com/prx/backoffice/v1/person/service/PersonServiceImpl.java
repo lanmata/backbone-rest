@@ -27,6 +27,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -47,6 +48,7 @@ public class PersonServiceImpl implements PersonService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PersonServiceImpl.class);
 
 	/** {@inheritDoc} */
+	@Transactional
 	public ResponseEntity<Person> create(Person person) {
 		final var responseEntity = save(person);
 		return new ResponseEntity<>(
