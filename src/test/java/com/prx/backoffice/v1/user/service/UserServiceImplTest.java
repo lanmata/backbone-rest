@@ -13,10 +13,15 @@
 package com.prx.backoffice.v1.user.service;
 
 import com.prx.backoffice.MockLoaderBase;
+import com.prx.backoffice.v1.person.mapper.PersonMapperImpl;
 import com.prx.backoffice.v1.person.service.PersonService;
+import com.prx.backoffice.v1.person.service.PersonServiceImpl;
 import com.prx.backoffice.v1.role.mapper.RoleMapper;
 import com.prx.backoffice.v1.user.mapper.UserMapper;
-import com.prx.commons.pojo.*;
+import com.prx.commons.pojo.Feature;
+import com.prx.commons.pojo.Person;
+import com.prx.commons.pojo.Role;
+import com.prx.commons.pojo.User;
 import com.prx.persistence.general.domains.PersonEntity;
 import com.prx.persistence.general.domains.RoleEntity;
 import com.prx.persistence.general.domains.UserEntity;
@@ -25,14 +30,10 @@ import com.prx.persistence.general.repositories.UserRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentMatchers;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.mockito.*;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -43,12 +44,10 @@ import java.util.ArrayList;
  * @author Luis Antonio Mata
  * @version 1.0.0, 27-10-2020
  */
-@SpringBootTest
-@ActiveProfiles("local")
 class UserServiceImplTest extends MockLoaderBase {
 
-	@Mock
-	PersonService personService;
+	@Spy
+	PersonService personService = new PersonServiceImpl(null, new PersonMapperImpl());
 	@Mock
 	UserRepository userRepository;
 	@Mock
@@ -58,19 +57,12 @@ class UserServiceImplTest extends MockLoaderBase {
 	@InjectMocks
     UserServiceImpl userService;
 
-	Role role;
-	User user;
-	Person person;
-	Feature feature;
 	UserEntity userEntity;
 	PersonEntity personEntity;
 
 	@BeforeEach
 	void setup() {
-		role = new Role();
-		user = new User();
-		person = new Person();
-		feature = new Feature();
+		MockitoAnnotations.openMocks(this);
 		userEntity = new UserEntity();
 		personEntity = new PersonEntity();
 
@@ -85,77 +77,143 @@ class UserServiceImplTest extends MockLoaderBase {
 		userEntity.setActive(true);
 		userEntity.setAlias("ccastro");
 		userEntity.setId(1L);
-		feature.setId(1L);
-		feature.setActive(true);
-		feature.setName("Nombre de feature");
-		feature.setDescription("Descripcin de feature");
-		role.setId(11L);
-		role.setActive(true);
-		role.setName("Nombre de rol");
-		role.setDescription("Descripcion de rol");
-		role.setFeatures(new ArrayList<>());
-		role.getFeatures().add(feature);
-		person.setMiddleName("Pepito");
-		person.setFirstName("Pepe");
-		person.setGender("M");
-		person.setLastName("Perez");
-		person.setId(1L);
-		person.setBirthdate(LocalDate.of(1985, 5, 25));
-		user.setActive(true);
-		user.setAlias("pepe");
-		user.setId(1L);
-		user.setPassword("234567890");
-		user.setPerson(person);
-		user.setRoles(new ArrayList<>());
-		user.getRoles().add(role);
+
 
 	}
 
 	@Test
 	void findUserById() {
         Mockito.when(this.userRepository.findByAlias(ArgumentMatchers.anyString())).thenReturn(userEntity);
-        Mockito.when(this.userMapper.toTarget(ArgumentMatchers.any(UserEntity.class))).thenReturn(user);
+        Mockito.when(this.userMapper.toTarget(ArgumentMatchers.any(UserEntity.class))).thenReturn(getUser());
         Assertions.assertNotNull(this.userService.findUserById(12L));
 	}
 
 	@Test
 	void testAccess() {
 		Mockito.when(this.userRepository.findByAlias(ArgumentMatchers.anyString())).thenReturn(userEntity);
-		Mockito.when(this.userMapper.toTarget(ArgumentMatchers.any(UserEntity.class))).thenReturn(user);
+		Mockito.when(this.userMapper.toTarget(ArgumentMatchers.any(UserEntity.class))).thenReturn(getUser());
 		Assertions.assertNotNull(this.userService.access("ccastro", "123456"));
 	}
 
 	@Test
 	void findUserByAlias() {
 		Mockito.when(this.userRepository.findByAlias(ArgumentMatchers.anyString())).thenReturn(userEntity);
-		Mockito.when(this.userMapper.toTarget(ArgumentMatchers.any(UserEntity.class))).thenReturn(user);
+		Mockito.when(this.userMapper.toTarget(ArgumentMatchers.any(UserEntity.class))).thenReturn(getUser());
 		Assertions.assertNotNull(this.userService.findUserByAlias("ccastro"));
 	}
 
 	@Test
 	void testFindAll() {
 		Mockito.when(this.userRepository.findByAlias(ArgumentMatchers.anyString())).thenReturn(userEntity);
-		Mockito.when(this.userMapper.toTarget(ArgumentMatchers.any(UserEntity.class))).thenReturn(user);
-		Mockito.when(this.roleMapper.userRoleToRole(ArgumentMatchers.any(UserRoleEntity.class))).thenReturn(role);
+		Mockito.when(this.userMapper.toTarget(ArgumentMatchers.any(UserEntity.class))).thenReturn(getUser());
+		Mockito.when(this.roleMapper.userRoleToRole(ArgumentMatchers.any(UserRoleEntity.class))).thenReturn(getRole());
 		Assertions.assertNotNull(this.userService.findUserByAlias("pepe"));
 	}
 
 	@Test
 	void testCreate() {
+		final var user = getUser();
 		final var userRoleEntity = new UserRoleEntity();
-		final ResponseEntity<User> responseEntity;
-		final ResponseEntity<Person> personResponseEntity;
-
-		personResponseEntity = ResponseEntity.noContent().build();
-		responseEntity = new ResponseEntity<User>(user, HttpStatus.ACCEPTED);
+		final var responseEntity = new ResponseEntity<User>(user, HttpStatus.ACCEPTED);
+		final var personResponseEntity = ResponseEntity.ok(new Person());
 		userRoleEntity.setUser(new UserEntity());
 		userRoleEntity.setRole(new RoleEntity());
 
+		Mockito.doReturn(personResponseEntity).when(this.personService).create(ArgumentMatchers.any(Person.class));
 		Mockito.when(this.userMapper.toSource(ArgumentMatchers.any(User.class))).thenReturn(userEntity);
 		Mockito.when(this.userMapper.toTarget(ArgumentMatchers.any(UserEntity.class))).thenReturn(user);
-		Mockito.when(this.personService.create(ArgumentMatchers.any(Person.class))).thenReturn(personResponseEntity);
-		Mockito.when(this.personService.find(ArgumentMatchers.any(Long.class))).thenReturn(personResponseEntity);
-//		Assertions.assertNotNull(this.userService.create(user));
+		Assertions.assertNotNull(this.userService.create(user));
+	}
+
+	@Test
+	void create_user_username_required(){
+		final var user = getUser();
+		user.setAlias("");
+		final var httpHeaders = new HttpHeaders();
+		httpHeaders.set("error-message", "username is required");
+		final ResponseEntity<User> responseEntity = ResponseEntity.badRequest().headers(httpHeaders).build();
+		Assertions.assertEquals(responseEntity, this.userService.create(user));
+	}
+
+	@Test
+	void create_user_password_required(){
+		final var user = getUser();
+		user.setPassword("");
+		final var httpHeaders = new HttpHeaders();
+		httpHeaders.set("error-message", "password is required");
+		final ResponseEntity<User> responseEntity = ResponseEntity.badRequest().headers(httpHeaders).build();
+		Assertions.assertEquals(responseEntity, this.userService.create(user));
+	}
+
+	@Test
+	void create_role_null() {
+		final var user = getUser();
+		user.setRoles(null);
+		final var httpHeaders = new HttpHeaders();
+		httpHeaders.set("error-message", "Role is required");
+		final ResponseEntity<User> responseEntity = ResponseEntity.badRequest().headers(httpHeaders).build();
+		Assertions.assertEquals(responseEntity, this.userService.create(user));
+	}
+
+	@Test
+	void create_role_empty() {
+		final var user = getUser();
+		user.setRoles(new ArrayList<>());
+		final var httpHeaders = new HttpHeaders();
+		httpHeaders.set("error-message", "Role is required");
+		final ResponseEntity<User> responseEntity = ResponseEntity.badRequest().headers(httpHeaders).build();
+		Assertions.assertEquals(responseEntity, this.userService.create(user));
+	}
+
+	@Test
+	void create_user_null(){
+		final ResponseEntity<User> responseEntity = ResponseEntity.badRequest().build();
+		final var personResponseEntity = ResponseEntity.ok(new Person());
+		Assertions.assertEquals(responseEntity, this.userService.create(null));
+	}
+
+	private static User getUser(){
+		final var user = new User();
+		user.setActive(true);
+		user.setAlias("pepe");
+		user.setId(1L);
+		user.setPassword("234567890");
+		user.setPerson(getPerson());
+		user.setRoles(new ArrayList<>());
+		user.getRoles().add(getRole());
+
+		return user;
+	}
+
+	private static Person getPerson() {
+		final var person = new Person();
+		person.setMiddleName("Pepito");
+		person.setFirstName("Pepe");
+		person.setGender("M");
+		person.setLastName("Perez");
+		person.setId(1L);
+		person.setBirthdate(LocalDate.of(1985, 5, 25));
+		return person;
+	}
+
+	private static Feature getFeature() {
+		final var feature = new Feature();
+		feature.setId(1L);
+		feature.setActive(true);
+		feature.setName("Nombre de feature");
+		feature.setDescription("Descripcin de feature");
+		return feature;
+	}
+
+	private static Role getRole() {
+		final var role = new Role();
+		role.setId(11L);
+		role.setActive(true);
+		role.setName("Nombre de rol");
+		role.setDescription("Descripcion de rol");
+		role.setFeatures(new ArrayList<>());
+		role.getFeatures().add(getFeature());
+		return role;
 	}
 
 }

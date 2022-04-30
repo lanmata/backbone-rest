@@ -15,8 +15,8 @@ package com.prx.backoffice.v1.user.service;
 import com.prx.backoffice.enums.keys.RolMessageKey;
 import com.prx.backoffice.enums.keys.UserMessageKey;
 import com.prx.backoffice.v1.person.service.PersonService;
-import com.prx.backoffice.v1.role.service.RoleService;
 import com.prx.backoffice.v1.role.mapper.RoleMapper;
+import com.prx.backoffice.v1.role.service.RoleService;
 import com.prx.backoffice.v1.user.mapper.UserMapper;
 import com.prx.commons.pojo.Person;
 import com.prx.commons.pojo.User;
@@ -29,6 +29,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -48,6 +49,7 @@ public class UserServiceImpl implements UserService {
 	private final RoleService roleService;
 	private final UserMapper userMapper;
 	private final RoleMapper roleMapper;
+	private static final String ERROR_MESSAGE_HEADER_ATTRIBUTE = "error-message";
 
 	@Override
 	public ResponseEntity<User> update(Long userId, User user) {
@@ -114,7 +116,7 @@ public class UserServiceImpl implements UserService {
 		final var userEntity = userRepository.findByAlias(alias);
 		ResponseEntity<User> responseEntity;
 		responseEntity = ValidatorCommonsUtil.esNulo(userEntity) ?
-				 ResponseEntity.notFound().build() : new ResponseEntity<>(userMapper.toTarget(userEntity), HttpStatus.FOUND);
+				 ResponseEntity.notFound().build() : new ResponseEntity<>(userMapper.toTarget(userEntity), HttpStatus.OK);
 		log.info("{}| alias:{}", responseEntity.getStatusCode(), alias);
 		return responseEntity;
 	}
@@ -162,8 +164,25 @@ public class UserServiceImpl implements UserService {
 	 * {@inheritDoc}
 	 */
 	@Override
+	@Transactional
 	public ResponseEntity<User> create(User user) {
-		throw new UnsupportedOperationException();
+		if(null == user) {
+			return ResponseEntity.badRequest().build();
+		} else if(user.getAlias().isBlank()) {
+			return ResponseEntity.badRequest().header(ERROR_MESSAGE_HEADER_ATTRIBUTE, "username is required").build();
+		} else if(user.getPassword().isBlank()) {
+			return ResponseEntity.badRequest().header(ERROR_MESSAGE_HEADER_ATTRIBUTE, "password is required").build();
+		} else if(null == user.getRoles() || user.getRoles().isEmpty()) {
+			return ResponseEntity.badRequest().header(ERROR_MESSAGE_HEADER_ATTRIBUTE, "Role is required").build();
+		} else if(findUserByAlias(user.getAlias()).getStatusCode().equals(HttpStatus.OK)) {
+			return ResponseEntity.badRequest().header(ERROR_MESSAGE_HEADER_ATTRIBUTE, "User previously exist.").build();
+		}
+		var personResponse = personService.create(user.getPerson());
+		if(personResponse.getStatusCode().equals(HttpStatus.OK)) {
+			user.setPerson(personResponse.getBody());
+			return ResponseEntity.ok(userMapper.toTarget(userRepository.save(userMapper.toSource(user))));
+		}
+		return ResponseEntity.badRequest().build();
 	}
 
 	/**{@inheritDoc}*/
