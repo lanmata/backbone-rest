@@ -14,10 +14,8 @@
 package com.prx.backoffice.v1.user.api.controller;
 
 import com.prx.backoffice.MockLoaderBase;
-import com.prx.backoffice.v1.role.api.to.RoleLinkRequest;
 import com.prx.backoffice.v1.user.api.to.UserAccessRequest;
 import com.prx.backoffice.v1.user.api.to.UserCreateRequest;
-import com.prx.backoffice.v1.user.mapper.UserMapper;
 import com.prx.backoffice.v1.user.service.UserService;
 import com.prx.commons.pojo.Feature;
 import com.prx.commons.pojo.Person;
@@ -37,7 +35,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MvcResult;
 
 import javax.validation.constraints.NotNull;
-import java.net.URI;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -79,7 +76,7 @@ class UserControllerTest extends MockLoaderBase {
     void find() {
         Mockito.when(this.userService.findUserById(ArgumentMatchers.anyLong()))
                 .thenReturn(ResponseEntity.status(HttpStatus.OK).build());
-        Assertions.assertNotNull(this.userController.find("ABS125", 12L));
+        Assertions.assertNotNull(this.userController.find( 12L));
     }
 
     @Test

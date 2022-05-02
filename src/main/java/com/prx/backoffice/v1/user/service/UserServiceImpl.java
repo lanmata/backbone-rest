@@ -178,7 +178,7 @@ public class UserServiceImpl implements UserService {
 			return ResponseEntity.badRequest().header(ERROR_MESSAGE_HEADER_ATTRIBUTE, "User previously exist.").build();
 		}
 		var personResponse = personService.create(user.getPerson());
-		if(personResponse.getStatusCode().equals(HttpStatus.OK)) {
+		if(personResponse.getStatusCode().equals(HttpStatus.CREATED)) {
 			user.setPerson(personResponse.getBody());
 			return ResponseEntity.ok(userMapper.toTarget(userRepository.save(userMapper.toSource(user))));
 		}

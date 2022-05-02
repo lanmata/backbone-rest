@@ -35,6 +35,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.net.URI;
 import java.time.LocalDate;
 import java.util.ArrayList;
 
@@ -114,15 +115,15 @@ class UserServiceImplTest extends MockLoaderBase {
 	void testCreate() {
 		final var user = getUser();
 		final var userRoleEntity = new UserRoleEntity();
-		final var responseEntity = new ResponseEntity<User>(user, HttpStatus.ACCEPTED);
-		final var personResponseEntity = ResponseEntity.ok(new Person());
+		final var responseEntity = ResponseEntity.ok().build();
+		final var personResponseEntity = ResponseEntity.created(URI.create("")).body(new Person());
 		userRoleEntity.setUser(new UserEntity());
 		userRoleEntity.setRole(new RoleEntity());
 
 		Mockito.doReturn(personResponseEntity).when(this.personService).create(ArgumentMatchers.any(Person.class));
 		Mockito.when(this.userMapper.toSource(ArgumentMatchers.any(User.class))).thenReturn(userEntity);
 		Mockito.when(this.userMapper.toTarget(ArgumentMatchers.any(UserEntity.class))).thenReturn(user);
-		Assertions.assertNotNull(this.userService.create(user));
+		Assertions.assertEquals(responseEntity, this.userService.create(user));
 	}
 
 	@Test

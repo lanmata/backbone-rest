@@ -55,14 +55,13 @@ public class UserController {
 //            @ApiResponse(responseCode = "404", description = "${messages.general.user-find.nok}"),
 //            @ApiResponse(responseCode = "500", description = "${messages.general.user-find.error}")
     })
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/find/{token}/{userId}")
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/{userId}")
     public ResponseEntity<User> find(
-            @Parameter(description = "Token de acceso", required = true) @PathVariable @NotNull String token,
             @Parameter(description = STR_ID_USER, required = true) @PathVariable @NotNull Long userId){
-        log.info("{} /find/{token}/{userId}", MessageUtil.LOG_START_MSG);
+        log.info("{} /{userId}", MessageUtil.LOG_START_MSG);
         ResponseEntity<User> responseEntity;
         responseEntity = userService.findUserById(userId);
-        log.info("{} /find/{token}/{userId}", MessageUtil.LOG_END_MSG);
+        log.info("{} /{userId}", MessageUtil.LOG_END_MSG);
         return responseEntity;
     }
 
@@ -119,6 +118,16 @@ public class UserController {
         final var responseEntity = userService.create(userCreateRequest.getUser());
         log.info("{} /create", MessageUtil.LOG_END_MSG);
         return responseEntity;
+    }
+
+    @Operation(description = "Update a user")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "Updated user")
+    })
+    @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/{userId}")
+    public ResponseEntity<User> update(@PathVariable @NotNull Long userId, @RequestBody @NotNull User user) {
+        log.info("{} /update/{userId}", MessageUtil.LOG_START_MSG);
+        return userService.update(userId, user);
     }
 
     @Operation(description = "Busca un usuario por un alias")
