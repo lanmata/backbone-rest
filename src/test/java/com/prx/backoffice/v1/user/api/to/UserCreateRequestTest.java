@@ -10,14 +10,14 @@
  * In any event, this notice and the above copyright must always be included
  * verbatim with this file.
  */
-package com.prx.backoffice.to.user;
+package com.prx.backoffice.v1.user.api.to;
 
-import com.prx.backoffice.v1.user.api.to.UserCreateRequest;
-import com.prx.commons.pojo.User;
+import org.junit.jupiter.api.Test;
+
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+
 import static org.junit.jupiter.api.Assertions.*;
-import org.junit.jupiter.api.Test;
 
 /**
  * UserCreateRequestTest.
@@ -31,7 +31,7 @@ class UserCreateRequestTest {
     void gettersAndSetters() {
         final var userCreateRequest = new UserCreateRequest();
 
-        userCreateRequest.setUser(new User());
+        userCreateRequest.setUser(new UserTO());
         userCreateRequest.setAppName("APC22536");
         userCreateRequest.setAppToken("ABC22598");
         userCreateRequest.setDateTime(LocalDateTime.now(ZoneId.systemDefault()));

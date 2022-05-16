@@ -30,6 +30,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -47,7 +49,9 @@ import java.nio.charset.StandardCharsets;
 @RunWith(MockitoJUnitRunner.class)
 @MockServerSettings(perTestSuite = true)
 @ExtendWith(value = {MockServerExtension.class})
-public class MockLoaderBase {
+public abstract class MockLoaderBase {
+
+//	protected MockMvc mockMvc;
 
 	@Autowired
 	WebApplicationContext applicationContext;
@@ -59,6 +63,7 @@ public class MockLoaderBase {
 
 	@BeforeEach
 	void init(){
+//		mockMvc = MockMvcBuilders.webAppContextSetup(applicationContext).build();
 		RestAssuredMockMvc.webAppContextSetup(applicationContext);
 	}
 

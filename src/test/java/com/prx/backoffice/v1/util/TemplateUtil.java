@@ -11,26 +11,17 @@
  * verbatim with this file.
  */
 
-package com.prx.backoffice.v1.user.api.to;
+package com.prx.backoffice.v1.util;
 
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.prx.commons.to.Request;
-import com.prx.commons.util.JsonUtil;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+/**
+ * TemplateUtil.
+ *
+ * @author Luis Antonio Mata
+ * @version 1.0.0, 14-05-2022
+ * @since 11
+ */
+public interface TemplateUtil <T, Y>{
+    T getModel();
 
-@Getter
-@Setter
-@NoArgsConstructor
-@JsonPropertyOrder({
-        "user"
-})
-public class UserCreateRequest extends Request {
-    private UserTO user;
-
-    @Override
-    public String toString() {
-        return JsonUtil.toJson(this);
-    }
+    Y getEntity();
 }

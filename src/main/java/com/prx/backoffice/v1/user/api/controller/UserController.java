@@ -59,11 +59,7 @@ public class UserController {
     public ResponseEntity<User> find(
             @Parameter(description = "Token de acceso", required = true) @PathVariable @NotNull String token,
             @Parameter(description = STR_ID_USER, required = true) @PathVariable @NotNull Long userId){
-        log.info("{} /find/{token}/{userId}", MessageUtil.LOG_START_MSG);
-        ResponseEntity<User> responseEntity;
-        responseEntity = userService.findUserById(userId);
-        log.info("{} /find/{token}/{userId}", MessageUtil.LOG_END_MSG);
-        return responseEntity;
+        return userService.findUserById(userId);
     }
 
     @Operation(description = "Obtiene una lista de usuarios")
@@ -71,11 +67,8 @@ public class UserController {
             @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "Usuario encontrado")
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/findAll")
-    public ResponseEntity<List<User>> findAll(){
-        log.info("{} /findAll/{token}/{userId}", MessageUtil.LOG_START_MSG);
-        final var listResponseEntity = userService.findAll();
-        log.info("{} /findAll/{token}/{userId}", MessageUtil.LOG_END_MSG);
-        return listResponseEntity;
+    public ResponseEntity<List<UserTO>> findAll(){
+        return userService.findAll();
     }
 
     @Operation(description = "Realiza la autenticación de usuario")
@@ -85,21 +78,14 @@ public class UserController {
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/login")
     public ResponseEntity<String> login(@Parameter(description = "Objeto de tipo UserAccessRequest", required = true)
                                     @RequestBody UserAccessRequest userAccessRequest) {
-        log.info("{} /login", MessageUtil.LOG_START_MSG);
-        var userAccessResponse = new UserAccessResponse();
-        ResponseEntity<String> responseEntity;
         if(ValidatorCommonsUtil.esNulo(userAccessRequest)){
-            responseEntity = new ResponseEntity<>(messageUtil.getUserSolicitudNulaVacia(), HttpStatus.NOT_ACCEPTABLE);
+            return new ResponseEntity<>(messageUtil.getUserSolicitudNulaVacia(), HttpStatus.NOT_ACCEPTABLE);
         }else if(ValidatorCommonsUtil.esVacio(userAccessRequest.getAlias())){
-            responseEntity = new ResponseEntity<>(messageUtil.getUserAliasNuloVacio(), HttpStatus.NOT_ACCEPTABLE);
+            return new ResponseEntity<>(messageUtil.getUserAliasNuloVacio(), HttpStatus.NOT_ACCEPTABLE);
         }else if(ValidatorCommonsUtil.esVacio(userAccessRequest.getPassword())){
-            responseEntity = new ResponseEntity<>(messageUtil.getUserClaveNulaVacia(), HttpStatus.NOT_ACCEPTABLE);
-        }else{
-            responseEntity = userService.access(userAccessRequest.getAlias(), userAccessRequest.getPassword());
+            return new ResponseEntity<>(messageUtil.getUserClaveNulaVacia(), HttpStatus.NOT_ACCEPTABLE);
         }
-        userAccessResponse.setDateTime(LocalDateTime.now(ZoneId.systemDefault()));
-        log.info("{} /login", responseEntity.getStatusCode());
-        return responseEntity;
+        return userService.access(userAccessRequest.getAlias(), userAccessRequest.getPassword());
     }
 
     @Operation(description = "Crea un nuevo usuario")
@@ -116,9 +102,7 @@ public class UserController {
                 || ValidatorCommonsUtil.esNulo(userCreateRequest.getUser().getPassword())){
             return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).build();
         }
-        final var responseEntity = userService.create(userCreateRequest.getUser());
-        log.info("{} /create", MessageUtil.LOG_END_MSG);
-        return responseEntity;
+        return userService.create(userCreateRequest);
     }
 
     @Operation(description = "Busca un usuario por un alias")
@@ -126,27 +110,22 @@ public class UserController {
             @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "Usuario encontrado.")
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/findByAlias/{alias}")
-    public ResponseEntity<User> findByAlias(@Parameter(description = "Alias de usuario", required = true)
+    public ResponseEntity<UserTO> findByAlias(@Parameter(description = "Alias de usuario", required = true)
                                     @PathVariable @NotNull String alias) {
-        log.info("{} /findByAlias/{alias}", MessageUtil.LOG_START_MSG);
-        final var userResponseEntity = userService.findUserByAlias(alias);
-        log.info("{} /findByAlias/{alias}", MessageUtil.LOG_END_MSG);
-        return userResponseEntity;
+        return userService.findUserByAlias(alias);
     }
 
     @Operation(description = "Desvincula un rol de usuario")
     @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/unlink/{userId}/{roleId}")
-    public ResponseEntity<User> unlink(@Parameter(description = "Id de usuario") @PathVariable @NotNull Long userId,
+    public ResponseEntity<UserTO> unlink(@Parameter(description = "Id de usuario") @PathVariable @NotNull Long userId,
                            @Parameter(description = "Id de rol") @PathVariable @NotNull Long roleId) {
-        log.info("{} /unlink/{userId}/{rolId}", MessageUtil.LOG_START_MSG);
         return userService.unlink(userId, roleId);
     }
 
     @Operation(description = "Vincula un rol de usuario")
     @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/link/{userId}/{roleId}")
-    public ResponseEntity<User> link(@Parameter(description = STR_ID_USER) @PathVariable @NotNull Long userId,
+    public ResponseEntity<UserTO> link(@Parameter(description = STR_ID_USER) @PathVariable @NotNull Long userId,
                          @Parameter(description = "Id de rol") @PathVariable @NotNull Long roleId) {
-        log.info("{} /link/{userId}/{rolId}", MessageUtil.LOG_START_MSG);
         return userService.link(userId, roleId);
     }
 }
