@@ -10,27 +10,24 @@
  * In any event, this notice and the above copyright must always be included
  * verbatim with this file.
  */
-package com.prx.backoffice.v1.user.mapper;
 
-import com.prx.backoffice.v1.person.mapper.PersonMapper;
-import com.prx.backoffice.v1.role.mapper.RoleMapper;
+package com.prx.backoffice.v1.user.api.controller;
+
+import com.prx.backoffice.v1.user.api.to.UserAccessRequest;
+import com.prx.backoffice.v1.user.api.to.UserCreateRequest;
 import com.prx.backoffice.v1.user.api.to.UserTO;
-import com.prx.commons.pojo.User;
+import com.prx.backoffice.v1.util.TemplateUtil;
 import com.prx.persistence.general.domains.UserEntity;
-import org.mapstruct.InheritInverseConfiguration;
-import org.mapstruct.Mapper;
 
 /**
- * UserMapper.
+ * UserTemplate.
  *
  * @author Luis Antonio Mata
- * @version 1.0.0, 20-10-2020
+ * @version 1.0.0, 15-05-2022
+ * @since 11
  */
-@Mapper(componentModel = "spring", uses = {RoleMapper.class, PersonMapper.class})
-public interface UserMapper {
+public interface UserTemplate extends TemplateUtil<UserTO, UserEntity> {
+    UserCreateRequest getUserCreateRequest();
 
-    UserTO toTarget(UserEntity userEntity);
-
-    @InheritInverseConfiguration
-    UserEntity toSource(UserTO user);
+    UserAccessRequest getUserAccessRequest();
 }
