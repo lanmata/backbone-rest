@@ -14,6 +14,7 @@
 package com.prx.backoffice.v1.user.service;
 
 import com.prx.backoffice.services.CrudService;
+import com.prx.backoffice.v1.user.api.to.UserTO;
 import com.prx.commons.pojo.User;
 import org.springframework.http.ResponseEntity;
 
@@ -68,7 +69,7 @@ public interface UserService extends CrudService <UserTO> {
      * @param user Objeto de tipo {@link User}
      * @return Objeto de tipo {@link ResponseEntity}
      */
-    ResponseEntity<User> create(User user);
+    ResponseEntity<UserTO> create(UserTO user);
 
     /**
      * Realiza la desvinculación de un rol a un usuario especifico.

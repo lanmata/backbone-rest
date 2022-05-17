@@ -29,23 +29,12 @@ class UserCreateRequestTest {
 
     @Test
     void gettersAndSetters() {
-        final var userCreateRequest = new UserCreateRequest();
-
-        userCreateRequest.setUser(new UserTO());
-        userCreateRequest.setAppName("APC22536");
-        userCreateRequest.setAppToken("ABC22598");
-        userCreateRequest.setDateTime(LocalDateTime.now(ZoneId.systemDefault()));
-
+        final var userTO = new UserTO();
         assertAll("Test Getters and Setters",
-            () -> assertNotNull(userCreateRequest.getUser()),
-            () -> assertNotNull(userCreateRequest.getAppName()),
-            () -> assertNotNull(userCreateRequest.getAppToken()),
-            () -> assertNotNull(userCreateRequest.getDateTime()),
-            () -> assertNotNull(userCreateRequest.toString()),
-            () -> assertNotEquals(1, userCreateRequest.hashCode()),
-            () -> assertNotEquals(new UserCreateRequest(), userCreateRequest)
-                 );
-
+            () -> assertNotNull(userTO),
+            () -> assertNotNull(userTO.toString()),
+            () -> assertNotEquals(1, userTO.hashCode()),
+            () -> assertNotEquals(new UserTO(), userTO));
     }
 
 }
