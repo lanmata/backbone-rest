@@ -14,10 +14,8 @@ package com.prx.backoffice.v1.user.api.controller;
 
 import com.prx.backoffice.util.MessageUtil;
 import com.prx.backoffice.v1.user.api.to.UserAccessRequest;
-import com.prx.backoffice.v1.user.api.to.UserAccessResponse;
-import com.prx.backoffice.v1.user.api.to.UserCreateRequest;
+import com.prx.backoffice.v1.user.api.to.UserTO;
 import com.prx.backoffice.v1.user.service.UserService;
-import com.prx.commons.pojo.User;
 import com.prx.commons.util.ValidatorCommonsUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -31,8 +29,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.NotNull;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 
 @Slf4j
@@ -56,7 +52,7 @@ public class UserController {
 //            @ApiResponse(responseCode = "500", description = "${messages.general.user-find.error}")
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/find/{token}/{userId}")
-    public ResponseEntity<User> find(
+    public ResponseEntity<UserTO> find(
             @Parameter(description = "Token de acceso", required = true) @PathVariable @NotNull String token,
             @Parameter(description = STR_ID_USER, required = true) @PathVariable @NotNull Long userId){
         return userService.findUserById(userId);
@@ -93,16 +89,16 @@ public class UserController {
             @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "Usuario creado con éxito.")
     })
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/")
-    public ResponseEntity<User> create(@Parameter(description = "Objeto de tipo UserCreateRequest", required = true)
-                           @RequestBody UserCreateRequest userCreateRequest) {
+    public ResponseEntity<UserTO> create(@Parameter(description = "Objeto de tipo UserCreateRequest", required = true)
+                           @RequestBody UserTO userTO) {
         log.info("{} /create", MessageUtil.LOG_START_MSG);
-        if(ValidatorCommonsUtil.esNulo(userCreateRequest)||ValidatorCommonsUtil.esNulo(userCreateRequest.getUser())){
+        if(ValidatorCommonsUtil.esNulo(userTO)){
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build();
-        }else if(ValidatorCommonsUtil.esNulo(userCreateRequest.getUser().getAlias())
-                || ValidatorCommonsUtil.esNulo(userCreateRequest.getUser().getPassword())){
+        }else if(ValidatorCommonsUtil.esNulo(userTO.getAlias())
+                || ValidatorCommonsUtil.esNulo(userTO.getPassword())){
             return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).build();
         }
-        return userService.create(userCreateRequest);
+        return userService.create(userTO);
     }
 
     @Operation(description = "Busca un usuario por un alias")

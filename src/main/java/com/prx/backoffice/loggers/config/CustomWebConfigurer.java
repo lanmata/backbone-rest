@@ -1,4 +1,4 @@
-z/*
+/*
  * @(#)$file.className.java.
  *
  * Copyright (c) Luis Antonio Mata Mata. All rights reserved.
@@ -10,7 +10,6 @@ z/*
  * In any event, this notice and the above copyright must always be included
  * verbatim with this file.
  */
-
 package com.prx.backoffice.loggers.config;
 
 import com.prx.backoffice.loggers.interceptor.InterceptorLog;

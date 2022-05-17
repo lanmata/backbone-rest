@@ -50,7 +50,6 @@ public class UserServiceImpl implements UserService {
 	private final RoleService roleService;
 	private final UserMapper userMapper;
 	private final RoleMapper roleMapper;
-	private static final String ERROR_MESSAGE_HEADER_ATTRIBUTE = "error-message";
 
 	@Override
 	public ResponseEntity<UserTO> update(Long userId, UserTO user) {
@@ -166,7 +165,7 @@ public class UserServiceImpl implements UserService {
 	 */
 	@Override
 	@Transactional
-	public ResponseEntity<User> create(User user) {
+	public ResponseEntity<UserTO> create(UserTO user) {
 		if(null == user) {
 			return ResponseEntity.badRequest().build();
 		} else if(user.getAlias().isBlank()) {
