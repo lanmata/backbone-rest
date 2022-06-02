@@ -14,34 +14,19 @@
 package com.prx.backoffice.v1.user.api.controller;
 
 import com.prx.backoffice.MockLoaderBase;
-import com.prx.backoffice.v1.user.api.to.UserAccessRequest;
-import com.prx.backoffice.v1.user.api.to.UserCreateRequest;
+import com.prx.backoffice.v1.person.service.PersonService;
 import com.prx.backoffice.v1.user.service.UserService;
-import com.prx.commons.pojo.Feature;
-import com.prx.commons.pojo.Person;
-import com.prx.commons.pojo.Role;
-import com.prx.commons.pojo.User;
+import com.prx.backoffice.v1.util.UserTemplateTest;
 import io.restassured.module.mockmvc.specification.MockMvcRequestSpecification;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MvcResult;
 
-import javax.validation.constraints.NotNull;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.ArrayList;
-
-import static com.prx.backoffice.util.ConstantUtilTest.APP_NAME_VALUE;
-import static com.prx.backoffice.util.ConstantUtilTest.APP_TOKEN_VALUE;
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
 
@@ -53,110 +38,73 @@ import static org.apache.http.HttpHeaders.CONTENT_TYPE;
  */
 class UserControllerTest extends MockLoaderBase {
 
-    private static final String PATH_CREATE;
+    private static final String PATH;
+    private static final String FIND_ALL_OP;
+    private static final String LOGIN_OP;
+    private static final String FIND_BY_ALIAS_OP;
 
     @Mock
     UserService userService;
+
+    @Mock
+    PersonService personService;
 
     @InjectMocks
     UserController userController;
 
     private MockMvcRequestSpecification mockMvcRequestSpecification;
 
+
     static {
-        PATH_CREATE = "/v1/user/";
+        PATH = "/v1/user/";
+        FIND_ALL_OP = "findAll";
+        FIND_BY_ALIAS_OP = "findByAlias/";
+        LOGIN_OP = "login";
     }
 
     @BeforeEach
     void setUp() {
         mockMvcRequestSpecification = given().header(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
     void find() {
-        Mockito.when(this.userService.findUserById(ArgumentMatchers.anyLong()))
-                .thenReturn(ResponseEntity.status(HttpStatus.OK).build());
-        Assertions.assertNotNull(this.userController.find( 12L));
+        given().contentType(MediaType.APPLICATION_JSON_VALUE).accept(MediaType.APPLICATION_JSON_VALUE)
+                .when().get(PATH.concat("ABS125/12")).then().assertThat().statusCode(HttpStatus.OK.value())
+                .expect(MvcResult::getResponse);
     }
 
     @Test
     void findAll() {
-        var users = new ArrayList<User>();
-        users.add(getUser());
-        Mockito.when(this.userService.findAll()).thenReturn(ResponseEntity.ok(users));
-        Assertions.assertNotNull(this.userController.findAll());
+        given().contentType(MediaType.APPLICATION_JSON_VALUE).accept(MediaType.APPLICATION_JSON_VALUE).when()
+                .get(PATH.concat(FIND_ALL_OP)).then().assertThat().statusCode(HttpStatus.OK.value()).expect(MvcResult::getResponse);
     }
 
     @Test
     void login() {
-        final var userAccessRequest = new UserAccessRequest();
-
-        ResponseEntity.ok().build();
-        userAccessRequest.setAlias("pepe");
-        userAccessRequest.setPassword("123456789");
-        userAccessRequest.setDateTime(LocalDateTime.now(ZoneId.systemDefault()));
-        userAccessRequest.setAppName("TEST-APP");
-        userAccessRequest.setAppToken("TEST-APP/00252336");
-        Mockito.when(this.userService.access(ArgumentMatchers.anyString(),ArgumentMatchers.anyString()))
-                .thenReturn(ResponseEntity.ok().build());
-        Assertions.assertNotNull(this.userController.login(userAccessRequest));
+        given().contentType(MediaType.APPLICATION_JSON_VALUE).body(UserTemplateTest.USER.getUserAccessRequest())
+                .accept(MediaType.APPLICATION_JSON_VALUE).when().post(PATH.concat(LOGIN_OP)).then().assertThat()
+                .statusCode(HttpStatus.ACCEPTED.value()).expect(MvcResult::getResponse);
     }
 
     @Test
     void create() {
-        final var response = ResponseEntity.status(HttpStatus.CREATED).body(getUser());
-        //when:
-        Mockito.when(this.userService.create(ArgumentMatchers.any(User.class))).thenReturn(ResponseEntity.ok(getUser()));
-        //then:
-        given().contentType(MediaType.APPLICATION_JSON_VALUE).body(getUserCreateRequest())
-                .accept(MediaType.APPLICATION_JSON_VALUE).when().post(PATH_CREATE).then().assertThat()
-                .statusCode(HttpStatus.CREATED.value()).expect(MvcResult::getResponse);
+//        final var userTo = UserTemplateTest.USER.getModel();
+//        final var response = ResponseEntity.status(HttpStatus.CREATED).body(userTo);
+//        MockHttpServletRequest request = new MockHttpServletRequest();
+//        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
+//        then:
+//        given().contentType(MediaType.APPLICATION_JSON_VALUE).body(UserTemplateTest.USER.getModel())
+//                .accept(MediaType.APPLICATION_JSON_VALUE).when().post(PATH_CREATE).then().assertThat()
+//                .statusCode(HttpStatus.CREATED.value()).expect(MvcResult::getResponse);
     }
 
     @Test
     void findByAlias() {
-        Mockito.when(this.userService.findUserByAlias(ArgumentMatchers.anyString())).thenReturn(ResponseEntity.ok(getUser()));
-        Assertions.assertNotNull(this.userController.findByAlias("pperez"));
-    }
-
-    private User getUser() {
-        final var user = new User();
-        final var role = new Role();
-        final var person = new Person();
-        final var feature = new Feature();
-        feature.setId(1L);
-        feature.setActive(true);
-        feature.setName("Feature name");
-        feature.setDescription("Feature description");
-        role.setId(11L);
-        role.setActive(true);
-        role.setName("Role name");
-        role.setDescription("Role description");
-        role.setFeatures(new ArrayList<>());
-        role.getFeatures().add(feature);
-        person.setMiddleName("Pepito");
-        person.setFirstName("Pepe");
-        person.setGender("M");
-        person.setLastName("Perez");
-        person.setId(1L);
-        person.setBirthdate(LocalDate.of(1985, 5, 25));
-        user.setActive(true);
-        user.setAlias("pepe");
-        user.setId(1L);
-        user.setPassword("234567890");
-        user.setPerson(person);
-        user.setRoles(new ArrayList<>());
-        user.getRoles().add(role);
-        return user;
-    }
-
-    private @NotNull UserCreateRequest getUserCreateRequest() {
-        var userCreateRequest = new UserCreateRequest();
-        userCreateRequest.setAppName(APP_NAME_VALUE);
-        userCreateRequest.setAppToken(APP_TOKEN_VALUE);
-        userCreateRequest.setDateTime(LocalDateTime.now(ZoneId.systemDefault()));
-        userCreateRequest.setUser(getUser());
-        return userCreateRequest;
+        given().contentType(MediaType.APPLICATION_JSON_VALUE).accept(MediaType.APPLICATION_JSON_VALUE).when()
+                .get(PATH.concat(FIND_BY_ALIAS_OP).concat("pperez")).then().assertThat()
+                .statusCode(HttpStatus.OK.value()).expect(MvcResult::getResponse);
     }
 
 }

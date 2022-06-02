@@ -53,7 +53,7 @@ class ContactTypeServiceImplTest extends MockLoaderBase {
     void list() {
         var result = new ArrayList<ContactTypeEntity>();
         var contactTypeEntity = new ContactTypeEntity();
-        contactTypeEntity.setId(BigInteger.valueOf(1));
+        contactTypeEntity.setId(BigInteger.ONE);
         contactTypeEntity.setName("Messenger");
         contactTypeEntity.setActive(true);
         contactTypeEntity.setDescription("Instant message app");

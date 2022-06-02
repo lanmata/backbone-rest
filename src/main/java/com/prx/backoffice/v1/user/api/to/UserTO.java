@@ -13,21 +13,33 @@
 
 package com.prx.backoffice.v1.user.api.to;
 
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.prx.commons.to.Request;
+import com.prx.commons.pojo.Person;
 import com.prx.commons.util.JsonUtil;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Set;
+
+/**
+ * UserTO.
+ *
+ * @author Luis Antonio Mata
+ * @version 1.0.0, 17-05-2022
+ * @since 11
+ */
 @Getter
 @Setter
+@AllArgsConstructor
 @NoArgsConstructor
-@JsonPropertyOrder({
-        "user"
-})
-public class UserCreateRequest extends Request {
-    private UserTO user;
+public class UserTO {
+    private Long id;
+    private String alias;
+    private String password;
+    private boolean active;
+    private Person person;
+    private Set<Long> roles;
 
     @Override
     public String toString() {

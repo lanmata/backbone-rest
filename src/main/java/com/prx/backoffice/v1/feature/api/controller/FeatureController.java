@@ -21,7 +21,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -34,7 +33,6 @@ import java.util.List;
  * @author <a href='mailto:luis.antonio.mata@gmail.com'>Luis Antonio Mata</a>
  * @version 1.0.0, 14-02-2021
  */
-@Slf4j
 @RestController
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
@@ -42,7 +40,6 @@ import java.util.List;
 public class FeatureController {
 
     private final FeatureService featureService;
-    private static final String LIST_LOST_PARAMETER = "{} list";
 
     /**
      *
@@ -61,10 +58,7 @@ public class FeatureController {
     @GetMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE, path = "/{featureId}")
     public ResponseEntity<Feature> find(@Parameter(description = "Id de feature", required = true)
                                         @PathVariable final Long featureId) {
-        log.info("{} find", MessageUtil.LOG_START_MSG);
-        final var responseEntity = featureService.find(featureId);
-        log.info("{} find", MessageUtil.LOG_END_MSG);
-        return responseEntity;
+        return featureService.find(featureId);
     }
 
     @Operation(description = "Get a list of active and/or inactive features.")
@@ -75,10 +69,7 @@ public class FeatureController {
     @GetMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE, path = "/list/{includeInactive}")
     public ResponseEntity<List<Feature>> list(@Parameter(description = "Non/Include the features inactive", required = true)
                                               @PathVariable boolean includeInactive){
-        log.info(LIST_LOST_PARAMETER, MessageUtil.LOG_START_MSG);
-        final var responseEntity = featureService.list(null,includeInactive);
-        log.info(LIST_LOST_PARAMETER, MessageUtil.LOG_END_MSG);
-        return responseEntity;
+        return featureService.list(null,includeInactive);
     }
 
     @Operation(description = "Get a list of active and/or inactive features.")
@@ -90,10 +81,7 @@ public class FeatureController {
     public ResponseEntity<List<Feature>> list(@Parameter(description = "Non/Include the features inactive", required = true)
                                               @PathVariable boolean includeInactive,
                                               @Parameter(description = "Features id list") @PathVariable List<Long> featuresIds){
-        log.info(LIST_LOST_PARAMETER, MessageUtil.LOG_START_MSG);
-        final var responseEntity = featureService.list(featuresIds,includeInactive);
-        log.info(LIST_LOST_PARAMETER, MessageUtil.LOG_END_MSG);
-        return responseEntity;
+        return featureService.list(featuresIds,includeInactive);
     }
 
     @Operation(description = "Create a Feature")
@@ -103,7 +91,6 @@ public class FeatureController {
     })
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/")
     public ResponseEntity<Feature> create(@Parameter(description = "Feature properties", required = true) @RequestBody FeatureRequest featureRequest) {
-        log.info("{} create", MessageUtil.LOG_START_MSG);
         return featureService.create(featureRequest.getFeature());
     }
 
@@ -115,7 +102,6 @@ public class FeatureController {
     })
     @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/{featureId}")
     public ResponseEntity<Feature> update(@PathVariable Long featureId, @RequestBody FeatureRequest featureRequest){
-        log.info("{} /update/{idFeature}", MessageUtil.LOG_START_MSG);
         return featureService.update(featureId, featureRequest.getFeature());
     }
 }

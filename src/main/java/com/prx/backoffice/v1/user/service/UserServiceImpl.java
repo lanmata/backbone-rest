@@ -17,6 +17,7 @@ import com.prx.backoffice.enums.keys.UserMessageKey;
 import com.prx.backoffice.v1.person.service.PersonService;
 import com.prx.backoffice.v1.role.mapper.RoleMapper;
 import com.prx.backoffice.v1.role.service.RoleService;
+import com.prx.backoffice.v1.user.api.to.UserTO;
 import com.prx.backoffice.v1.user.mapper.UserMapper;
 import com.prx.commons.pojo.Person;
 import com.prx.commons.pojo.User;
@@ -25,6 +26,7 @@ import com.prx.persistence.general.domains.UserRoleEntity;
 import com.prx.persistence.general.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -49,11 +51,10 @@ public class UserServiceImpl implements UserService {
 	private final RoleService roleService;
 	private final UserMapper userMapper;
 	private final RoleMapper roleMapper;
-	private static final String ERROR_MESSAGE_HEADER_ATTRIBUTE = "error-message";
 
 	@Override
-	public ResponseEntity<User> update(Long userId, User user) {
-		ResponseEntity<User> responseEntity;
+	public ResponseEntity<UserTO> update(Long userId, UserTO user) {
+		ResponseEntity<UserTO> responseEntity;
 		final var userResponseEntity = findUserByAlias(user.getAlias());
 		try {
 			if (HttpStatus.FOUND.value() == userResponseEntity.getStatusCodeValue()) {
@@ -81,25 +82,25 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public ResponseEntity<User> delete(Long userId, User user) {
+	public ResponseEntity<UserTO> delete(Long userId, UserTO user) {
 		return null;
 	}
 
 	@Override
-	public ResponseEntity<User> find(Long id) {
+	public ResponseEntity<UserTO> find(Long id) {
 		return null;
 	}
 
 	@Override
-	public ResponseEntity<List<User>> list(Long... id) {
+	public ResponseEntity<List<UserTO>> list(Long... id) {
 		return null;
 	}
 
 
 
 	@Override
-	public ResponseEntity<User> findUserById(Long userId) {
-		ResponseEntity<User> responseEntity;
+	public ResponseEntity<UserTO> findUserById(Long userId) {
+		ResponseEntity<UserTO> responseEntity;
 		final var optionalUser = userRepository.findById(userId);
 		responseEntity = optionalUser.map(userEntity ->
 				new ResponseEntity<>(userMapper.toTarget(userEntity), HttpStatus.OK)).orElseGet(() ->
@@ -112,9 +113,9 @@ public class UserServiceImpl implements UserService {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public ResponseEntity<User> findUserByAlias(final String alias) {
+	public ResponseEntity<UserTO> findUserByAlias(final String alias) {
 		final var userEntity = userRepository.findByAlias(alias);
-		ResponseEntity<User> responseEntity;
+		ResponseEntity<UserTO> responseEntity;
 		responseEntity = ValidatorCommonsUtil.esNulo(userEntity) ?
 				 ResponseEntity.notFound().build() : new ResponseEntity<>(userMapper.toTarget(userEntity), HttpStatus.OK);
 		log.info("{}| alias:{}", responseEntity.getStatusCode(), alias);
@@ -126,7 +127,7 @@ public class UserServiceImpl implements UserService {
 	 */
 	@Override
 	public ResponseEntity<String> access(String alias, String password) {
-		final ResponseEntity<User> responseEntity = findUserByAlias(alias);
+		final ResponseEntity<UserTO> responseEntity = findUserByAlias(alias);
 		ResponseEntity<String> responseResult;
 		if (HttpStatus.OK.value() == responseEntity.getStatusCodeValue()) {
 			final var user = responseEntity.getBody();
@@ -147,8 +148,8 @@ public class UserServiceImpl implements UserService {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public ResponseEntity<List<User>> findAll() {
-		ResponseEntity<List<User>> listResponseEntity;
+	public ResponseEntity<List<UserTO>> findAll() {
+		ResponseEntity<List<UserTO>> listResponseEntity;
 		final var userEntityList = userRepository.findAll();
 		if (userEntityList.isEmpty()) {
 			listResponseEntity = ResponseEntity.notFound().build();
@@ -165,36 +166,36 @@ public class UserServiceImpl implements UserService {
 	 */
 	@Override
 	@Transactional
-	public ResponseEntity<User> create(User user) {
+	public ResponseEntity<UserTO> create(UserTO user) {
 		if(null == user) {
 			return ResponseEntity.badRequest().build();
 		} else if(user.getAlias().isBlank()) {
-			return ResponseEntity.badRequest().header(ERROR_MESSAGE_HEADER_ATTRIBUTE, "username is required").build();
+			return ResponseEntity.badRequest().header(HttpHeaders.WARNING, "username is required").build();
 		} else if(user.getPassword().isBlank()) {
-			return ResponseEntity.badRequest().header(ERROR_MESSAGE_HEADER_ATTRIBUTE, "password is required").build();
+			return ResponseEntity.badRequest().header(HttpHeaders.WARNING, "password is required").build();
 		} else if(null == user.getRoles() || user.getRoles().isEmpty()) {
-			return ResponseEntity.badRequest().header(ERROR_MESSAGE_HEADER_ATTRIBUTE, "Role is required").build();
+			return ResponseEntity.badRequest().header(HttpHeaders.WARNING, "Role is required").build();
 		} else if(findUserByAlias(user.getAlias()).getStatusCode().equals(HttpStatus.OK)) {
-			return ResponseEntity.badRequest().header(ERROR_MESSAGE_HEADER_ATTRIBUTE, "User previously exist.").build();
+			return ResponseEntity.badRequest().header(HttpHeaders.WARNING, "User previously exist.").build();
 		}
 		var personResponse = personService.create(user.getPerson());
 		if(personResponse.getStatusCode().equals(HttpStatus.CREATED)) {
 			user.setPerson(personResponse.getBody());
-			return ResponseEntity.ok(userMapper.toTarget(userRepository.save(userMapper.toSource(user))));
+			return ResponseEntity.status(HttpStatus.CREATED).body(userMapper.toTarget(userRepository.save(userMapper.toSource(user))));
 		}
 		return ResponseEntity.badRequest().build();
 	}
 
 	/**{@inheritDoc}*/
 	@Override
-	public ResponseEntity<User> unlink(Long userId, Long rolId) {
+	public ResponseEntity<UserTO> unlink(Long userId, Long rolId) {
 		throw new UnsupportedOperationException();
 	}
 
 	/**{@inheritDoc}*/
 	@Override
-	public ResponseEntity<User> link(Long userId, Long roleId) {
-		ResponseEntity<User> responseEntity = null;
+	public ResponseEntity<UserTO> link(Long userId, Long roleId) {
+		ResponseEntity<UserTO> responseEntity = null;
 		final var optionalUserEntity = userRepository.findById(userId);
 		if (optionalUserEntity.isPresent()) {
 			final var userEntity = optionalUserEntity.get();
@@ -234,7 +235,7 @@ public class UserServiceImpl implements UserService {
 	 *
 	 * @return {@link Person}
 	 */
-	private ResponseEntity<Person> getPerson(User user) {
+	private ResponseEntity<Person> getPerson(UserTO user) {
 		final var responseEntity = personService.find(user.getPerson().getId());
 		if (HttpStatus.FOUND.value() == responseEntity.getStatusCodeValue()) {
 			return personService.create(user.getPerson());

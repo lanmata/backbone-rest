@@ -12,9 +12,9 @@
  */
 package com.prx.backoffice.v1.person.api.controller;
 
-import com.prx.backoffice.v1.person.service.PersonService;
-import com.prx.backoffice.v1.person.api.to.PersonRequest;
 import com.prx.backoffice.util.MessageUtil;
+import com.prx.backoffice.v1.person.api.to.PersonRequest;
+import com.prx.backoffice.v1.person.service.PersonService;
 import com.prx.commons.pojo.Person;
 import com.prx.commons.to.Response;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,7 +22,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -35,7 +34,6 @@ import java.util.List;
  * @author Luis Antonio Mata
  * @version 1.0.1.20200904-01, 04-11-2020
  */
-@Slf4j
 @RestController
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")

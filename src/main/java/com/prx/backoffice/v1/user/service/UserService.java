@@ -14,6 +14,7 @@
 package com.prx.backoffice.v1.user.service;
 
 import com.prx.backoffice.services.CrudService;
+import com.prx.backoffice.v1.user.api.to.UserTO;
 import com.prx.commons.pojo.User;
 import org.springframework.http.ResponseEntity;
 
@@ -25,7 +26,7 @@ import java.util.List;
  * @author <a href="mailto:luis.antonio.mata@gmail.com">Luis Antonio Mata</a>
  * @version 1.0.1.20200904-01, 27-10-2020
  */
-public interface UserService extends CrudService <User> {
+public interface UserService extends CrudService <UserTO> {
 
     /**
      * Realiza la b&uacute;squeda de un usuario a trav&eacute;s del identificador de usuario. Retorna un objeto de tipo
@@ -34,7 +35,7 @@ public interface UserService extends CrudService <User> {
      * @param userId {@link Long}
      * @return Objeto de tipo {@link ResponseEntity}
      */
-    ResponseEntity<User> findUserById(Long userId);
+    ResponseEntity<UserTO> findUserById(Long userId);
 
     /**
      * Realiza la b&uacute;squeda de un usuario a trav&eacute;s del alias de usuario. Retorna un objeto de tipo
@@ -43,7 +44,7 @@ public interface UserService extends CrudService <User> {
      * @param alias {@link String}
      * @return Objeto de tipo {@link ResponseEntity}
      */
-    ResponseEntity<User> findUserByAlias(String alias);
+    ResponseEntity<UserTO> findUserByAlias(String alias);
 
     /**
      * Realiza la b&uacute;squeda del usuario requerido, valida los datos, si los datos son corrector,
@@ -60,7 +61,7 @@ public interface UserService extends CrudService <User> {
      *
      * @return Objeto de tipo {@link ResponseEntity}
      */
-    ResponseEntity<List<User>> findAll();
+    ResponseEntity<List<UserTO>> findAll();
 
     /**
      * Realiza la creacion de un usuario
@@ -68,7 +69,7 @@ public interface UserService extends CrudService <User> {
      * @param user Objeto de tipo {@link User}
      * @return Objeto de tipo {@link ResponseEntity}
      */
-    ResponseEntity<User> create(User user);
+    ResponseEntity<UserTO> create(UserTO user);
 
     /**
      * Realiza la desvinculación de un rol a un usuario especifico.
@@ -76,7 +77,7 @@ public interface UserService extends CrudService <User> {
      * @param rolId {@link Integer}
      * @return Objeto de tipo {@link ResponseEntity}
      */
-    ResponseEntity<User> unlink(Long userId, Long rolId);
+    ResponseEntity<UserTO> unlink(Long userId, Long rolId);
 
     /**
      * Realiza la vinculación de un rol a un usuario especifico.
@@ -84,6 +85,6 @@ public interface UserService extends CrudService <User> {
      * @param rolId {@link Integer}
      * @return Objeto de tipo {@link ResponseEntity}
      */
-    ResponseEntity<User> link(Long userId, Long rolId);
+    ResponseEntity<UserTO> link(Long userId, Long rolId);
 
 }

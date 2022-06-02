@@ -11,26 +11,21 @@
  * verbatim with this file.
  */
 
-package com.prx.backoffice.v1.user.api.to;
+package com.prx.backoffice.loggers.services;
 
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.prx.commons.to.Request;
-import com.prx.commons.util.JsonUtil;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@JsonPropertyOrder({
-        "user"
-})
-public class UserCreateRequest extends Request {
-    private UserTO user;
+/**
+ * LogginService.
+ *
+ * @author Luis Antonio Mata
+ * @version 1.0.0, 09-05-2022
+ * @since 11
+ */
+public interface LoggingService {
 
-    @Override
-    public String toString() {
-        return JsonUtil.toJson(this);
-    }
+    void displayRequest(HttpServletRequest httpServletRequest, Object body);
+
+    void displayResponse(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object body);
 }
