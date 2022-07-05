@@ -101,6 +101,16 @@ public class UserController {
         return userService.create(userTO);
     }
 
+    @Operation(description = "Update a user")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "Updated user")
+    })
+    @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/{userId}")
+    public ResponseEntity<UserTO> update(@PathVariable @NotNull Long userId, @RequestBody @NotNull UserTO user) {
+        log.info("{} /update/{userId}", MessageUtil.LOG_START_MSG);
+        return userService.update(userId, user);
+    }
+
     @Operation(description = "Busca un usuario por un alias")
     @ApiResponses(value = {
             @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "Usuario encontrado.")

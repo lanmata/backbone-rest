@@ -13,4 +13,4 @@ COPY prx_srv_monitor.jks prx_srv_monitor.jks
 COPY prx_backbone_rest_discovery.jks prx_backbone_rest_discovery.jks
 
 EXPOSE 8084
-ENTRYPOINT ["java", "-Dspring.profiles.active=docker-okta", "-Dspring.application.name=prx-backbone-rest", "-Dspring.cloud.config.label=PRX-53_Role_edit", "-Dspring.config.import=optional:configserver:http://prx.test/config-server", "-Dapi-info.version=1.0.2.20211214-01"  , "-jar", "prx-backbone-rest.jar" ]
+ENTRYPOINT ["java", "-Dspring.profiles.active=docker", "-Dspring.application.name=prx-backbone-rest", "-Dspring.cloud.config.label=developer", "-Dspring.config.import=optional:configserver:http://prx.test/config-server", "-Dapi-info.version=1.0.2.20211214-01"  , "-jar", "prx-backbone-rest.jar" ]

@@ -17,8 +17,7 @@ import com.prx.backoffice.v1.role.mapper.RoleMapper;
 import com.prx.backoffice.v1.user.api.to.UserTO;
 import com.prx.commons.pojo.User;
 import com.prx.persistence.general.domains.UserEntity;
-import org.mapstruct.InheritInverseConfiguration;
-import org.mapstruct.Mapper;
+import org.mapstruct.*;
 
 /**
  * UserMapper.
@@ -26,7 +25,12 @@ import org.mapstruct.Mapper;
  * @author Luis Antonio Mata
  * @version 1.0.0, 20-10-2020
  */
-@Mapper(componentModel = "spring", uses = {RoleMapper.class, PersonMapper.class})
+@Mapper(
+        componentModel = "spring",
+        uses = {RoleMapper.class, PersonMapper.class},
+        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
+)
+@MapperConfig(unmappedTargetPolicy = ReportingPolicy.ERROR, unmappedSourcePolicy = ReportingPolicy.ERROR)
 public interface UserMapper {
 
     UserTO toTarget(UserEntity userEntity);
