@@ -106,7 +106,7 @@ public class UserController {
             @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "Updated user")
     })
     @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/{userId}")
-    public ResponseEntity<User> update(@PathVariable @NotNull Long userId, @RequestBody @NotNull User user) {
+    public ResponseEntity<UserTO> update(@PathVariable @NotNull Long userId, @RequestBody @NotNull UserTO user) {
         log.info("{} /update/{userId}", MessageUtil.LOG_START_MSG);
         return userService.update(userId, user);
     }

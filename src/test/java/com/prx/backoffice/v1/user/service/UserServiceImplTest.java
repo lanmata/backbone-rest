@@ -19,9 +19,10 @@ import com.prx.backoffice.v1.person.service.PersonServiceImpl;
 import com.prx.backoffice.v1.role.mapper.RoleMapper;
 import com.prx.backoffice.v1.user.api.to.UserTO;
 import com.prx.backoffice.v1.user.mapper.UserMapper;
-import com.prx.backoffice.v1.util.RoleTemplateTest;
 import com.prx.backoffice.v1.util.UserTemplateTest;
+import com.prx.commons.pojo.Feature;
 import com.prx.commons.pojo.Person;
+import com.prx.commons.pojo.Role;
 import com.prx.persistence.general.domains.RoleEntity;
 import com.prx.persistence.general.domains.UserEntity;
 import com.prx.persistence.general.domains.UserRoleEntity;
@@ -33,6 +34,8 @@ import org.mockito.*;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -87,8 +90,8 @@ class UserServiceImplTest extends MockLoaderBase {
 		Mockito.when(this.userRepository.findAll()).thenReturn(List.of(UserTemplateTest.USER.getEntity()));
 		Mockito.when(this.userMapper.toTarget(ArgumentMatchers.any(UserEntity.class)))
 				.thenReturn(UserTemplateTest.USER.getModel());
-		Mockito.when(this.roleMapper.userRoleToRole(ArgumentMatchers.any(UserRoleEntity.class)))
-				.thenReturn(RoleTemplateTest.ROLE_TO.getModel());
+//		Mockito.when(this.roleMapper.userRoleToRole(ArgumentMatchers.any(UserRoleEntity.class)))
+//				.thenReturn(RoleTemplateTest.ROLE_TO.getModel());
 		Assertions.assertNotNull(this.userService.findAll());
 	}
 
@@ -97,8 +100,8 @@ class UserServiceImplTest extends MockLoaderBase {
 		Mockito.when(this.userRepository.findAll()).thenReturn(Collections.emptyList());
 		Mockito.when(this.userMapper.toTarget(ArgumentMatchers.any(UserEntity.class)))
 				.thenReturn(UserTemplateTest.USER.getModel());
-		Mockito.when(this.roleMapper.userRoleToRole(ArgumentMatchers.any(UserRoleEntity.class)))
-				.thenReturn(RoleTemplateTest.ROLE_TO.getModel());
+//		Mockito.when(this.roleMapper.userRoleToRole(ArgumentMatchers.any(UserRoleEntity.class)))
+//				.thenReturn(RoleTemplateTest.ROLE_TO.getModel());
 		Assertions.assertNotNull(this.userService.findAll());
 	}
 
@@ -162,15 +165,15 @@ class UserServiceImplTest extends MockLoaderBase {
 		Assertions.assertEquals(responseEntity, this.userService.create(null));
 	}
 
-	private static User getUser(){
-		final var user = new User();
+	private static UserTO getUser(){
+		final var user = new UserTO();
 		user.setActive(true);
 		user.setAlias("pepe");
 		user.setId(1L);
 		user.setPassword("234567890");
 		user.setPerson(getPerson());
-		user.setRoles(new ArrayList<>());
-		user.getRoles().add(getRole());
+		user.setRoles(new HashSet<>());
+		user.getRoles().add(1L);
 
 		return user;
 	}

@@ -32,6 +32,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -57,16 +58,19 @@ public class UserServiceImpl implements UserService {
 		ResponseEntity<UserTO> responseEntity;
 		final var userResponseEntity = findUserByAlias(user.getAlias());
 		try {
-			if (HttpStatus.FOUND.value() == userResponseEntity.getStatusCodeValue()) {
+			if (HttpStatus.OK.value() == userResponseEntity.getStatusCodeValue()) {
 				final var responseEntityPerson = getPerson(user);
-				if(HttpStatus.CREATED.value() == responseEntityPerson.getStatusCodeValue()) {
+				if(HttpStatus.OK.value() == responseEntityPerson.getStatusCodeValue()) {
 					user.setPerson(responseEntityPerson.getBody());
 					final var userEntity = userMapper.toSource(user);
-					userEntity.getUserRole().forEach(userRoleEntity -> {
-						userRoleEntity.setUser(userEntity);
-						userRoleEntity.setActive(true);
-					});
-					responseEntity = new ResponseEntity<>(userMapper.toTarget(userEntity), HttpStatus.CREATED);
+					if(null != userEntity.getUserRole()) {
+						userEntity.getUserRole().forEach(userRoleEntity -> {
+							userRoleEntity.setUser(userEntity);
+							userRoleEntity.setActive(true);
+						});
+					}
+					var result = userRepository.save(userEntity);
+					responseEntity = new ResponseEntity<>(userMapper.toTarget(result), HttpStatus.OK);
 				} else {
 					responseEntity = ResponseEntity.unprocessableEntity().body(user);
 				}
