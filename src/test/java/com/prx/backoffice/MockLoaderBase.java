@@ -12,6 +12,7 @@
  */
 package com.prx.backoffice;
 
+import com.prx.backoffice.config.SecurityKeycloakTestConfig;
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -25,13 +26,14 @@ import org.mockserver.junit.jupiter.MockServerExtension;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -45,10 +47,13 @@ import java.nio.charset.StandardCharsets;
  * @version 1.0.0, 19-02-2021
  */
 @SpringBootTest
-@ActiveProfiles("qa")
+@ActiveProfiles("test")
+@AutoConfigureTestDatabase
+@Import(SecurityKeycloakTestConfig.class)
 @RunWith(MockitoJUnitRunner.class)
 @MockServerSettings(perTestSuite = true)
 @ExtendWith(value = {MockServerExtension.class})
+@TestPropertySource(locations = "classpath:application-test.yml")
 public abstract class MockLoaderBase {
 
 //	protected MockMvc mockMvc;

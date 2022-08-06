@@ -37,7 +37,7 @@ import java.util.List;
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class UserController {
-    private static final String STR_ID_USER = "Id de usuario";
+    private static final String STR_ID_USER = "User Id";
 
     private final UserService userService;
     private final MessageUtil messageUtil;
@@ -45,16 +45,14 @@ public class UserController {
 //    @PreAuthorize("hasAnyAuthority('ms_user_test')")
     @Operation(description = "Busca los usuarios a través del identificador")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "Usuario encontrado")
+            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "User found.")
 //            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "${messages.general.user-find.ok}")
 //            ,
 //            @ApiResponse(responseCode = "404", description = "${messages.general.user-find.nok}"),
 //            @ApiResponse(responseCode = "500", description = "${messages.general.user-find.error}")
     })
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/find/{token}/{userId}")
-    public ResponseEntity<UserTO> find(
-            @Parameter(description = "Token de acceso", required = true) @PathVariable @NotNull String token,
-            @Parameter(description = STR_ID_USER, required = true) @PathVariable @NotNull Long userId){
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/{userId}")
+    public ResponseEntity<UserTO> find(@Parameter(description = STR_ID_USER, required = true) @PathVariable @NotNull Long userId){
         return userService.findUserById(userId);
     }
 

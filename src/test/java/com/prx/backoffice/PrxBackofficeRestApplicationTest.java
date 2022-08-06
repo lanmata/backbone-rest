@@ -28,7 +28,7 @@ import org.springframework.test.context.TestPropertySource;
  */
 @ActiveProfiles("local")
 @SpringBootTest(classes = PrxBackofficeRestApplication.class)
-@TestPropertySource(properties = "startup.beans.inspect=true")
+@TestPropertySource(properties = {"startup.beans.inspect=true", "logging.trace.enabled=true", "keycloak.realm=prx-access-validator"})
 class PrxBackofficeRestApplicationTest {
 
     @Test

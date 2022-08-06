@@ -19,6 +19,7 @@ import com.prx.persistence.general.domains.PersonEntity;
 import com.prx.persistence.general.repositories.PersonRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import org.springframework.http.ResponseEntity;
@@ -44,10 +45,15 @@ class PersonServiceImplTest extends MockLoaderBase {
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
+        try(var c = MockitoAnnotations.openMocks(this)) {
+            c.close();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        };
     }
 
     @Test
+    @DisplayName("Create a person")
     void create() {
         var personEntity = new PersonEntity();
         personEntity.setId(1L);

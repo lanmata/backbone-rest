@@ -14,11 +14,9 @@
  */
 package com.prx.backoffice.util;
 
-import com.prx.backoffice.PrxBackofficeRestApplication;
+import com.prx.backoffice.MockLoaderBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.TestPropertySource;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -28,10 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * @author Luis Antonio Mata
  * @version 1.0.1.20200904-01, 26-10-2020
  */
-@SpringBootTest(classes = PrxBackofficeRestApplication.class,
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@TestPropertySource(properties = {""})
-class MessageUtilTest {
+class MessageUtilTest extends MockLoaderBase {
     @Autowired
     MessageUtil messageUtil;
 
