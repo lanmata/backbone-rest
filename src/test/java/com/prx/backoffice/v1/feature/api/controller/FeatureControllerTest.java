@@ -17,6 +17,7 @@ import com.prx.backoffice.MockLoaderBase;
 import com.prx.backoffice.v1.feature.service.FeatureServiceImpl;
 import io.restassured.module.mockmvc.specification.MockMvcRequestSpecification;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
@@ -65,6 +66,7 @@ class FeatureControllerTest extends MockLoaderBase {
     }
 
     @Test
+    @DisplayName("List features")
     void list() {
         //when:
         var response = mockMvcRequestSpecification.get(PATH_LIST.concat("true").concat("/1,2,3"));

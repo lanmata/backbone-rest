@@ -46,8 +46,9 @@ import java.util.List;
  * @version 1.0.1.20200904-01, 26-10-2020
  */
 @Configuration
-@EnableWebSecurity
 @RequiredArgsConstructor
+@EnableWebSecurity( debug = true )
+@Import( CustomKeycloakSpringBootConfigResolver.class )
 @ComponentScan(basePackageClasses = KeycloakSecurityComponents.class)
 public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(SecurityConfig.class);
@@ -78,14 +79,18 @@ public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
                 LOGGER.debug("Valida accesos en configure, roles {}, metodos {}, patrones {}", roles, methods, patterns);
             });
             if (!patterns.isEmpty() && !roles.isEmpty()) {
-                http.anonymous().and().cors().and().authorizeRequests().
-                        antMatchers("/general/*").permitAll().and()
-                        .authorizeRequests()
-                        .antMatchers(HttpMethod.GET, patterns.toArray(new String[0]))
+                http.anonymous()
+                        .and()
+                        .cors()
+                        .and()
+                        .authorizeRequests().antMatchers("/general/*").permitAll()
+                        .and()
+                        .authorizeRequests().antMatchers(HttpMethod.GET, patterns.toArray(new String[0]))
+                        .hasAnyRole(roles.toArray(new String[0])).antMatchers(HttpMethod.POST, patterns.toArray(new String[0]))
                         .hasAnyRole(roles.toArray(new String[0]))
-                        .antMatchers(HttpMethod.POST, patterns.toArray(new String[0]))
-                        .hasAnyRole(roles.toArray(new String[0]))
-                        .anyRequest().permitAll().and().csrf().disable();
+                        .anyRequest().permitAll()
+                        .and()
+                        .csrf().disable();
                 LOGGER.debug("PERMISOS CARGADOS, roles {}, metodos {}, patrones {}", roles, methods, patterns);
             }
         }catch (ClassCastException e) {
@@ -118,8 +123,8 @@ public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
         auth.authenticationProvider(keycloakAuthenticationProvider);
     }
 
-    @Primary
     @Bean
+    @Primary
     public KeycloakConfigResolver keycloakConfigResolver(KeycloakSpringBootProperties properties){
         return new CustomKeycloakSpringBootConfigResolver(properties);
     }

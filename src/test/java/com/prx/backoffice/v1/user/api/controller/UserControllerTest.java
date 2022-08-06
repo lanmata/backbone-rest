@@ -13,22 +13,26 @@
 
 package com.prx.backoffice.v1.user.api.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.prx.backoffice.MockLoaderBase;
 import com.prx.backoffice.v1.person.service.PersonService;
+import com.prx.backoffice.v1.role.service.RoleServiceImpl;
 import com.prx.backoffice.v1.user.service.UserService;
 import com.prx.backoffice.v1.util.UserTemplateTest;
 import io.restassured.module.mockmvc.specification.MockMvcRequestSpecification;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
 
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * UserControllerTest.
@@ -43,14 +47,14 @@ class UserControllerTest extends MockLoaderBase {
     private static final String LOGIN_OP;
     private static final String FIND_BY_ALIAS_OP;
 
-    @Mock
+    @Autowired
+    ObjectMapper objectMapper;
+
+    @MockBean
     UserService userService;
 
-    @Mock
+    @MockBean
     PersonService personService;
-
-    @InjectMocks
-    UserController userController;
 
     private MockMvcRequestSpecification mockMvcRequestSpecification;
 
@@ -64,8 +68,8 @@ class UserControllerTest extends MockLoaderBase {
 
     @BeforeEach
     void setUp() {
+//        MockitoAnnotations.openMocks(this);
         mockMvcRequestSpecification = given().header(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-        MockitoAnnotations.openMocks(this);
     }
 
     @Test
@@ -77,8 +81,10 @@ class UserControllerTest extends MockLoaderBase {
 
     @Test
     void findAll() {
-        given().contentType(MediaType.APPLICATION_JSON_VALUE).accept(MediaType.APPLICATION_JSON_VALUE).when()
-                .get(PATH.concat(FIND_ALL_OP)).then().assertThat().statusCode(HttpStatus.OK.value()).expect(MvcResult::getResponse);
+        //when:
+        var response = mockMvcRequestSpecification.get(PATH.concat(FIND_ALL_OP));
+        // then:
+        assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value());
     }
 
     @Test
