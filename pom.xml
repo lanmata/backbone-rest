@@ -110,10 +110,12 @@
         <dependency>
             <groupId>com.prx.commons</groupId>
             <artifactId>prx-commons</artifactId>
+            <version>${com.prx.commons.version}</version>
         </dependency>
         <dependency>
             <groupId>com.prx.persistence</groupId>
             <artifactId>prx-persistence</artifactId>
+            <version>${com.prx.persistence.version}</version>
         </dependency>
         <!--        TEST-->
         <dependency>
@@ -178,13 +180,13 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
-            <!--            <dependency>-->
-            <!--                <groupId>org.keycloak.bom</groupId>-->
-            <!--                <artifactId>keycloak-adapter-bom</artifactId>-->
-            <!--                <version>11.0.2</version>-->
-            <!--                <type>pom</type>-->
-            <!--                <scope>import</scope>-->
-            <!--            </dependency>-->
+            <dependency>
+                <groupId>org.keycloak.bom</groupId>
+                <artifactId>keycloak-adapter-bom</artifactId>
+                <version>11.0.2</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
             <dependency>
                 <groupId>org.junit</groupId>
                 <artifactId>junit-bom</artifactId>
