@@ -54,6 +54,7 @@ public class MessageUtil {
     public static final String OK_VALUE = "200";
     public static final String CREATED_VALUE = "201";
     public static final String ACCEPTED_VALUE = "202";
+    public static final String NOT_ACCEPTABLE = "408";
     public static final String NOT_FOUND_VALUE = "404";
 
     public static final String LOG_PATH_SEPARATOR = "|";
