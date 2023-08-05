@@ -57,7 +57,7 @@ public class FeatureServiceImpl implements FeatureService {
 		final var optFeature = featureRepository.findByName(feature.getName());
 		//TODO Falta manejo de casos bordes en el metodo
 		if (optFeature.isPresent()) {
-			responseEntity = new ResponseEntity<>(HttpStatus.ALREADY_REPORTED);
+			responseEntity = new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
 		} else {
 			responseEntity = new ResponseEntity<>(featureMapper.toTarget(featureRepository
 					.save(featureMapper.toSource(feature))), HttpStatus.CREATED);
@@ -70,9 +70,14 @@ public class FeatureServiceImpl implements FeatureService {
 	@Override
 	public ResponseEntity<Feature> update(String featureId, Feature feature) {
 		ResponseEntity<Feature> responseEntity;
-		//TODO Falta manejo de casos bordes en el metodo
-		responseEntity = ResponseEntity.accepted().body(featureMapper.toTarget(
-				featureRepository.save(featureMapper.toSource(feature))));
+		final var optFeature = featureRepository.findById(UUID.fromString(featureId));
+		if (optFeature.isPresent()) {
+			responseEntity = new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
+		} else {
+			responseEntity = ResponseEntity.accepted().body(featureMapper.toTarget(
+					featureRepository.save(featureMapper.toSource(feature))));
+		}
+		feature.setId(featureId);
 		LOGGER.info(responseEntity.getStatusCode() + MessageUtil.LOG_PATH_SEPARATOR + feature.toString());
 		return responseEntity;
 	}

@@ -19,9 +19,12 @@ import com.prx.commons.pojo.Person;
 import com.prx.persistence.general.domains.PersonEntity;
 import com.prx.persistence.general.repositories.PersonRepository;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ContextConfiguration;
@@ -35,7 +38,11 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 /**
  * PersonServiceImplTest.
@@ -478,6 +485,48 @@ class PersonServiceImplTest extends MockLoaderBase {
         verify(person).setId(anyString());
         verify(person).setLastName((String) any());
         verify(person).setMiddleName((String) any());
+    }
+
+    /**
+     * Method under test: {@link PersonServiceImpl#delete(String, Person)}
+     */
+    @Test
+    void testDelete3() {
+        Person person = new Person();
+        person.setBirthdate(LocalDate.of(1970, 1, 1));
+        person.setFirstName("Jane");
+        person.setGender("Gender");
+        person.setId("42");
+        person.setLastName("Doe");
+        person.setMiddleName("Middle Name");
+        assertNull(personServiceImpl.delete("42", person));
+    }
+
+    /**
+     * Method under test: {@link PersonServiceImpl#delete(String, Person)}
+     */
+    @Test
+    void testDelete4() {
+        final var person = new Person();
+        doNothing().when(person).setBirthdate(Mockito.<LocalDate>any());
+        doNothing().when(person).setFirstName(Mockito.<String>any());
+        doNothing().when(person).setGender(Mockito.<String>any());
+        doNothing().when(person).setId(Mockito.<String>any());
+        doNothing().when(person).setLastName(Mockito.<String>any());
+        doNothing().when(person).setMiddleName(Mockito.<String>any());
+        person.setBirthdate(LocalDate.of(1970, 1, 1));
+        person.setFirstName("Jane");
+        person.setGender("Gender");
+        person.setId("42");
+        person.setLastName("Doe");
+        person.setMiddleName("Middle Name");
+        assertNull(personServiceImpl.delete("42", person));
+        verify(person).setBirthdate(Mockito.<LocalDate>any());
+        verify(person).setFirstName(Mockito.<String>any());
+        verify(person).setGender(Mockito.<String>any());
+        verify(person).setId(Mockito.<String>any());
+        verify(person).setLastName(Mockito.<String>any());
+        verify(person).setMiddleName(Mockito.<String>any());
     }
 
     /**

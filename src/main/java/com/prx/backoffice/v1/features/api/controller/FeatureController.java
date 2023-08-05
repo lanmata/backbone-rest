@@ -89,7 +89,7 @@ public class FeatureController {
     @Operation(description = "Create a Feature")
     @ApiResponses(value = {
             @ApiResponse(responseCode = MessageUtil.CREATED_VALUE, description = "OK"),
-            @ApiResponse(responseCode = MessageUtil.NOT_FOUND_VALUE, description = "NOT FOUND")
+            @ApiResponse(responseCode = MessageUtil.NOT_ACCEPTABLE, description = "NOT FOUND")
     })
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE, path = "/")
     public ResponseEntity<Feature> create(@Parameter(description = "Feature properties", required = true) @RequestBody FeatureRequest featureRequest) {

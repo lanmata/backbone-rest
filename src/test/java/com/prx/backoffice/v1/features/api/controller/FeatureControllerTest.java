@@ -26,6 +26,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
@@ -94,7 +95,7 @@ class FeatureControllerTest extends MockLoaderBase {
         FeatureRequest featureRequest = getRequest();
         ResponseEntity<Feature> actualCreateResult = featureController.create(featureRequest);
         assertNull(actualCreateResult.getBody());
-        assertEquals(208, actualCreateResult.getStatusCode().value());
+        assertEquals(HttpStatus.NOT_ACCEPTABLE, actualCreateResult.getStatusCode());
         assertTrue(actualCreateResult.getHeaders().isEmpty());
         verify(featureRepository).findByName(Mockito.<String>any());
     }
@@ -110,7 +111,7 @@ class FeatureControllerTest extends MockLoaderBase {
 
         FeatureRequest featureRequest = getFeatureRequest();
         var response = featureController.create(featureRequest);
-        assertEquals(201, response.getStatusCode().value());
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
     }
 
     private static FeatureRequest getFeatureRequest() {

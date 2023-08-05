@@ -62,8 +62,7 @@ public class PersonServiceImpl implements PersonService {
 		if(esNulo(person)){
 			return ResponseEntity.badRequest().header(MessageUtil.MESSAGE_HEADER_STR, "Person request invalid").build();
 		}
-		var personEntity = personRepository.findById(UUID.fromString(personId));
-		if(Objects.isNull(personEntity)){
+		if(personRepository.findById(UUID.fromString(personId)).isEmpty()){
 			return ResponseEntity.badRequest().header(MessageUtil.MESSAGE_HEADER_STR, "Person not founded").build();
 		}
 		var newValuePersonEntity = personMapper.toSource(person);
