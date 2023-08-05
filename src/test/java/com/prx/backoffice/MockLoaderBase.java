@@ -12,27 +12,31 @@
  */
 package com.prx.backoffice;
 
-import java.nio.charset.StandardCharsets;
-
+import io.restassured.module.mockmvc.RestAssuredMockMvc;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.runner.RunWith;
 import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerExtension;
 import org.mockserver.junit.jupiter.MockServerSettings;
-import org.mockserver.model.Header;
-import org.mockserver.model.HttpRequest;
-import org.mockserver.model.HttpResponse;
-import org.mockserver.model.HttpStatusCode;
-import org.mockserver.model.MediaType;
-
+import org.mockserver.model.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+
+import static org.apache.http.Consts.UTF_8;
 
 /**
  * MockLoaderBase.
@@ -40,14 +44,30 @@ import org.springframework.web.context.request.ServletRequestAttributes;
  * @author <a href='mailto:luis.antonio.mata@gmail.com'>Luis Antonio Mata</a>
  * @version 1.0.0, 19-02-2021
  */
-@ExtendWith(MockServerExtension.class)
+@ActiveProfiles("test")
+@AutoConfigureTestDatabase
+@RunWith(MockitoJUnitRunner.class)
 @MockServerSettings(perTestSuite = true)
-public class MockLoaderBase {
+@ExtendWith(value = {MockServerExtension.class})
+@TestPropertySource(locations = "classpath:application-test.yml")
+@SpringBootTest(properties = {"spring.cloud.config.enabled=false"})
+public abstract class MockLoaderBase {
+
+//	protected MockMvc mockMvc;
+
+	@Autowired
+	WebApplicationContext applicationContext;
 
 	/** URL de prueba */
 	public static final String TEST_URL = "https://localhost:";
 	/** clientAndServer */
 	private ClientAndServer clientAndServer;
+
+	@BeforeEach
+	void init(){
+//		mockMvc = MockMvcBuilders.webAppContextSetup(applicationContext).build();
+		RestAssuredMockMvc.webAppContextSetup(applicationContext);
+	}
 
 	/**
 	 * Carga un archivo de Respuesta.
@@ -82,7 +102,7 @@ public class MockLoaderBase {
 	 * @return Archivo Respuesta {@link String}
 	 */
 	public static String loadSoapStringResponse(final String responseName) {
-		return new String(MockLoaderBase.loadSoapResponse(responseName), StandardCharsets.UTF_8);
+		return new String(MockLoaderBase.loadSoapResponse(responseName), UTF_8);
 	}
 
 	/**
@@ -102,7 +122,7 @@ public class MockLoaderBase {
 	 * @return Archivo Respuesta {@link String}
 	 */
 	public static String loadJsonStringResponse(final String responseName) {
-		return new String(MockLoaderBase.loadJsonResponse(responseName), StandardCharsets.UTF_8);
+		return new String(MockLoaderBase.loadJsonResponse(responseName), UTF_8);
 	}
 
 	@BeforeEach

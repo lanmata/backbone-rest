@@ -1,0 +1,311 @@
+/*
+ * @(#)$file.className.java.
+ *
+ * Copyright (c) Luis Antonio Mata Mata. All rights reserved.
+ *
+ * All rights to this product are owned by Luis Antonio Mata Mata and may only
+ * be used under the terms of its associated license document. You may NOT
+ * copy, modify, sublicense, or distribute this source file or portions of
+ * it unless previously authorized in writing by Luis Antonio Mata Mata.
+ * In any event, this notice and the above copyright must always be included
+ * verbatim with this file.
+ */
+package com.prx.backoffice.v1.roles.service;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import com.prx.backoffice.MockLoaderBase;
+import com.prx.backoffice.v1.features.mapper.FeatureMapper;
+import com.prx.backoffice.v1.features.mapper.decorator.FeatureMapperUtil;
+import com.prx.backoffice.v1.features.service.FeatureService;
+import com.prx.backoffice.v1.roles.api.to.RoleLinkRequest;
+import com.prx.backoffice.v1.roles.mapper.RoleMapper;
+import com.prx.commons.pojo.Feature;
+import com.prx.commons.pojo.Role;
+import com.prx.persistence.general.domains.FeatureEntity;
+import com.prx.persistence.general.domains.RoleEntity;
+import com.prx.persistence.general.domains.RoleFeatureEntity;
+import com.prx.persistence.general.repositories.RoleFeatureRepository;
+import com.prx.persistence.general.repositories.RoleRepository;
+
+import java.util.*;
+
+import jakarta.validation.constraints.NotNull;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.*;
+
+import java.time.LocalDateTime;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+/**
+ * RoleServiceImplTest.
+ *
+ * @author &lt;a href='mailto:luis.antonio.mata@gmail.com'&gt;Luis Antonio Mata&lt;/a&gt;
+ * @version 1.0.0, 17-12-2021
+ * @since 11
+ */
+@ContextConfiguration(classes = {RoleServiceImpl.class})
+@ExtendWith(SpringExtension.class)
+class RoleServiceImplTest extends MockLoaderBase {
+
+    @MockBean
+    private FeatureService featureService;
+
+    @MockBean
+    private RoleFeatureRepository roleFeatureRepository;
+
+    @Autowired
+    private RoleServiceImpl roleServiceImpl;
+
+    @InjectMocks
+    RoleServiceImpl roleService;
+
+    @Mock
+    RoleMapper roleMapper;
+    @Mock
+    FeatureMapper featureMapper;
+    @Mock
+    RoleRepository roleRepository;
+    @Mock
+    FeatureMapperUtil featureMapperUtil;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+    }
+
+    @Test
+    void find() {
+        var roleEntity = new RoleEntity();
+        var featureEntity = new FeatureEntity();
+        var roleFeatureEntity = new RoleFeatureEntity();
+        featureEntity.setId(UUID.fromString("1L"));
+        featureEntity.setActive(true);
+        featureEntity.setName("Feature name");
+        featureEntity.setDescription("Feature description");
+        roleEntity.setId(UUID.fromString("1L"));
+        roleEntity.setActive(true);
+        roleEntity.setName("Role name");
+        roleEntity.setDescription("Role description");
+        roleFeatureEntity.setActive(true);
+        roleFeatureEntity.setRole(roleEntity);
+        roleFeatureEntity.setFeature(featureEntity);
+        var optionalRole = Optional.of(roleEntity);
+
+        Mockito.when(roleRepository.findById(Mockito.any(UUID.class))).thenReturn(optionalRole);
+        final var responseEntity = roleService.find("1L");
+        Assertions.assertNotNull(responseEntity);
+    }
+
+    @Test
+    void list() {
+        final var roles = new ArrayList<RoleEntity>();
+        final Optional<List<RoleEntity>> rolesOption = Optional.of(roles);
+        Mockito.when(roleRepository.findAllById(Mockito.anyList())).thenReturn(rolesOption);
+        final var response = roleService.list("1L", "2L", "3L", "5L");
+        Assertions.assertNotNull(response);
+    }
+
+    /**
+     * Method under test: {@link RoleServiceImpl#list(String[])}
+     */
+    @Test
+    void testList2() {
+        ArrayList<RoleEntity> roleEntityList = new ArrayList<>();
+        when(roleRepository.findAllById((List<UUID>) any())).thenReturn(Optional.of(roleEntityList));
+        ResponseEntity<List<Role>> actualListResult = roleServiceImpl.list("123L");
+        List<Role> body = actualListResult.getBody();
+        assertEquals(roleEntityList, body);
+        assertTrue(body.isEmpty());
+        assertEquals(HttpStatus.OK, actualListResult.getStatusCode());
+        assertTrue(actualListResult.getHeaders().isEmpty());
+        verify(roleRepository).findAllById((List<UUID>) any());
+    }
+
+    /**
+     * Method under test: {@link RoleServiceImpl#list(String[])}
+     */
+    @Test
+    void testList3() {
+        RoleEntity roleEntity = new RoleEntity();
+        roleEntity.setActive(true);
+        roleEntity.setDescription("The characteristics of someone or something");
+        roleEntity.setId(UUID.fromString("123L"));
+        roleEntity.setName("Name");
+        roleEntity.setRoleFeatures(new HashSet<>());
+        roleEntity.setUserRoleEntities(new HashSet<>());
+
+        ArrayList<RoleEntity> roleEntityList = new ArrayList<>();
+        roleEntityList.add(roleEntity);
+        Optional<List<RoleEntity>> ofResult = Optional.of(roleEntityList);
+        when(roleRepository.findAllById((List<UUID>) any())).thenReturn(ofResult);
+
+        Role role = new Role();
+        role.setActive(true);
+        role.setDescription("The characteristics of someone or something");
+        role.setFeatures(new ArrayList<>());
+        role.setId("123L");
+        role.setName("Name");
+        when(roleMapper.toTarget((RoleEntity) any())).thenReturn(role);
+        ResponseEntity<List<Role>> actualListResult = roleServiceImpl.list("123L");
+        assertEquals(1, actualListResult.getBody().size());
+        assertTrue(actualListResult.hasBody());
+        assertTrue(actualListResult.getHeaders().isEmpty());
+        assertEquals(HttpStatus.OK, actualListResult.getStatusCode());
+        verify(roleRepository).findAllById((List<UUID>) any());
+        verify(roleMapper).toTarget((RoleEntity) any());
+    }
+
+    /**
+     * Method under test: {@link RoleServiceImpl#list(String[])}
+     */
+    @Test
+    void testList4() {
+        RoleEntity roleEntity = new RoleEntity();
+        roleEntity.setActive(true);
+        roleEntity.setDescription("The characteristics of someone or something");
+        roleEntity.setId(UUID.fromString("123L"));
+        roleEntity.setName("Name");
+        roleEntity.setRoleFeatures(new HashSet<>());
+        roleEntity.setUserRoleEntities(new HashSet<>());
+
+        RoleEntity roleEntity1 = new RoleEntity();
+        roleEntity1.setActive(true);
+        roleEntity1.setDescription("The characteristics of someone or something");
+        roleEntity1.setId(UUID.fromString("123L"));
+        roleEntity1.setName("Name");
+        roleEntity1.setRoleFeatures(new HashSet<>());
+        roleEntity1.setUserRoleEntities(new HashSet<>());
+
+        ArrayList<RoleEntity> roleEntityList = new ArrayList<>();
+        roleEntityList.add(roleEntity1);
+        roleEntityList.add(roleEntity);
+        Optional<List<RoleEntity>> ofResult = Optional.of(roleEntityList);
+        when(roleRepository.findAllById((List<UUID>) any())).thenReturn(ofResult);
+
+        Role role = new Role();
+        role.setActive(true);
+        role.setDescription("The characteristics of someone or something");
+        role.setFeatures(new ArrayList<>());
+        role.setId("123L");
+        role.setName("Name");
+        when(roleMapper.toTarget((RoleEntity) any())).thenReturn(role);
+        ResponseEntity<List<Role>> actualListResult = roleServiceImpl.list("123L");
+        assertEquals(2, actualListResult.getBody().size());
+        assertTrue(actualListResult.hasBody());
+        assertTrue(actualListResult.getHeaders().isEmpty());
+        assertEquals(HttpStatus.OK, actualListResult.getStatusCode());
+        verify(roleRepository).findAllById((List<UUID>) any());
+        verify(roleMapper, atLeast(1)).toTarget((RoleEntity) any());
+    }
+
+    /**
+     * Method under test: {@link RoleServiceImpl#list(String[])}
+     */
+    @Test
+    void testList5() {
+        when(roleRepository.findAllById((List<UUID>) any())).thenReturn(Optional.empty());
+
+        Role role = new Role();
+        role.setActive(true);
+        role.setDescription("The characteristics of someone or something");
+        role.setFeatures(new ArrayList<>());
+        role.setId("123L");
+        role.setName("Name");
+        when(roleMapper.toTarget((RoleEntity) any())).thenReturn(role);
+        ResponseEntity<List<Role>> actualListResult = roleServiceImpl.list("123L");
+        assertNull(actualListResult.getBody());
+        assertEquals(HttpStatus.NOT_FOUND, actualListResult.getStatusCode());
+        assertTrue(actualListResult.getHeaders().isEmpty());
+        verify(roleRepository).findAllById((List<UUID>) any());
+    }
+
+    @Test
+    void testCreate() {
+        var roleEntity = new RoleEntity();
+        var featureEntity = new FeatureEntity();
+        var roleFeatureEntity = new RoleFeatureEntity();
+        featureEntity.setId(UUID.fromString("1L"));
+        featureEntity.setActive(true);
+        featureEntity.setName("Feature name");
+        featureEntity.setDescription("Feature description");
+        roleEntity.setId(UUID.fromString("1L"));
+        roleEntity.setActive(true);
+        roleEntity.setName("Rol name");
+        roleEntity.setDescription("Rol description");
+        roleFeatureEntity.setActive(true);
+        roleFeatureEntity.setRole(roleEntity);
+        roleFeatureEntity.setFeature(featureEntity);
+
+        Mockito.doReturn(featureEntity).when(featureMapper).toSource(ArgumentMatchers.any(Feature.class));
+        Mockito.doReturn(roleEntity.getRoleFeatures()).when(featureMapperUtil).toRoleFeatureEntity(ArgumentMatchers.anyList());
+        Mockito.doReturn(roleEntity).when(roleMapper).toSource(ArgumentMatchers.any(Role.class));
+        Mockito.when(roleRepository.save(ArgumentMatchers.any(RoleEntity.class))).thenReturn(roleEntity);
+        final var responseEntity = roleService.create(getRole());
+        Assertions.assertNotNull(responseEntity);
+    }
+
+    @Test
+    void link() {
+    }
+
+    @Test
+    void update() {
+    }
+
+    @Test
+    void delete() {
+    }
+
+    @Test
+    void testList() {
+    }
+
+    @Test
+    void unlink() {
+    }
+
+    @Test
+    void testList1() {
+    }
+
+    private @NotNull Role getRole() {
+        final var role = new Role();
+        final var feature = new Feature();
+        feature.setId("1L");
+        feature.setActive(true);
+        feature.setName("Feature name");
+        feature.setDescription("Feature description");
+        role.setId("1L");
+        role.setActive(true);
+        role.setName("Role name");
+        role.setFeatures(new ArrayList<>());
+        role.getFeatures().add(feature);
+        role.setDescription("Role description");
+        return role;
+    }
+
+    private @NotNull RoleLinkRequest getRoleLinkRequest() {
+        var roleLinkRequest = new RoleLinkRequest();
+        roleLinkRequest.setAppName("APP-TEST-001");
+        roleLinkRequest.setAppToken("T000X");
+        roleLinkRequest.setDateTime(LocalDateTime.now());
+        return roleLinkRequest;
+    }
+
+}

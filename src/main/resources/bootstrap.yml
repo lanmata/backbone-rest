@@ -1,12 +1,18 @@
 spring:
+  main:
+    allow-bean-definition-overriding: true
   profiles:
-    active: virtual
+    active: qa
   application:
     name: prx-backbone-rest
   cloud:
     config:
-      profile: virtual
+      profile: qa
       label: developer
-      uri: http://localhost:8082
-    inetutils:
-      default-hostname: prx.test
+      uri: qa.prx.test/config-server
+      send-state: true
+  jpa:
+    defer-datasource-initialization: true
+management:
+    cloudfoundry:
+        enabled: false
