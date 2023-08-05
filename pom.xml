@@ -7,7 +7,7 @@
     <artifactId>prx-backbone-rest</artifactId>
     <version>0.0.2-2023</version>
     <name>PRX Backbone REST</name>
-    <description>Servicios para la gestión de las entidades del sistema</description>
+    <description>Management service to system entities</description>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -221,6 +221,11 @@
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>
             <version>2.6</version>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

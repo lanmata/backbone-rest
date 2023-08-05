@@ -28,6 +28,11 @@ import java.util.List;
  */
 public interface FeatureService extends CrudService <Feature> {
 
+    @Override
+    default ResponseEntity<Feature> create(Feature feature) {
+        throw new UnsupportedOperationException("Method not implemented");
+    }
+
     /**
      * Busca uno o más {@link Feature} en base a uno o más id´s.
      *
@@ -35,6 +40,8 @@ public interface FeatureService extends CrudService <Feature> {
      * @param includeInactive {@link boolean}
      * @return Objeto de tipo {@link MessageActivity}
      */
-    ResponseEntity<List<Feature>> list(List<String> featureIds, boolean includeInactive);
+    default ResponseEntity<List<Feature>> list(List<String> featureIds, boolean includeInactive) {
+        throw new UnsupportedOperationException("Method not implemented");
+    }
 
 }

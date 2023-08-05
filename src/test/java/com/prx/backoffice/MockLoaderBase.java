@@ -56,15 +56,15 @@ public abstract class MockLoaderBase {
 //	protected MockMvc mockMvc;
 
 	@Autowired
-	WebApplicationContext applicationContext;
+	public WebApplicationContext applicationContext;
 
 	/** URL de prueba */
 	public static final String TEST_URL = "https://localhost:";
 	/** clientAndServer */
-	private ClientAndServer clientAndServer;
+	public ClientAndServer clientAndServer;
 
 	@BeforeEach
-	void init(){
+	public void init(){
 //		mockMvc = MockMvcBuilders.webAppContextSetup(applicationContext).build();
 		RestAssuredMockMvc.webAppContextSetup(applicationContext);
 	}
