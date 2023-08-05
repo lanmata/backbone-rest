@@ -13,7 +13,6 @@
 package com.prx.backoffice.loggers.config;
 
 import com.prx.backoffice.loggers.interceptor.InterceptorLog;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -26,10 +25,13 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * @since 11
  */
 @Component
-@RequiredArgsConstructor
 public class CustomWebConfigurer implements WebMvcConfigurer {
 
     private final InterceptorLog interceptorLog;
+
+    public CustomWebConfigurer(InterceptorLog interceptorLog) {
+        this.interceptorLog = interceptorLog;
+    }
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {

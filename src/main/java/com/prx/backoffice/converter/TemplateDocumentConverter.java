@@ -12,10 +12,10 @@
  */
 package com.prx.backoffice.converter;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.prx.backoffice.v1.report.api.to.TemplateDocumentModel;
-import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 
@@ -27,9 +27,12 @@ import org.springframework.stereotype.Component;
  * @since 11
  */
 @Component
-@RequiredArgsConstructor
 public class TemplateDocumentConverter implements Converter<String, TemplateDocumentModel> {
     private final ObjectMapper objectMapper;
+
+    public TemplateDocumentConverter(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     /**
      * Converter from {@link String} to {@link TemplateDocumentModel}.
@@ -38,8 +41,11 @@ public class TemplateDocumentConverter implements Converter<String, TemplateDocu
      * @return Object type {@link TemplateDocumentModel}.
      */
     @Override
-    @SneakyThrows
-    public TemplateDocumentModel convert(String source) {
-        return objectMapper.readValue(source, TemplateDocumentModel.class);
+    public TemplateDocumentModel convert(@NotNull String source) {
+        try {
+            return objectMapper.readValue(source, TemplateDocumentModel.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

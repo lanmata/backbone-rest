@@ -29,7 +29,7 @@ public enum FeatureTemplateTest implements TemplateUtil<Feature, FeatureEntity>{
         @Override
         public Feature getModel() {
             final var feature = new Feature();
-            feature.setId(1L);
+            feature.setId("1L");
             feature.setActive(true);
             feature.setName("Nombre de feature");
             feature.setDescription("Descripcin de feature");

@@ -13,15 +13,16 @@
 
 package com.prx.backoffice.v1.util;
 
-import com.prx.backoffice.v1.user.api.controller.UserTemplate;
-import com.prx.backoffice.v1.user.api.to.UserAccessRequest;
-import com.prx.backoffice.v1.user.api.to.UserCreateRequest;
-import com.prx.backoffice.v1.user.api.to.UserTO;
+import com.prx.backoffice.v1.users.api.controller.UserTemplate;
+import com.prx.backoffice.v1.users.api.to.UserAccessRequest;
+import com.prx.backoffice.v1.users.api.to.UserCreateRequest;
+import com.prx.backoffice.v1.users.api.to.UserTO;
 import com.prx.persistence.general.domains.UserEntity;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.HashSet;
+import java.util.UUID;
 
 import static com.prx.backoffice.util.ConstantUtilTest.APP_NAME_VALUE;
 import static com.prx.backoffice.util.ConstantUtilTest.APP_TOKEN_VALUE;
@@ -40,7 +41,7 @@ public enum UserTemplateTest implements UserTemplate {
             final var user = new UserTO();
             user.setActive(true);
             user.setAlias("apepe");
-            user.setId(1L);
+            user.setId("1L");
             user.setPassword("234567890");
             user.setPerson( PersonTemplateTest.PERSON.getModel());
             user.setRoles(new HashSet<>());
@@ -55,7 +56,7 @@ public enum UserTemplateTest implements UserTemplate {
             userEntity.setPassword("5as46fdas7fs");
             userEntity.setActive(true);
             userEntity.setAlias("ccastro");
-            userEntity.setId(1L);
+            userEntity.setId(UUID.fromString("1L"));
             return userEntity;
         }
 

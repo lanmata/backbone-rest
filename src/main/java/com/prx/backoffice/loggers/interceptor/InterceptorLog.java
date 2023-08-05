@@ -14,13 +14,12 @@
 package com.prx.backoffice.loggers.interceptor;
 
 import com.prx.backoffice.loggers.services.LoggingService;
-import lombok.RequiredArgsConstructor;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 /**
  * InterceptorLog.
@@ -30,13 +29,16 @@ import javax.servlet.http.HttpServletResponse;
  * @since 11
  */
 @Component
-@RequiredArgsConstructor
 public class InterceptorLog implements HandlerInterceptor {
 
     private final LoggingService loggingService;
 
+    public InterceptorLog(LoggingService loggingService) {
+        this.loggingService = loggingService;
+    }
+
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+    public boolean preHandle(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull Object handler) throws Exception {
         if (request.getMethod().equals(HttpMethod.GET.name())
                 ||request.getMethod().equals(HttpMethod.POST.name())
                 ||request.getMethod().equals(HttpMethod.DELETE.name())

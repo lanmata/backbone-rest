@@ -17,6 +17,7 @@ import com.prx.commons.pojo.Person;
 import com.prx.persistence.general.domains.PersonEntity;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 /**
  * PersonTemplateTest.
@@ -34,7 +35,7 @@ public enum PersonTemplateTest implements TemplateUtil<Person, PersonEntity>{
             person.setFirstName("Pepe");
             person.setGender("M");
             person.setLastName("Perez");
-            person.setId(1L);
+            person.setId("1L");
             person.setBirthdate(LocalDate.of(1985, 5, 25));
             return person;
         }
@@ -45,7 +46,7 @@ public enum PersonTemplateTest implements TemplateUtil<Person, PersonEntity>{
             personEntity.setName("Carlos");
             personEntity.setMiddleName("Ciro");
             personEntity.setLastName("Castro");
-            personEntity.setId(1L);
+            personEntity.setId(UUID.fromString("1L"));
             personEntity.setGender("M");
             personEntity.setBirthdate(LocalDate.parse("1985-05-26"));
             return personEntity;

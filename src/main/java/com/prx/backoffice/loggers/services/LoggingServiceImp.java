@@ -13,14 +13,13 @@
 
 package com.prx.backoffice.loggers.services;
 
-import lombok.RequiredArgsConstructor;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -32,13 +31,19 @@ import java.util.concurrent.ConcurrentHashMap;
  * @since 11
  */
 @Service
-@RequiredArgsConstructor
 public class LoggingServiceImp implements LoggingService {
 
     @Value("${logging.trace.enabled}")
     private boolean isTraceEnabled;
 
     private static final Logger logger = LoggerFactory.getLogger(LoggingServiceImp.class);
+
+    /**
+     * Default constructor
+     */
+    public LoggingServiceImp() {
+        // Default constructor
+    }
 
     @Override
     public void displayRequest(HttpServletRequest request, Object body) {

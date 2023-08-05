@@ -27,9 +27,9 @@ public interface CrudService <T> {
      */
     ResponseEntity<T> create(T t);
 
-    ResponseEntity<T> update(Long id, T t);
+    ResponseEntity<T> update(String id, T t);
 
-    ResponseEntity<T> delete(Long id, T t);
+    ResponseEntity<T> delete(String id, T t);
 
     /**
      * Realiza la busqueda de una persona
@@ -37,8 +37,8 @@ public interface CrudService <T> {
      * @param id Objeto de tipo {@link T}
      * @return Objeto de tipo {@link ResponseEntity}
      */
-    ResponseEntity<T> find(Long id);
+    ResponseEntity<T> find(String id);
 
-    ResponseEntity<List<T>> list(Long... id);
+    ResponseEntity<List<T>> list(String... id);
 
 }
