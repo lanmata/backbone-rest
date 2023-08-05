@@ -40,6 +40,7 @@ public class FeatureServiceImpl implements FeatureService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FeatureServiceImpl.class);
 
 	private final FeatureRepository featureRepository;
+
 	private final FeatureMapper featureMapper;
 
 	public FeatureServiceImpl(FeatureRepository featureRepository, FeatureMapper featureMapper) {
