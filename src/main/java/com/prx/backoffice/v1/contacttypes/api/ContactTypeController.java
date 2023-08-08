@@ -45,7 +45,7 @@ public class ContactTypeController {
 
     @Operation(description = "Create a contact type.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "OK")
+            @ApiResponse(responseCode = MessageUtil.OK, description = "OK")
     })
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/")
     public ResponseEntity<ContactType> create(@RequestBody final ContactTypeRequest contactTypeRequest) {
@@ -54,7 +54,7 @@ public class ContactTypeController {
 
     @Operation(description = "Find a contact type list.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "OK")
+            @ApiResponse(responseCode = MessageUtil.OK, description = "OK")
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/{contactTypeId}")
     public ResponseEntity<ContactType> find(@PathVariable final long contactTypeId) {
@@ -63,7 +63,7 @@ public class ContactTypeController {
 
     @Operation(description = "Find a contact type list by ids.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "OK")
+            @ApiResponse(responseCode = MessageUtil.OK, description = "OK")
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/list/{contactTypeIds}")
     public ResponseEntity<List<ContactType>> list(@PathVariable final List<Long> contactTypeIds){
@@ -72,7 +72,7 @@ public class ContactTypeController {
 
     @Operation(description = "Get a contact type list.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "OK")
+            @ApiResponse(responseCode = MessageUtil.OK, description = "OK")
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/list")
     public ResponseEntity<List<ContactType>> list() {
@@ -82,7 +82,7 @@ public class ContactTypeController {
 
     @Operation(description = "Delete a contact type.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "OK")
+            @ApiResponse(responseCode = MessageUtil.OK, description = "OK")
     })
     @DeleteMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/")
     public ResponseEntity<ContactType> delete(@PathVariable final Long contactTypeId) {

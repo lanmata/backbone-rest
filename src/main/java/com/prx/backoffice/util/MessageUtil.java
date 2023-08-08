@@ -51,11 +51,11 @@ public class MessageUtil {
     @Value("${messages.user.solicitud-exitosa}")
     private String solicitudExitosa;
 
-    public static final String OK_VALUE = "200";
-    public static final String CREATED_VALUE = "201";
-    public static final String ACCEPTED_VALUE = "202";
+    public static final String OK = "200";
+    public static final String CREATED = "201";
+    public static final String ACCEPTED = "202";
+    public static final String NOT_FOUND = "404";
     public static final String NOT_ACCEPTABLE = "408";
-    public static final String NOT_FOUND_VALUE = "404";
 
     public static final String LOG_PATH_SEPARATOR = "|";
     public static final String LOG_END_MSG = "Termina llamado al método ";

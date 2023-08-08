@@ -49,7 +49,7 @@ public class UserController {
     //    @PreAuthorize("hasAnyAuthority('ms_user_test')")
     @Operation(description = "Busca los usuarios a través del identificador")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "User found.")
+            @ApiResponse(responseCode = MessageUtil.OK, description = "User found.")
 //            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "${messages.general.user-find.ok}")
 //            ,
 //            @ApiResponse(responseCode = "404", description = "${messages.general.user-find.nok}"),
@@ -62,7 +62,7 @@ public class UserController {
 
     @Operation(description = "Obtiene una lista de usuarios")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "Usuario encontrado")
+            @ApiResponse(responseCode = MessageUtil.OK, description = "Usuario encontrado")
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/findAll")
     public ResponseEntity<List<UserTO>> findAll(){
@@ -71,7 +71,7 @@ public class UserController {
 
     @Operation(description = "Realiza la autenticación de usuario")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "Usuario encontrado")
+            @ApiResponse(responseCode = MessageUtil.OK, description = "Usuario encontrado")
     })
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/login")
     public ResponseEntity<String> login(@Parameter(description = "Objeto de tipo UserAccessRequest", required = true)
@@ -88,7 +88,7 @@ public class UserController {
 
     @Operation(description = "Crea un nuevo usuario")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "Usuario creado con éxito.")
+            @ApiResponse(responseCode = MessageUtil.OK, description = "Usuario creado con éxito.")
     })
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/")
     public ResponseEntity<UserTO> create(@Parameter(description = "Objeto de tipo UserCreateRequest", required = true)
@@ -105,7 +105,7 @@ public class UserController {
 
     @Operation(description = "Update a user")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "Updated user")
+            @ApiResponse(responseCode = MessageUtil.OK, description = "Updated user")
     })
     @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/{userId}")
     public ResponseEntity<UserTO> update(@PathVariable @NotNull String userId, @RequestBody @NotNull UserTO user) {
@@ -115,7 +115,7 @@ public class UserController {
 
     @Operation(description = "Busca un usuario por un alias")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "Usuario encontrado.")
+            @ApiResponse(responseCode = MessageUtil.OK, description = "Usuario encontrado.")
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/findByAlias/{alias}")
     public ResponseEntity<UserTO> findByAlias(@Parameter(description = "Alias de usuario", required = true)
