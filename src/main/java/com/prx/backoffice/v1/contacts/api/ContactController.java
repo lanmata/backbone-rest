@@ -46,7 +46,7 @@ public class ContactController {
 
     @Operation(description = "Create a contact.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "OK")
+            @ApiResponse(responseCode = MessageUtil.OK, description = "OK")
     })
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/")
     public ResponseEntity<Contact> create(@RequestBody final Contact contact) {
@@ -55,7 +55,7 @@ public class ContactController {
 
     @Operation(description = "Update a contact.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "OK")
+            @ApiResponse(responseCode = MessageUtil.OK, description = "OK")
     })
     @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/{contactId}")
     public ResponseEntity<Contact> update(@PathVariable final String contactId, @RequestBody Contact contact) {
@@ -64,7 +64,7 @@ public class ContactController {
 
     @Operation(description = "Find a contact list.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "OK")
+            @ApiResponse(responseCode = MessageUtil.OK, description = "OK")
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/{contactId}")
     public ResponseEntity<Contact> find(@PathVariable(value = "contactId") final String contactId) {
@@ -73,7 +73,7 @@ public class ContactController {
 
     @Operation(description = "Find a contact list by ids.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "OK")
+            @ApiResponse(responseCode = MessageUtil.OK, description = "OK")
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/list/{contactIds}")
     public ResponseEntity<List<Contact>> list(@PathVariable List<String> contactIds){
@@ -82,7 +82,7 @@ public class ContactController {
 
     @Operation(description = "Get a contact list.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "OK")
+            @ApiResponse(responseCode = MessageUtil.OK, description = "OK")
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/list")
     public ResponseEntity<List<Contact>> list(){
@@ -91,7 +91,7 @@ public class ContactController {
 
     @Operation(description = "Delete a contact.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "OK")
+            @ApiResponse(responseCode = MessageUtil.OK, description = "OK")
     })
     @DeleteMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/")
     public ResponseEntity<Contact> delete(@PathVariable final String contactId) {

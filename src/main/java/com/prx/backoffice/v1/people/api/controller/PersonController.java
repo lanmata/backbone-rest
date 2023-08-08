@@ -51,7 +51,7 @@ public class PersonController {
      */
     @Operation(description = "Create a persona")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "Person created")
+        @ApiResponse(responseCode = MessageUtil.OK, description = "Person created")
     })
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/")
     public ResponseEntity<Person> create(@Parameter(description = "Request to create a person", required = true)

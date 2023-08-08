@@ -5,6 +5,7 @@ import com.prx.commons.pojo.Feature;
 import com.prx.persistence.general.domains.FeatureEntity;
 import com.prx.persistence.general.repositories.FeatureRepository;
 import org.apache.commons.lang.NotImplementedException;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -21,6 +22,8 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
 
 @ContextConfiguration(classes = {FeatureServiceImpl.class})
 @ExtendWith(SpringExtension.class)
@@ -150,65 +153,7 @@ class FeatureServiceImplTest {
         verify(feature2).setName(Mockito.<String>any());
     }
 
-    /**
-     * Method under test: {@link FeatureServiceImpl#update(String, Feature)}
-     */
-    @Test
-    void testUpdate() {
-        FeatureEntity featureEntity = new FeatureEntity();
-        final var featureId = UUID.randomUUID();
-        featureEntity.setActive(true);
-        featureEntity.setDescription("The characteristics of someone or something");
-        featureEntity.setId(UUID.randomUUID());
-        featureEntity.setName("Name");
-        featureEntity.setRolFeatures(new HashSet<>());
-        when(featureRepository.save(Mockito.<FeatureEntity>any())).thenReturn(featureEntity);
 
-        Feature feature = new Feature();
-        feature.setActive(true);
-        feature.setDescription("The characteristics of someone or something");
-        feature.setId(featureId.toString());
-        feature.setName("Name");
-
-        FeatureEntity featureEntity2 = new FeatureEntity();
-        featureEntity2.setActive(true);
-        featureEntity2.setDescription("The characteristics of someone or something");
-        featureEntity2.setId(UUID.randomUUID());
-        featureEntity2.setName("Name");
-        featureEntity2.setRolFeatures(new HashSet<>());
-        when(featureMapper.toTarget(Mockito.<FeatureEntity>any())).thenReturn(feature);
-        when(featureMapper.toSource(Mockito.<Feature>any())).thenReturn(featureEntity2);
-
-        Feature feature2 = new Feature();
-        feature2.setActive(true);
-        feature2.setDescription("The characteristics of someone or something");
-        feature2.setId(featureId.toString());
-        feature2.setName("Name");
-        ResponseEntity<Feature> actualUpdateResult = featureServiceImpl.update(featureId.toString(), feature2);
-        assertTrue(actualUpdateResult.hasBody());
-        assertTrue(actualUpdateResult.getHeaders().isEmpty());
-        assertEquals(HttpStatus.ACCEPTED, actualUpdateResult.getStatusCode());
-        verify(featureRepository).save(Mockito.<FeatureEntity>any());
-        verify(featureMapper).toTarget(Mockito.<FeatureEntity>any());
-        verify(featureMapper).toSource(Mockito.<Feature>any());
-        assertEquals(featureId.toString(), feature2.getId());
-    }
-
-    /**
-     * Method under test: {@link FeatureServiceImpl#update(String, Feature)}
-     */
-    @Test
-    void testUpdate2() {
-        when(featureMapper.toSource(Mockito.<Feature>any())).thenThrow(new NotImplementedException());
-        final var featureId = UUID.randomUUID();
-        Feature feature = new Feature();
-        feature.setActive(true);
-        feature.setDescription("The characteristics of someone or something");
-        feature.setId(featureId.toString());
-        feature.setName("Name");
-        assertThrows(NotImplementedException.class, () -> featureServiceImpl.update(featureId.toString(), feature));
-        verify(featureMapper).toSource(Mockito.<Feature>any());
-    }
 
     /**
      * Method under test: {@link FeatureServiceImpl#update(String, Feature)}
@@ -238,6 +183,8 @@ class FeatureServiceImplTest {
         featureEntity2.setRolFeatures(new HashSet<>());
         when(featureMapper.toTarget(Mockito.<FeatureEntity>any())).thenReturn(feature);
         when(featureMapper.toSource(Mockito.<Feature>any())).thenReturn(featureEntity2);
+        when(featureRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.of(featureEntity2));
+
         Feature feature2 = mock(Feature.class);
         doNothing().when(feature2).setActive(Mockito.<Boolean>any());
         doNothing().when(feature2).setDescription(Mockito.<String>any());
@@ -258,6 +205,53 @@ class FeatureServiceImplTest {
         verify(feature2).setDescription(Mockito.<String>any());
         verify(feature2, atLeast(1)).setId(Mockito.<String>any());
         verify(feature2).setName(Mockito.<String>any());
+    }
+
+    /**
+     * Method under test: {@link FeatureServiceImpl#update(String, Feature)}
+     */
+    @Test
+    void testUpdate4() {
+        var featureId = UUID.fromString("1551c702-154e-47f3-b515-87f6ee960acb");
+        Feature feature = new Feature();
+        feature.setActive(true);
+        feature.setDescription("The characteristics of someone or something");
+        feature.setId(featureId.toString());
+        feature.setName("Name");
+        var result = featureServiceImpl.update(featureId.toString(), feature);
+        verify(featureRepository).findById(Mockito.<UUID>any());
+        assertTrue(result.hasBody());
+        assertTrue(result.getHeaders().isEmpty());
+    }
+
+    /**
+     * Method under test: {@link FeatureServiceImpl#update(String, Feature)}
+     */
+    @Test
+    void testUpdate5() {
+        // TODO: Complete this test.
+        //   Reason: R013 No inputs found that don't throw a trivial exception.
+        //   Diffblue Cover tried to run the arrange/act section, but the method under
+        //   test threw
+        //   java.lang.IllegalArgumentException: Invalid UUID string: 42
+        //       at java.base/java.util.UUID.fromString1(UUID.java:280)
+        //       at java.base/java.util.UUID.fromString(UUID.java:258)
+        //       at com.prx.backoffice.v1.features.service.FeatureServiceImpl.update(FeatureServiceImpl.java:73)
+        //   See https://diff.blue/R013 to resolve this issue.
+        final var featureId = UUID.fromString("fda40349-6850-46de-94fc-3ad07608b043");
+        Feature feature = mock(Feature.class);
+        doNothing().when(feature).setActive(Mockito.<Boolean>any());
+        doNothing().when(feature).setDescription(Mockito.<String>any());
+        doNothing().when(feature).setId(Mockito.<String>any());
+        doNothing().when(feature).setName(Mockito.<String>any());
+        feature.setActive(true);
+        feature.setDescription("The characteristics of someone or something");
+        feature.setId(featureId.toString());
+        feature.setName("Name");
+        var result = featureServiceImpl.update(featureId.toString(), feature);
+        verify(featureRepository).findById(Mockito.<UUID>any());
+        assertTrue(result.hasBody());
+        assertTrue(result.getHeaders().isEmpty());
     }
 }
 

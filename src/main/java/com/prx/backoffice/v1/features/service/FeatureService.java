@@ -44,4 +44,8 @@ public interface FeatureService extends CrudService <Feature> {
         throw new UnsupportedOperationException("Method not implemented");
     }
 
+    @Override
+    default ResponseEntity<Feature> update(String id, Feature feature) {
+        throw new UnsupportedOperationException("Method not implemented");
+    }
 }

@@ -21,6 +21,7 @@ import org.apache.commons.lang.NotImplementedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -72,12 +73,12 @@ public class FeatureServiceImpl implements FeatureService {
 		ResponseEntity<Feature> responseEntity;
 		final var optFeature = featureRepository.findById(UUID.fromString(featureId));
 		if (optFeature.isPresent()) {
-			responseEntity = new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
-		} else {
+			feature.setId(featureId);
 			responseEntity = ResponseEntity.accepted().body(featureMapper.toTarget(
 					featureRepository.save(featureMapper.toSource(feature))));
+		} else {
+			responseEntity = ResponseEntity.of(ProblemDetail.forStatusAndDetail(HttpStatus.NOT_ACCEPTABLE,"Feature not registered")).build();
 		}
-		feature.setId(featureId);
 		LOGGER.info(responseEntity.getStatusCode() + MessageUtil.LOG_PATH_SEPARATOR + feature.toString());
 		return responseEntity;
 	}

@@ -50,7 +50,7 @@ public class FeatureController {
      */
     @Operation(description = "Realiza la busqueda da un feature")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.CREATED_VALUE, description = "Feature encontrado creada")
+            @ApiResponse(responseCode = MessageUtil.CREATED, description = "Feature encontrado creada")
 //            ,
 //            @ApiResponse(responseCode = "401", description = "Solicitante no tiene permisos, requiere autenticación"),
 //            @ApiResponse(responseCode = "404", description = "Feature no encontrado"),
@@ -65,8 +65,8 @@ public class FeatureController {
 
     @Operation(description = "Get a list of active and/or inactive features.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "OK"),
-            @ApiResponse(responseCode = MessageUtil.NOT_FOUND_VALUE, description = "NOT FOUND")
+            @ApiResponse(responseCode = MessageUtil.OK, description = "OK"),
+            @ApiResponse(responseCode = MessageUtil.NOT_FOUND, description = "NOT FOUND")
     })
     @GetMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE, path = "/list/{includeInactive}")
     public ResponseEntity<List<Feature>> list(@Parameter(description = "Non/Include the features inactive", required = true)
@@ -76,8 +76,8 @@ public class FeatureController {
 
     @Operation(description = "Get a list of active and/or inactive features.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "OK"),
-            @ApiResponse(responseCode = MessageUtil.NOT_FOUND_VALUE, description = "NOT FOUND")
+            @ApiResponse(responseCode = MessageUtil.OK, description = "OK"),
+            @ApiResponse(responseCode = MessageUtil.NOT_FOUND, description = "NOT FOUND")
     })
     @GetMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE, path = "/list/{includeInactive}/{featuresIds}")
     public ResponseEntity<List<Feature>> list(@Parameter(description = "Non/Include the features inactive", required = true)
@@ -88,8 +88,8 @@ public class FeatureController {
 
     @Operation(description = "Create a Feature")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.CREATED_VALUE, description = "OK"),
-            @ApiResponse(responseCode = MessageUtil.NOT_ACCEPTABLE, description = "NOT FOUND")
+            @ApiResponse(responseCode = MessageUtil.CREATED, description = "OK"),
+            @ApiResponse(responseCode = MessageUtil.NOT_ACCEPTABLE, description = "NOT ACCEPTABLE")
     })
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE, path = "/")
     public ResponseEntity<Feature> create(@Parameter(description = "Feature properties", required = true) @RequestBody FeatureRequest featureRequest) {
@@ -98,9 +98,8 @@ public class FeatureController {
 
     @Operation(description = "Update a Feature")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "Ok")
-//            ,
-//            @ApiResponse(responseCode = "401", description = "Solicitud no valida")
+            @ApiResponse(responseCode = MessageUtil.ACCEPTED, description = "Ok"),
+            @ApiResponse(responseCode = MessageUtil.NOT_ACCEPTABLE, description = "Solicitud no valida")
     })
     @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/{featureId}")
     public ResponseEntity<Feature> update(@PathVariable String featureId, @RequestBody FeatureRequest featureRequest){

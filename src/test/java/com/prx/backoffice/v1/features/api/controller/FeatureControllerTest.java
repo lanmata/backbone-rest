@@ -13,6 +13,8 @@
 
 package com.prx.backoffice.v1.features.api.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.prx.backoffice.MockLoaderBase;
 import com.prx.backoffice.v1.features.api.to.FeatureRequest;
 import com.prx.backoffice.v1.features.mapper.FeatureMapperImpl;
@@ -25,10 +27,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.web.servlet.MvcResult;
 
 import java.time.LocalDate;
 import java.util.HashSet;
@@ -50,6 +54,9 @@ import static org.mockito.Mockito.when;
  */
 class FeatureControllerTest extends MockLoaderBase {
 
+    @Autowired
+    ObjectMapper objectMapper;
+
     @MockBean
     FeatureServiceImpl featureService;
 
@@ -58,18 +65,10 @@ class FeatureControllerTest extends MockLoaderBase {
 
     private MockMvcRequestSpecification mockMvcRequestSpecification;
 
-    private static final String PATH_LIST_BY_USER;
-    private static final String PATH_UPDATE;
-    private static final String PATH_CREATE;
-    private static final String PATH_LIST;
-    private static final String PATH_FIND;
+    private static final String PATH;
 
     static {
-        PATH_LIST_BY_USER = "/v1/feature/listByUser/";
-        PATH_UPDATE = "/v1/feature/update/";
-        PATH_CREATE = "/v1/feature/create";
-        PATH_FIND = "/v1/feature/find/";
-        PATH_LIST = "/v1/feature/list/";
+        PATH = "/v1/features/";
     }
 
     @BeforeEach
@@ -81,37 +80,66 @@ class FeatureControllerTest extends MockLoaderBase {
      * Method under test: {@link FeatureController#create(FeatureRequest)}
      */
     @Test
-    void testCreate() {
-        FeatureEntity featureEntity = new FeatureEntity();
-        featureEntity.setActive(true);
-        featureEntity.setDescription("The characteristics of someone or something");
-        featureEntity.setId(UUID.randomUUID());
-        featureEntity.setName("Name");
-        featureEntity.setRolFeatures(new HashSet<>());
-        when(featureRepository.findByName(Mockito.<String>any())).thenReturn(Optional.of(featureEntity));
-        FeatureController featureController = new FeatureController(
-                new FeatureServiceImpl(featureRepository, new FeatureMapperImpl()));
-
-        FeatureRequest featureRequest = getRequest();
-        ResponseEntity<Feature> actualCreateResult = featureController.create(featureRequest);
-        assertNull(actualCreateResult.getBody());
-        assertEquals(HttpStatus.NOT_ACCEPTABLE, actualCreateResult.getStatusCode());
-        assertTrue(actualCreateResult.getHeaders().isEmpty());
-        verify(featureRepository).findByName(Mockito.<String>any());
+    void testCreate() throws JsonProcessingException {
+        final var featureId = UUID.fromString("22e5b1d8-e27c-4ee3-ac6e-f26275e450ff");
+        final var featureRequest = getFeatureRequest();
+        featureRequest.getFeature().setId(featureId.toString());
+        final var response = ResponseEntity.status(HttpStatus.CREATED).body(featureRequest.getFeature());
+        //when:
+        Mockito.when(featureService.create(Mockito.any(Feature.class))).thenReturn(response);
+        //then:
+        given().contentType(MediaType.APPLICATION_JSON_VALUE).body(objectMapper.writeValueAsString(featureRequest))
+                .accept(MediaType.APPLICATION_JSON_VALUE).when().post(PATH)
+                .then().assertThat().statusCode(HttpStatus.CREATED.value()).expect(MvcResult::getResponse);
     }
 
     /**
      * Method under test: {@link FeatureController#create(FeatureRequest)}
      */
     @Test
-    void testCreate2() {
-        when(featureRepository.findByName(Mockito.<String>any())).thenReturn(Optional.empty());
-        FeatureController featureController = new FeatureController(
-                new FeatureServiceImpl(featureRepository, new FeatureMapperImpl()));
+    void testCreate2() throws JsonProcessingException {
+        final var featureId = UUID.fromString("22e5b1d8-e27c-4ee3-ac6e-f26275e450ff");
+        final var featureRequest = getFeatureRequest();
+        featureRequest.getFeature().setId(featureId.toString());
+        final var response = ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(featureRequest.getFeature());
+        //when:
+        Mockito.when(featureService.create(Mockito.any(Feature.class))).thenReturn(response);
+        //then:
+        given().contentType(MediaType.APPLICATION_JSON_VALUE).body(objectMapper.writeValueAsString(featureRequest))
+                .accept(MediaType.APPLICATION_JSON_VALUE).when().post(PATH)
+                .then().assertThat().statusCode(HttpStatus.NOT_ACCEPTABLE.value()).expect(MvcResult::getResponse);
+    }
 
-        FeatureRequest featureRequest = getFeatureRequest();
-        var response = featureController.create(featureRequest);
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+    /**
+     * Method under test: {@link FeatureController#update(String, FeatureRequest)}
+     */
+    @Test
+    void testUpdate() throws JsonProcessingException {
+        final var featureId = UUID.fromString("22e5b1d8-e27c-4ee3-ac6e-f26275e450ff");
+        final var featureRequest = getFeatureRequest();
+        final var response = ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(new Feature());
+        //when:
+        Mockito.when(featureService.update(Mockito.anyString(),  Mockito.any(Feature.class))).thenReturn(response);
+        //then:
+        given().contentType(MediaType.APPLICATION_JSON_VALUE).body(objectMapper.writeValueAsString(featureRequest))
+                .accept(MediaType.APPLICATION_JSON_VALUE).when().put(PATH.concat(featureId.toString()))
+                .then().assertThat().statusCode(HttpStatus.NOT_ACCEPTABLE.value()).expect(MvcResult::getResponse);
+    }
+
+    /**
+     * Method under test: {@link FeatureController#update(String, FeatureRequest)}
+     */
+    @Test
+    void testUpdate1() throws JsonProcessingException {
+        final var featureId = UUID.fromString("22e5b1d8-e27c-4ee3-ac6e-f26275e450ff");
+        final var featureRequest = getFeatureRequest();
+        final var response = ResponseEntity.status(HttpStatus.ACCEPTED).body(featureRequest.getFeature());
+        //when:
+        Mockito.when(featureService.update(Mockito.anyString(),  Mockito.any(Feature.class))).thenReturn(response);
+        //then:
+        given().contentType(MediaType.APPLICATION_JSON_VALUE).body(objectMapper.writeValueAsString(featureRequest))
+                .accept(MediaType.APPLICATION_JSON_VALUE).when().put(PATH.concat(featureId.toString()))
+                .then().assertThat().statusCode(HttpStatus.ACCEPTED.value()).expect(MvcResult::getResponse);
     }
 
     private static FeatureRequest getFeatureRequest() {

@@ -54,7 +54,7 @@ class RoleController {
      */
     @Operation          (description = "Look for a roles")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "Role founded")
+            @ApiResponse(responseCode = MessageUtil.OK, description = "Role founded")
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/find/{roleId}")
     public ResponseEntity<Role> find(@Parameter(description = "Request to find a role", required = true)
@@ -69,7 +69,7 @@ class RoleController {
      */
     @Operation(description = "Create a role")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "Role created.")
+            @ApiResponse(responseCode = MessageUtil.OK, description = "Role created.")
     })
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/")
     public ResponseEntity<Role> create(@Parameter(description = "Role properties", required = true)
@@ -84,7 +84,7 @@ class RoleController {
      */
     @Operation(description = "Update a role")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "Update a role")
+            @ApiResponse(responseCode = MessageUtil.OK, description = "Update a role")
     })
     @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/update/{roleId}")
     public ResponseEntity<Role> update(@PathVariable(value = "roleId") String roleId, @RequestBody final RoleRequest roleRequest){
@@ -99,7 +99,7 @@ class RoleController {
      */
     @Operation(description = "Busca los roles en base a un conjunto de id y estado de actividad")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "Operación list realizada")
+            @ApiResponse(responseCode = MessageUtil.OK, description = "Operación list realizada")
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/list/{includeInactive}/{roles}")
     public ResponseEntity<List<Role>> list(@Parameter(description = "Incluye/excluye la obtención de roles inactivos")
@@ -116,7 +116,7 @@ class RoleController {
      */
     @Operation(description = "Unlink a role with one or more features")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "Unlink completed")
+            @ApiResponse(responseCode = MessageUtil.OK, description = "Unlink completed")
     })
     @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/unlink/{idRole}")
     public ResponseEntity<Role> unlink(@PathVariable String idRole, @RequestBody final RoleLinkRequest roleLinkRequest){
@@ -130,7 +130,7 @@ class RoleController {
      */
     @Operation(description = "Link a role with one or more features.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "Operación link realizada")
+            @ApiResponse(responseCode = MessageUtil.OK, description = "Operación link realizada")
     })
     @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/link/{idRole}")
     public ResponseEntity<Role> link(@PathVariable String idRole, @RequestBody final RoleLinkRequest roleLinkRequest){
@@ -144,7 +144,7 @@ class RoleController {
      */
     @Operation(description = "Busca los roles en base al estado de actividad")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "Operación list realizada")
+            @ApiResponse(responseCode = MessageUtil.OK, description = "Operación list realizada")
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/list/{includeInactive}")
     public ResponseEntity<List<Role>> list(@Parameter(description = "Incluye/excluye la obtención de roles inactivos")
@@ -159,7 +159,7 @@ class RoleController {
      */
     @Operation(description = "Busca los roles en base al id de un usuario")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "Operación list realizada")
+            @ApiResponse(responseCode = MessageUtil.OK, description = "Operación list realizada")
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/listByUser/{userId}")
     public ResponseEntity<List<Role>> list(@PathVariable String userId) {
