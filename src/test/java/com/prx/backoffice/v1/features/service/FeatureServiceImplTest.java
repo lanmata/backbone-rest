@@ -229,15 +229,6 @@ class FeatureServiceImplTest {
      */
     @Test
     void testUpdate5() {
-        // TODO: Complete this test.
-        //   Reason: R013 No inputs found that don't throw a trivial exception.
-        //   Diffblue Cover tried to run the arrange/act section, but the method under
-        //   test threw
-        //   java.lang.IllegalArgumentException: Invalid UUID string: 42
-        //       at java.base/java.util.UUID.fromString1(UUID.java:280)
-        //       at java.base/java.util.UUID.fromString(UUID.java:258)
-        //       at com.prx.backoffice.v1.features.service.FeatureServiceImpl.update(FeatureServiceImpl.java:73)
-        //   See https://diff.blue/R013 to resolve this issue.
         final var featureId = UUID.fromString("fda40349-6850-46de-94fc-3ad07608b043");
         Feature feature = mock(Feature.class);
         doNothing().when(feature).setActive(Mockito.<Boolean>any());
