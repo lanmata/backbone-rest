@@ -1,5 +1,5 @@
-FROM openjdk:11
-LABEL version="1.0"
+FROM amazoncorretto:17.0.8-alpine
+LABEL version="1.1"
 LABEL description="Componente para configuración de servicios"
 LABEL mantainer="Luis Mata luis.antonio.mata@gmail.com"
 
@@ -13,4 +13,4 @@ COPY prx_srv_monitor.jks prx_srv_monitor.jks
 COPY prx_backbone_rest_discovery.jks prx_backbone_rest_discovery.jks
 
 EXPOSE 8084
-ENTRYPOINT ["java", "-Dspring.profiles.active=docker", "-Dspring.application.name=prx-backbone-rest", "-Dspring.cloud.config.label=developer", "-Dspring.config.import=optional:configserver:http://prx.test/config-server", "-Dapi-info.version=1.0.2.20211214-01"  , "-jar", "prx-backbone-rest.jar" ]
+ENTRYPOINT ["java", "-Dspring.profiles.active=docker", "-Dspring.application.name=prx-backbone-rest", "-Dspring.cloud.config.label=Develop", "-Dspring.config.import=optional:configserver:http://prx.test/config-server", "-Dapi-info.version=0.0.2-2023" , "-jar", "prx-backbone-rest.jar" ]
