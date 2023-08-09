@@ -17,7 +17,6 @@ import com.prx.backoffice.v1.features.mapper.FeatureMapper;
 import com.prx.commons.pojo.Feature;
 import com.prx.persistence.general.domains.FeatureEntity;
 import com.prx.persistence.general.repositories.FeatureRepository;
-import org.apache.commons.lang.NotImplementedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -83,34 +82,24 @@ public class FeatureServiceImpl implements FeatureService {
 		return responseEntity;
 	}
 
-	@Override
-	public ResponseEntity<Feature> delete(String featureId, Feature feature) {
-		throw new NotImplementedException();
-	}
-
-	@Override
-	public ResponseEntity<List<Feature>> list(String... id) {
-		throw new NotImplementedException();
-	}
-
 	/** {@inheritDoc} */
 	@Override
 	public ResponseEntity<List<Feature>> list(List<String> featureIds, boolean includeInactive) {
 		final var featureListResult = new ArrayList<Feature>();
 		List<UUID> uuidList = new ArrayList<>();
-		Iterable<FeatureEntity> featureEntityListResult;
+		Optional<Iterable<FeatureEntity>> featureEntityListResult;
 		if(Objects.isNull(featureIds)) {
-			featureEntityListResult = featureRepository.findAll();
+			featureEntityListResult = Optional.of(featureRepository.findAll());
 		} else {
 			featureIds.forEach(s -> uuidList.add(UUID.fromString(s)));
-			featureEntityListResult = featureRepository.findAllById(uuidList);
+			featureEntityListResult = featureRepository.findByIdAndStatus(uuidList.stream().toList(), includeInactive);
 		}
 
-		featureEntityListResult.forEach(featureEntity -> {
-			if (includeInactive || Boolean.TRUE.equals(featureEntity.getActive())) {
-				featureListResult.add(featureMapper.toTarget(featureEntity));
-			}
-		});
+        featureEntityListResult.ifPresent(featureEntities -> featureEntities.forEach(featureEntity -> {
+            if (includeInactive || Boolean.TRUE.equals(featureEntity.getActive())) {
+                featureListResult.add(featureMapper.toTarget(featureEntity));
+            }
+        }));
 
 		if(featureListResult.isEmpty()) {
 			return ResponseEntity.notFound().build();

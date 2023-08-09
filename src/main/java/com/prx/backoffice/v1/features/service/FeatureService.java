@@ -16,6 +16,7 @@ package com.prx.backoffice.v1.features.service;
 import com.prx.backoffice.services.CrudService;
 import com.prx.commons.pojo.Feature;
 import com.prx.commons.pojo.MessageActivity;
+import org.apache.commons.lang.NotImplementedException;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
@@ -41,11 +42,38 @@ public interface FeatureService extends CrudService <Feature> {
      * @return Objeto de tipo {@link MessageActivity}
      */
     default ResponseEntity<List<Feature>> list(List<String> featureIds, boolean includeInactive) {
-        throw new UnsupportedOperationException("Method not implemented");
+        throw new NotImplementedException();
     }
 
+    /**
+     *
+     * @param id
+     * @param feature
+     * @return
+     */
     @Override
     default ResponseEntity<Feature> update(String id, Feature feature) {
-        throw new UnsupportedOperationException("Method not implemented");
+        throw new NotImplementedException();
+    }
+
+    /**
+     *
+     * @param id
+     * @param feature
+     * @return
+     */
+    @Override
+    default ResponseEntity<Feature> delete(String id, Feature feature) {
+        throw new NotImplementedException();
+    }
+
+    /**
+     *
+     * @param id
+     * @return
+     */
+    @Override
+    default ResponseEntity<List<Feature>> list(String... id) {
+        throw new NotImplementedException();
     }
 }
