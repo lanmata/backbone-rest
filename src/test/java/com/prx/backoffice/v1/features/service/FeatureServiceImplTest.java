@@ -16,14 +16,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
 
 @ContextConfiguration(classes = {FeatureServiceImpl.class})
 @ExtendWith(SpringExtension.class)
@@ -154,7 +151,6 @@ class FeatureServiceImplTest {
     }
 
 
-
     /**
      * Method under test: {@link FeatureServiceImpl#update(String, Feature)}
      */
@@ -243,6 +239,61 @@ class FeatureServiceImplTest {
         verify(featureRepository).findById(Mockito.<UUID>any());
         assertTrue(result.hasBody());
         assertTrue(result.getHeaders().isEmpty());
+    }
+
+    /**
+     * Method under test: {@link FeatureServiceImpl#list(List, boolean)}
+     */
+    @Test
+    void testList() {
+        Iterable<FeatureEntity> iterable = mock(Iterable.class);
+        doNothing().when(iterable).forEach(Mockito.<Consumer<FeatureEntity>>any());
+        when(featureRepository.findAllById(Mockito.<Iterable<UUID>>any())).thenReturn(iterable);
+        ResponseEntity<List<Feature>> actualListResult = featureServiceImpl.list(new ArrayList<>(), true);
+        assertNull(actualListResult.getBody());
+        assertEquals(HttpStatus.NOT_FOUND, actualListResult.getStatusCode());
+        assertTrue(actualListResult.getHeaders().isEmpty());
+        verify(featureRepository).findAllById(Mockito.<Iterable<UUID>>any());
+        verify(iterable).forEach(Mockito.<Consumer<FeatureEntity>>any());
+    }
+
+    /**
+     * Method under test: {@link FeatureServiceImpl#list(List, boolean)}
+     */
+    @Test
+    void testList2() {
+        final var featureEntities = getFeatureEntities(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID());
+        final var featuresString = featureEntities.stream().map(featureEntity -> featureEntity.getId().toString()).toList();
+        final var featureList = getFeatureList(featureEntities);
+        when(featureRepository.findAllById(Mockito.<Iterable<UUID>>any())).thenReturn(featureEntities);
+        when(featureMapper.toTargetList(Mockito.<List<FeatureEntity>>any())).thenReturn(getFeatureList(featureEntities));
+        when(featureMapper.toSourceList(Mockito.<List<Feature>>any())).thenReturn(featureEntities);
+        var result = featureServiceImpl.list(featuresString, true);
+        assertNotNull(result);
+    }
+
+    private static ArrayList<FeatureEntity> getFeatureEntities(UUID... featureIds) {
+        final var features = new ArrayList<FeatureEntity>();
+        for (var featureId : featureIds) {
+            var feature = new FeatureEntity();
+            feature.setId(featureId);
+            feature.setName("Ftr-0001");
+            feature.setDescription("Description of feature #1");
+            feature.setActive(true);
+            features.add(feature);
+        }
+        return features;
+    }
+
+    private List<Feature> getFeatureList(List<FeatureEntity> featureEntityList) {
+        return featureEntityList.stream().map(featureEntity -> {
+            var feature = new Feature();
+            feature.setActive(featureEntity.getActive());
+            feature.setDescription(featureEntity.getDescription());
+            feature.setName(featureEntity.getName());
+            feature.setId(featureEntity.getId().toString());
+            return feature;
+        }).toList();
     }
 }
 

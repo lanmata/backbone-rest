@@ -18,6 +18,8 @@ import com.prx.persistence.general.domains.FeatureEntity;
 import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
 
+import java.util.List;
+
 /**
  * FeatureMapper.
  *
@@ -31,4 +33,9 @@ public interface FeatureMapper {
 
 	@InheritInverseConfiguration
 	FeatureEntity toSource(Feature feature);
+
+	Iterable<Feature> toTargetList(List<FeatureEntity> featureEntityList);
+
+	@InheritInverseConfiguration
+	Iterable<FeatureEntity> toSourceList(List<Feature> featureList);
 }

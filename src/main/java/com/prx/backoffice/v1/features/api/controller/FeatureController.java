@@ -57,7 +57,7 @@ public class FeatureController {
 //            @ApiResponse(responseCode = "405", description = "Método no permitido"),
 //            @ApiResponse(responseCode = "500", description = "Error interno durante la creación del feature")
     })
-    @GetMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE, path = "/{featureId}")
+    @GetMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE, path = "/find/{featureId}")
     public ResponseEntity<Feature> find(@Parameter(description = "Id de feature", required = true)
                                         @PathVariable final String featureId) {
         return featureService.find(featureId);
@@ -68,7 +68,7 @@ public class FeatureController {
             @ApiResponse(responseCode = MessageUtil.OK, description = "OK"),
             @ApiResponse(responseCode = MessageUtil.NOT_FOUND, description = "NOT FOUND")
     })
-    @GetMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE, path = "/list/{includeInactive}")
+    @GetMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE, path = "/{includeInactive}")
     public ResponseEntity<List<Feature>> list(@Parameter(description = "Non/Include the features inactive", required = true)
                                               @PathVariable boolean includeInactive){
         return featureService.list(null,includeInactive);
@@ -79,7 +79,7 @@ public class FeatureController {
             @ApiResponse(responseCode = MessageUtil.OK, description = "OK"),
             @ApiResponse(responseCode = MessageUtil.NOT_FOUND, description = "NOT FOUND")
     })
-    @GetMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE, path = "/list/{includeInactive}/{featuresIds}")
+    @GetMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE, path = "/{includeInactive}/{featuresIds}")
     public ResponseEntity<List<Feature>> list(@Parameter(description = "Non/Include the features inactive", required = true)
                                               @PathVariable boolean includeInactive,
                                               @Parameter(description = "Features id list") @PathVariable List<String> featuresIds){
@@ -99,7 +99,7 @@ public class FeatureController {
     @Operation(description = "Update a Feature")
     @ApiResponses(value = {
             @ApiResponse(responseCode = MessageUtil.ACCEPTED, description = "Ok"),
-            @ApiResponse(responseCode = MessageUtil.NOT_ACCEPTABLE, description = "Solicitud no valida")
+            @ApiResponse(responseCode = MessageUtil.NOT_ACCEPTABLE, description = "Feature not registered")
     })
     @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/{featureId}")
     public ResponseEntity<Feature> update(@PathVariable String featureId, @RequestBody FeatureRequest featureRequest){
