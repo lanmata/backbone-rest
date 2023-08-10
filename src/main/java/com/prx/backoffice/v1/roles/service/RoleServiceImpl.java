@@ -29,7 +29,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 /**
@@ -139,30 +138,13 @@ public class RoleServiceImpl implements RoleService {
 		LOGGER.info("Inicia la actualización del role.");
 		final ResponseEntity<Role> roleResponseEntity;
 		LOGGER.info("Se busca el role solicitado para actualizar los datos.");
-		final var optionRoleEntity = roleRepository.findById(UUID.fromString(role.getId()));
+		final var optionRoleEntity = roleRepository.findById(UUID.fromString(roleId));
 		if (optionRoleEntity.isPresent()) {
 			final var roleEntity = optionRoleEntity.get();
-			roleEntity.setId(UUID.fromString(roleId));
 			roleEntity.setName(role.getName());
 			roleEntity.setDescription(role.getDescription());
 			roleEntity.setActive(role.getActive());
-			// FIXME Pending to fix
-//			removeRoleFeature(role.getFeatures(), roleEntity);
-			role.getFeatures().forEach(feature -> {
-				AtomicBoolean mustInclude = new AtomicBoolean(true);
-				roleEntity.getRoleFeatures().forEach(roleFeatureEntity -> {
-					if(Objects.equals(roleFeatureEntity.getFeature().getId().toString(), feature.getId())) {
-						mustInclude.set(false);
-					}
-				});
-				if(mustInclude.get()){
-					var roleFeatureEntity = new RoleFeatureEntity();
-					roleFeatureEntity.setActive(true);
-					roleFeatureEntity.setRole(roleEntity);
-					roleFeatureEntity.setFeature(featureMapper.toSource(feature));
-					roleFeatureRepository.save(roleFeatureEntity);
-				}
-			});
+			updateRoleFeature(role.getFeatures(), roleEntity);
 			roleResponseEntity = ResponseEntity.accepted().body(roleMapper.toTarget(roleRepository.save(roleEntity)));
 		} else {
 			roleResponseEntity = ResponseEntity.notFound().build();
@@ -171,16 +153,26 @@ public class RoleServiceImpl implements RoleService {
 		return roleResponseEntity;
 	}
 
-	// FIXME Pending to fix it, required to delete and create new RoleFeature records.
-//	private void removeRoleFeature(List<Feature> featuresToLink, RoleEntity roleEntity) {
-//		Set<UUID> listResult;
-//		roleEntity.getRoleFeatures().stream().filter(roleFeatureEntity -> featuresToLink.stream().filter(feature -> roleFeatureEntity.getFeature().getId().equals(feature.getId())))
-//		Set<String> newFeatures = featuresToLink.stream().map(Feature::getId).collect(Collectors.toSet());
-//		Set<UUID> oldFeatures = roleEntity.getRoleFeatures().stream().map(RoleFeatureEntity::getFeature).map(FeatureEntity::getId).collect(Collectors.toSet());
-//		listResult = oldFeatures.stream().filter(aLong -> !newFeatures.contains(aLong)).collect(Collectors.toSet());
-//		listResult.forEach(roleFeatureEntity -> roleFeatureRepository
-//				.delete(roleFeatureEntity));
-//	}
+	private void updateRoleFeature(List<Feature> featuresToLink, RoleEntity roleEntity) {
+		roleFeatureRepository.deleteAll(roleEntity.getRoleFeatures());
+		roleEntity.setRoleFeatures(null);
+		if(Objects.nonNull(featuresToLink) && !featuresToLink.isEmpty()) {
+			var roleFeatureEntities = new HashSet<RoleFeatureEntity>();
+			featuresToLink.forEach(feature -> {
+				var roleFeatureEntity = new RoleFeatureEntity();
+				var roleFeaturePk = new RoleFeaturePK();
+				roleFeaturePk.setFeatureId(UUID.fromString(feature.getId()));
+				roleFeaturePk.setRoleId(roleEntity.getId());
+				roleFeatureEntity.setRoleFeaturePK(roleFeaturePk);
+				roleFeatureEntity.setFeature(featureMapper.toSource(feature));
+				roleFeatureEntity.setRole(roleEntity);
+				roleFeatureEntity.setActive(true);
+				roleFeatureEntities.add(roleFeatureEntity);
+			});
+			roleFeatureRepository.saveAll(roleFeatureEntities);
+			roleEntity.setRoleFeatures(roleFeatureEntities);
+		}
+	}
 
 	@Override
 	public ResponseEntity<Role> delete(String rolId, Role role) {

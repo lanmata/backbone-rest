@@ -25,11 +25,17 @@ import com.prx.persistence.general.domains.RoleFeatureEntity;
 import com.prx.persistence.general.repositories.RoleFeatureRepository;
 import com.prx.persistence.general.repositories.RoleRepository;
 import jakarta.validation.constraints.NotNull;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
@@ -42,6 +48,8 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
 
 /**
  * RoleServiceImplTest.
@@ -103,7 +111,7 @@ class RoleServiceImplTest {
         final var roles = new ArrayList<RoleEntity>();
         final Optional<List<RoleEntity>> rolesOption = Optional.of(roles);
         Mockito.when(roleRepository.findAllById(Mockito.anyList())).thenReturn(rolesOption);
-        final var response = roleServiceImpl.list("18e4914b-f1f0-4c33-8559-944cf36b4b99", 
+        final var response = roleServiceImpl.list("18e4914b-f1f0-4c33-8559-944cf36b4b99",
                 "e255e868-80f2-4161-ab9d-25f47c913cf8", "b4256add-939d-45db-a491-0fb38ad37d60",
                 "87b036e8-a332-4960-8d9f-fb88530ca2bd");
         Assertions.assertNotNull(response);
@@ -253,6 +261,61 @@ class RoleServiceImplTest {
         Mockito.when(roleRepository.save(ArgumentMatchers.any(RoleEntity.class))).thenReturn(roleEntity);
         final var responseEntity = roleServiceImpl.create(getRole());
         Assertions.assertNotNull(responseEntity);
+    }
+
+    /**
+     * Method under test: {@link RoleServiceImpl#update(String, Role)}
+     */
+    @Test
+    @Disabled("TODO: Complete this test")
+    void testUpdate() {
+        // TODO: Complete this test.
+        //   Reason: R013 No inputs found that don't throw a trivial exception.
+        //   Diffblue Cover tried to run the arrange/act section, but the method under
+        //   test threw
+        //   java.lang.IllegalArgumentException: Invalid UUID string: 42
+        //       at java.base/java.util.UUID.fromString1(UUID.java:280)
+        //       at java.base/java.util.UUID.fromString(UUID.java:258)
+        //       at com.prx.backoffice.v1.roles.service.RoleServiceImpl.update(RoleServiceImpl.java:141)
+        //   See https://diff.blue/R013 to resolve this issue.
+
+        Role role = new Role();
+        role.setActive(true);
+        role.setDescription("The characteristics of someone or something");
+        role.setFeatures(new ArrayList<>());
+        role.setId("42");
+        role.setName("Name");
+        roleServiceImpl.update("42", role);
+    }
+
+    /**
+     * Method under test: {@link RoleServiceImpl#update(String, Role)}
+     */
+    @Test
+    @Disabled("TODO: Complete this test")
+    void testUpdate2() {
+        // TODO: Complete this test.
+        //   Reason: R013 No inputs found that don't throw a trivial exception.
+        //   Diffblue Cover tried to run the arrange/act section, but the method under
+        //   test threw
+        //   java.lang.IllegalArgumentException: Invalid UUID string: 42
+        //       at java.base/java.util.UUID.fromString1(UUID.java:280)
+        //       at java.base/java.util.UUID.fromString(UUID.java:258)
+        //       at com.prx.backoffice.v1.roles.service.RoleServiceImpl.update(RoleServiceImpl.java:141)
+        //   See https://diff.blue/R013 to resolve this issue.
+
+        Role role = mock(Role.class);
+        doNothing().when(role).setActive(Mockito.<Boolean>any());
+        doNothing().when(role).setDescription(Mockito.<String>any());
+        doNothing().when(role).setFeatures(Mockito.<List<Feature>>any());
+        doNothing().when(role).setId(Mockito.<String>any());
+        doNothing().when(role).setName(Mockito.<String>any());
+        role.setActive(true);
+        role.setDescription("The characteristics of someone or something");
+        role.setFeatures(new ArrayList<>());
+        role.setId("42");
+        role.setName("Name");
+        roleServiceImpl.update("42", role);
     }
 
     @Test
