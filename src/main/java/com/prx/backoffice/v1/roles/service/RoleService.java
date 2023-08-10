@@ -14,6 +14,7 @@ package com.prx.backoffice.v1.roles.service;
 
 import com.prx.backoffice.services.CrudService;
 import com.prx.commons.pojo.Role;
+import org.apache.commons.lang.NotImplementedException;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
@@ -40,7 +41,10 @@ public interface RoleService extends CrudService<Role> {
      * @param role {@link Role}
      * @return Objeto de tipo {@link ResponseEntity}
      */
-//    ResponseEntity<Role> create(Role role);
+    @Override
+    default ResponseEntity<Role> create(Role role) {
+        throw new NotImplementedException();
+    }
 
     /**
      * Vincula un rol con uno o mas features
@@ -57,7 +61,10 @@ public interface RoleService extends CrudService<Role> {
      * @param role {@link Role}
      * @return Objeto de tipo {@link ResponseEntity}
      */
-//    ResponseEntity<Role> update(Long rolId, Role role);
+    @Override
+    default ResponseEntity<Role> update(String rolId, Role role) {
+        throw new NotImplementedException();
+    }
 
     /**
      * Lista un conjunto de roles en base a los id recibidos, el parametro booleano determina la obtención de roles
@@ -84,6 +91,8 @@ public interface RoleService extends CrudService<Role> {
      * @param userId {@link String}
      * @return Objeto de tipo {@link ResponseEntity}
      */
-    ResponseEntity<List<Role>> list(String userId);
+    default ResponseEntity<List<Role>> list(String userId) {
+        throw new NotImplementedException();
+    }
 
 }

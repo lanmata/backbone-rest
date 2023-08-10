@@ -86,7 +86,7 @@ class RoleController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = MessageUtil.OK, description = "Update a role")
     })
-    @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/update/{roleId}")
+    @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/{roleId}")
     public ResponseEntity<Role> update(@PathVariable(value = "roleId") String roleId, @RequestBody final RoleRequest roleRequest){
         return roleService.update(roleId, roleRequest.getRole());
     }
@@ -101,7 +101,7 @@ class RoleController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = MessageUtil.OK, description = "Operación list realizada")
     })
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/list/{includeInactive}/{roles}")
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/{includeInactive}/{roles}")
     public ResponseEntity<List<Role>> list(@Parameter(description = "Incluye/excluye la obtención de roles inactivos")
                                            @PathVariable boolean includeInactive,
                                            @Parameter(description = "Id de roles para a ser buscados ")
@@ -146,7 +146,7 @@ class RoleController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = MessageUtil.OK, description = "Operación list realizada")
     })
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/list/{includeInactive}")
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/{includeInactive}")
     public ResponseEntity<List<Role>> list(@Parameter(description = "Incluye/excluye la obtención de roles inactivos")
                                            @PathVariable boolean includeInactive) {
         return roleService.list(includeInactive, null);

@@ -131,7 +131,7 @@ class FeatureControllerTest extends MockLoaderBase {
      */
     @Test
     void testUpdate1() throws JsonProcessingException {
-        final var featureId = UUID.fromString("22e5b1d8-e27c-4ee3-ac6e-f26275e450ff");
+        final var featureId = UUID.randomUUID();
         final var featureRequest = getFeatureRequest();
         final var response = ResponseEntity.status(HttpStatus.ACCEPTED).body(featureRequest.getFeature());
         //when:

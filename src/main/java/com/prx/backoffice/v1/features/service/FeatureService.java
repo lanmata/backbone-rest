@@ -31,7 +31,7 @@ public interface FeatureService extends CrudService <Feature> {
 
     @Override
     default ResponseEntity<Feature> create(Feature feature) {
-        throw new UnsupportedOperationException("Method not implemented");
+        throw new NotImplementedException();
     }
 
     /**
