@@ -20,11 +20,13 @@ import com.prx.backoffice.v1.roles.api.to.RoleRequest;
 import com.prx.backoffice.v1.roles.service.RoleServiceImpl;
 import com.prx.commons.pojo.Feature;
 import com.prx.commons.pojo.Role;
+import com.prx.persistence.general.repositories.RoleRepository;
 import io.restassured.module.mockmvc.specification.MockMvcRequestSpecification;
 import jakarta.validation.constraints.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -35,6 +37,7 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.UUID;
 
 import static com.prx.backoffice.util.ConstantUtilTest.APP_NAME_VALUE;
 import static com.prx.backoffice.util.ConstantUtilTest.APP_TOKEN_VALUE;
@@ -56,9 +59,12 @@ class RoleControllerTest extends MockLoaderBase {
     @MockBean
     RoleServiceImpl roleService;
 
+    @Mock
+    RoleRepository roleRepository;
+
     private static final String PATH_LIST_BY_USER;
     private static final String PATH_UNLINK;
-    private static final String PATH_UPDATE;
+    private static final String PATH;
     private static final String PATH_CREATE;
     private static final String PATH_LIST;
     private static final String PATH_LINK;
@@ -68,7 +74,7 @@ class RoleControllerTest extends MockLoaderBase {
 
     static {
         PATH_LIST_BY_USER = "/v1/role/listByUser/";
-        PATH_UPDATE = "/v1/role/update/";
+        PATH = "/v1/roles/";
         PATH_UNLINK = "/v1/role/unlink/";
         PATH_CREATE = "/v1/role/";
         PATH_LINK = "/v1/role/link/";
@@ -114,15 +120,30 @@ class RoleControllerTest extends MockLoaderBase {
     }
 
     @Test
-    @DisplayName("Update the role")
-    void update() throws JsonProcessingException {
-        var role = getRole();
+    @DisplayName("Update role - Successfully")
+    void testUpdate() throws JsonProcessingException {
+        final var roleRequest = new RoleRequest();
+        roleRequest.setRole(getRole());
+        final var response = ResponseEntity.status(HttpStatus.ACCEPTED).body(roleRequest.getRole());
         //when:
-        Mockito.when(roleService.update(Mockito.anyString(), Mockito.any(Role.class))).thenReturn(ResponseEntity.status(HttpStatus.ACCEPTED).body(role));
+        Mockito.when(roleService.update(Mockito.anyString(), Mockito.<Role>any())).thenReturn(response);
         //then:
-        given().contentType(MediaType.APPLICATION_JSON_VALUE).body(objectMapper.writeValueAsString(getRoleRequest(role)))
-                .accept(MediaType.APPLICATION_JSON_VALUE).when().put(PATH_UPDATE.concat("1")).then().assertThat()
-                .statusCode(HttpStatus.ACCEPTED.value()).expect(MvcResult::getResponse);
+        given().contentType(MediaType.APPLICATION_JSON_VALUE).body(objectMapper.writeValueAsString(roleRequest))
+                .accept(MediaType.APPLICATION_JSON_VALUE).when().put(PATH.concat(roleRequest.getRole().getId()))
+                .then().assertThat().statusCode(HttpStatus.ACCEPTED.value()).expect(MvcResult::getResponse);
+    }
+
+    @Test
+    @DisplayName("Role not updated - NOT_FOUND")
+    void testUpdate_not_accepted() throws JsonProcessingException {
+        final var roleRequest = new RoleRequest();
+        roleRequest.setRole(getRole());
+        //when:
+        Mockito.when(roleService.update(Mockito.anyString(), Mockito.<Role>any())).thenReturn(ResponseEntity.notFound().build());
+        //then:
+        given().contentType(MediaType.APPLICATION_JSON_VALUE).body(objectMapper.writeValueAsString(roleRequest))
+                .accept(MediaType.APPLICATION_JSON_VALUE).when().put(PATH.concat(roleRequest.getRole().getId()))
+                .then().assertThat().statusCode(HttpStatus.NOT_FOUND.value()).expect(MvcResult::getResponse);
     }
 
     @Test
@@ -216,13 +237,15 @@ class RoleControllerTest extends MockLoaderBase {
     }
 
     private @NotNull Role getRole() {
+        final var roleId = UUID.randomUUID();
+        final var featureId = UUID.randomUUID();
         final var role = new Role();
         final var feature = new Feature();
-        feature.setId("1L");
+        feature.setId(featureId.toString());
         feature.setActive(true);
         feature.setName("Feature name");
         feature.setDescription("Feature description");
-        role.setId("1L");
+        role.setId(roleId.toString());
         role.setActive(true);
         role.setName("Role name");
         role.setFeatures(new ArrayList<>());

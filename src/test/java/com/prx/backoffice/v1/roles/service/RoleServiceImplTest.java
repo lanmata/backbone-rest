@@ -22,19 +22,14 @@ import com.prx.commons.pojo.Role;
 import com.prx.persistence.general.domains.FeatureEntity;
 import com.prx.persistence.general.domains.RoleEntity;
 import com.prx.persistence.general.domains.RoleFeatureEntity;
+import com.prx.persistence.general.domains.RoleFeaturePK;
 import com.prx.persistence.general.repositories.RoleFeatureRepository;
 import com.prx.persistence.general.repositories.RoleRepository;
 import jakarta.validation.constraints.NotNull;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -48,8 +43,6 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
 
 /**
  * RoleServiceImplTest.
@@ -85,14 +78,15 @@ class RoleServiceImplTest {
 
     @Test
     void find() {
+        final var roleId = UUID.randomUUID();
         var roleEntity = new RoleEntity();
         var featureEntity = new FeatureEntity();
         var roleFeatureEntity = new RoleFeatureEntity();
-        featureEntity.setId(UUID.fromString("1L"));
+        featureEntity.setId(roleId);
         featureEntity.setActive(true);
         featureEntity.setName("Feature name");
         featureEntity.setDescription("Feature description");
-        roleEntity.setId(UUID.fromString("1L"));
+        roleEntity.setId(roleId);
         roleEntity.setActive(true);
         roleEntity.setName("Role name");
         roleEntity.setDescription("Role description");
@@ -102,7 +96,7 @@ class RoleServiceImplTest {
         var optionalRole = Optional.of(roleEntity);
 
         Mockito.when(roleRepository.findById(Mockito.any(UUID.class))).thenReturn(optionalRole);
-        final var responseEntity = roleServiceImpl.find("50199e6a-155d-4067-9a40-2f62c87c2e55");
+        final var responseEntity = roleServiceImpl.find(roleId.toString());
         Assertions.assertNotNull(responseEntity);
     }
 
@@ -145,10 +139,11 @@ class RoleServiceImplTest {
      */
     @Test
     void testList3() {
+        final var roleId = UUID.randomUUID();
         RoleEntity roleEntity = new RoleEntity();
         roleEntity.setActive(true);
         roleEntity.setDescription("The characteristics of someone or something");
-        roleEntity.setId(UUID.fromString("123L"));
+        roleEntity.setId(roleId);
         roleEntity.setName("Name");
         roleEntity.setRoleFeatures(new HashSet<>());
         roleEntity.setUserRoleEntities(new HashSet<>());
@@ -156,21 +151,21 @@ class RoleServiceImplTest {
         ArrayList<RoleEntity> roleEntityList = new ArrayList<>();
         roleEntityList.add(roleEntity);
         Optional<List<RoleEntity>> ofResult = Optional.of(roleEntityList);
-        when(roleRepository.findAllById(any())).thenReturn(ofResult);
+        when(roleRepository.findAllByUserId(any())).thenReturn(ofResult);
 
         Role role = new Role();
         role.setActive(true);
         role.setDescription("The characteristics of someone or something");
         role.setFeatures(new ArrayList<>());
-        role.setId("2ba32a02-5f0f-42cf-b56d-37a4f3e95720");
+        role.setId(roleId.toString());
         role.setName("Name");
         when(roleMapper.toTarget(any())).thenReturn(role);
-        ResponseEntity<List<Role>> actualListResult = roleServiceImpl.list("123L");
+        ResponseEntity<List<Role>> actualListResult = roleServiceImpl.list(roleId.toString());
         assertEquals(1, Objects.requireNonNull(actualListResult.getBody()).size());
         assertTrue(actualListResult.hasBody());
         assertTrue(actualListResult.getHeaders().isEmpty());
         assertEquals(HttpStatus.OK, actualListResult.getStatusCode());
-        verify(roleRepository).findAllById(any());
+        verify(roleRepository).findAllByUserId(any());
         verify(roleMapper).toTarget(any());
     }
 
@@ -179,10 +174,11 @@ class RoleServiceImplTest {
      */
     @Test
     void testList4() {
+        final var roleId = UUID.randomUUID();
         RoleEntity roleEntity = new RoleEntity();
         roleEntity.setActive(true);
         roleEntity.setDescription("The characteristics of someone or something");
-        roleEntity.setId(UUID.fromString("123L"));
+        roleEntity.setId(roleId);
         roleEntity.setName("Name");
         roleEntity.setRoleFeatures(new HashSet<>());
         roleEntity.setUserRoleEntities(new HashSet<>());
@@ -190,7 +186,7 @@ class RoleServiceImplTest {
         RoleEntity roleEntity1 = new RoleEntity();
         roleEntity1.setActive(true);
         roleEntity1.setDescription("The characteristics of someone or something");
-        roleEntity1.setId(UUID.fromString("123L"));
+        roleEntity1.setId(roleId);
         roleEntity1.setName("Name");
         roleEntity1.setRoleFeatures(new HashSet<>());
         roleEntity1.setUserRoleEntities(new HashSet<>());
@@ -199,7 +195,7 @@ class RoleServiceImplTest {
         roleEntityList.add(roleEntity1);
         roleEntityList.add(roleEntity);
         Optional<List<RoleEntity>> ofResult = Optional.of(roleEntityList);
-        when(roleRepository.findAllById(any())).thenReturn(ofResult);
+        when(roleRepository.findAllByUserId(any())).thenReturn(ofResult);
 
         Role role = new Role();
         role.setActive(true);
@@ -208,12 +204,12 @@ class RoleServiceImplTest {
         role.setId("123L");
         role.setName("Name");
         when(roleMapper.toTarget((RoleEntity) any())).thenReturn(role);
-        ResponseEntity<List<Role>> actualListResult = roleServiceImpl.list("123L");
+        ResponseEntity<List<Role>> actualListResult = roleServiceImpl.list(roleId.toString());
         assertEquals(2, Objects.requireNonNull(actualListResult.getBody()).size());
         assertTrue(actualListResult.hasBody());
         assertTrue(actualListResult.getHeaders().isEmpty());
         assertEquals(HttpStatus.OK, actualListResult.getStatusCode());
-        verify(roleRepository).findAllById(any());
+        verify(roleRepository).findAllByUserId(any());
         verify(roleMapper, atLeast(1)).toTarget((RoleEntity) any());
     }
 
@@ -222,32 +218,53 @@ class RoleServiceImplTest {
      */
     @Test
     void testList5() {
-        when(roleRepository.findAllById(any())).thenReturn(Optional.empty());
+        final var roleId = UUID.randomUUID();
 
         Role role = new Role();
         role.setActive(true);
         role.setDescription("The characteristics of someone or something");
         role.setFeatures(new ArrayList<>());
-        role.setId("123L");
+        role.setId(roleId.toString());
         role.setName("Name");
+
+        RoleEntity roleEntity = new RoleEntity();
+        roleEntity.setActive(true);
+        roleEntity.setDescription("The characteristics of someone or something");
+        roleEntity.setId(roleId);
+        roleEntity.setName("Name");
+        roleEntity.setRoleFeatures(new HashSet<>());
+        roleEntity.setUserRoleEntities(new HashSet<>());
+
+        RoleEntity roleEntity1 = new RoleEntity();
+        roleEntity1.setActive(true);
+        roleEntity1.setDescription("The characteristics of someone or something");
+        roleEntity1.setId(roleId);
+        roleEntity1.setName("Name");
+        roleEntity1.setRoleFeatures(new HashSet<>());
+        roleEntity1.setUserRoleEntities(new HashSet<>());
+
+        Optional<List<RoleEntity>> ofResult = Optional.of(new ArrayList<>());
+        when(roleRepository.findAllByUserId(any())).thenReturn(ofResult);
         when(roleMapper.toTarget(any())).thenReturn(role);
-        ResponseEntity<List<Role>> actualListResult = roleServiceImpl.list("123L");
+        ResponseEntity<List<Role>> actualListResult = roleServiceImpl.list(roleId.toString());
         assertNull(actualListResult.getBody());
         assertEquals(HttpStatus.NOT_FOUND, actualListResult.getStatusCode());
         assertTrue(actualListResult.getHeaders().isEmpty());
-        verify(roleRepository).findAllById(any());
+        verify(roleRepository).findAllByUserId(any());
     }
 
     @Test
     void testCreate() {
+        final var roleId = UUID.randomUUID();
+        final var featureId = UUID.randomUUID();
         var roleEntity = new RoleEntity();
         var featureEntity = new FeatureEntity();
         var roleFeatureEntity = new RoleFeatureEntity();
-        featureEntity.setId(UUID.fromString("1L"));
+        featureEntity.setId(roleId);
         featureEntity.setActive(true);
         featureEntity.setName("Feature name");
         featureEntity.setDescription("Feature description");
-        roleEntity.setId(UUID.fromString("1L"));
+        roleEntity.setId(featureId);
         roleEntity.setActive(true);
         roleEntity.setName("Rol name");
         roleEntity.setDescription("Rol description");
@@ -267,55 +284,80 @@ class RoleServiceImplTest {
      * Method under test: {@link RoleServiceImpl#update(String, Role)}
      */
     @Test
-    @Disabled("TODO: Complete this test")
     void testUpdate() {
-        // TODO: Complete this test.
-        //   Reason: R013 No inputs found that don't throw a trivial exception.
-        //   Diffblue Cover tried to run the arrange/act section, but the method under
-        //   test threw
-        //   java.lang.IllegalArgumentException: Invalid UUID string: 42
-        //       at java.base/java.util.UUID.fromString1(UUID.java:280)
-        //       at java.base/java.util.UUID.fromString(UUID.java:258)
-        //       at com.prx.backoffice.v1.roles.service.RoleServiceImpl.update(RoleServiceImpl.java:141)
-        //   See https://diff.blue/R013 to resolve this issue.
-
+        final var roleId = UUID.randomUUID();
         Role role = new Role();
         role.setActive(true);
         role.setDescription("The characteristics of someone or something");
         role.setFeatures(new ArrayList<>());
-        role.setId("42");
+        role.setId(roleId.toString());
         role.setName("Name");
-        roleServiceImpl.update("42", role);
+        final var roleEntity = new RoleEntity();
+        roleEntity.setActive(true);
+        roleEntity.setDescription("The characteristics of someone or something");
+        roleEntity.setRoleFeatures(null);
+        roleEntity.setId(roleId);
+        roleEntity.setName("Name");
+        when(roleRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.of(roleEntity));
+        when(roleMapper.toSource(Mockito.<Role>any())).thenReturn(roleEntity);
+        when(roleMapper.toTarget(Mockito.<RoleEntity>any())).thenReturn(role);
+        when(roleRepository.save(Mockito.<RoleEntity>any())).thenReturn(roleEntity);
+        ResponseEntity<Role> response = roleServiceImpl.update(roleId.toString(), role);
+        assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
+        assertTrue(Objects.nonNull(response.getBody()));
+        assertEquals("Name", response.getBody().getName());
     }
 
     /**
      * Method under test: {@link RoleServiceImpl#update(String, Role)}
      */
     @Test
-    @Disabled("TODO: Complete this test")
     void testUpdate2() {
-        // TODO: Complete this test.
-        //   Reason: R013 No inputs found that don't throw a trivial exception.
-        //   Diffblue Cover tried to run the arrange/act section, but the method under
-        //   test threw
-        //   java.lang.IllegalArgumentException: Invalid UUID string: 42
-        //       at java.base/java.util.UUID.fromString1(UUID.java:280)
-        //       at java.base/java.util.UUID.fromString(UUID.java:258)
-        //       at com.prx.backoffice.v1.roles.service.RoleServiceImpl.update(RoleServiceImpl.java:141)
-        //   See https://diff.blue/R013 to resolve this issue.
+        final var featureId = UUID.randomUUID();
+        final var roleId = UUID.randomUUID();
+        final Role role = new Role();
+        final Feature feature = new Feature();
+        final var roleEntity = new RoleEntity();
+        final FeatureEntity featureEntity = new FeatureEntity();
+        final RoleFeaturePK roleFeaturePK = new RoleFeaturePK();
+        final RoleFeatureEntity roleFeatureEntity = new RoleFeatureEntity();
 
-        Role role = mock(Role.class);
-        doNothing().when(role).setActive(Mockito.<Boolean>any());
-        doNothing().when(role).setDescription(Mockito.<String>any());
-        doNothing().when(role).setFeatures(Mockito.<List<Feature>>any());
-        doNothing().when(role).setId(Mockito.<String>any());
-        doNothing().when(role).setName(Mockito.<String>any());
         role.setActive(true);
         role.setDescription("The characteristics of someone or something");
         role.setFeatures(new ArrayList<>());
-        role.setId("42");
+        role.setId(roleId.toString());
         role.setName("Name");
-        roleServiceImpl.update("42", role);
+        feature.setId(featureId.toString());
+        feature.setName("deeply");
+        feature.setDescription("Tobacco tub delivery milk increased.");
+        feature.setActive(true);
+
+        roleEntity.setActive(true);
+        roleEntity.setDescription("The characteristics of someone or something");
+        roleEntity.setRoleFeatures(null);
+        roleEntity.setId(roleId);
+        roleEntity.setName("Name");
+        featureEntity.setId(featureId);
+        featureEntity.setName("deeply");
+        featureEntity.setDescription("Tobacco tub delivery milk increased.");
+        featureEntity.setActive(true);
+        roleFeaturePK.setRoleId(roleEntity.getId());
+        roleFeaturePK.setFeatureId(featureEntity.getId());
+        roleFeatureEntity.setRoleFeaturePK(roleFeaturePK);
+        roleFeatureEntity.setActive(true);
+        roleFeatureEntity.setRole(roleEntity);
+        roleFeatureEntity.setFeature(featureEntity);
+        roleEntity.setRoleFeatures(new HashSet<>());
+        roleEntity.getRoleFeatures().add(roleFeatureEntity);
+
+        when(roleRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.of(roleEntity));
+        when(roleMapper.toSource(Mockito.<Role>any())).thenReturn(roleEntity);
+        when(roleMapper.toTarget(Mockito.<RoleEntity>any())).thenReturn(role);
+        when(roleRepository.save(Mockito.<RoleEntity>any())).thenReturn(roleEntity);
+        ResponseEntity<Role> response = roleServiceImpl.update(roleId.toString(), role);
+        assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
+        assertTrue(Objects.nonNull(response.getBody()));
+        assertEquals("Name", response.getBody().getName());
     }
 
     @Test
