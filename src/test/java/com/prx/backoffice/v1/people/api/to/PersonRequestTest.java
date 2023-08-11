@@ -35,14 +35,14 @@ class PersonRequestTest {
 		person.setBirthdate(LocalDate.of(1979, 4, 14));
 		person.setFirstName("Pepe");
 		person.setGender("M");
-		person.setId("1");
+		person.setId("b1c4fbd2-a6b1-4615-af78-d2a037f66d29");
 		person.setLastName("Perez");
 		person.setMiddleName("Peter");
 		personCreateRequest.setPerson(person);
 
 		assertAll(() -> assertNotNull(personCreateRequest),
 				() -> assertNotNull(personCreateRequest.getPerson()),
-				() -> assertEquals("1L", personCreateRequest.getPerson().getId()),
+				() -> assertEquals("b1c4fbd2-a6b1-4615-af78-d2a037f66d29", personCreateRequest.getPerson().getId()),
 				() -> assertNotNull(personCreateRequest.getPerson().getGender()),
 				() -> assertNotNull(personCreateRequest.getPerson().getBirthdate()),
 				() -> assertNotNull(personCreateRequest.getPerson().getFirstName()),

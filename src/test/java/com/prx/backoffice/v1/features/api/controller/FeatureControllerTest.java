@@ -17,10 +17,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.prx.backoffice.MockLoaderBase;
 import com.prx.backoffice.v1.features.api.to.FeatureRequest;
-import com.prx.backoffice.v1.features.mapper.FeatureMapperImpl;
 import com.prx.backoffice.v1.features.service.FeatureServiceImpl;
 import com.prx.commons.pojo.Feature;
-import com.prx.persistence.general.domains.FeatureEntity;
 import com.prx.persistence.general.repositories.FeatureRepository;
 import io.restassured.module.mockmvc.specification.MockMvcRequestSpecification;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,17 +31,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Optional;
 import java.util.UUID;
 
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 /**
  * FeatureControllerTest.
@@ -53,6 +51,9 @@ import static org.mockito.Mockito.when;
  * @since 11
  */
 class FeatureControllerTest extends MockLoaderBase {
+
+    @Autowired
+    private FeatureController featureController;
 
     @Autowired
     ObjectMapper objectMapper;
@@ -111,6 +112,18 @@ class FeatureControllerTest extends MockLoaderBase {
     }
 
     /**
+     * Method under test: {@link FeatureController#find(String)}
+     */
+    @Test
+    void testFind() throws Exception {
+        MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.get("/v1/features/find/{featureId}", "42");
+        ResultActions actualPerformResult = MockMvcBuilders.standaloneSetup(featureController)
+                .build()
+                .perform(requestBuilder);
+        actualPerformResult.andExpect(MockMvcResultMatchers.status().is(415));
+    }
+
+    /**
      * Method under test: {@link FeatureController#update(String, FeatureRequest)}
      */
     @Test
@@ -119,7 +132,7 @@ class FeatureControllerTest extends MockLoaderBase {
         final var featureRequest = getFeatureRequest();
         final var response = ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(new Feature());
         //when:
-        Mockito.when(featureService.update(Mockito.anyString(),  Mockito.any(Feature.class))).thenReturn(response);
+        Mockito.when(featureService.update(Mockito.anyString(), Mockito.any(Feature.class))).thenReturn(response);
         //then:
         given().contentType(MediaType.APPLICATION_JSON_VALUE).body(objectMapper.writeValueAsString(featureRequest))
                 .accept(MediaType.APPLICATION_JSON_VALUE).when().put(PATH.concat(featureId.toString()))
@@ -135,7 +148,7 @@ class FeatureControllerTest extends MockLoaderBase {
         final var featureRequest = getFeatureRequest();
         final var response = ResponseEntity.status(HttpStatus.ACCEPTED).body(featureRequest.getFeature());
         //when:
-        Mockito.when(featureService.update(Mockito.anyString(),  Mockito.any(Feature.class))).thenReturn(response);
+        Mockito.when(featureService.update(Mockito.anyString(), Mockito.any(Feature.class))).thenReturn(response);
         //then:
         given().contentType(MediaType.APPLICATION_JSON_VALUE).body(objectMapper.writeValueAsString(featureRequest))
                 .accept(MediaType.APPLICATION_JSON_VALUE).when().put(PATH.concat(featureId.toString()))

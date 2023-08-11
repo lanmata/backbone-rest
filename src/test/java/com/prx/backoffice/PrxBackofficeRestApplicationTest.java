@@ -31,9 +31,4 @@ import org.springframework.test.context.TestPropertySource;
 @TestPropertySource(properties = {"startup.beans.inspect=true", "logging.trace.enabled=true", "keycloak.realm=prx-access-validator"})
 class PrxBackofficeRestApplicationTest {
 
-    @Test
-    void testLoadContext() {
-        Assertions.assertTrue(true);
-    }
-
 }

@@ -50,12 +50,8 @@ public class FeatureController {
      */
     @Operation(description = "Realiza la busqueda da un feature")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.CREATED, description = "Feature encontrado creada")
-//            ,
-//            @ApiResponse(responseCode = "401", description = "Solicitante no tiene permisos, requiere autenticación"),
-//            @ApiResponse(responseCode = "404", description = "Feature no encontrado"),
-//            @ApiResponse(responseCode = "405", description = "Método no permitido"),
-//            @ApiResponse(responseCode = "500", description = "Error interno durante la creación del feature")
+            @ApiResponse(responseCode = MessageUtil.CREATED, description = "Feature encontrado creada"),
+            @ApiResponse(responseCode = MessageUtil.NOT_FOUND, description = "NOT FOUND")
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/find/{featureId}")
     public ResponseEntity<Feature> find(@Parameter(description = "Id de feature", required = true)
