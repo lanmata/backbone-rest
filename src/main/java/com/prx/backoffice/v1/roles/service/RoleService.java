@@ -18,7 +18,6 @@ import org.apache.commons.lang.NotImplementedException;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
-import java.util.UUID;
 
 /**
  * RolService.
@@ -32,10 +31,10 @@ public interface RoleService extends CrudService<Role> {
      * Realiza la búsqueda de un usuario a través del identificador de usuario. Retorna un objeto de tipo
      * {@link }
      *
-     * @param roleId {@link UUID}
+     * @param roleId {@link String}
      * @return Objeto de tipo {@link ResponseEntity}
      */
-    default ResponseEntity<Role> find(UUID roleId) {
+    default ResponseEntity<Role> find(String roleId) {
         throw new NotImplementedException();
     }
 
@@ -66,6 +65,16 @@ public interface RoleService extends CrudService<Role> {
      * @return Objeto de tipo {@link ResponseEntity}
      */
     default ResponseEntity<List<Role>> listByUser(String userId) {
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Lista un conjunto de roles.
+     * @param inactiveIncluded {@link Boolean}
+     * @param roleIds {@link List<String>}
+     * @return Objeto de tipo {@link ResponseEntity<List<Role>>}
+     */
+    default ResponseEntity<List<Role>> list(Boolean inactiveIncluded, List<String> roleIds) {
         throw new NotImplementedException();
     }
 

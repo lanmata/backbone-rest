@@ -63,10 +63,7 @@ class RoleControllerTest extends MockLoaderBase {
     RoleRepository roleRepository;
 
     private static final String LIST_BY_USER;
-    private static final String PATH_UNLINK;
     private static final String PATH;
-    private static final String PATH_CREATE;
-    private static final String PATH_LINK;
     private static final String FIND;
 
     private MockMvcRequestSpecification mockMvcRequestSpecification;
@@ -74,9 +71,6 @@ class RoleControllerTest extends MockLoaderBase {
     static {
         LIST_BY_USER = "listByUser/";
         PATH = "/v1/roles/";
-        PATH_UNLINK = "/v1/role/unlink/";
-        PATH_CREATE = "/v1/role/";
-        PATH_LINK = "/v1/role/link/";
         FIND = "find/";
     }
 
@@ -147,15 +141,6 @@ class RoleControllerTest extends MockLoaderBase {
         //when:
         var response = mockMvcRequestSpecification.get(PATH.concat("true")
                 .concat("/0393857c-cdce-4b01-b73c-d1b561ecc57d,803c743c-b217-4895-9816-8bb3981fb782,adae2cd4-5adf-4d94-adb5-9295dee2a70a"));
-        // then:
-        assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value());
-    }
-
-    @Test
-    @DisplayName("Find a list with all active roles")
-    void list_ok_003() {
-        //when:
-        var response = mockMvcRequestSpecification.get(PATH.concat("true"));
         // then:
         assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value());
     }

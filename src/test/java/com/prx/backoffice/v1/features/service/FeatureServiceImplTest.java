@@ -253,7 +253,7 @@ class FeatureServiceImplTest {
         assertNull(actualListResult.getBody());
         assertEquals(HttpStatus.NOT_FOUND, actualListResult.getStatusCode());
         assertTrue(actualListResult.getHeaders().isEmpty());
-        verify(featureRepository).findAllById(Mockito.<Iterable<UUID>>any());
+        verify(featureRepository).findByIdAndStatus(Mockito.<List<UUID>>any(), Mockito.<Boolean>any());
         verify(iterable).forEach(Mockito.<Consumer<FeatureEntity>>any());
     }
 

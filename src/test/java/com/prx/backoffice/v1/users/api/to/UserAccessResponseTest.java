@@ -10,7 +10,7 @@
  * In any event, this notice and the above copyright must always be included
  * verbatim with this file.
  */
-package com.prx.backoffice.to.user;
+package com.prx.backoffice.v1.users.api.to;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;

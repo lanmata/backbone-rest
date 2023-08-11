@@ -64,6 +64,23 @@ class RoleController {
 
     /**
      *
+     * @param includeInactive {@link boolean}
+     * @return {@link RoleCollectionResponse}
+     */
+    @Operation(description = "Busca los roles en base al estado de actividad")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = MessageUtil.OK, description = "Operación list realizada")
+    })
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/{includeInactive}/{roleIds}")
+    public ResponseEntity<List<Role>> list(@Parameter(description = "Incluye/excluye la obtención de roles inactivos.")
+                                               @PathVariable boolean includeInactive,
+                                           @Parameter(description = "Lista de roles requeridos.")
+                                           @PathVariable List<String> roleIds) {
+        return roleService.list(includeInactive, roleIds);
+    }
+
+    /**
+     *
      * @param roleCreateRequest {@link RoleRequest}
      * @return {@link Response}
      */
@@ -105,7 +122,7 @@ class RoleController {
             @ApiResponse(responseCode = MessageUtil.NOT_FOUND, description = "NOT FOUND")
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/listByUser/{userId}")
-    public ResponseEntity<List<Role>> listByUser(@PathVariable String userId) {
+    public ResponseEntity<List<Role>> list(@PathVariable String userId) {
         return roleService.listByUser(userId);
     }
 

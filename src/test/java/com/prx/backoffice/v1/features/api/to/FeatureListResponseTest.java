@@ -11,7 +11,7 @@
  * verbatim with this file.
  */
 
-package com.prx.backoffice.to.feature;
+package com.prx.backoffice.v1.features.api.to;
 
 import com.prx.backoffice.enums.keys.FeatureMessageKey;
 import com.prx.backoffice.v1.features.api.to.FeatureListResponse;
