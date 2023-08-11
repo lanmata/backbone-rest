@@ -11,7 +11,7 @@
  * verbatim with this file.
  */
 
-package com.prx.backoffice.to.feature;
+package com.prx.backoffice.v1.features.api.to;
 
 import com.prx.backoffice.enums.keys.FeatureMessageKey;
 import com.prx.backoffice.v1.features.api.to.FeatureResponse;
@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -36,6 +37,7 @@ public class FeatureResponseTest {
     public void gettersAndSetters() {
         final var featureResponse = new FeatureResponse();
         final var feature = new Feature();
+        feature.setId(UUID.randomUUID().toString());
         feature.setActive(true);
         feature.setDescription("Descripcion de feature");
         feature.setName("Nombre de feature");

@@ -126,7 +126,7 @@ class RoleServiceImplTest {
         roleEntity.setUserRoleEntities(new HashSet<>());
         roleEntityList.add(roleEntity);
         when(roleRepository.findAllByUserId(any())).thenReturn(Optional.of(roleEntityList));
-        ResponseEntity<List<Role>> actualListResult = roleServiceImpl.list("cc8f6d52-500d-4021-99c2-e53baafdc30b");
+        ResponseEntity<List<Role>> actualListResult = roleServiceImpl.listByUser("cc8f6d52-500d-4021-99c2-e53baafdc30b");
         List<Role> body = actualListResult.getBody();
         assertTrue(Objects.nonNull(body));
         assertEquals(HttpStatus.OK, actualListResult.getStatusCode());
@@ -160,7 +160,7 @@ class RoleServiceImplTest {
         role.setId(roleId.toString());
         role.setName("Name");
         when(roleMapper.toTarget(any())).thenReturn(role);
-        ResponseEntity<List<Role>> actualListResult = roleServiceImpl.list(roleId.toString());
+        ResponseEntity<List<Role>> actualListResult = roleServiceImpl.listByUser(roleId.toString());
         assertEquals(1, Objects.requireNonNull(actualListResult.getBody()).size());
         assertTrue(actualListResult.hasBody());
         assertTrue(actualListResult.getHeaders().isEmpty());
@@ -204,7 +204,7 @@ class RoleServiceImplTest {
         role.setId("123L");
         role.setName("Name");
         when(roleMapper.toTarget((RoleEntity) any())).thenReturn(role);
-        ResponseEntity<List<Role>> actualListResult = roleServiceImpl.list(roleId.toString());
+        ResponseEntity<List<Role>> actualListResult = roleServiceImpl.listByUser(roleId.toString());
         assertEquals(2, Objects.requireNonNull(actualListResult.getBody()).size());
         assertTrue(actualListResult.hasBody());
         assertTrue(actualListResult.getHeaders().isEmpty());
@@ -246,7 +246,7 @@ class RoleServiceImplTest {
         Optional<List<RoleEntity>> ofResult = Optional.of(new ArrayList<>());
         when(roleRepository.findAllByUserId(any())).thenReturn(ofResult);
         when(roleMapper.toTarget(any())).thenReturn(role);
-        ResponseEntity<List<Role>> actualListResult = roleServiceImpl.list(roleId.toString());
+        ResponseEntity<List<Role>> actualListResult = roleServiceImpl.listByUser(roleId.toString());
         assertNull(actualListResult.getBody());
         assertEquals(HttpStatus.NOT_FOUND, actualListResult.getStatusCode());
         assertTrue(actualListResult.getHeaders().isEmpty());
@@ -358,6 +358,115 @@ class RoleServiceImplTest {
         assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
         assertTrue(Objects.nonNull(response.getBody()));
         assertEquals("Name", response.getBody().getName());
+    }
+
+    /**
+     * Method under test: {@link RoleServiceImpl#listByUser(String)}
+     */
+    @Test
+    void testListByUser() {
+        final var roleId = UUID.randomUUID();
+        final var featureId = UUID.randomUUID();
+        final var userId = UUID.randomUUID();
+        Role role = new Role();
+        Feature feature = new Feature();
+        RoleEntity roleEntity = new RoleEntity();
+        FeatureEntity featureEntity = new FeatureEntity();
+        RoleFeatureEntity roleFeatureEntity = new RoleFeatureEntity();
+        RoleFeaturePK roleFeaturePK = new RoleFeaturePK();
+
+        role.setActive(true);
+        role.setDescription("The characteristics of someone or something");
+        role.setFeatures(new ArrayList<>());
+        role.setId(roleId.toString());
+        role.setName("Name");
+
+        feature.setId(featureId.toString());
+        feature.setName("deeply");
+        feature.setDescription("Tobacco tub delivery milk increased.");
+        feature.setActive(true);
+
+        roleEntity.setActive(true);
+        roleEntity.setDescription("The characteristics of someone or something");
+        roleEntity.setId(roleId);
+        roleEntity.setName("Name");
+
+        featureEntity.setId(featureId);
+        featureEntity.setName("deeply");
+        featureEntity.setDescription("Tobacco tub delivery milk increased.");
+        featureEntity.setActive(true);
+
+        roleFeaturePK.setRoleId(roleEntity.getId());
+        roleFeaturePK.setFeatureId(featureEntity.getId());
+
+        roleFeatureEntity.setRoleFeaturePK(roleFeaturePK);
+        roleFeatureEntity.setActive(true);
+        roleFeatureEntity.setRole(roleEntity);
+        roleFeatureEntity.setFeature(featureEntity);
+
+        roleEntity.setRoleFeatures(new HashSet<>());
+        roleEntity.getRoleFeatures().add(roleFeatureEntity);
+
+        when(roleRepository.findAllByUserId(Mockito.<UUID>any())).thenReturn(Optional.of(List.of(roleEntity)));
+        when(roleMapper.toTarget(Mockito.<RoleEntity>any())).thenReturn(role);
+        final var response = roleServiceImpl.listByUser(userId.toString());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(Objects.nonNull(response.getBody()));
+        assertEquals("Name", response.getBody().get(0).getName());
+    }
+
+    /**
+     * Method under test: {@link RoleServiceImpl#listByUser(String)}
+     */
+    @Test
+    void testListByUser_not_found() {
+        final var roleId = UUID.randomUUID();
+        final var featureId = UUID.randomUUID();
+        final var userId = UUID.randomUUID();
+        Role role = new Role();
+        Feature feature = new Feature();
+        RoleEntity roleEntity = new RoleEntity();
+        FeatureEntity featureEntity = new FeatureEntity();
+        RoleFeatureEntity roleFeatureEntity = new RoleFeatureEntity();
+        RoleFeaturePK roleFeaturePK = new RoleFeaturePK();
+
+        role.setActive(true);
+        role.setDescription("The characteristics of someone or something");
+        role.setFeatures(new ArrayList<>());
+        role.setId(roleId.toString());
+        role.setName("Name");
+
+        feature.setId(featureId.toString());
+        feature.setName("deeply");
+        feature.setDescription("Tobacco tub delivery milk increased.");
+        feature.setActive(true);
+
+        roleEntity.setActive(true);
+        roleEntity.setDescription("The characteristics of someone or something");
+        roleEntity.setId(roleId);
+        roleEntity.setName("Name");
+
+        featureEntity.setId(featureId);
+        featureEntity.setName("deeply");
+        featureEntity.setDescription("Tobacco tub delivery milk increased.");
+        featureEntity.setActive(true);
+
+        roleFeaturePK.setRoleId(roleEntity.getId());
+        roleFeaturePK.setFeatureId(featureEntity.getId());
+
+        roleFeatureEntity.setRoleFeaturePK(roleFeaturePK);
+        roleFeatureEntity.setActive(true);
+        roleFeatureEntity.setRole(roleEntity);
+        roleFeatureEntity.setFeature(featureEntity);
+
+        roleEntity.setRoleFeatures(new HashSet<>());
+        roleEntity.getRoleFeatures().add(roleFeatureEntity);
+
+        when(roleRepository.findAllByUserId(Mockito.<UUID>any())).thenReturn(Optional.empty());
+        when(roleMapper.toTarget(Mockito.<RoleEntity>any())).thenReturn(role);
+        final var response = roleServiceImpl.listByUser(userId.toString());
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertTrue(Objects.isNull(response.getBody()));
     }
 
     @Test

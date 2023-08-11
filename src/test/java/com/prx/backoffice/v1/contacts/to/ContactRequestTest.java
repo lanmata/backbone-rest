@@ -27,15 +27,15 @@ class ContactRequestTest {
         person.setBirthdate(LocalDate.of(1979, 4, 14));
         person.setFirstName("Pepe");
         person.setGender("M");
-        person.setId("1");
+        person.setId("a37c6dd5-0a86-4597-8da3-c374207f6437");
         person.setLastName("Perez");
         person.setMiddleName("Peter");
         contact.setPerson(person);
-        contactType.setId("1L");
+        contactType.setId("7d0cebb6-8ed3-4272-a178-241e3489408e");
         contactType.setActive(true);
         contactType.setName("Contact TST 001");
         contactType.setDescription("Contact description TST 001");
-        contact.setId("1");
+        contact.setId("e8e8a8cc-9493-4677-8c7e-2a09ef51f6ea");
         contact.setContent("Contact TST0 01");
         contact.setActive(true);
         contact.setContactType(contactType);
@@ -47,7 +47,7 @@ class ContactRequestTest {
 
         assertAll(() -> assertNotNull(contactRequest),
                 () -> assertNotNull(contactRequest.getContact()),
-                () -> assertEquals(1, contactRequest.getContact().getId()),
+                () -> assertEquals("e8e8a8cc-9493-4677-8c7e-2a09ef51f6ea", contactRequest.getContact().getId()),
                 () -> assertNotNull(contactRequest.getContact().getPerson()),
                 () -> assertNotNull(contactRequest.getContact().getContactType()),
                 () -> assertNotNull(contactRequest.getContact().getActive()),
