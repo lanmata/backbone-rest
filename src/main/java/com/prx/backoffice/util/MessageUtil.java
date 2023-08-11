@@ -56,6 +56,8 @@ public class MessageUtil {
     public static final String ACCEPTED = "202";
     public static final String NOT_FOUND = "404";
     public static final String NOT_ACCEPTABLE = "408";
+    public static final String BAD_REQUEST = "408";
+    public static final String UNPROCESSABLE_ENTITY = "408";
 
     public static final String LOG_PATH_SEPARATOR = "|";
     public static final String LOG_END_MSG = "Termina llamado al método ";

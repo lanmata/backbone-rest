@@ -18,6 +18,7 @@ import org.apache.commons.lang.NotImplementedException;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * RolService.
@@ -31,10 +32,12 @@ public interface RoleService extends CrudService<Role> {
      * Realiza la búsqueda de un usuario a través del identificador de usuario. Retorna un objeto de tipo
      * {@link }
      *
-     * @param roleId {@link String}
+     * @param roleId {@link UUID}
      * @return Objeto de tipo {@link ResponseEntity}
      */
-//    ResponseEntity<Role> find(Long roleId);
+    default ResponseEntity<Role> find(UUID roleId) {
+        throw new NotImplementedException();
+    }
 
     /**
      * Realiza la creación de un rol.
@@ -45,15 +48,6 @@ public interface RoleService extends CrudService<Role> {
     default ResponseEntity<Role> create(Role role) {
         throw new NotImplementedException();
     }
-
-    /**
-     * Vincula un rol con uno o mas features
-     *
-     * @param roleId {@link String}
-     * @param featureIdList {@link List} de tipo {@link String}
-     * @return Objeto de tipo {@link ResponseEntity}
-     */
-    ResponseEntity<Role> link(String roleId, List<String> featureIdList);
 
     /**
      * Actualiza los campos de nombre y descripción, y activa o inactiva el estado del {@link Role}.
@@ -67,32 +61,16 @@ public interface RoleService extends CrudService<Role> {
     }
 
     /**
-     * Lista un conjunto de roles en base a los id recibidos, el parametro booleano determina la obtención de roles
-     * activos y/o inactivos. Si el parametro {@code roles} es nulo o vacio, obtiene todos los roles existentes en base
-     * al parametro {@code includeActive}.
-     *
-     * @param includeActive {@link boolean}
-     * @param roles {@link List} de tipo {@link String}
-     * @return
-     */
-    ResponseEntity<List<Role>> list(boolean includeActive, List<String> roles);
-
-    /**
-     * Desvincula un rol con uno o mas features
-     *
-     * @param rolId {@link String}
-     * @param featureIdList {@link List} de tipo {@link String}
-     * @return Objeto de tipo {@link ResponseEntity}
-     */
-    ResponseEntity<Role> unlink(String rolId, List<String> featureIdList);
-
-    /**
      * Lista un conjunto de roles vinculados a un id de usuario
      * @param userId {@link String}
      * @return Objeto de tipo {@link ResponseEntity}
      */
-    default ResponseEntity<List<Role>> list(String userId) {
+    default ResponseEntity<List<Role>> listByUser(String userId) {
         throw new NotImplementedException();
     }
 
+    @Override
+    default ResponseEntity<Role> delete(String id, Role role) {
+        throw new NotImplementedException();
+    }
 }

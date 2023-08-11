@@ -13,7 +13,6 @@
 package com.prx.backoffice.v1.roles.service;
 
 import com.prx.backoffice.v1.features.mapper.FeatureMapper;
-import com.prx.backoffice.v1.features.service.FeatureService;
 import com.prx.backoffice.v1.roles.mapper.RoleMapper;
 import com.prx.commons.pojo.Feature;
 import com.prx.commons.pojo.Role;
@@ -29,7 +28,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * RolServiceImpl.
@@ -44,15 +42,13 @@ public class RoleServiceImpl implements RoleService {
 
 	private final RoleRepository roleRepository;
 	private final RoleFeatureRepository roleFeatureRepository;
-	private final FeatureService featureService;
 	private final RoleMapper roleMapper;
 	private final FeatureMapper featureMapper;
 
 	public RoleServiceImpl(RoleRepository roleRepository, RoleFeatureRepository roleFeatureRepository,
-						   FeatureService featureService, RoleMapper roleMapper, FeatureMapper featureMapper) {
+						   RoleMapper roleMapper, FeatureMapper featureMapper) {
 		this.roleRepository = roleRepository;
 		this.roleFeatureRepository = roleFeatureRepository;
-		this.featureService = featureService;
 		this.roleMapper = roleMapper;
 		this.featureMapper = featureMapper;
 	}
@@ -108,32 +104,6 @@ public class RoleServiceImpl implements RoleService {
 
 	/** {@inheritDoc} */
 	@Override
-	public ResponseEntity<Role> link(String roleId, List<String> featureIdList) {
-		LOGGER.info("Inicia vinculación de Rol con uno o mas features.");
-		final var roleEntity = roleRepository.findById(UUID.fromString(roleId)).orElseThrow();
-		//Filtra los feature eliminando los item que se encuentren vinculados previamente con el rol.
-		final var featureLinkNew = featureIdList.stream().filter(featureId ->
-				validFeatureInRole(roleEntity.getRoleFeatures(), featureId)).collect(Collectors.toList());
-		//Getting the features to being link with the role
-		final var listResponseEntity = featureService.list(featureLinkNew, false);
-		if (Objects.isNull(roleEntity.getRoleFeatures())) {
-			LOGGER.info("El Rol no tiene features previamente vinculados.");
-			roleEntity.setRoleFeatures(new HashSet<>());
-		}
-		if(Objects.isNull(listResponseEntity)){
-			LOGGER.info("Se ha vinculado el Rol con los features indicados.");
-			return ResponseEntity.noContent().build();
-		}
-		if(Objects.isNull(listResponseEntity.getBody()) || listResponseEntity.getBody().isEmpty()) {
-			return ResponseEntity.noContent().build();
-		} else {
-            roleEntity.setRoleFeatures(updateRoleFeatureLink(listResponseEntity.getBody(), roleEntity));
-			return new ResponseEntity<>(roleMapper.toTarget(roleRepository.save(roleEntity)), HttpStatus.CREATED);
-		}
-	}
-
-	/** {@inheritDoc} */
-	@Override
 	public ResponseEntity<Role> update(String roleId, Role role) {
 		LOGGER.info("Inicia la actualización del role.");
 		final ResponseEntity<Role> roleResponseEntity;
@@ -174,57 +144,10 @@ public class RoleServiceImpl implements RoleService {
 		}
 	}
 
-	@Override
-	public ResponseEntity<Role> delete(String rolId, Role role) {
-		return null;
-	}
-
 	/** {@inheritDoc} */
 	@Override
-	public ResponseEntity<List<Role>> list(boolean includeInactive, List<String> roles) {
-		ResponseEntity<List<Role>> responseEntity;
-		final var roleList = new ArrayList<Role>();
-		Optional<List<RoleEntity>> optionalRoleEntityList;
-
-		if (null == roles || roles.isEmpty()) {
-			LOGGER.info("Inicia la búsqueda de los roles.");
-			optionalRoleEntityList = findAll(includeInactive);
-		} else {
-			LOGGER.info("Ids pendientes por buscar en DDBB {}.", roles);
-			optionalRoleEntityList = findAll(includeInactive, roles);
-		}
-
-		if(optionalRoleEntityList.isPresent()){
-			optionalRoleEntityList
-					.ifPresent(roleEntities -> roleEntities
-							.forEach(roleEntity -> {
-								var role = roleMapper.toTarget(roleEntity);
-								roleList.add(role);
-							}));
-		}
-		responseEntity = roleList.isEmpty()?  ResponseEntity.notFound().build() : ResponseEntity.ok(sort(roleList));
-		LOGGER.info(responseEntity.getStatusCode() + "| roles {}", (null == roles) ? "": roles.toString());
-		return responseEntity;
-	}
-
-	/** {@inheritDoc} */
-	@Override
-	public ResponseEntity<Role> unlink(String roleId, List<String> featureIdList) {
-		LOGGER.info("Inicia la desvinculación del rol y los features {}", featureIdList.toArray());
-		final ResponseEntity<Role> roleResponseEntity;
-		final RoleEntity roleEntity = roleRepository.findById(UUID.fromString(roleId)).orElseThrow();
-		roleEntity.getRoleFeatures().forEach(roleFeatureEntity -> roleFeatureEntity.setActive(false));
-		roleRepository.save(roleEntity);
-		roleResponseEntity = ResponseEntity.accepted().body(roleMapper.toTarget(roleEntity));
-		//TODO - Falta cubrir casos bordes para el metodo unlink
-		LOGGER.info(roleResponseEntity.getStatusCode().toString());
-		return roleResponseEntity;
-	}
-
-	/** {@inheritDoc} */
-	@Override
-	public ResponseEntity<List<Role>> list(String userId) {
-		LOGGER.info("Inicia la búsqueda de rol paa el usuario con id {}", userId);
+	public ResponseEntity<List<Role>> listByUser(String userId) {
+		LOGGER.info("STARTED - Find role by user id {}", userId);
 		final ResponseEntity<List<Role>> roleResponseEntity;
 		final var result = roleRepository.findAllByUserId(UUID.fromString(userId));
 		final var roleList = new ArrayList<Role>();

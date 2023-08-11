@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -36,6 +37,7 @@ public class FeatureResponseTest {
     public void gettersAndSetters() {
         final var featureResponse = new FeatureResponse();
         final var feature = new Feature();
+        feature.setId(UUID.randomUUID().toString());
         feature.setActive(true);
         feature.setDescription("Descripcion de feature");
         feature.setName("Nombre de feature");

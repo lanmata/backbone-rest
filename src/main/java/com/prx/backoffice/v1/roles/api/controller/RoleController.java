@@ -15,7 +15,6 @@ package com.prx.backoffice.v1.roles.api.controller;
 import com.prx.backoffice.util.MessageUtil;
 import com.prx.backoffice.v1.roles.api.to.RoleCollectionResponse;
 import com.prx.backoffice.v1.roles.api.to.RoleFindResponse;
-import com.prx.backoffice.v1.roles.api.to.RoleLinkRequest;
 import com.prx.backoffice.v1.roles.api.to.RoleRequest;
 import com.prx.backoffice.v1.roles.service.RoleService;
 import com.prx.commons.pojo.Role;
@@ -54,7 +53,8 @@ class RoleController {
      */
     @Operation          (description = "Look for a roles")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK, description = "Role founded")
+            @ApiResponse(responseCode = MessageUtil.OK, description = "Role founded"),
+            @ApiResponse(responseCode = MessageUtil.NOT_FOUND, description = "NOT FOUND")
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/find/{roleId}")
     public ResponseEntity<Role> find(@Parameter(description = "Request to find a role", required = true)
@@ -69,7 +69,9 @@ class RoleController {
      */
     @Operation(description = "Create a role")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK, description = "Role created.")
+            @ApiResponse(responseCode = MessageUtil.OK, description = "Role created."),
+            @ApiResponse(responseCode = MessageUtil.BAD_REQUEST, description = "Role null."),
+            @ApiResponse(responseCode = MessageUtil.UNPROCESSABLE_ENTITY, description = "Role with content bad.")
     })
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/")
     public ResponseEntity<Role> create(@Parameter(description = "Role properties", required = true)
@@ -84,72 +86,12 @@ class RoleController {
      */
     @Operation(description = "Update a role")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK, description = "Update a role")
+            @ApiResponse(responseCode = MessageUtil.OK, description = "Update a role"),
+            @ApiResponse(responseCode = MessageUtil.NOT_FOUND, description = "NOT FOUND")
     })
     @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/{roleId}")
     public ResponseEntity<Role> update(@PathVariable(value = "roleId") String roleId, @RequestBody final RoleRequest roleRequest){
         return roleService.update(roleId, roleRequest.getRole());
-    }
-
-    /**
-     *
-     * @param includeInactive {@link boolean}
-     * @param roles {@link Integer}
-     * @return {@link RoleCollectionResponse}
-     */
-    @Operation(description = "Busca los roles en base a un conjunto de id y estado de actividad")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK, description = "Operación list realizada")
-    })
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/{includeInactive}/{roles}")
-    public ResponseEntity<List<Role>> list(@Parameter(description = "Incluye/excluye la obtención de roles inactivos")
-                                           @PathVariable boolean includeInactive,
-                                           @Parameter(description = "Id de roles para a ser buscados ")
-                                           @PathVariable List<String> roles){
-        return roleService.list(includeInactive, roles);
-    }
-
-    /**
-     *
-     * @param roleLinkRequest {@link RoleRequest}
-     * @return {@link Response}
-     */
-    @Operation(description = "Unlink a role with one or more features")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK, description = "Unlink completed")
-    })
-    @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/unlink/{idRole}")
-    public ResponseEntity<Role> unlink(@PathVariable String idRole, @RequestBody final RoleLinkRequest roleLinkRequest){
-        return roleService.unlink(idRole, roleLinkRequest.getFeatureIdList());
-    }
-
-    /**
-     *
-     * @param roleLinkRequest {@link RoleRequest}
-     * @return {@link Response}
-     */
-    @Operation(description = "Link a role with one or more features.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK, description = "Operación link realizada")
-    })
-    @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/link/{idRole}")
-    public ResponseEntity<Role> link(@PathVariable String idRole, @RequestBody final RoleLinkRequest roleLinkRequest){
-        return roleService.link(idRole, roleLinkRequest.getFeatureIdList());
-    }
-
-    /**
-     *
-     * @param includeInactive {@link boolean}
-     * @return {@link RoleCollectionResponse}
-     */
-    @Operation(description = "Busca los roles en base al estado de actividad")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK, description = "Operación list realizada")
-    })
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/{includeInactive}")
-    public ResponseEntity<List<Role>> list(@Parameter(description = "Incluye/excluye la obtención de roles inactivos")
-                                           @PathVariable boolean includeInactive) {
-        return roleService.list(includeInactive, null);
     }
 
     /**
@@ -159,22 +101,12 @@ class RoleController {
      */
     @Operation(description = "Busca los roles en base al id de un usuario")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK, description = "Operación list realizada")
+            @ApiResponse(responseCode = MessageUtil.OK, description = "Operación list realizada"),
+            @ApiResponse(responseCode = MessageUtil.NOT_FOUND, description = "NOT FOUND")
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/listByUser/{userId}")
-    public ResponseEntity<List<Role>> list(@PathVariable String userId) {
-        return roleService.list(userId);
+    public ResponseEntity<List<Role>> listByUser(@PathVariable String userId) {
+        return roleService.listByUser(userId);
     }
-
-//    private RoleCollectionResponse getRoleCollectioResponse(MessageActivity<List<Role>> messageActivity){
-//        log.info("Inicia la conversion de MessageActivity a RoleCollectionResponse");
-//        final var roleCollectionResponse = new RoleCollectionResponse();
-//        roleCollectionResponse.setCode(messageActivity.getCode());
-//        roleCollectionResponse.setMessage(messageActivity.getMessage());
-//        roleCollectionResponse.setRoles(messageActivity.getObjectResponse());
-//        roleCollectionResponse.setDateTime(LocalDateTime.now(ZoneId.systemDefault()));
-//        log.info("Termina la conversion de MessageActivity a RoleCollectionResponse");
-//        return roleCollectionResponse;
-//    }
 
 }
