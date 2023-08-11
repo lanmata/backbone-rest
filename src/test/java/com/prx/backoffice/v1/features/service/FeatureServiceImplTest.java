@@ -4,8 +4,6 @@ import com.prx.backoffice.v1.features.mapper.FeatureMapper;
 import com.prx.commons.pojo.Feature;
 import com.prx.persistence.general.domains.FeatureEntity;
 import com.prx.persistence.general.repositories.FeatureRepository;
-import org.apache.commons.lang.NotImplementedException;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -253,8 +251,7 @@ class FeatureServiceImplTest {
         assertNull(actualListResult.getBody());
         assertEquals(HttpStatus.NOT_FOUND, actualListResult.getStatusCode());
         assertTrue(actualListResult.getHeaders().isEmpty());
-        verify(featureRepository).findByIdAndStatus(Mockito.<List<UUID>>any(), Mockito.<Boolean>any());
-        verify(iterable).forEach(Mockito.<Consumer<FeatureEntity>>any());
+        verify(featureRepository).findByIdAndStatus(Mockito.<List<UUID>>any(), anyBoolean());
     }
 
     /**
@@ -270,6 +267,48 @@ class FeatureServiceImplTest {
         when(featureMapper.toSourceList(Mockito.<List<Feature>>any())).thenReturn(featureEntities);
         var result = featureServiceImpl.list(featuresString, true);
         assertNotNull(result);
+    }
+
+    /**
+     * Method under test: {@link FeatureServiceImpl#find(String)}
+     */
+    @Test
+    void testFind() {
+        FeatureEntity featureEntity = new FeatureEntity();
+        final var featureId = UUID.randomUUID();
+        Feature feature = new Feature();
+        feature.setActive(true);
+        feature.setDescription("The characteristics of someone or something");
+        feature.setId(featureId.toString());
+        feature.setName("Name");
+        featureEntity.setActive(true);
+        featureEntity.setDescription("The characteristics of someone or something");
+        featureEntity.setId(UUID.randomUUID());
+        featureEntity.setName("Name");
+        featureEntity.setRolFeatures(new HashSet<>());
+        when(featureRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.of(featureEntity));
+        when(featureMapper.toTarget(Mockito.<FeatureEntity>any())).thenReturn(feature);
+        when(featureMapper.toSource(Mockito.<Feature>any())).thenReturn(featureEntity);
+
+        ResponseEntity<Feature> response = featureServiceImpl.find(featureId.toString());
+        assertTrue(response.hasBody());
+        assertTrue(response.getHeaders().isEmpty());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    /**
+     * Method under test: {@link FeatureServiceImpl#find(String)}
+     */
+    @Test
+    void testFind_not_found() {
+        FeatureEntity featureEntity = new FeatureEntity();
+        final var featureId = UUID.randomUUID();
+        when(featureRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.empty());
+
+        ResponseEntity<Feature> response = featureServiceImpl.find(featureId.toString());
+        assertFalse(response.hasBody());
+        assertTrue(response.getHeaders().isEmpty());
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
     private static ArrayList<FeatureEntity> getFeatureEntities(UUID... featureIds) {

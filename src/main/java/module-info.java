@@ -71,7 +71,7 @@ module prx.backbone.rest {
     opens com.prx.backoffice.v1.contacttypes.api to spring.core;
     opens com.prx.backoffice.v1.features.mapper to spring.beans, spring.core;
     opens com.prx.backoffice.v1.features.service to spring.beans, spring.core;
-    opens com.prx.backoffice.v1.features.api.controller to spring.core;
+    opens com.prx.backoffice.v1.features.api.controller to spring.beans, spring.core;
     opens com.prx.backoffice.v1.features.api.to to spring.beans, spring.core;
     opens com.prx.backoffice.v1.people.mapper to spring.beans, spring.core;
     opens com.prx.backoffice.v1.people.service to spring.beans, spring.core;

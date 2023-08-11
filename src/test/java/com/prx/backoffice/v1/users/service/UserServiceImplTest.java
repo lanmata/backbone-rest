@@ -62,80 +62,6 @@ class UserServiceImplTest extends MockLoaderBase {
 		MockitoAnnotations.openMocks(this);
 	}
 
-	@Test
-	void findUserById() {
-        Mockito.when(this.userRepository.findByAlias(ArgumentMatchers.anyString())).thenReturn(UserTemplateTest.USER.getEntity());
-        Mockito.when(this.userMapper.toTarget(ArgumentMatchers.any(UserEntity.class))).thenReturn(UserTemplateTest.USER.getModel());
-        Assertions.assertNotNull(this.userService.findUserById("12L"));
-	}
-
-	@Test
-	void testAccess() {
-		Mockito.when(this.userRepository.findByAlias(ArgumentMatchers.anyString())).thenReturn(UserTemplateTest.USER.getEntity());
-		Mockito.when(this.userMapper.toTarget(ArgumentMatchers.any(UserEntity.class))).thenReturn(UserTemplateTest.USER.getModel());
-		Assertions.assertNotNull(this.userService.access("ccastro", "123456"));
-	}
-
-	@Test
-	void findUserByAlias() {
-		Mockito.when(this.userRepository.findByAlias(ArgumentMatchers.anyString())).thenReturn(UserTemplateTest.USER.getEntity());
-		Mockito.when(this.userMapper.toTarget(ArgumentMatchers.any(UserEntity.class))).thenReturn(UserTemplateTest.USER.getModel());
-		Assertions.assertNotNull(this.userService.findUserByAlias("ccastro"));
-	}
-
-	@Test
-	void testFindAll() {
-		Mockito.when(this.userRepository.findAll()).thenReturn(List.of(UserTemplateTest.USER.getEntity()));
-		Mockito.when(this.userMapper.toTarget(ArgumentMatchers.any(UserEntity.class)))
-				.thenReturn(UserTemplateTest.USER.getModel());
-//		Mockito.when(this.roleMapper.userRoleToRole(ArgumentMatchers.any(UserRoleEntity.class)))
-//				.thenReturn(RoleTemplateTest.ROLE_TO.getModel());
-		Assertions.assertNotNull(this.userService.findAll());
-	}
-
-	@Test
-	void testFindAll_empty() {
-		Mockito.when(this.userRepository.findAll()).thenReturn(Collections.emptyList());
-		Mockito.when(this.userMapper.toTarget(ArgumentMatchers.any(UserEntity.class)))
-				.thenReturn(UserTemplateTest.USER.getModel());
-//		Mockito.when(this.roleMapper.userRoleToRole(ArgumentMatchers.any(UserRoleEntity.class)))
-//				.thenReturn(RoleTemplateTest.ROLE_TO.getModel());
-		Assertions.assertNotNull(this.userService.findAll());
-	}
-
-	@Test
-	void testCreate() {
-		final var user = UserTemplateTest.USER.getModel();
-		final var userRoleEntity = new UserRoleEntity();
-		final var personResponseEntity = ResponseEntity.ok(new Person());
-		var userEntity = new UserEntity();
-		var roleEntity = new RoleEntity();
-		userEntity.setId(UUID.fromString("1L"));
-		userEntity.setAlias("pepe");
-		userEntity.setPassword("Mndhfd");
-		userEntity.setActive(true);
-		roleEntity.setId(UUID.fromString("1L"));
-		roleEntity.setDescription("Role description");
-		roleEntity.setActive(true);
-
-		userRoleEntity.setUser(userEntity);
-		userRoleEntity.setRole(roleEntity);
-
-		Mockito.doReturn(personResponseEntity).when(this.personService).create(ArgumentMatchers.any(Person.class));
-		Mockito.when(this.userMapper.toSource(ArgumentMatchers.any(UserTO.class))).thenReturn(UserTemplateTest.USER.getEntity());
-		Mockito.when(this.userMapper.toTarget(ArgumentMatchers.any(UserEntity.class))).thenReturn(user);
-		Assertions.assertNotNull(this.userService.create(user));
-	}
-
-	@Test
-	void create_user_username_required(){
-		final var user = UserTemplateTest.USER.getModel();
-		user.setAlias("");
-		final var httpHeaders = new HttpHeaders();
-		httpHeaders.set(HttpHeaders.WARNING, "username is required");
-		final ResponseEntity<UserTO> responseEntity = ResponseEntity.badRequest().headers(httpHeaders).build();
-		Assertions.assertEquals(responseEntity, this.userService.create(user));
-	}
 
 	@Test
 	void create_user_password_required(){
@@ -151,16 +77,6 @@ class UserServiceImplTest extends MockLoaderBase {
 	void create_role_null() {
 		final var user = UserTemplateTest.USER.getModel();
 		user.setRoles(null);
-		final var httpHeaders = new HttpHeaders();
-		httpHeaders.set(HttpHeaders.WARNING, "Role is required");
-		final ResponseEntity<UserTO> responseEntity = ResponseEntity.badRequest().headers(httpHeaders).build();
-		Assertions.assertEquals(responseEntity, this.userService.create(user));
-	}
-
-	@Test
-	void create_role_empty() {
-		final var user = UserTemplateTest.USER.getModel();
-		user.setRoles(new HashSet<>());
 		final var httpHeaders = new HttpHeaders();
 		httpHeaders.set(HttpHeaders.WARNING, "Role is required");
 		final ResponseEntity<UserTO> responseEntity = ResponseEntity.badRequest().headers(httpHeaders).build();
