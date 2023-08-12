@@ -75,6 +75,9 @@ public interface RoleMapper {
             roleEntity.getRoleFeatures().forEach(roleFeatureEntity -> {
                 var feature = new Feature();
                 feature.setId(roleFeatureEntity.getFeature().getId().toString());
+                feature.setName(roleFeatureEntity.getFeature().getName());
+                feature.setDescription(roleFeatureEntity.getFeature().getDescription());
+                feature.setActive(roleFeatureEntity.getFeature().getActive());
                 role.getFeatures().add(feature);
             });
         }

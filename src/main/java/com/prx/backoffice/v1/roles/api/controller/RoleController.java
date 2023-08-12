@@ -53,8 +53,8 @@ class RoleController {
      */
     @Operation          (description = "Look for a roles")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK, description = "Role founded"),
-            @ApiResponse(responseCode = MessageUtil.NOT_FOUND, description = "NOT FOUND")
+            @ApiResponse(responseCode = MessageUtil.OK, description = MessageUtil.OK_VALUE),
+            @ApiResponse(responseCode = MessageUtil.NOT_FOUND, description = MessageUtil.NOT_FOUND)
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/find/{roleId}")
     public ResponseEntity<Role> find(@Parameter(description = "Request to find a role", required = true)
@@ -67,14 +67,15 @@ class RoleController {
      * @param includeInactive {@link boolean}
      * @return {@link RoleCollectionResponse}
      */
-    @Operation(description = "Busca los roles en base al estado de actividad")
+    @Operation(description = "List Roles by status and role id.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK, description = "Operación list realizada")
+            @ApiResponse(responseCode = MessageUtil.OK, description = MessageUtil.OK_VALUE),
+            @ApiResponse(responseCode = MessageUtil.NOT_FOUND, description = MessageUtil.NOT_FOUND)
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/{includeInactive}/{roleIds}")
-    public ResponseEntity<List<Role>> list(@Parameter(description = "Incluye/excluye la obtención de roles inactivos.")
+    public ResponseEntity<List<Role>> list(@Parameter(description = "Include/exclude inactive roles.")
                                                @PathVariable boolean includeInactive,
-                                           @Parameter(description = "Lista de roles requeridos.")
+                                           @Parameter(description = "Role list requested.")
                                            @PathVariable List<String> roleIds) {
         return roleService.list(includeInactive, roleIds);
     }
@@ -86,7 +87,7 @@ class RoleController {
      */
     @Operation(description = "Create a role")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK, description = "Role created."),
+            @ApiResponse(responseCode = MessageUtil.OK, description = MessageUtil.OK_VALUE),
             @ApiResponse(responseCode = MessageUtil.BAD_REQUEST, description = "Role null."),
             @ApiResponse(responseCode = MessageUtil.UNPROCESSABLE_ENTITY, description = "Role with content bad.")
     })
@@ -103,8 +104,8 @@ class RoleController {
      */
     @Operation(description = "Update a role")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK, description = "Update a role"),
-            @ApiResponse(responseCode = MessageUtil.NOT_FOUND, description = "NOT FOUND")
+            @ApiResponse(responseCode = MessageUtil.OK, description = MessageUtil.OK_VALUE),
+            @ApiResponse(responseCode = MessageUtil.NOT_FOUND, description = MessageUtil.NOT_FOUND)
     })
     @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/{roleId}")
     public ResponseEntity<Role> update(@PathVariable(value = "roleId") String roleId, @RequestBody final RoleRequest roleRequest){
@@ -116,10 +117,10 @@ class RoleController {
      * @param userId {@link int}
      * @return Objeto de tipo {@link RoleCollectionResponse}
      */
-    @Operation(description = "Busca los roles en base al id de un usuario")
+    @Operation(description = "List Roles by Id")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK, description = "Operación list realizada"),
-            @ApiResponse(responseCode = MessageUtil.NOT_FOUND, description = "NOT FOUND")
+            @ApiResponse(responseCode = MessageUtil.OK, description = MessageUtil.OK_VALUE),
+            @ApiResponse(responseCode = MessageUtil.NOT_FOUND, description = MessageUtil.NOT_FOUND)
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/listByUser/{userId}")
     public ResponseEntity<List<Role>> list(@PathVariable String userId) {

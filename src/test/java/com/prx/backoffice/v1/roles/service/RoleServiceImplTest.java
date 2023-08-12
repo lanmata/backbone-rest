@@ -26,7 +26,12 @@ import com.prx.persistence.general.domains.RoleFeaturePK;
 import com.prx.persistence.general.repositories.RoleFeatureRepository;
 import com.prx.persistence.general.repositories.RoleRepository;
 import jakarta.validation.constraints.NotNull;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
@@ -42,6 +47,9 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 /**
@@ -104,11 +112,22 @@ class RoleServiceImplTest {
     void list() {
         final var roles = new ArrayList<RoleEntity>();
         final Optional<List<RoleEntity>> rolesOption = Optional.of(roles);
-        Mockito.when(roleRepository.findAllById(Mockito.anyList())).thenReturn(rolesOption);
+        Mockito.when(roleRepository.findById(Mockito.anyList())).thenReturn(rolesOption);
         final var response = roleServiceImpl.list("18e4914b-f1f0-4c33-8559-944cf36b4b99",
                 "e255e868-80f2-4161-ab9d-25f47c913cf8", "b4256add-939d-45db-a491-0fb38ad37d60",
                 "87b036e8-a332-4960-8d9f-fb88530ca2bd");
         Assertions.assertNotNull(response);
+    }
+
+    /**
+     * Method under test: {@link RoleServiceImpl#list(Boolean, List)}
+     */
+    @Test
+    void testList6() {
+        ResponseEntity<List<Role>> actualListResult = roleServiceImpl.list(true, new ArrayList<>());
+        assertNull(actualListResult.getBody());
+        assertEquals(400, actualListResult.getStatusCodeValue());
+        assertTrue(actualListResult.getHeaders().isEmpty());
     }
 
     /**
@@ -125,13 +144,13 @@ class RoleServiceImplTest {
         roleEntity.setRoleFeatures(new HashSet<>());
         roleEntity.setUserRoleEntities(new HashSet<>());
         roleEntityList.add(roleEntity);
-        when(roleRepository.findAllByUserId(any())).thenReturn(Optional.of(roleEntityList));
+        when(roleRepository.findByUserId(any())).thenReturn(Optional.of(roleEntityList));
         ResponseEntity<List<Role>> actualListResult = roleServiceImpl.listByUser("cc8f6d52-500d-4021-99c2-e53baafdc30b");
         List<Role> body = actualListResult.getBody();
         assertTrue(Objects.nonNull(body));
         assertEquals(HttpStatus.OK, actualListResult.getStatusCode());
         assertTrue(actualListResult.getHeaders().isEmpty());
-        verify(roleRepository).findAllByUserId(any());
+        verify(roleRepository).findByUserId(any());
     }
 
     /**
@@ -151,7 +170,7 @@ class RoleServiceImplTest {
         ArrayList<RoleEntity> roleEntityList = new ArrayList<>();
         roleEntityList.add(roleEntity);
         Optional<List<RoleEntity>> ofResult = Optional.of(roleEntityList);
-        when(roleRepository.findAllByUserId(any())).thenReturn(ofResult);
+        when(roleRepository.findByUserId(any())).thenReturn(ofResult);
 
         Role role = new Role();
         role.setActive(true);
@@ -165,7 +184,7 @@ class RoleServiceImplTest {
         assertTrue(actualListResult.hasBody());
         assertTrue(actualListResult.getHeaders().isEmpty());
         assertEquals(HttpStatus.OK, actualListResult.getStatusCode());
-        verify(roleRepository).findAllByUserId(any());
+        verify(roleRepository).findByUserId(any());
         verify(roleMapper).toTarget(any());
     }
 
@@ -195,7 +214,7 @@ class RoleServiceImplTest {
         roleEntityList.add(roleEntity1);
         roleEntityList.add(roleEntity);
         Optional<List<RoleEntity>> ofResult = Optional.of(roleEntityList);
-        when(roleRepository.findAllByUserId(any())).thenReturn(ofResult);
+        when(roleRepository.findByUserId(any())).thenReturn(ofResult);
 
         Role role = new Role();
         role.setActive(true);
@@ -209,7 +228,7 @@ class RoleServiceImplTest {
         assertTrue(actualListResult.hasBody());
         assertTrue(actualListResult.getHeaders().isEmpty());
         assertEquals(HttpStatus.OK, actualListResult.getStatusCode());
-        verify(roleRepository).findAllByUserId(any());
+        verify(roleRepository).findByUserId(any());
         verify(roleMapper, atLeast(1)).toTarget((RoleEntity) any());
     }
 
@@ -244,13 +263,13 @@ class RoleServiceImplTest {
         roleEntity1.setUserRoleEntities(new HashSet<>());
 
         Optional<List<RoleEntity>> ofResult = Optional.of(new ArrayList<>());
-        when(roleRepository.findAllByUserId(any())).thenReturn(ofResult);
+        when(roleRepository.findByUserId(any())).thenReturn(ofResult);
         when(roleMapper.toTarget(any())).thenReturn(role);
         ResponseEntity<List<Role>> actualListResult = roleServiceImpl.listByUser(roleId.toString());
         assertNull(actualListResult.getBody());
         assertEquals(HttpStatus.NOT_FOUND, actualListResult.getStatusCode());
         assertTrue(actualListResult.getHeaders().isEmpty());
-        verify(roleRepository).findAllByUserId(any());
+        verify(roleRepository).findByUserId(any());
     }
 
     @Test
@@ -407,7 +426,7 @@ class RoleServiceImplTest {
         roleEntity.setRoleFeatures(new HashSet<>());
         roleEntity.getRoleFeatures().add(roleFeatureEntity);
 
-        when(roleRepository.findAllByUserId(Mockito.<UUID>any())).thenReturn(Optional.of(List.of(roleEntity)));
+        when(roleRepository.findByUserId(Mockito.<UUID>any())).thenReturn(Optional.of(List.of(roleEntity)));
         when(roleMapper.toTarget(Mockito.<RoleEntity>any())).thenReturn(role);
         final var response = roleServiceImpl.listByUser(userId.toString());
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -462,7 +481,7 @@ class RoleServiceImplTest {
         roleEntity.setRoleFeatures(new HashSet<>());
         roleEntity.getRoleFeatures().add(roleFeatureEntity);
 
-        when(roleRepository.findAllByUserId(Mockito.<UUID>any())).thenReturn(Optional.empty());
+        when(roleRepository.findByUserId(Mockito.<UUID>any())).thenReturn(Optional.empty());
         when(roleMapper.toTarget(Mockito.<RoleEntity>any())).thenReturn(role);
         final var response = roleServiceImpl.listByUser(userId.toString());
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());

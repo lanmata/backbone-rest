@@ -69,13 +69,32 @@ public class RoleServiceImpl implements RoleService {
 		if(Objects.nonNull(id)) {
 			Arrays.stream(id).toList().forEach(s -> uuidList.add(UUID.fromString(s)));
 		}
-		final var roleEntity = roleRepository.findAllById(uuidList);
+		final var roleEntity = roleRepository.findById(uuidList);
 		return roleEntity.map(roleEntities -> {
 			roleEntities.forEach(roleEntity1 -> {
 				Role roleResult = roleMapper.toTarget(roleEntity1);
 				roleList.add(roleResult);
 			});
 			return ResponseEntity.ok(sort(roleList));
+		}).orElseGet(() -> ResponseEntity.notFound().build());
+	}
+
+	/** {@inheritDoc} */
+	@Override
+	public ResponseEntity<List<Role>> list(Boolean inactiveIncluded, List<String> roleIds) {
+		List<Role> rolesList = new ArrayList<>();
+		List<UUID>  uuidList = new ArrayList<>();
+		if(Objects.isNull(roleIds) || roleIds.isEmpty()) {
+			return ResponseEntity.badRequest().build();
+		}
+		roleIds.forEach(uuid -> uuidList.add(UUID.fromString(uuid)));
+		final var roleEntity = roleRepository.findByStatusAndRoleId(inactiveIncluded, uuidList);
+		return roleEntity.map(roleEntities -> {
+			roleEntities.forEach(roleEntity1 -> {
+				Role roleResult = roleMapper.toTarget(roleEntity1);
+				rolesList.add(roleResult);
+			});
+			return ResponseEntity.ok(sort(rolesList));
 		}).orElseGet(() -> ResponseEntity.notFound().build());
 	}
 
@@ -149,7 +168,7 @@ public class RoleServiceImpl implements RoleService {
 	public ResponseEntity<List<Role>> listByUser(String userId) {
 		LOGGER.info("STARTED - Find role by user id {}", userId);
 		final ResponseEntity<List<Role>> roleResponseEntity;
-		final var result = roleRepository.findAllByUserId(UUID.fromString(userId));
+		final var result = roleRepository.findByUserId(UUID.fromString(userId));
 		final var roleList = new ArrayList<Role>();
 		if (result.isPresent() && !result.get().isEmpty()){
 			result.get().forEach(roleEntity -> roleList.add(roleMapper.toTarget(roleEntity)));

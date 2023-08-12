@@ -15,7 +15,6 @@ package com.prx.backoffice.v1.roles.api.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.prx.backoffice.MockLoaderBase;
-import com.prx.backoffice.v1.roles.api.to.RoleLinkRequest;
 import com.prx.backoffice.v1.roles.api.to.RoleRequest;
 import com.prx.backoffice.v1.roles.service.RoleServiceImpl;
 import com.prx.commons.pojo.Feature;
@@ -35,8 +34,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MvcResult;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import static com.prx.backoffice.util.ConstantUtilTest.APP_NAME_VALUE;
@@ -44,6 +43,7 @@ import static com.prx.backoffice.util.ConstantUtilTest.APP_TOKEN_VALUE;
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 /**
  * RolControllerTest.
@@ -92,7 +92,7 @@ class RoleControllerTest extends MockLoaderBase {
     @DisplayName("Not found role")
     void findNotFound() {
         //when:
-        Mockito.when(roleService.find(Mockito.anyString())).thenReturn(ResponseEntity.notFound().build());
+        when(roleService.find(Mockito.anyString())).thenReturn(ResponseEntity.notFound().build());
         var response = mockMvcRequestSpecification.get(FIND.concat("0f9c32bf-33ea-401c-9da2-a2fb47231540"));
         // then:
         assertThat(response.statusCode()).isEqualTo(HttpStatus.NOT_FOUND.value());
@@ -105,7 +105,7 @@ class RoleControllerTest extends MockLoaderBase {
         roleRequest.setRole(getRole());
         final var response = ResponseEntity.status(HttpStatus.ACCEPTED).body(roleRequest.getRole());
         //when:
-        Mockito.when(roleService.update(Mockito.anyString(), Mockito.<Role>any())).thenReturn(response);
+        when(roleService.update(Mockito.anyString(), Mockito.<Role>any())).thenReturn(response);
         //then:
         given().contentType(MediaType.APPLICATION_JSON_VALUE).body(objectMapper.writeValueAsString(roleRequest))
                 .accept(MediaType.APPLICATION_JSON_VALUE).when().put(PATH.concat(roleRequest.getRole().getId()))
@@ -118,7 +118,7 @@ class RoleControllerTest extends MockLoaderBase {
         final var roleRequest = new RoleRequest();
         roleRequest.setRole(getRole());
         //when:
-        Mockito.when(roleService.update(Mockito.anyString(), Mockito.<Role>any())).thenReturn(ResponseEntity.notFound().build());
+        when(roleService.update(Mockito.anyString(), Mockito.<Role>any())).thenReturn(ResponseEntity.notFound().build());
         //then:
         given().contentType(MediaType.APPLICATION_JSON_VALUE).body(objectMapper.writeValueAsString(roleRequest))
                 .accept(MediaType.APPLICATION_JSON_VALUE).when().put(PATH.concat(roleRequest.getRole().getId()))
@@ -147,9 +147,32 @@ class RoleControllerTest extends MockLoaderBase {
 
     @Test
     @DisplayName("Find roles list by user")
-    void list_ok_004() {
+    void list_by_user_id_ok_004() {
         //when:
         var response = mockMvcRequestSpecification.get(PATH + LIST_BY_USER.concat("0f9c32bf-33ea-401c-9da2-a2fb47231540"));
+        // then:
+        assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value());
+    }
+
+    @Test
+    @DisplayName("Find roles list by user - NOT FOUND")
+    void list_not_found() {
+        final var roleResponse = ResponseEntity.status(HttpStatus.OK).body(List.of(getRole()));
+        //when:
+        when(roleService.listByUser(Mockito.anyString())).thenReturn(roleResponse);
+        //when:
+        var response = mockMvcRequestSpecification.get(PATH + LIST_BY_USER.concat("0f9c32bf-33ea-401c-9da2-a2fb47231540"));
+        // then:
+        assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value());
+    }
+
+    @Test
+    @DisplayName("Search roles by status and role Id's - OK")
+    void testList_ok() {
+        //when:
+        when(roleService.listByUser(Mockito.anyString())).thenReturn(ResponseEntity.notFound().build());
+        //when:
+        var response = mockMvcRequestSpecification.get(PATH.concat("true").concat("0f9c32bf-33ea-401c-9da2-a2fb47231540"));
         // then:
         assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value());
     }
@@ -179,13 +202,5 @@ class RoleControllerTest extends MockLoaderBase {
         role.getFeatures().add(feature);
         role.setDescription("Role description");
         return role;
-    }
-
-    private @NotNull RoleLinkRequest getRoleLinkRequest() {
-        var roleLinkRequest = new RoleLinkRequest();
-        roleLinkRequest.setAppName(APP_NAME_VALUE);
-        roleLinkRequest.setAppToken(APP_TOKEN_VALUE);
-        roleLinkRequest.setDateTime(LocalDateTime.now());
-        return roleLinkRequest;
     }
 }

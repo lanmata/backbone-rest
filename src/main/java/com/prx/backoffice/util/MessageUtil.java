@@ -52,9 +52,11 @@ public class MessageUtil {
     private String solicitudExitosa;
 
     public static final String OK = "200";
+    public static final String OK_VALUE = "OK";
     public static final String CREATED = "201";
     public static final String ACCEPTED = "202";
     public static final String NOT_FOUND = "404";
+    public static final String NOT_FOUND_VALUE = "NOT_FOUND";
     public static final String NOT_ACCEPTABLE = "408";
     public static final String BAD_REQUEST = "408";
     public static final String UNPROCESSABLE_ENTITY = "408";
