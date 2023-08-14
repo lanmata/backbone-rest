@@ -4,7 +4,7 @@ qodana:
     - Develop
     - merge_requests
   image:
-    name: jetbrains/qodana-jvm
+    name: jetbrains/qodana-jvm-community:2023.2
     entrypoint: [""]
   variables:
     QODANA_TOKEN: $qodana_token
