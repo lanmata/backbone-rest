@@ -15,7 +15,6 @@ package com.prx.backoffice.v1.roles.service;
 import com.prx.backoffice.v1.features.mapper.FeatureMapper;
 import com.prx.backoffice.v1.features.mapper.decorator.FeatureMapperUtil;
 import com.prx.backoffice.v1.features.service.FeatureService;
-import com.prx.backoffice.v1.roles.api.to.RoleLinkRequest;
 import com.prx.backoffice.v1.roles.mapper.RoleMapper;
 import com.prx.commons.pojo.Feature;
 import com.prx.commons.pojo.Role;
@@ -26,12 +25,7 @@ import com.prx.persistence.general.domains.RoleFeaturePK;
 import com.prx.persistence.general.repositories.RoleFeatureRepository;
 import com.prx.persistence.general.repositories.RoleRepository;
 import jakarta.validation.constraints.NotNull;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
@@ -43,13 +37,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.time.LocalDateTime;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 /**
@@ -126,7 +116,7 @@ class RoleServiceImplTest {
     void testList6() {
         ResponseEntity<List<Role>> actualListResult = roleServiceImpl.list(true, new ArrayList<>());
         assertNull(actualListResult.getBody());
-        assertEquals(400, actualListResult.getStatusCodeValue());
+        assertEquals(HttpStatus.BAD_REQUEST, actualListResult.getStatusCode());
         assertTrue(actualListResult.getHeaders().isEmpty());
     }
 
@@ -528,12 +518,5 @@ class RoleServiceImplTest {
         return role;
     }
 
-    private @NotNull RoleLinkRequest getRoleLinkRequest() {
-        var roleLinkRequest = new RoleLinkRequest();
-        roleLinkRequest.setAppName("APP-TEST-001");
-        roleLinkRequest.setAppToken("T000X");
-        roleLinkRequest.setDateTime(LocalDateTime.now());
-        return roleLinkRequest;
-    }
 
 }

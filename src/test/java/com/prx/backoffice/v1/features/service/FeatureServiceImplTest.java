@@ -244,7 +244,7 @@ class FeatureServiceImplTest {
      */
     @Test
     void testList() {
-        Iterable<FeatureEntity> iterable = mock(Iterable.class);
+        List<FeatureEntity> iterable = new ArrayList<>();
         doNothing().when(iterable).forEach(Mockito.<Consumer<FeatureEntity>>any());
         when(featureRepository.findAllById(Mockito.<Iterable<UUID>>any())).thenReturn(iterable);
         ResponseEntity<List<Feature>> actualListResult = featureServiceImpl.list(new ArrayList<>(), true);
@@ -261,7 +261,6 @@ class FeatureServiceImplTest {
     void testList2() {
         final var featureEntities = getFeatureEntities(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID());
         final var featuresString = featureEntities.stream().map(featureEntity -> featureEntity.getId().toString()).toList();
-        final var featureList = getFeatureList(featureEntities);
         when(featureRepository.findAllById(Mockito.<Iterable<UUID>>any())).thenReturn(featureEntities);
         when(featureMapper.toTargetList(Mockito.<List<FeatureEntity>>any())).thenReturn(getFeatureList(featureEntities));
         when(featureMapper.toSourceList(Mockito.<List<Feature>>any())).thenReturn(featureEntities);
@@ -301,7 +300,6 @@ class FeatureServiceImplTest {
      */
     @Test
     void testFind_not_found() {
-        FeatureEntity featureEntity = new FeatureEntity();
         final var featureId = UUID.randomUUID();
         when(featureRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.empty());
 
@@ -324,7 +322,7 @@ class FeatureServiceImplTest {
         return features;
     }
 
-    private List<Feature> getFeatureList(List<FeatureEntity> featureEntityList) {
+    private static List<Feature> getFeatureList(List<FeatureEntity> featureEntityList) {
         return featureEntityList.stream().map(featureEntity -> {
             var feature = new Feature();
             feature.setActive(featureEntity.getActive());

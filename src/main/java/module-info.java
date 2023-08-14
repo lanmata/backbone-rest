@@ -52,9 +52,9 @@ module prx.backbone.rest {
     requires io.swagger.v3.oas.annotations;
     requires org.mapstruct;
     requires commons.lang;
-    requires poi.ooxml;
     requires java.base;
     requires com.prx.commons;
+    requires org.apache.poi.ooxml;
     opens com.prx.backoffice to spring.core;
     opens com.prx.backoffice.loggers.services to spring.beans, spring.core;
     opens com.prx.backoffice.util to spring.core;
