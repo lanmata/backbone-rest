@@ -1,5 +1,6 @@
 module prx.backbone.rest {
     exports com.prx.backoffice;
+    exports com.prx.backoffice.enums.keys;
     exports com.prx.backoffice.converter to spring.beans;
     exports com.prx.backoffice.loggers.config to spring.beans;
     exports com.prx.backoffice.loggers.services to spring.beans, spring.core;
@@ -52,9 +53,9 @@ module prx.backbone.rest {
     requires io.swagger.v3.oas.annotations;
     requires org.mapstruct;
     requires commons.lang;
-    requires poi.ooxml;
     requires java.base;
     requires com.prx.commons;
+    requires org.apache.poi.ooxml;
     opens com.prx.backoffice to spring.core;
     opens com.prx.backoffice.loggers.services to spring.beans, spring.core;
     opens com.prx.backoffice.util to spring.core;
@@ -82,6 +83,5 @@ module prx.backbone.rest {
     opens com.prx.backoffice.v1.roles.api.controller to spring.core;
     opens com.prx.backoffice.v1.roles.api.to to spring.beans, spring.core;
     opens com.prx.backoffice.v1.report.api.controller to spring.core;
-    exports com.prx.backoffice.enums.keys;
 
 }
