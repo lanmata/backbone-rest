@@ -88,7 +88,7 @@ public class FeatureServiceImpl implements FeatureService {
 		final var featureListResult = new ArrayList<Feature>();
 		List<UUID> uuidList = new ArrayList<>();
 		Optional<Iterable<FeatureEntity>> featureEntityListResult;
-		if(Objects.isNull(featureIds)) {
+		if(Objects.isNull(featureIds) || featureIds.isEmpty()) {
 			featureEntityListResult = Optional.of(featureRepository.findAll());
 		} else {
 			featureIds.forEach(s -> uuidList.add(UUID.fromString(s)));

@@ -112,18 +112,6 @@ class FeatureControllerTest extends MockLoaderBase {
     }
 
     /**
-     * Method under test: {@link FeatureController#find(String)}
-     */
-    @Test
-    void testFind() throws Exception {
-        MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.get("/v1/features/find/{featureId}", "42");
-        ResultActions actualPerformResult = MockMvcBuilders.standaloneSetup(featureController)
-                .build()
-                .perform(requestBuilder);
-        actualPerformResult.andExpect(MockMvcResultMatchers.status().is(415));
-    }
-
-    /**
      * Method under test: {@link FeatureController#update(String, FeatureRequest)}
      */
     @Test

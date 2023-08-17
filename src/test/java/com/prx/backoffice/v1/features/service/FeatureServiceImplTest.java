@@ -245,13 +245,12 @@ class FeatureServiceImplTest {
     @Test
     void testList() {
         List<FeatureEntity> iterable = new ArrayList<>();
-        doNothing().when(iterable).forEach(Mockito.<Consumer<FeatureEntity>>any());
-        when(featureRepository.findAllById(Mockito.<Iterable<UUID>>any())).thenReturn(iterable);
+        when(featureRepository.findAll()).thenReturn(iterable);
         ResponseEntity<List<Feature>> actualListResult = featureServiceImpl.list(new ArrayList<>(), true);
         assertNull(actualListResult.getBody());
         assertEquals(HttpStatus.NOT_FOUND, actualListResult.getStatusCode());
         assertTrue(actualListResult.getHeaders().isEmpty());
-        verify(featureRepository).findByIdAndStatus(Mockito.<List<UUID>>any(), anyBoolean());
+        verify(featureRepository).findAll();
     }
 
     /**
