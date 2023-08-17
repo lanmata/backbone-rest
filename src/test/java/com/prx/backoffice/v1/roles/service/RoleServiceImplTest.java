@@ -116,7 +116,7 @@ class RoleServiceImplTest {
     void testList6() {
         ResponseEntity<List<Role>> actualListResult = roleServiceImpl.list(true, new ArrayList<>());
         assertNull(actualListResult.getBody());
-        assertEquals(HttpStatus.BAD_REQUEST, actualListResult.getStatusCode());
+        assertEquals(HttpStatus.NOT_FOUND, actualListResult.getStatusCode());
         assertTrue(actualListResult.getHeaders().isEmpty());
     }
 
@@ -254,10 +254,10 @@ class RoleServiceImplTest {
 
         Optional<List<RoleEntity>> ofResult = Optional.of(new ArrayList<>());
         when(roleRepository.findByUserId(any())).thenReturn(ofResult);
-        when(roleMapper.toTarget(any())).thenReturn(role);
+//        when(roleMapper.toTarget(any())).thenReturn(role);
         ResponseEntity<List<Role>> actualListResult = roleServiceImpl.listByUser(roleId.toString());
-        assertNull(actualListResult.getBody());
-        assertEquals(HttpStatus.NOT_FOUND, actualListResult.getStatusCode());
+        assertTrue(Objects.requireNonNull(actualListResult.getBody()).isEmpty());
+        assertEquals(HttpStatus.OK, actualListResult.getStatusCode());
         assertTrue(actualListResult.getHeaders().isEmpty());
         verify(roleRepository).findByUserId(any());
     }

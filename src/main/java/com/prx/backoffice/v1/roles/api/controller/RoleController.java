@@ -82,6 +82,22 @@ class RoleController {
 
     /**
      *
+     * @param includeInactive {@link boolean}
+     * @return {@link RoleCollectionResponse}
+     */
+    @Operation(description = "List Roles by status and role id.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = MessageUtil.OK, description = MessageUtil.OK_VALUE),
+            @ApiResponse(responseCode = MessageUtil.NOT_FOUND, description = MessageUtil.NOT_FOUND)
+    })
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/{includeInactive}")
+    public ResponseEntity<List<Role>> list(@Parameter(description = "Include/exclude inactive roles.")
+                                           @PathVariable boolean includeInactive) {
+        return roleService.list(includeInactive, null);
+    }
+
+    /**
+     *
      * @param roleCreateRequest {@link RoleRequest}
      * @return {@link Response}
      */

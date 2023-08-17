@@ -68,6 +68,7 @@ public interface RoleService extends CrudService<Role> {
         throw new NotImplementedException();
     }
 
+
     /**
      * Lista un conjunto de roles.
      * @param inactiveIncluded {@link Boolean}

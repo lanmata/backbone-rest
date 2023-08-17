@@ -61,41 +61,27 @@ public class RoleServiceImpl implements RoleService {
 		return roleEntity.map(entity -> ResponseEntity.ok(roleMapper.toTarget(entity))).orElseGet(() -> ResponseEntity.notFound().build());
 	}
 
+
+
 	/** {@inheritDoc} */
 	@Override
 	public ResponseEntity<List<Role>> list(String... id) {
-		List<Role> roleList = new ArrayList<>();
-		List<UUID> uuidList = new ArrayList<>();
-		if(Objects.nonNull(id)) {
-			Arrays.stream(id).toList().forEach(s -> uuidList.add(UUID.fromString(s)));
-		}
-		final var roleEntity = roleRepository.findById(uuidList);
-		return roleEntity.map(roleEntities -> {
-			roleEntities.forEach(roleEntity1 -> {
-				Role roleResult = roleMapper.toTarget(roleEntity1);
-				roleList.add(roleResult);
-			});
-			return ResponseEntity.ok(sort(roleList));
-		}).orElseGet(() -> ResponseEntity.notFound().build());
+		return Objects.isNull(id)?
+				ResponseEntity.badRequest().build()
+				:getRoleList(roleRepository.findById(Arrays.stream(id).map(UUID::fromString).toList()))
+				.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public ResponseEntity<List<Role>> list(Boolean inactiveIncluded, List<String> roleIds) {
-		List<Role> rolesList = new ArrayList<>();
-		List<UUID>  uuidList = new ArrayList<>();
 		if(Objects.isNull(roleIds) || roleIds.isEmpty()) {
-			return ResponseEntity.badRequest().build();
+			return getRoleList(roleRepository.findByStatus(inactiveIncluded)).map(ResponseEntity::ok)
+					.orElseGet(() -> ResponseEntity.notFound().build());
+		} else {
+			return getRoleList(roleRepository.findByStatusAndRoleId(inactiveIncluded, roleIds.stream().map(UUID::fromString)
+					.toList())).map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
 		}
-		roleIds.forEach(uuid -> uuidList.add(UUID.fromString(uuid)));
-		final var roleEntity = roleRepository.findByStatusAndRoleId(inactiveIncluded, uuidList);
-		return roleEntity.map(roleEntities -> {
-			roleEntities.forEach(roleEntity1 -> {
-				Role roleResult = roleMapper.toTarget(roleEntity1);
-				rolesList.add(roleResult);
-			});
-			return ResponseEntity.ok(sort(rolesList));
-		}).orElseGet(() -> ResponseEntity.notFound().build());
 	}
 
 	/** {@inheritDoc} */
@@ -142,6 +128,16 @@ public class RoleServiceImpl implements RoleService {
 		return roleResponseEntity;
 	}
 
+	/** {@inheritDoc} */
+	@Override
+	public ResponseEntity<List<Role>> listByUser(String userId) {
+		LOGGER.info("STARTED - Find role by user id {}", userId);
+		return Objects.isNull(userId)?
+				ResponseEntity.badRequest().build()
+				:getRoleList(roleRepository.findByUserId(UUID.fromString(userId)))
+				.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+	}
+
 	private void updateRoleFeature(List<Feature> featuresToLink, RoleEntity roleEntity) {
 		roleFeatureRepository.deleteAll(roleEntity.getRoleFeatures());
 		roleEntity.setRoleFeatures(null);
@@ -163,23 +159,6 @@ public class RoleServiceImpl implements RoleService {
 		}
 	}
 
-	/** {@inheritDoc} */
-	@Override
-	public ResponseEntity<List<Role>> listByUser(String userId) {
-		LOGGER.info("STARTED - Find role by user id {}", userId);
-		final ResponseEntity<List<Role>> roleResponseEntity;
-		final var result = roleRepository.findByUserId(UUID.fromString(userId));
-		final var roleList = new ArrayList<Role>();
-		if (result.isPresent() && !result.get().isEmpty()){
-			result.get().forEach(roleEntity -> roleList.add(roleMapper.toTarget(roleEntity)));
-			roleResponseEntity = ResponseEntity.ok().body(roleList);
-		} else {
-			roleResponseEntity = ResponseEntity.notFound().build();
-		}
-		LOGGER.info(roleResponseEntity.getStatusCode().toString());
-		return roleResponseEntity;
-	}
-
     private Set<RoleFeatureEntity> updateRoleFeatureLink(List<Feature> features, RoleEntity roleEntity) {
         var roleFeatureEntities = new HashSet<RoleFeatureEntity>();
         features.forEach(feature -> {
@@ -198,8 +177,13 @@ public class RoleServiceImpl implements RoleService {
         return roleFeatureEntities;
     }
 
-	private List<Role> sort(List<Role> roles) {
-		return roles.stream().sorted(Comparator.comparing(Role::getId)).toList();
+	private Optional<List<Role>> getRoleList(Optional<List<RoleEntity>> optionalRoleEntityList) {
+		Optional<List<Role>> optional = Optional.empty();
+		if(optionalRoleEntityList.isPresent()) {
+			var roleEntities = optionalRoleEntityList.get();
+			optional = Optional.of(roleEntities.stream().map(roleMapper::toTarget).toList());
+		}
+		return optional;
 	}
 
 }

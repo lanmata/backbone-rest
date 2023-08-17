@@ -41,6 +41,7 @@
         <maven.plugin.jacoco.version>0.8.10</maven.plugin.jacoco.version>
         <maven.plugin.pmd.version>3.19.0</maven.plugin.pmd.version>
         <maven.plugin.jxr.version>3.0.0</maven.plugin.jxr.version>
+        <maven.surefire.version>3.0.0</maven.surefire.version>
         <!--        REPOSITORY-->
         <repsy.account.user>lmata</repsy.account.user>
         <repsy.account.password>1$Pormenos</repsy.account.password>
@@ -54,8 +55,8 @@
         <!--        JUnit 4.x-->
         <junit-core.version>4.13.1</junit-core.version>
         <!--        JUnit 5.x-->
-        <junit.jupiter.version>5.10.0</junit.jupiter.version>
-        <junit.jupiter.core.version>5.10.0</junit.jupiter.core.version>
+        <junit.jupiter.version>5.9.3</junit.jupiter.version>
+        <junit.jupiter.core.version>5.9.3</junit.jupiter.core.version>
         <!--        Mockito-->
         <mockserver.junit.jupiter.version>5.11.2</mockserver.junit.jupiter.version>
         <mockito.junit.jupiter.version>4.8.0</mockito.junit.jupiter.version>
@@ -226,13 +227,14 @@
             <groupId>org.junit.vintage</groupId>
             <artifactId>junit-vintage-engine</artifactId>
             <scope>test</scope>
+            <version>${junit.jupiter.version}</version>
         </dependency>
         <dependency>
             <groupId>org.junit</groupId>
             <artifactId>junit-bom</artifactId>
             <version>${junit.jupiter.version}</version>
             <type>pom</type>
-            <scope>test</scope>
+<!--            <scope>test</scope>-->
         </dependency>
     </dependencies>
 
@@ -308,22 +310,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.1.2</version>
-                <configuration>
-                    <classpathDependencyScopeExclude>runtime</classpathDependencyScopeExclude>
-                </configuration>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.apache.commons</groupId>
-                        <artifactId>commons-lang3</artifactId>
-                        <version>3.12.0</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.junit.jupiter</groupId>
-                        <artifactId>junit-jupiter-engine</artifactId>
-                        <version>5.10.0</version>
-                    </dependency>
-                </dependencies>
+                <version>${maven.surefire.version}</version>
             </plugin>
             <plugin>
                 <artifactId>maven-pmd-plugin</artifactId>

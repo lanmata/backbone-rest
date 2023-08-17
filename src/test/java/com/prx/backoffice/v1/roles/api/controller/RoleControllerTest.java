@@ -43,6 +43,7 @@ import static com.prx.backoffice.util.ConstantUtilTest.APP_TOKEN_VALUE;
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 
 /**
@@ -170,9 +171,9 @@ class RoleControllerTest extends MockLoaderBase {
     @DisplayName("Search roles by status and role Id's - OK")
     void testList_ok() {
         //when:
-        when(roleService.listByUser(Mockito.anyString())).thenReturn(ResponseEntity.notFound().build());
+        when(roleService.list(Mockito.anyBoolean(), anyList())).thenReturn(ResponseEntity.ok(List.of(getRole())));
         //when:
-        var response = mockMvcRequestSpecification.get(PATH.concat("true").concat("0f9c32bf-33ea-401c-9da2-a2fb47231540"));
+        var response = mockMvcRequestSpecification.get(PATH.concat(true+"/").concat("0f9c32bf-33ea-401c-9da2-a2fb47231540,0f9c32bf-33ea-401c-9da2-a2fb48521540"));
         // then:
         assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value());
     }
