@@ -1,8 +1,6 @@
 package com.prx.backoffice.v1.people.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -89,6 +87,14 @@ class PersonServiceImplTest {
         person.setMiddleName("Middle Name");
         assertThrows(StandardException.class, () -> personServiceImpl.save(person));
         verify(personMapper).toSource(Mockito.<Person>any());
+    }
+
+    @Test
+    void testSave3() {
+        ResponseEntity<PersonEntity> actualSaveResult = personServiceImpl.save(null);
+        assertFalse(actualSaveResult.hasBody());
+        assertTrue(actualSaveResult.getHeaders().isEmpty());
+        assertEquals(HttpStatus.NOT_FOUND, actualSaveResult.getStatusCode());
     }
 }
 
