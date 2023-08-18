@@ -13,14 +13,32 @@
 
 package com.prx.backoffice.v1.people.api.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.prx.backoffice.MockLoaderBase;
+import com.prx.backoffice.v1.people.api.to.PersonRequest;
+import com.prx.backoffice.v1.people.service.PersonService;
+import com.prx.backoffice.v1.roles.api.to.RoleRequest;
+import com.prx.commons.pojo.Person;
+import com.prx.commons.pojo.Role;
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.web.context.WebApplicationContext;
+
+import java.time.LocalDate;
+
+import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
+import static org.mockito.Mockito.when;
 
 /**
  * PersonControllerTest.
@@ -35,6 +53,18 @@ class PersonControllerTest extends MockLoaderBase {
     @Autowired
     WebApplicationContext applicationContext;
 
+    @Autowired
+    ObjectMapper objectMapper;
+
+    @MockBean
+    PersonService personService;
+
+    private static final String PATH;
+
+    static {
+        PATH = "/v1/people/";
+    }
+
     @BeforeEach
     public void setup() {
         RestAssuredMockMvc.webAppContextSetup(applicationContext);
@@ -42,10 +72,41 @@ class PersonControllerTest extends MockLoaderBase {
 
 
     @Test
-    void testCreate() {
-//        MockMvcRequestSpecification request = given()
-//                .header("Content-Type", "application/json");
-//        ResponseOptions response = given().spec(request).get("")
+    void testCreate() throws JsonProcessingException {
+        final var personRequest = new PersonRequest();
+        personRequest.setPerson(getPerson());
+
+        final var response = ResponseEntity.status(HttpStatus.CREATED).body(personRequest.getPerson());
+        //when:
+        when(personService.create(Mockito.<Person>any())).thenReturn(response);
+        //then:
+        given().contentType(MediaType.APPLICATION_JSON_VALUE).body(objectMapper.writeValueAsString(personRequest))
+                .accept(MediaType.APPLICATION_JSON_VALUE).when().post(PATH).then().assertThat()
+                .statusCode(HttpStatus.CREATED.value()).expect(MvcResult::getResponse);
+    }
+
+    @Test
+    void testCreate_not_found() throws JsonProcessingException {
+        final var personRequest = new PersonRequest();
+        personRequest.setPerson(null);
+
+        //when:
+        when(personService.create(Mockito.<Person>any())).thenReturn(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+        //then:
+        given().contentType(MediaType.APPLICATION_JSON_VALUE).body(objectMapper.writeValueAsString(personRequest))
+                .accept(MediaType.APPLICATION_JSON_VALUE).when().post(PATH).then().assertThat()
+                .statusCode(HttpStatus.NOT_FOUND.value()).expect(MvcResult::getResponse);
+    }
+
+    private static Person getPerson() {
+        final var person = new Person();
+        person.setBirthdate(LocalDate.of(1984,5,27));
+        person.setGender("F");
+        person.setFirstName("Jenna");
+        person.setMiddleName("Rylee");
+        person.setLastName("Batty");
+
+        return person;
     }
 
 }
