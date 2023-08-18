@@ -1,18 +1,10 @@
 package com.prx.backoffice.v1.people.service;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import com.prx.backoffice.v1.people.mapper.PersonMapper;
 import com.prx.commons.exception.StandardException;
 import com.prx.commons.pojo.Person;
 import com.prx.persistence.general.domains.PersonEntity;
 import com.prx.persistence.general.repositories.PersonRepository;
-
-import java.time.LocalDate;
-import java.util.UUID;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -22,6 +14,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import java.time.LocalDate;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @ContextConfiguration(classes = {PersonServiceImpl.class})
 @ExtendWith(SpringExtension.class)
@@ -34,6 +33,106 @@ class PersonServiceImplTest {
 
     @Autowired
     private PersonServiceImpl personServiceImpl;
+
+    /**
+     * Method under test: {@link PersonServiceImpl#update(String, Person)}
+     */
+    @Test
+    void testUpdate() {
+        final var personId = UUID.randomUUID();
+        Person person = mock(Person.class);
+        doNothing().when(person).setBirthdate(Mockito.<LocalDate>any());
+        doNothing().when(person).setFirstName(Mockito.<String>any());
+        doNothing().when(person).setGender(Mockito.<String>any());
+        doNothing().when(person).setId(Mockito.<String>any());
+        doNothing().when(person).setLastName(Mockito.<String>any());
+        doNothing().when(person).setMiddleName(Mockito.<String>any());
+        person.setBirthdate(LocalDate.of(1970, 1, 1));
+        person.setFirstName("Jane");
+        person.setGender("M");
+        person.setLastName("Doe");
+        person.setMiddleName("Middle Name");
+
+        PersonEntity personEntity = new PersonEntity();
+        personEntity.setBirthdate(LocalDate.of(1970, 1, 1));
+        personEntity.setGender("Gender");
+        personEntity.setId(personId);
+        personEntity.setLastName("Doe");
+        personEntity.setMiddleName("Middle Name");
+        personEntity.setName("Name");
+        when(personRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.of(personEntity));
+        when(personMapper.toSource(Mockito.<Person>any())).thenReturn(personEntity);
+        when(personMapper.toTarget(Mockito.<PersonEntity>any())).thenReturn(person);
+        when(personRepository.save(Mockito.<PersonEntity>any())).thenReturn(personEntity);
+
+        final var response = personServiceImpl.update(personId.toString(), person);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        verify(personRepository).findById(Mockito.<UUID>any());
+        verify(personMapper).toSource(Mockito.<Person>any());
+        verify(personMapper).toTarget(Mockito.<PersonEntity>any());
+        verify(personRepository).save(Mockito.<PersonEntity>any());
+    }
+
+    /**
+     * Method under test: {@link PersonServiceImpl#update(String, Person)}
+     */
+    @Test
+    void testUpdate2() {
+        final var personId = UUID.randomUUID();
+        Person person = mock(Person.class);
+        doNothing().when(person).setBirthdate(Mockito.<LocalDate>any());
+        doNothing().when(person).setFirstName(Mockito.<String>any());
+        doNothing().when(person).setGender(Mockito.<String>any());
+        doNothing().when(person).setId(Mockito.<String>any());
+        doNothing().when(person).setLastName(Mockito.<String>any());
+        doNothing().when(person).setMiddleName(Mockito.<String>any());
+        person.setBirthdate(LocalDate.of(1970, 1, 1));
+        person.setFirstName("Jane");
+        person.setGender("M");
+        person.setLastName("Doe");
+        person.setMiddleName("Middle Name");
+
+        when(personRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.empty());
+
+        final var response = personServiceImpl.update(personId.toString(), person);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        verify(personRepository).findById(Mockito.<UUID>any());
+    }
+
+    /**
+     * Method under test: {@link PersonServiceImpl#update(String, Person)}
+     */
+    @Test
+    void testUpdate3() {
+        Person person = mock(Person.class);
+        doNothing().when(person).setBirthdate(Mockito.<LocalDate>any());
+        doNothing().when(person).setFirstName(Mockito.<String>any());
+        doNothing().when(person).setGender(Mockito.<String>any());
+        doNothing().when(person).setId(Mockito.<String>any());
+        doNothing().when(person).setLastName(Mockito.<String>any());
+        doNothing().when(person).setMiddleName(Mockito.<String>any());
+        person.setBirthdate(LocalDate.of(1970, 1, 1));
+        person.setFirstName("Jane");
+        person.setGender("M");
+        person.setLastName("Doe");
+        person.setMiddleName("Middle Name");
+
+        when(personRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.empty());
+
+        final var response = personServiceImpl.update(null, person);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    /**
+     * Method under test: {@link PersonServiceImpl#update(String, Person)}
+     */
+    @Test
+    void testUpdate4() {
+        final var personId = UUID.randomUUID();
+        when(personRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.empty());
+        final var response = personServiceImpl.update(personId.toString(), null);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
 
     /**
      * Method under test: {@link PersonServiceImpl#save(Person)}

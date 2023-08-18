@@ -64,6 +64,13 @@ public class PersonController {
         return personService.find(personId);
     }
 
+    @Operation(description = "Create a persona")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = MessageUtil.OK, description = "Person updated"),
+            @ApiResponse(responseCode = MessageUtil.BAD_REQUEST, description = "PersonId invalid"),
+            @ApiResponse(responseCode = MessageUtil.BAD_REQUEST, description = "Person request invalid"),
+            @ApiResponse(responseCode = MessageUtil.BAD_REQUEST, description = "Person not founded")
+    })
     @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/{personId}")
     public ResponseEntity<Person> update(@PathVariable final String personId, @RequestBody final PersonRequest personRequest) {
         return personService.update(personId, personRequest.getPerson());
