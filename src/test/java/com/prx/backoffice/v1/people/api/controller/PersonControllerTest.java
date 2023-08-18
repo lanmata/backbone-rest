@@ -17,10 +17,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.prx.backoffice.MockLoaderBase;
 import com.prx.backoffice.v1.people.api.to.PersonRequest;
+import com.prx.backoffice.v1.people.mapper.PersonMapperImpl;
 import com.prx.backoffice.v1.people.service.PersonService;
-import com.prx.backoffice.v1.roles.api.to.RoleRequest;
+import com.prx.backoffice.v1.people.service.PersonServiceImpl;
 import com.prx.commons.pojo.Person;
-import com.prx.commons.pojo.Role;
+import com.prx.persistence.general.repositories.PersonRepository;
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,6 +39,7 @@ import org.springframework.web.context.WebApplicationContext;
 import java.time.LocalDate;
 
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 /**
@@ -58,6 +60,9 @@ class PersonControllerTest extends MockLoaderBase {
 
     @MockBean
     PersonService personService;
+
+    @MockBean
+    PersonRepository personRepository;
 
     private static final String PATH;
 
@@ -98,9 +103,66 @@ class PersonControllerTest extends MockLoaderBase {
                 .statusCode(HttpStatus.NOT_FOUND.value()).expect(MvcResult::getResponse);
     }
 
+    /**
+     * Method under test: {@link PersonController#update(String, PersonRequest)}
+     */
+    @Test
+    void testUpdate() throws JsonProcessingException {
+        PersonController personController = new PersonController(
+                new PersonServiceImpl(personRepository, new PersonMapperImpl()));
+
+        Person person = new Person();
+        person.setBirthdate(LocalDate.of(1970, 1, 1));
+        person.setFirstName("Jane");
+        person.setGender("Gender");
+        person.setLastName("Doe");
+        person.setMiddleName("Middle Name");
+
+        final var personRequest = new PersonRequest();
+        personRequest.setAppName("App Name");
+        personRequest.setAppToken("ABC123");
+        personRequest.setDateTime(LocalDate.of(1970, 1, 1).atStartOfDay());
+        personRequest.setPerson(person);
+        personRequest.setPerson(null);
+
+        //when:
+        when(personService.update(anyString(), Mockito.<Person>any())).thenReturn(ResponseEntity.status(HttpStatus.OK).build());
+        //then:
+        given().contentType(MediaType.APPLICATION_JSON_VALUE).body(objectMapper.writeValueAsString(personRequest))
+                .accept(MediaType.APPLICATION_JSON_VALUE).when().put(PATH.concat("610a376a-aa19-4e0d-ad0b-4536457522f2")).then().assertThat()
+                .statusCode(HttpStatus.OK.value()).expect(MvcResult::getResponse);
+    }
+
+    /**
+     * Method under test: {@link PersonController#update(String, PersonRequest)}
+     */
+    @Test
+    void testUpdate2() throws JsonProcessingException {
+        Person person = new Person();
+        person.setBirthdate(LocalDate.of(1970, 1, 1));
+        person.setFirstName("Jane");
+        person.setGender("Gender");
+        person.setLastName("Doe");
+        person.setMiddleName("Middle Name");
+
+        final var personRequest = new PersonRequest();
+        personRequest.setAppName("App Name");
+        personRequest.setAppToken("ABC123");
+        personRequest.setDateTime(LocalDate.of(1970, 1, 1).atStartOfDay());
+        personRequest.setPerson(person);
+        personRequest.setPerson(null);
+
+        //when:
+        when(personService.update(anyString(), Mockito.<Person>any())).thenReturn(ResponseEntity.status(HttpStatus.BAD_REQUEST).build());
+        //then:
+        given().contentType(MediaType.APPLICATION_JSON_VALUE).body(objectMapper.writeValueAsString(personRequest))
+                .accept(MediaType.APPLICATION_JSON_VALUE).when().put(PATH.concat("610a376a-aa19-4e0d-ad0b-4536457522f2")).then().assertThat()
+                .statusCode(HttpStatus.BAD_REQUEST.value()).expect(MvcResult::getResponse);
+    }
+
     private static Person getPerson() {
         final var person = new Person();
-        person.setBirthdate(LocalDate.of(1984,5,27));
+        person.setBirthdate(LocalDate.of(1984, 5, 27));
         person.setGender("F");
         person.setFirstName("Jenna");
         person.setMiddleName("Rylee");
