@@ -103,7 +103,8 @@ public class PersonServiceImpl implements PersonService {
 	/** {@inheritDoc} */
 	public ResponseEntity<PersonEntity> save(Person person) {
 		ResponseEntity<PersonEntity> responseEntity = esNulo(person) ?
-				ResponseEntity.notFound().build(): new ResponseEntity<>(personRepository.save(personMapper.toSource(person)), HttpStatus.CREATED);
+				ResponseEntity.notFound().build(): new ResponseEntity<>(personRepository
+				.save(personMapper.toSource(person)), HttpStatus.CREATED);
 		LOGGER.info(responseEntity.getStatusCode().toString());
 		return responseEntity;
 	}
