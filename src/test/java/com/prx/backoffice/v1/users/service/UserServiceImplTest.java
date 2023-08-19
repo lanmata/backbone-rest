@@ -20,8 +20,8 @@ import com.prx.backoffice.v1.users.api.to.UserTO;
 import com.prx.backoffice.v1.users.mapper.UserMapper;
 import com.prx.backoffice.v1.util.UserTemplateTest;
 import com.prx.commons.pojo.Person;
-import com.prx.persistence.general.domains.PersonEntity;
-import com.prx.persistence.general.domains.UserEntity;
+import com.prx.persistence.general.domains.*;
+import com.prx.persistence.general.repositories.PersonRepository;
 import com.prx.persistence.general.repositories.UserRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,14 +39,10 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * UserServiceTest.
@@ -56,7 +52,8 @@ import static org.mockito.Mockito.when;
  */
 @ContextConfiguration(classes = {UserServiceImpl.class})
 @ExtendWith(SpringExtension.class)
-class UserServiceImplTest extends MockLoaderBase {
+class
+UserServiceImplTest extends MockLoaderBase {
 
     @MockBean
     private RoleService roleService;
@@ -69,9 +66,239 @@ class UserServiceImplTest extends MockLoaderBase {
     @MockBean
     UserRepository userRepository;
     @MockBean
+    PersonRepository personRepository;
+    @MockBean
     UserMapper userMapper;
     @MockBean
     RoleMapper roleMapper;
+
+    /**
+     * Method under test: {@link UserServiceImpl#update(String, UserTO)}
+     */
+    @Test
+    void testUpdate() {
+        final var userId = UUID.randomUUID();
+        Person person = new Person();
+        person.setBirthdate(LocalDate.of(1970, 1, 1));
+        person.setFirstName("Jane");
+        person.setGender("Gender");
+        person.setId(UUID.randomUUID().toString());
+        person.setLastName("Doe");
+        person.setMiddleName("Middle Name");
+
+        UserTO user = new UserTO();
+        user.setActive(true);
+        user.setAlias("Alias");
+        user.setId(userId.toString());
+        user.setPassword("iloveyou");
+        user.setPerson(person);
+        user.setRoles(new HashSet<>());
+
+        PersonEntity personEntity = new PersonEntity();
+        personEntity.setId(UUID.fromString(person.getId()));
+        personEntity.setBirthdate(person.getBirthdate());
+        personEntity.setGender(person.getGender());
+        personEntity.setLastName(person.getLastName());
+        personEntity.setName(person.getFirstName());
+        personEntity.setMiddleName(person.getMiddleName());
+
+        UserEntity userEntity = new UserEntity();
+        userEntity.setId(userId);
+        userEntity.setAlias(user.getAlias());
+        userEntity.setActive(user.isActive());
+        userEntity.setPassword(user.getPassword());
+        userEntity.setPerson(personEntity);
+        userEntity.setUserRole(new HashSet<>());
+
+        final var responsePerson = ResponseEntity.ok(person);
+
+        when(userMapper.toSource(user)).thenReturn(userEntity);
+        when(userRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.of(userEntity));
+        when(personRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.of(personEntity));
+        when(personService.find(Mockito.anyString())).thenReturn(responsePerson);
+        when(userMapper.toTarget(Mockito.<UserEntity>any())).thenReturn(user);
+        when(userRepository.save(Mockito.<UserEntity>any())).thenReturn(userEntity);
+        final var responseEntity = userServiceImpl.update(userId.toString(), user);
+        Assertions.assertNotNull(responseEntity);
+        Assertions.assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+    }
+
+    /**
+     * Method under test: {@link UserServiceImpl#update(String, UserTO)}
+     */
+    @Test
+    void testUpdate1() {
+        final var userId = UUID.randomUUID();
+        Person person = new Person();
+        person.setBirthdate(LocalDate.of(1970, 1, 1));
+        person.setFirstName("Jane");
+        person.setGender("Gender");
+        person.setId(UUID.randomUUID().toString());
+        person.setLastName("Doe");
+        person.setMiddleName("Middle Name");
+
+        UserTO user = new UserTO();
+        user.setActive(true);
+        user.setAlias("Alias");
+        user.setId(userId.toString());
+        user.setPassword("iloveyou");
+        user.setPerson(person);
+        user.setRoles(new HashSet<>());
+
+        RoleEntity roleEntity = new RoleEntity();
+        roleEntity.setDescription("Coast deaths jumping matthew line. ");
+        roleEntity.setActive(true);
+        roleEntity.setId(UUID.randomUUID());
+        roleEntity.setName("Aftan Langley");
+        roleEntity.setUserRoleEntities(new HashSet<>());
+        roleEntity.setRoleFeatures(new HashSet<>());
+
+        PersonEntity personEntity = new PersonEntity();
+        personEntity.setId(UUID.fromString(person.getId()));
+        personEntity.setBirthdate(person.getBirthdate());
+        personEntity.setGender(person.getGender());
+        personEntity.setLastName(person.getLastName());
+        personEntity.setName(person.getFirstName());
+        personEntity.setMiddleName(person.getMiddleName());
+
+        UserEntity userEntity = new UserEntity();
+        userEntity.setId(userId);
+        userEntity.setAlias(user.getAlias());
+        userEntity.setActive(user.isActive());
+        userEntity.setPassword(user.getPassword());
+        userEntity.setPerson(personEntity);
+
+        UserRoleEntity userRoleEntity = new UserRoleEntity();
+        userRoleEntity.setUser(userEntity);
+        userRoleEntity.setRole(roleEntity);
+        userRoleEntity.setActive(true);
+        UserRolePK userRolePK = new UserRolePK();
+        userRolePK.setUserId(userEntity.getId());
+        userRolePK.setRoleId(roleEntity.getId());
+        userRoleEntity.setUserRolePK(userRolePK);
+        userEntity.setUserRole(Set.of(userRoleEntity));
+
+        userEntity.setUserRole(Set.of(userRoleEntity));
+        final var responsePerson = ResponseEntity.ok(person);
+
+        when(userMapper.toSource(user)).thenReturn(userEntity);
+        when(userRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.of(userEntity));
+        when(personRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.of(personEntity));
+        when(personService.find(Mockito.anyString())).thenReturn(responsePerson);
+        when(userMapper.toTarget(Mockito.<UserEntity>any())).thenReturn(user);
+        when(userRepository.save(Mockito.<UserEntity>any())).thenReturn(userEntity);
+        final var responseEntity = userServiceImpl.update(userId.toString(), user);
+        Assertions.assertNotNull(responseEntity);
+        Assertions.assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+    }
+
+    /**
+     * Method under test: {@link UserServiceImpl#update(String, UserTO)}
+     */
+    @Test
+    void testUpdate2() {
+        final var userId = UUID.randomUUID();
+        Person person = new Person();
+        person.setBirthdate(LocalDate.of(1970, 1, 1));
+        person.setFirstName("Jane");
+        person.setGender("Gender");
+        person.setId(UUID.randomUUID().toString());
+        person.setLastName("Doe");
+        person.setMiddleName("Middle Name");
+
+        UserTO user = new UserTO();
+        user.setActive(true);
+        user.setAlias("Alias");
+        user.setId(userId.toString());
+        user.setPassword("iloveyou");
+        user.setPerson(person);
+        user.setRoles(new HashSet<>());
+
+        PersonEntity personEntity = new PersonEntity();
+        personEntity.setId(UUID.fromString(person.getId()));
+        personEntity.setBirthdate(person.getBirthdate());
+        personEntity.setGender(person.getGender());
+        personEntity.setLastName(person.getLastName());
+        personEntity.setName(person.getFirstName());
+        personEntity.setMiddleName(person.getMiddleName());
+
+        UserEntity userEntity = new UserEntity();
+        userEntity.setId(userId);
+        userEntity.setAlias(user.getAlias());
+        userEntity.setActive(user.isActive());
+        userEntity.setPassword(user.getPassword());
+        userEntity.setPerson(personEntity);
+        userEntity.setUserRole(new HashSet<>());
+
+        when(userMapper.toSource(user)).thenReturn(userEntity);
+        when(userRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.of(userEntity));
+        when(personRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.empty());
+        when(personService.find(Mockito.anyString())).thenReturn(ResponseEntity.notFound().build());
+        when(userMapper.toTarget(Mockito.<UserEntity>any())).thenReturn(user);
+        when(userRepository.save(Mockito.<UserEntity>any())).thenReturn(userEntity);
+        final var responseEntity = userServiceImpl.update(userId.toString(), user);
+        Assertions.assertNotNull(responseEntity);
+        Assertions.assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+    }
+
+    /**
+     * Method under test: {@link UserServiceImpl#update(String, UserTO)}
+     */
+    @Test
+    void testUpdate3() {
+        UserTO user = new UserTO();
+        user.setActive(true);
+        user.setAlias("Alias");
+        user.setPassword("iloveyou");
+        user.setRoles(new HashSet<>());
+
+        final var responseEntity = userServiceImpl.update(null, user);
+        Assertions.assertNotNull(responseEntity);
+        Assertions.assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+    }
+
+    /**
+     * Method under test: {@link UserServiceImpl#update(String, UserTO)}
+     */
+    @Test
+    void testUpdate4() {
+        UserTO user = new UserTO();
+        user.setActive(true);
+        user.setAlias("Alias");
+        user.setPassword("iloveyou");
+        user.setRoles(new HashSet<>());
+
+        final var responseEntity = userServiceImpl.update("", user);
+        Assertions.assertNotNull(responseEntity);
+        Assertions.assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+    }
+
+    /**
+     * Method under test: {@link UserServiceImpl#update(String, UserTO)}
+     */
+    @Test
+    void testUpdate5() {
+        final var userId = UUID.randomUUID();
+        Person person = new Person();
+        person.setBirthdate(LocalDate.of(1970, 1, 1));
+        person.setFirstName("Jane");
+        person.setGender("Gender");
+        person.setId(UUID.randomUUID().toString());
+        person.setLastName("Doe");
+        person.setMiddleName("Middle Name");
+
+        UserTO user = new UserTO();
+        user.setActive(true);
+        user.setAlias("Alias");
+        user.setPassword("iloveyou");
+        user.setPerson(person);
+        user.setRoles(new HashSet<>());
+
+        when(userRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.empty());
+        final var responseEntity = userServiceImpl.update(userId.toString(), user);
+        Assertions.assertNotNull(responseEntity);
+        Assertions.assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+    }
 
     /**
      * Method under test: {@link UserServiceImpl#findAll()}
