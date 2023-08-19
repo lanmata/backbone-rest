@@ -64,7 +64,7 @@ public class UserController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = MessageUtil.OK, description = "Usuario encontrado")
     })
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/findAll")
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/")
     public ResponseEntity<List<UserTO>> findAll(){
         return userService.findAll();
     }

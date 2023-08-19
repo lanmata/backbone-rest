@@ -32,6 +32,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -161,16 +162,13 @@ public class UserServiceImpl implements UserService {
 	 */
 	@Override
 	public ResponseEntity<List<UserTO>> findAll() {
-		ResponseEntity<List<UserTO>> listResponseEntity;
 		final var userEntityList = userRepository.findAll();
 		if (userEntityList.isEmpty()) {
-			listResponseEntity = ResponseEntity.notFound().build();
+			return ResponseEntity.notFound().build();
 		} else {
-			listResponseEntity = new ResponseEntity<>(userEntityList.stream()
+			return new ResponseEntity<>(userEntityList.stream()
 					.map(userMapper::toTarget).collect(Collectors.toList()), HttpStatus.OK);
 		}
-		LOGGER.info(listResponseEntity.getStatusCode().toString());
-		return listResponseEntity;
 	}
 
 	/**
