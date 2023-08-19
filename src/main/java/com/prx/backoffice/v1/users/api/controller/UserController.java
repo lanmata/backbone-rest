@@ -106,7 +106,9 @@ public class UserController {
     @Operation(description = "Update a user")
     @ApiResponses(value = {
             @ApiResponse(responseCode = MessageUtil.OK, description = "Updated user"),
-            @ApiResponse(responseCode = MessageUtil.BAD_REQUEST, description = "User ID empty or null")
+            @ApiResponse(responseCode = MessageUtil.BAD_REQUEST, description = "User ID empty or null"),
+            @ApiResponse(responseCode = MessageUtil.BAD_REQUEST, description = "The user requested doesn't have a person associated."),
+            @ApiResponse(responseCode = MessageUtil.BAD_REQUEST, description = "Invalid user")
     })
     @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/{userId}")
     public ResponseEntity<UserTO> update(@PathVariable @NotNull String userId, @RequestBody @NotNull UserTO user) {
