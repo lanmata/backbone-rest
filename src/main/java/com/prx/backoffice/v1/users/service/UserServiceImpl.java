@@ -65,13 +65,17 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public ResponseEntity<UserTO> update(String userId, UserTO user) {
 		ResponseEntity<UserTO> responseEntity;
-		final var userResponseEntity = findUserByAlias(user.getAlias());
+		if(Objects.isNull(userId) || userId.isEmpty()) {
+			return ResponseEntity.badRequest().header(HttpHeaders.WARNING, "User ID empty or null").build();
+		}
+		final var userResponseEntity = findUserById(userId);
 		try {
-			if (HttpStatus.OK.value() == userResponseEntity.getStatusCode().value()) {
+			if (HttpStatus.OK.equals(userResponseEntity.getStatusCode())) {
 				final var responseEntityPerson = getPerson(user);
-				if(HttpStatus.OK.value() == responseEntityPerson.getStatusCode().value()) {
+				if(HttpStatus.OK.equals(responseEntityPerson.getStatusCode())) {
 					user.setPerson(responseEntityPerson.getBody());
 					final var userEntity = userMapper.toSource(user);
+					userEntity.setId(UUID.fromString(userId));
 					if(null != userEntity.getUserRole()) {
 						userEntity.getUserRole().forEach(userRoleEntity -> {
 							userRoleEntity.setUser(userEntity);
@@ -81,10 +85,12 @@ public class UserServiceImpl implements UserService {
 					var result = userRepository.save(userEntity);
 					responseEntity = new ResponseEntity<>(userMapper.toTarget(result), HttpStatus.OK);
 				} else {
-					responseEntity = ResponseEntity.unprocessableEntity().body(user);
+					responseEntity = ResponseEntity.badRequest()
+							.header(HttpHeaders.WARNING, "The user requested doesn't have a person associated.")
+							.build();
 				}
 			} else {
-					responseEntity = ResponseEntity.unprocessableEntity().body(user);
+					responseEntity = ResponseEntity.badRequest().header(HttpHeaders.WARNING, "Invalid user").build();
 			}
 		} catch (Exception ex) {
 			LOGGER.error(UserMessageKey.USER_ERROR_CREATED.getStatus()+ "| {}", user, ex);

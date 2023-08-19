@@ -60,9 +60,9 @@ public class UserController {
         return userService.findUserById(userId);
     }
 
-    @Operation(description = "Obtiene una lista de usuarios")
+    @Operation(description = "Getting an user list")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK, description = "Usuario encontrado")
+            @ApiResponse(responseCode = MessageUtil.OK, description = "User Found")
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/")
     public ResponseEntity<List<UserTO>> findAll(){
@@ -105,7 +105,8 @@ public class UserController {
 
     @Operation(description = "Update a user")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK, description = "Updated user")
+            @ApiResponse(responseCode = MessageUtil.OK, description = "Updated user"),
+            @ApiResponse(responseCode = MessageUtil.BAD_REQUEST, description = "User ID empty or null")
     })
     @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/{userId}")
     public ResponseEntity<UserTO> update(@PathVariable @NotNull String userId, @RequestBody @NotNull UserTO user) {
