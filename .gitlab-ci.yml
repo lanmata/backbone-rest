@@ -2,7 +2,6 @@ qodana:
   only:
     - master
     - Develop
-    - merge_requests
   image:
     name: jetbrains/qodana-jvm-community:2023.2
     entrypoint: [""]
@@ -23,6 +22,5 @@ sonarcloud-check:
   script:
     - mvn verify sonar:sonar -Dsonar.projectKey=prx-open_backbone-rest  -s ci_settings.xml
   only:
-    - merge_requests
     - master
     - Develop
