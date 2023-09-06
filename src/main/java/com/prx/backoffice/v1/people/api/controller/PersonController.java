@@ -49,7 +49,7 @@ public class PersonController {
      * @param personRequest {@link PersonRequest}
      * @return Objeto de tipo {@link Response}
      */
-    @Operation(description = "Create a persona")
+    @Operation(summary = "Create a person", description = "Create and return the person.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = MessageUtil.OK, description = "Person created")
     })
@@ -59,12 +59,18 @@ public class PersonController {
         return personService.create(personRequest.getPerson());
     }
 
+    @Operation(summary = "Fetch person by ID", description = "Return a person.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = MessageUtil.OK, description = "OK"),
+            @ApiResponse(responseCode = MessageUtil.NOT_FOUND, description = "Person not found"),
+            @ApiResponse(responseCode = MessageUtil.UNPROCESSABLE_ENTITY, description = "Person not found")
+    })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/{personId}")
     public ResponseEntity<Person> find(@PathVariable final String personId) {
         return personService.find(personId);
     }
 
-    @Operation(description = "Create a persona")
+    @Operation(summary = "Update a person", description = "Update and return the person.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = MessageUtil.OK, description = "Person updated"),
             @ApiResponse(responseCode = MessageUtil.BAD_REQUEST, description = "PersonId invalid"),
@@ -76,14 +82,13 @@ public class PersonController {
         return personService.update(personId, personRequest.getPerson());
     }
 
+    @Operation(summary = "Fetch all people", description = "Return all people.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = MessageUtil.OK, description = "OK"),
+            @ApiResponse(responseCode = MessageUtil.NOT_FOUND, description = "Person not found")
+    })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/")
     public ResponseEntity<List<Person>> list() {
         return personService.list((String) null);
     }
-
-    //TODO - metodo post para actualizas los datos de una persona
-
-    //TODO - metodo post para obtener agregar un nuevo usuario a una persona
-
-    //TODO - metodo post para obtener elminar un usuario a una persona
 }

@@ -135,10 +135,74 @@ class PersonServiceImplTest {
     }
 
     /**
-     * Method under test: {@link PersonServiceImpl#save(Person)}
+     * Method under test: {@link PersonServiceImpl#find(String)}
      */
     @Test
-    void testSave() {
+    void testFind() {
+        final var personId = UUID.randomUUID();
+        PersonEntity personEntity = new PersonEntity();
+        personEntity.setBirthdate(LocalDate.of(1970, 1, 1));
+        personEntity.setGender("Gender");
+        personEntity.setId(personId);
+        personEntity.setLastName("Doe");
+        personEntity.setMiddleName("Middle Name");
+        personEntity.setName("Name");
+        Person person = new Person();
+        person.setGender("Gender");
+        person.setId(personId.toString());
+        person.setLastName("Doe");
+        person.setMiddleName("Middle Name");
+        person.setFirstName("Name");
+        person.setBirthdate(LocalDate.of(1970, 1, 1));
+        when(personRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.of(personEntity));
+        when(personMapper.toTarget(Mockito.<PersonEntity>any())).thenReturn(person);
+        final var result = personServiceImpl.find(personId.toString());
+        assertNotNull(result);
+        assertNotNull(result.getBody());
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertEquals("Gender", personEntity.getGender());
+        assertEquals("Doe", personEntity.getLastName());
+        assertEquals("Middle Name", personEntity.getMiddleName());
+        assertEquals("Name", personEntity.getName());
+        verify(personRepository).findById(Mockito.<UUID>any());
+        verify(personMapper).toTarget(Mockito.<PersonEntity>any());
+    }
+
+    /**
+     * Method under test: {@link PersonServiceImpl#find(String)}
+     */
+    @Test
+    void testFind_not_found() {
+        final var personId = UUID.randomUUID();
+        PersonEntity personEntity = new PersonEntity();
+        personEntity.setBirthdate(LocalDate.of(1970, 1, 1));
+        personEntity.setGender("Gender");
+        personEntity.setId(personId);
+        personEntity.setLastName("Doe");
+        personEntity.setMiddleName("Middle Name");
+        personEntity.setName("Name");
+        when(personRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.empty());
+        final var result = personServiceImpl.find(personId.toString());
+        assertNotNull(result);
+        assertEquals(HttpStatus.NOT_FOUND, result.getStatusCode());
+        verify(personRepository).findById(Mockito.<UUID>any());
+    }
+
+    /**
+     * Method under test: {@link PersonServiceImpl#find(String)}
+     */
+    @Test
+    void testFind_null_parameter() {
+        final var result = personServiceImpl.find((String)null);
+        assertNotNull(result);
+        assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, result.getStatusCode());
+    }
+
+    /**
+     * Method under test: {@link PersonServiceImpl#create(Person)}
+     */
+    @Test
+    void testCreate() {
         PersonEntity personEntity = new PersonEntity();
         personEntity.setBirthdate(LocalDate.of(1970, 1, 1));
         personEntity.setGender("Gender");
@@ -163,19 +227,21 @@ class PersonServiceImplTest {
         person.setGender("Gender");
         person.setLastName("Doe");
         person.setMiddleName("Middle Name");
-        ResponseEntity<PersonEntity> actualSaveResult = personServiceImpl.save(person);
+        when(personMapper.toTarget(Mockito.<PersonEntity>any())).thenReturn(person);
+        ResponseEntity<Person> actualSaveResult = personServiceImpl.create(person);
         assertTrue(actualSaveResult.hasBody());
         assertTrue(actualSaveResult.getHeaders().isEmpty());
         assertEquals(HttpStatus.CREATED, actualSaveResult.getStatusCode());
         verify(personRepository).save(Mockito.<PersonEntity>any());
         verify(personMapper).toSource(Mockito.<Person>any());
+        verify(personMapper).toTarget(Mockito.<PersonEntity>any());
     }
 
     /**
-     * Method under test: {@link PersonServiceImpl#save(Person)}
+     * Method under test: {@link PersonServiceImpl#create(Person)}
      */
     @Test
-    void testSave2() {
+    void testCreate2() {
         when(personMapper.toSource(Mockito.<Person>any())).thenThrow(new StandardException(null));
 
         Person person = new Person();
@@ -184,13 +250,13 @@ class PersonServiceImplTest {
         person.setGender("Gender");
         person.setLastName("Doe");
         person.setMiddleName("Middle Name");
-        assertThrows(StandardException.class, () -> personServiceImpl.save(person));
+        assertThrows(StandardException.class, () -> personServiceImpl.create(person));
         verify(personMapper).toSource(Mockito.<Person>any());
     }
 
     @Test
-    void testSave3() {
-        ResponseEntity<PersonEntity> actualSaveResult = personServiceImpl.save(null);
+    void testCreate3() {
+        ResponseEntity<Person> actualSaveResult = personServiceImpl.create(null);
         assertFalse(actualSaveResult.hasBody());
         assertTrue(actualSaveResult.getHeaders().isEmpty());
         assertEquals(HttpStatus.NOT_FOUND, actualSaveResult.getStatusCode());
