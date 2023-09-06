@@ -110,6 +110,19 @@ class PersonControllerTest extends MockLoaderBase {
     }
 
     /**
+     * Method under test: {@link PersonController#find(String)}
+     */
+    @Test
+    void testFind() {
+        //when:
+        when(personService.create(Mockito.<Person>any())).thenReturn(ResponseEntity.ok(getPerson()));
+        //then:
+        given().contentType(MediaType.APPLICATION_JSON_VALUE).accept(MediaType.APPLICATION_JSON_VALUE).when()
+                .get(PATH.concat("/69cec508-e959-469a-b075-ea1119818c18")).then().assertThat()
+                .statusCode(HttpStatus.OK.value()).expect(MvcResult::getResponse);
+    }
+
+    /**
      * Method under test: {@link PersonController#list()}
      */
     @Test

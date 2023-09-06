@@ -13,10 +13,8 @@
 
 package com.prx.backoffice.v1.people.service;
 
-import com.prx.backoffice.enums.keys.UserMessageKey;
 import com.prx.backoffice.util.MessageUtil;
 import com.prx.backoffice.v1.people.mapper.PersonMapper;
-import com.prx.commons.exception.StandardException;
 import com.prx.commons.pojo.Person;
 import com.prx.persistence.general.domains.PersonEntity;
 import com.prx.persistence.general.repositories.PersonRepository;
@@ -49,7 +47,10 @@ public class PersonServiceImpl implements PersonService {
 
 	/** {@inheritDoc} */
 	public ResponseEntity<Person> create(Person person) {
-		final var responseEntity = save(person);
+		ResponseEntity<PersonEntity> responseEntity = esNulo(person) ?
+				ResponseEntity.notFound().build(): new ResponseEntity<>(personRepository
+				.save(personMapper.toSource(person)), HttpStatus.CREATED);
+		LOGGER.info(responseEntity.getStatusCode().toString());
 		return new ResponseEntity<>(
 				personMapper.toTarget(responseEntity.getBody()), responseEntity.getStatusCode());
 	}
@@ -68,11 +69,6 @@ public class PersonServiceImpl implements PersonService {
 		var newValuePersonEntity = personMapper.toSource(person);
 		newValuePersonEntity.setId(UUID.fromString(personId));
 		return ResponseEntity.ok(personMapper.toTarget(personRepository.save(newValuePersonEntity)));
-	}
-
-	@Override
-	public ResponseEntity<Person> delete(String personId, Person person) {
-		return null;
 	}
 
 	@Override
@@ -98,31 +94,6 @@ public class PersonServiceImpl implements PersonService {
 				personList.add(personMapper.toTarget(personEntity))
 		);
 		return personList.isEmpty() ? ResponseEntity.notFound().build(): ResponseEntity.ok(sort(personList));
-	}
-
-	/** {@inheritDoc} */
-	public ResponseEntity<PersonEntity> save(Person person) {
-		ResponseEntity<PersonEntity> responseEntity = esNulo(person) ?
-				ResponseEntity.notFound().build(): new ResponseEntity<>(personRepository
-				.save(personMapper.toSource(person)), HttpStatus.CREATED);
-		LOGGER.info(responseEntity.getStatusCode().toString());
-		return responseEntity;
-	}
-
-	/** {@inheritDoc} */
-	public ResponseEntity<Person> find(Person person) {
-		ResponseEntity<Person> responseEntity;
-		try {
-			final var personResult = personRepository.findByFirstNameMiddleNameLastName(
-					person.getFirstName(), person.getMiddleName(), person.getLastName());
-			responseEntity = esNulo(personResult)? ResponseEntity.notFound().build()
-					:new ResponseEntity<>(personMapper.toTarget(personResult), HttpStatus.FOUND);
-			LOGGER.info("{} {} {}",responseEntity.getStatusCode() , MessageUtil.LOG_PATH_SEPARATOR , person);
-			return responseEntity;
-		} catch (Exception e) {
-			LOGGER.warn("Se ha producido un error inesperado");
-			throw new StandardException(UserMessageKey.USER_NOT_FOUND, e);
-		}
 	}
 
 	private List<Person> sort(List<Person> people) {

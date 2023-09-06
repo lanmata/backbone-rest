@@ -15,6 +15,8 @@ package com.prx.backoffice.v1.people.service;
 
 import com.prx.backoffice.services.CrudService;
 import com.prx.commons.pojo.Person;
+import org.apache.commons.lang.NotImplementedException;
+import org.springframework.http.ResponseEntity;
 
 /**
  * PersonService.
@@ -24,4 +26,8 @@ import com.prx.commons.pojo.Person;
  */
 public interface PersonService extends CrudService <Person> {
 
+    @Override
+    default ResponseEntity<Person> delete(String personId, Person person) {
+        throw new NotImplementedException();
+    }
 }
