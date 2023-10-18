@@ -94,4 +94,16 @@ public class ContactServiceImpl implements ContactService {
             return ResponseEntity.notFound().build();
         }
     }
+
+    @Override
+    public ResponseEntity<List<Contact>> listByPersonId(String personId) {
+        var optionalContactList = contactRepository.listByPersonId(UUID.fromString(personId));
+        if(optionalContactList.isPresent()) {
+            var contactList = new ArrayList<Contact>();
+            optionalContactList.get().stream().toList().forEach(contactEntity -> contactList.add(contactMapper.toTarget(contactEntity)));
+            return ResponseEntity.ok(contactList);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
 }

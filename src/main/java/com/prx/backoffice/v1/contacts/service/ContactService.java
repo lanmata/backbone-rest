@@ -15,6 +15,7 @@ package com.prx.backoffice.v1.contacts.service;
 
 import com.prx.commons.pojo.Contact;
 import com.prx.commons.pojo.MessageActivity;
+import org.apache.commons.lang.NotImplementedException;
 import org.springframework.http.ResponseEntity;
 
 import java.math.BigInteger;
@@ -52,4 +53,13 @@ public interface ContactService {
      * @return {@link ResponseEntity} object type with a {@link Contact} object type.
      */
     ResponseEntity<Contact> find(String contactId);
+
+    /**
+     * List contacts by person id.
+     * @param personId {@link String} object type.
+     * @return {@link ResponseEntity} object type with a {@link Contact} object type.
+     */
+    default ResponseEntity<List<Contact>> listByPersonId(String personId) {
+        throw new NotImplementedException();
+    }
 }

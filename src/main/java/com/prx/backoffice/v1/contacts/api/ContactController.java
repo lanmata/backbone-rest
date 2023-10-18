@@ -80,6 +80,15 @@ public class ContactController {
         return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
     }
 
+    @Operation(description = "List contacts by person Id.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = MessageUtil.OK, description = "OK")
+    })
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/person/{personId}")
+    public ResponseEntity<List<Contact>> list(@PathVariable String personId){
+        return contactService.listByPersonId(personId);
+    }
+
     @Operation(description = "Get a contact list.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = MessageUtil.OK, description = "OK")
