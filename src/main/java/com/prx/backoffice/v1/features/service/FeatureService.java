@@ -29,27 +29,34 @@ import java.util.List;
  */
 public interface FeatureService extends CrudService <Feature> {
 
+    /**
+     * Create a feature.
+     *
+     * @param feature {@link Feature} object type
+     * @return {@link ResponseEntity}<{@link Feature}> object type.
+     */
     @Override
     default ResponseEntity<Feature> create(Feature feature) {
         throw new NotImplementedException();
     }
 
     /**
-     * Busca uno o más {@link Feature} en base a uno o más id´s.
+     * Search one or more {@link Feature} by feature id collection and a flag status (active or inactive).
      *
-     * @param featureIds {@link List}
+     * @param featureIds {@link List} object type.
      * @param includeInactive {@link boolean}
-     * @return Objeto de tipo {@link MessageActivity}
+     * @return {@link ResponseEntity}<{@link List}<{@link Feature}>> object type.
      */
     default ResponseEntity<List<Feature>> list(List<String> featureIds, boolean includeInactive) {
         throw new NotImplementedException();
     }
 
     /**
+     * Update a feature.
      *
-     * @param id
-     * @param feature
-     * @return
+     * @param id {@link String} object type.
+     * @param feature {@link Feature} object type.
+     * @return {@link ResponseEntity}<{@link Feature}> object type.
      */
     @Override
     default ResponseEntity<Feature> update(String id, Feature feature) {
@@ -57,10 +64,11 @@ public interface FeatureService extends CrudService <Feature> {
     }
 
     /**
+     * Delete a feature.
      *
-     * @param id
-     * @param feature
-     * @return
+     * @param id {@link String} object type.
+     * @param feature {@link Feature} object type.
+     * @return {@link ResponseEntity}<{@link Feature}> object type.
      */
     @Override
     default ResponseEntity<Feature> delete(String id, Feature feature) {
@@ -68,9 +76,10 @@ public interface FeatureService extends CrudService <Feature> {
     }
 
     /**
+     * Get a feature collection by a feature id collection.
      *
-     * @param id
-     * @return
+     * @param id {@link String} object type vararg.
+     * @return {@link ResponseEntity}<{@link List}<{@link Feature}>> object type.
      */
     @Override
     default ResponseEntity<List<Feature>> list(String... id) {

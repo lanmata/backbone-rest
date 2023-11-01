@@ -77,7 +77,7 @@ public class ContactController {
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/list/{contactIds}")
     public ResponseEntity<List<Contact>> list(@PathVariable List<String> contactIds){
-        return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+        return contactService.list(contactIds);
     }
 
     @Operation(description = "List contacts by person Id.")

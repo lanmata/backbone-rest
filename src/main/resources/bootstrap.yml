@@ -13,6 +13,20 @@ spring:
       send-state: true
   jpa:
     defer-datasource-initialization: true
+  ssl:
+    bundle:
+      jks:
+        config-server:
+          key:
+            alias: prx.env-qa-docker
+          keystore:
+            location: classpath:prx.env-qa-docker.p12
+            password: 13515030
+            type: PKCS12
+server:
+  ssl:
+    enabled: true
+    bundle: config-server
 management:
     cloudfoundry:
         enabled: false

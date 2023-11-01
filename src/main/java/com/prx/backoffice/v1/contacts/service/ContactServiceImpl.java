@@ -17,13 +17,18 @@ import com.prx.backoffice.v1.contacttypes.mapper.ContactTypeMapper;
 import com.prx.commons.pojo.Contact;
 import com.prx.persistence.general.domains.ContactEntity;
 import com.prx.persistence.general.repositories.ContactRepository;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import static com.prx.backoffice.util.MessageUtil.MESSAGE_HEADER_STR;
 
 /**
  * ContactService.
@@ -36,6 +41,8 @@ public class ContactServiceImpl implements ContactService {
     private final ContactRepository contactRepository;
     private final ContactMapper contactMapper;
     private final ContactTypeMapper contactTypeMapper;
+    @Value("${app.environments.contact.limit}")
+    private int contactLimit;
 
     public ContactServiceImpl(ContactRepository contactRepository, ContactMapper contactMapper, ContactTypeMapper contactTypeMapper) {
         this.contactRepository = contactRepository;
@@ -59,9 +66,17 @@ public class ContactServiceImpl implements ContactService {
         if (null == contact) {
            return ResponseEntity.notFound().build();
         }
-        var contactEntity = contactMapper.toSource(contact);
-        var response = contactRepository.save(contactEntity);
-        return ResponseEntity.ok(contactMapper.toTarget(response));
+        var contactList = listByPersonId(contact.getPerson().getId());
+        if(contactList.getStatusCode().equals(HttpStatus.OK) && contactList.hasBody() && Objects.nonNull(contactList.getBody())) {
+            if(contactList.getBody().size() < contactLimit) {
+                var contactEntity = contactMapper.toSource(contact);
+                var response = contactRepository.save(contactEntity);
+                return ResponseEntity.status(HttpStatus.CREATED).header(MESSAGE_HEADER_STR, "Contact created").body(contactMapper.toTarget(response));
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).header(MESSAGE_HEADER_STR, "Contact NOT created. Contact limit has been reached.").build();
+            }
+        }
+        return ResponseEntity.noContent().build();
     }
 
     @Override
