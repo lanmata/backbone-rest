@@ -30,36 +30,62 @@ import java.util.List;
 public interface ContactService {
 
     /**
-     * Registra los contactos recibidos asociados a las personas
+     * Records incoming contacts associated with individuals.
      *
-     * @param contacts Objeto de tipo {@link List}
-     *
-     * @return Objeto de tipo {@link MessageActivity}
+     * @param contacts {@link List} object type.
+     * @return {@link List} object type with a {@link Contact} object type.
      */
-    List<Contact> saveAll(List<Contact> contacts);
-
-    ResponseEntity<Contact> create(Contact contact);
+    default List<Contact> saveAll(List<Contact> contacts) {
+        throw new NotImplementedException();
+    }
 
     /**
-     * Update a contact exist.
+     * Save a contact.
+     *
      * @param contact {@link Contact} object type.
      * @return {@link ResponseEntity} object type with a {@link Contact} object type.
      */
-    ResponseEntity<Contact> update(Contact contact, String contactId);
+    default ResponseEntity<Contact> create(Contact contact) {
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Update a contact exist.
+     *
+     * @param contact {@link Contact} object type.
+     * @return {@link ResponseEntity} object type with a {@link Contact} object type.
+     */
+    default ResponseEntity<Contact> update(Contact contact, String contactId){
+        throw new NotImplementedException();
+    }
 
     /**
      * Find contact by contact id.
+     *
      * @param contactId {@link BigInteger} object type.
      * @return {@link ResponseEntity} object type with a {@link Contact} object type.
      */
-    ResponseEntity<Contact> find(String contactId);
+    default ResponseEntity<Contact> find(String contactId) {
+        throw new NotImplementedException();
+    }
 
     /**
      * List contacts by person id.
+     *
      * @param personId {@link String} object type.
      * @return {@link ResponseEntity} object type with a {@link Contact} object type.
      */
     default ResponseEntity<List<Contact>> listByPersonId(String personId) {
+        throw new NotImplementedException();
+    }
+
+    /**
+     * List contact by contact id.
+     *
+     * @param contactIds {@link String} object type.
+     * @return {@link ResponseEntity} object type with a {@link Contact} object type.
+     */
+    default ResponseEntity<List<Contact>> list(List<String> contactIds) {
         throw new NotImplementedException();
     }
 }
