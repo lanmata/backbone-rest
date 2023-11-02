@@ -1,15 +1,18 @@
+app:
+  name: backbone-rest
+  version: 0.0.2-2023
 spring:
   main:
     allow-bean-definition-overriding: true
   profiles:
-    active: qa
+    active: ${SPRING_BOOT_PROFILE_ACTIVE}
   application:
-    name: prx-backbone-rest
+    name: backbone-rest
   cloud:
     config:
-      profile: qa
-      label: developer
-      uri: qa.prx.test/config-server
+      profile: ${SPRING_BOOT_PROFILE_ACTIVE}
+      label: ${SPRING_CLOUD_CONFIG_LABEL}
+      uri: ${CONFIG_SERVER_URL}
       send-state: true
   jpa:
     defer-datasource-initialization: true

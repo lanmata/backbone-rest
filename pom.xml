@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.prx.backbone</groupId>
-    <artifactId>prx-backbone-rest</artifactId>
+    <artifactId>backbone-rest</artifactId>
     <version>0.0.2-2023</version>
     <name>PRX Backbone REST</name>
     <description>Management service to system entities</description>
