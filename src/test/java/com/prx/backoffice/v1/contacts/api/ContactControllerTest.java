@@ -60,7 +60,6 @@ class ContactControllerTest extends MockLoaderBase {
      */
     @Test
     void testCreate() throws JsonProcessingException {
-        final var contactId = UUID.randomUUID();
         final var contactRequest = getContactRequest();
         final var response = ResponseEntity.status(HttpStatus.CREATED).body(contactRequest.getContact());
         //when:
