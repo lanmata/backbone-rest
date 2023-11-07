@@ -121,4 +121,15 @@ public class ContactServiceImpl implements ContactService {
             return ResponseEntity.notFound().build();
         }
     }
+
+    @Override
+    public ResponseEntity<String> deleteById(String contactId) {
+        var contactUUID = UUID.fromString(contactId);
+        var contactItem = contactRepository.findById(contactUUID);
+        if(contactItem.isPresent()) {
+            contactRepository.deleteById(contactUUID);
+            return ResponseEntity.accepted().header(MESSAGE_HEADER_STR, "The Contact has been removed.").build();
+        }
+        return ResponseEntity.notFound().header(MESSAGE_HEADER_STR, "The Contact is NOT present.").build();
+    }
 }

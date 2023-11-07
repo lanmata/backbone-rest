@@ -102,9 +102,9 @@ public class ContactController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = MessageUtil.OK, description = "OK")
     })
-    @DeleteMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/")
-    public ResponseEntity<Contact> delete(@PathVariable final String contactId) {
-        return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+    @DeleteMapping(path = "/{contactId}")
+    public ResponseEntity<String> delete(@PathVariable final String contactId) {
+        return contactService.deleteById(contactId);
     }
 
 }

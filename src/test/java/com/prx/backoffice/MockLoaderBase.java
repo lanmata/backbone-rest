@@ -50,7 +50,7 @@ import static org.apache.http.Consts.UTF_8;
 @MockServerSettings(perTestSuite = true)
 @ExtendWith(value = {MockServerExtension.class})
 @TestPropertySource(locations = "classpath:application-test.yml")
-@SpringBootTest(properties = {"spring.cloud.config.enabled=false"})
+@SpringBootTest(properties = {"spring.cloud.config.enabled=false", "SPRING_BOOT_PROFILE_ACTIVE=local", "app.environments.contact.limit=5"})
 public abstract class MockLoaderBase {
 
 //	protected MockMvc mockMvc;

@@ -25,16 +25,12 @@ import com.prx.persistence.general.repositories.PersonRepository;
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.web.context.WebApplicationContext;
 
@@ -50,9 +46,6 @@ import static org.mockito.Mockito.when;
  * @author Luis Antonio Mata
  * @version 1.0.1.20200904-01, 06-11-2020
  */
-@ExtendWith(SpringExtension.class)
-@SpringBootTest
-@ActiveProfiles("local")
 class PersonControllerTest extends MockLoaderBase {
 
     @Autowired

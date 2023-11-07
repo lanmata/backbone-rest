@@ -19,6 +19,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.time.LocalDate;
@@ -29,6 +30,7 @@ import static org.mockito.Mockito.*;
 
 @ContextConfiguration(classes = {ContactServiceImpl.class})
 @ExtendWith(SpringExtension.class)
+@TestPropertySource(properties = {"app.environments.contact.limit=5"})
 class ContactServiceImplTest {
     @MockBean
     private ContactMapper contactMapper;
@@ -277,98 +279,109 @@ class ContactServiceImplTest {
      */
     @Test
     void testCreate() {
-        ContactTypeEntity contactType = new ContactTypeEntity();
-        contactType.setActive(true);
-        contactType.setDescription("The characteristics of someone or something");
-        contactType.setId(UUID.randomUUID());
-        contactType.setName("Name");
+        final var contactTypeUUID1 = UUID.randomUUID();
+        final var contactTypeUUID2 = UUID.randomUUID();
+        final var contactTypeUUID3 = UUID.randomUUID();
+        final var contactUUID1 = UUID.randomUUID();
+        final var contactUUID2 = UUID.randomUUID();
+        final var personUUID1 = UUID.randomUUID();
+        final var personUUID2 = UUID.randomUUID();
+        final var personUUID3 = UUID.randomUUID();
+        ContactTypeEntity contactTypeEntity1 = new ContactTypeEntity();
+        contactTypeEntity1.setActive(true);
+        contactTypeEntity1.setDescription("The characteristics of someone or something");
+        contactTypeEntity1.setId(contactTypeUUID1);
+        contactTypeEntity1.setName("Name");
 
-        PersonEntity person = new PersonEntity();
-        person.setBirthdate(LocalDate.of(1970, 1, 1));
-        person.setGender("Gender");
-        person.setId(UUID.randomUUID());
-        person.setLastName("Doe");
-        person.setMiddleName("Middle Name");
-        person.setName("Name");
+        PersonEntity personEntity1 = new PersonEntity();
+        personEntity1.setBirthdate(LocalDate.of(1970, 1, 1));
+        personEntity1.setGender("Gender");
+        personEntity1.setId(personUUID1);
+        personEntity1.setLastName("Doe");
+        personEntity1.setMiddleName("Middle Name");
+        personEntity1.setName("Name");
 
-        ContactEntity contactEntity = new ContactEntity();
-        contactEntity.setActive(true);
-        contactEntity.setContactType(contactType);
-        contactEntity.setContent("Not all who wander are lost");
-        contactEntity.setId(UUID.randomUUID());
-        contactEntity.setPerson(person);
-        when(contactRepository.save(Mockito.<ContactEntity>any())).thenReturn(contactEntity);
+        ContactEntity contactEntity1 = new ContactEntity();
+        contactEntity1.setActive(true);
+        contactEntity1.setContactType(contactTypeEntity1);
+        contactEntity1.setContent("Not all who wander are lost");
+        contactEntity1.setId(contactUUID1);
+        contactEntity1.setPerson(personEntity1);
+
+        ContactType contactType1 = new ContactType();
+        contactType1.setActive(true);
+        contactType1.setDescription("The characteristics of someone or something");
+        contactType1.setId(contactTypeUUID1.toString());
+        contactType1.setName("Name");
+
+        Person person1 = new Person();
+        person1.setBirthdate(LocalDate.of(1970, 1, 1));
+        person1.setFirstName("Jane");
+        person1.setGender("Gender");
+        person1.setId(personUUID1.toString());
+        person1.setLastName("Doe");
+        person1.setMiddleName("Middle Name");
+
+        Contact contact = new Contact();
+        contact.setActive(true);
+        contact.setContactType(contactType1);
+        contact.setContent("Not all who wander are lost");
+        contact.setId(contactUUID1.toString());
+        contact.setPerson(person1);
+
+        ContactTypeEntity contactTypeEntity2 = new ContactTypeEntity();
+        contactTypeEntity2.setActive(true);
+        contactTypeEntity2.setDescription("The characteristics of someone or something");
+        contactTypeEntity2.setId(contactTypeUUID3);
+        contactTypeEntity2.setName("Name");
+
+        PersonEntity personEntity2 = new PersonEntity();
+        personEntity2.setBirthdate(LocalDate.of(1970, 1, 1));
+        personEntity2.setGender("Gender");
+        personEntity2.setId(personUUID2);
+        personEntity2.setLastName("Doe");
+        personEntity2.setMiddleName("Middle Name");
+        personEntity2.setName("Name");
+
+        ContactEntity contactEntity2 = new ContactEntity();
+        contactEntity2.setActive(true);
+        contactEntity2.setContactType(contactTypeEntity1);
+        contactEntity2.setContent("Not all who wander are lost");
+        contactEntity2.setId(contactUUID2);
+        contactEntity2.setPerson(personEntity2);
+        var responseContact = ResponseEntity.ok();
+        when(contactRepository.listByPersonId(Mockito.<UUID>any())).thenReturn(Optional.of(List.of(contactEntity1)));
+        when(contactMapper.toTarget(Mockito.<ContactEntity>any())).thenReturn(contact);
+        when(contactMapper.toSource(Mockito.<Contact>any())).thenReturn(contactEntity2);
+        when(contactRepository.save(Mockito.<ContactEntity>any())).thenReturn(contactEntity1);
 
         ContactType contactType2 = new ContactType();
         contactType2.setActive(true);
         contactType2.setDescription("The characteristics of someone or something");
-        contactType2.setId("42");
+        contactType2.setId(contactTypeUUID2.toString());
         contactType2.setName("Name");
 
         Person person2 = new Person();
         person2.setBirthdate(LocalDate.of(1970, 1, 1));
         person2.setFirstName("Jane");
         person2.setGender("Gender");
-        person2.setId("42");
+        person2.setId(personUUID2.toString());
         person2.setLastName("Doe");
         person2.setMiddleName("Middle Name");
 
-        Contact contact = new Contact();
-        contact.setActive(true);
-        contact.setContactType(contactType2);
-        contact.setContent("Not all who wander are lost");
-        contact.setId("42");
-        contact.setPerson(person2);
-
-        ContactTypeEntity contactType3 = new ContactTypeEntity();
-        contactType3.setActive(true);
-        contactType3.setDescription("The characteristics of someone or something");
-        contactType3.setId(UUID.randomUUID());
-        contactType3.setName("Name");
-
-        PersonEntity person3 = new PersonEntity();
-        person3.setBirthdate(LocalDate.of(1970, 1, 1));
-        person3.setGender("Gender");
-        person3.setId(UUID.randomUUID());
-        person3.setLastName("Doe");
-        person3.setMiddleName("Middle Name");
-        person3.setName("Name");
-
-        ContactEntity contactEntity2 = new ContactEntity();
-        contactEntity2.setActive(true);
-        contactEntity2.setContactType(contactType3);
-        contactEntity2.setContent("Not all who wander are lost");
-        contactEntity2.setId(UUID.randomUUID());
-        contactEntity2.setPerson(person3);
-        when(contactMapper.toTarget(Mockito.<ContactEntity>any())).thenReturn(contact);
-        when(contactMapper.toSource(Mockito.<Contact>any())).thenReturn(contactEntity2);
-
-        ContactType contactType4 = new ContactType();
-        contactType4.setActive(true);
-        contactType4.setDescription("The characteristics of someone or something");
-        contactType4.setId("42");
-        contactType4.setName("Name");
-
-        Person person4 = new Person();
-        person4.setBirthdate(LocalDate.of(1970, 1, 1));
-        person4.setFirstName("Jane");
-        person4.setGender("Gender");
-        person4.setId("42");
-        person4.setLastName("Doe");
-        person4.setMiddleName("Middle Name");
-
         Contact contact2 = new Contact();
         contact2.setActive(true);
-        contact2.setContactType(contactType4);
+        contact2.setContactType(contactType2);
         contact2.setContent("Not all who wander are lost");
-        contact2.setId("42");
-        contact2.setPerson(person4);
+        contact2.setId(contactUUID2.toString());
+        contact2.setPerson(person2);
         ResponseEntity<Contact> actualCreateResult = contactServiceImpl.create(contact2);
         assertTrue(actualCreateResult.hasBody());
-        assertTrue(actualCreateResult.getHeaders().isEmpty());
-        assertEquals(200, actualCreateResult.getStatusCodeValue());
+        assertFalse(actualCreateResult.getHeaders().isEmpty());
+        assertEquals(HttpStatus.CREATED, actualCreateResult.getStatusCode());
+        verify(contactRepository).listByPersonId(Mockito.<UUID>any());
+        verify(contactMapper, times(2)).toTarget(Mockito.<ContactEntity>any());
         verify(contactRepository).save(Mockito.<ContactEntity>any());
-        verify(contactMapper).toTarget(Mockito.<ContactEntity>any());
         verify(contactMapper).toSource(Mockito.<Contact>any());
     }
 
@@ -505,6 +518,49 @@ class ContactServiceImplTest {
         ContactMapperImpl contactMapper = new ContactMapperImpl();
         ResponseEntity<List<Contact>> actualFindResult = contactServiceImpl.listByPersonId(personId.toString());
         assertFalse(actualFindResult.hasBody());
+        assertEquals(HttpStatus.NOT_FOUND, actualFindResult.getStatusCode());
+    }
+
+    /**
+     * Method under test: {@link ContactServiceImpl#deleteById(String)}
+     */
+    @Test
+    void testDeleteById() {
+        UUID personId = UUID.randomUUID();
+        UUID contactId = UUID.randomUUID();
+        var contactEntity = new ContactEntity();
+        var contactTypeEntity = new ContactTypeEntity();
+        var contactType = new ContactType();
+        var personEntity = new PersonEntity();
+        personEntity.setId(personId);
+        personEntity.setBirthdate(LocalDate.now());
+        personEntity.setGender("M");
+        personEntity.setName("Pepe");
+        personEntity.setMiddleName("Chavo");
+        personEntity.setLastName("Guardia");
+        contactTypeEntity.setActive(true);
+        contactTypeEntity.setDescription("Contact type description");
+        contactTypeEntity.setName("Contact type");
+        contactTypeEntity.setId(UUID.randomUUID());
+
+        contactEntity.setActive(true);
+        contactEntity.setContent("Content description");
+        contactEntity.setPerson(personEntity);
+        contactEntity.setId(contactId);
+        contactEntity.setContactType(contactTypeEntity);
+        when(contactRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(contactEntity));
+        ResponseEntity<String> actualFindResult = contactServiceImpl.deleteById(personId.toString());
+        assertEquals(HttpStatus.ACCEPTED, actualFindResult.getStatusCode());
+    }
+
+    /**
+     * Method under test: {@link ContactServiceImpl#deleteById(String)}
+     */
+    @Test
+    void testDeleteById_not_found() {
+        var personId = UUID.randomUUID();
+        when(contactRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.empty());
+        ResponseEntity<String> actualFindResult = contactServiceImpl.deleteById(personId.toString());
         assertEquals(HttpStatus.NOT_FOUND, actualFindResult.getStatusCode());
     }
 }
