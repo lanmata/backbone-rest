@@ -14,7 +14,6 @@
 package com.prx.backoffice.v1.contacts.service;
 
 import com.prx.commons.pojo.Contact;
-import com.prx.commons.pojo.MessageActivity;
 import org.apache.commons.lang.NotImplementedException;
 import org.springframework.http.ResponseEntity;
 
@@ -86,6 +85,16 @@ public interface ContactService {
      * @return {@link ResponseEntity} object type with a {@link Contact} object type.
      */
     default ResponseEntity<List<Contact>> list(List<String> contactIds) {
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Delete contact by contactId.
+     *
+     * @param contactId {@link String}
+     * @return {@link ResponseEntity} object type.
+     */
+    default ResponseEntity<String> deleteById(String contactId) {
         throw new NotImplementedException();
     }
 }
