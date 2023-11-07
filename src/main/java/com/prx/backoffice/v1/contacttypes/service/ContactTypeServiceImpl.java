@@ -14,13 +14,18 @@
 package com.prx.backoffice.v1.contacttypes.service;
 
 import com.prx.backoffice.v1.contacttypes.mapper.ContactTypeMapper;
+import com.prx.backoffice.v1.contacttypes.to.ContactTypeRequest;
 import com.prx.commons.pojo.ContactType;
 import com.prx.persistence.general.repositories.ContactTypeRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+
+import static com.prx.backoffice.util.MessageUtil.MESSAGE_HEADER_STR;
 
 /**
  * ContactTypeImpl.
@@ -45,5 +50,15 @@ public class ContactTypeServiceImpl implements ContactTypeService {
         var result = contactTypeRepository.findAll();
         result.forEach(contactTypeEntity -> contactTypes.add(contactTypeMapper.toTarget(contactTypeEntity)));
         return ResponseEntity.ok(contactTypes);
+    }
+
+    @Override
+    public ResponseEntity<ContactType> create(ContactTypeRequest contactTypeRequest) {
+        if(Objects.nonNull(contactTypeRequest) && Objects.nonNull(contactTypeRequest.getContactType())) {
+            var contactTypeEntity = contactTypeMapper.toSource(contactTypeRequest.getContactType());
+            return ResponseEntity.status(HttpStatus.CREATED).header(MESSAGE_HEADER_STR, "Contact Type created.")
+                    .body(contactTypeMapper.toTarget(contactTypeRepository.save(contactTypeEntity)));
+        }
+        return ResponseEntity.badRequest().header(MESSAGE_HEADER_STR, "Contact Type couldn't be created.").build();
     }
 }

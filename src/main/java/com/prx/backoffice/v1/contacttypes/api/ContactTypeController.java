@@ -49,7 +49,7 @@ public class ContactTypeController {
     })
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/")
     public ResponseEntity<ContactType> create(@RequestBody final ContactTypeRequest contactTypeRequest) {
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+        return contactTypeService.create(contactTypeRequest);
     }
 
     @Operation(description = "Find a contact type list.")
@@ -57,8 +57,17 @@ public class ContactTypeController {
             @ApiResponse(responseCode = MessageUtil.OK, description = "OK")
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/{contactTypeId}")
-    public ResponseEntity<ContactType> find(@PathVariable final long contactTypeId) {
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+    public ResponseEntity<ContactType> find(@PathVariable final String contactTypeId) {
+        return contactTypeService.findById(contactTypeId);
+    }
+
+    @Operation(description = "Find a contact type list.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = MessageUtil.OK, description = "OK")
+    })
+    @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/{contactTypeId}")
+    public ResponseEntity<ContactType> update(@PathVariable final String contactTypeId) {
+        return contactTypeService.update(contactTypeId);
     }
 
     @Operation(description = "Find a contact type list by ids.")
@@ -66,8 +75,8 @@ public class ContactTypeController {
             @ApiResponse(responseCode = MessageUtil.OK, description = "OK")
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/list/{contactTypeIds}")
-    public ResponseEntity<List<ContactType>> list(@PathVariable final List<Long> contactTypeIds){
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+    public ResponseEntity<List<ContactType>> list(@PathVariable final List<String> contactTypeIds){
+        return contactTypeService.listById(contactTypeIds);
     }
 
     @Operation(description = "Get a contact type list.")
@@ -84,8 +93,8 @@ public class ContactTypeController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = MessageUtil.OK, description = "OK")
     })
-    @DeleteMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/")
-    public ResponseEntity<ContactType> delete(@PathVariable final Long contactTypeId) {
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+    @DeleteMapping(path = "/{contactTypeId}")
+    public ResponseEntity<ContactType> delete(@PathVariable final String contactTypeId) {
+        return contactTypeService.delete(contactTypeId);
     }
 }
