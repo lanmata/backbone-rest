@@ -63,7 +63,8 @@ public class ContactTypeController {
 
     @Operation(description = "Find a contact type list.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK, description = "OK")
+            @ApiResponse(responseCode = MessageUtil.OK, description = "OK"),
+            @ApiResponse(responseCode = MessageUtil.NOT_FOUND, description = "Contact Type not found.")
     })
     @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/{contactTypeId}")
     public ResponseEntity<ContactType> update(@PathVariable final String contactTypeId) {
