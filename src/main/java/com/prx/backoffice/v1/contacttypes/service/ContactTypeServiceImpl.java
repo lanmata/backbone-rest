@@ -49,6 +49,9 @@ public class ContactTypeServiceImpl implements ContactTypeService {
         List<ContactType> contactTypes = new ArrayList<>();
         var result = contactTypeRepository.findAll();
         result.forEach(contactTypeEntity -> contactTypes.add(contactTypeMapper.toTarget(contactTypeEntity)));
+        if(contactTypes.isEmpty()) {
+            return ResponseEntity.notFound().header(MESSAGE_HEADER_STR, "Contact Type not found.").build();
+        }
         return ResponseEntity.ok(contactTypes);
     }
 

@@ -5,7 +5,6 @@ import com.prx.backoffice.v1.contacttypes.to.ContactTypeRequest;
 import com.prx.commons.pojo.ContactType;
 import com.prx.persistence.general.domains.ContactTypeEntity;
 import com.prx.persistence.general.repositories.ContactTypeRepository;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,6 +16,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -27,9 +28,6 @@ import static org.mockito.Mockito.when;
 @ContextConfiguration(classes = {ContactTypeServiceImpl.class})
 @ExtendWith(SpringExtension.class)
 class ContactTypeServiceImplTest {
-
-    @MockBean
-    private ContactTypeMapper contactTypeMapper;
 
     @MockBean
     private ContactTypeRepository contactTypeRepository;
@@ -43,24 +41,39 @@ class ContactTypeServiceImplTest {
 
     @Test
     void list() {
+        var contactType = getContactType();
+        var contactTypeEntity = new ContactTypeEntity();
+        contactTypeEntity.setId(UUID.fromString(contactType.getId()));
+        contactTypeEntity.setName("Contact type description 001");
+        contactTypeEntity.setDescription("Contact type description");
+        contactTypeEntity.setActive(true);
+        var contactTypeList = List.of(contactTypeEntity);
+        when(contactTypeRepository.findAll()).thenReturn((Iterable<ContactTypeEntity>) contactTypeList);
+        var result = contactTypeServiceImpl.list();
+        assertNotNull(result);
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        verify(contactTypeRepository).findAll();
+    }
+
+    @Test
+    void list_not_found() {
+        when(contactTypeRepository.findAll()).thenReturn((Iterable<ContactTypeEntity>) new ArrayList<ContactTypeEntity>());
+        var result = contactTypeServiceImpl.list();
+        assertNotNull(result);
+        assertEquals(HttpStatus.NOT_FOUND, result.getStatusCode());
+        verify(contactTypeRepository).findAll();
     }
 
     @Test
     void create() {
         var contactTypeUUID = UUID.randomUUID();
-        var contactType = getContactType();
-        var contactTypeRequest = new ContactTypeRequest();
-        contactTypeRequest.setContactType(contactType);
-        contactTypeRequest.setAppName("TST-001");
-        contactTypeRequest.setAppToken("12536");
-        contactTypeRequest.setDateTime(LocalDateTime.now());
         var contactTypeEntity = new ContactTypeEntity();
         contactTypeEntity.setId(contactTypeUUID);
         contactTypeEntity.setName("Contact type description 001");
         contactTypeEntity.setDescription("Contact type description");
         contactTypeEntity.setActive(true);
         when(contactTypeRepository.save(Mockito.any(ContactTypeEntity.class))).thenReturn(contactTypeEntity);
-        var result = contactTypeServiceImpl.create(contactTypeRequest);
+        var result = contactTypeServiceImpl.create(getContactTypeRequest(getContactType()));
         assertNotNull(result);
         assertEquals(HttpStatus.CREATED, result.getStatusCode());
         verify(contactTypeRepository).save(Mockito.<ContactTypeEntity>any());
@@ -68,7 +81,6 @@ class ContactTypeServiceImplTest {
 
     @Test
     void create_bad_request() {
-        var contactType = getContactType();
         var contactTypeRequest = new ContactTypeRequest();
         contactTypeRequest.setContactType(null);
         var result = contactTypeServiceImpl.create(contactTypeRequest);
@@ -83,12 +95,20 @@ class ContactTypeServiceImplTest {
 
     private static ContactType getContactType() {
         final var contactTypeUUID = UUID.randomUUID();
-        final var contactType2UUID = UUID.randomUUID();
         ContactType contactType = new ContactType();
         contactType.setActive(true);
         contactType.setDescription("The characteristics of someone or something");
         contactType.setId(contactTypeUUID.toString());
         contactType.setName("Name");
         return contactType;
+    }
+
+    private static ContactTypeRequest getContactTypeRequest(ContactType contactType) {
+        var contactTypeRequest = new ContactTypeRequest();
+        contactTypeRequest.setContactType(contactType);
+        contactTypeRequest.setAppName("TST-001");
+        contactTypeRequest.setAppToken("12536");
+        contactTypeRequest.setDateTime(LocalDateTime.now());
+        return contactTypeRequest;
     }
 }
