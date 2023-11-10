@@ -1,6 +1,7 @@
 package com.prx.backoffice.v1.contacttypes.service;
 
 import com.prx.backoffice.v1.contacttypes.to.ContactTypeRequest;
+import com.prx.commons.pojo.ContactType;
 import org.apache.commons.lang.NotImplementedException;
 import org.junit.jupiter.api.Test;
 
@@ -44,11 +45,11 @@ class ContactTypeServiceTest {
     }
 
     /**
-     * Method under test: {@link ContactTypeService#update(String)}
+     * Method under test: {@link ContactTypeService#update(String, ContactType)}
      */
     @Test
     void testUpdate() {
-        assertThrows(NotImplementedException.class, () -> contactTypeService.update("d425105c-9539-4790-b281-32ff22407888"));
+        assertThrows(NotImplementedException.class, () -> contactTypeService.update("d425105c-9539-4790-b281-32ff22407888", new ContactType()));
     }
 
     /**
