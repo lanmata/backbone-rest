@@ -55,9 +55,24 @@ class ContactTypeControllerTest extends MockLoaderBase {
         //when:
         Mockito.when(contactTypeService.create(Mockito.any(ContactTypeRequest.class))).thenReturn(contactResponse);
         //then:
-        given().contentType(MediaType.APPLICATION_JSON_VALUE).body(objectMapper.writeValueAsString(contactResponse))
+        given().contentType(MediaType.APPLICATION_JSON_VALUE).body(objectMapper.writeValueAsString(contactTypeRequest))
                 .accept(MediaType.APPLICATION_JSON_VALUE).when().post(PATH)
                 .then().assertThat().statusCode(HttpStatus.CREATED.value()).expect(MvcResult::getResponse);
+    }
+
+    @Test
+    void testUpdate() throws JsonProcessingException {
+        var contactTypeRequest = new ContactTypeRequest();
+        var uuid = UUID.randomUUID();
+        contactTypeRequest.setContactType(getContactType());
+        final var contactResponse = ResponseEntity.status(HttpStatus.ACCEPTED).body(getContactType());
+
+        //when:
+        Mockito.when(contactTypeService.update(Mockito.anyString(), Mockito.any(ContactType.class))).thenReturn(contactResponse);
+        //then:
+        given().contentType(MediaType.APPLICATION_JSON_VALUE).body(objectMapper.writeValueAsString(getContactType()))
+                .accept(MediaType.APPLICATION_JSON_VALUE).when().put(PATH + "/" + uuid.toString())
+                .then().assertThat().statusCode(HttpStatus.ACCEPTED.value()).expect(MvcResult::getResponse);
     }
 
     private static ContactType getContactType() {

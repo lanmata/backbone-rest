@@ -49,7 +49,7 @@ public interface ContactTypeService {
         throw new NotImplementedException();
     }
 
-    default ResponseEntity<ContactType> update(String contactTypeId) {
+    default ResponseEntity<ContactType> update(String contactTypeId, ContactType contactType) {
         throw new NotImplementedException();
     }
 }

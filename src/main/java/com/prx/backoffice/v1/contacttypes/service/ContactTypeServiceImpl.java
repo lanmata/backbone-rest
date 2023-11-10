@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 import static com.prx.backoffice.util.MessageUtil.MESSAGE_HEADER_STR;
 
@@ -63,5 +64,23 @@ public class ContactTypeServiceImpl implements ContactTypeService {
                     .body(contactTypeMapper.toTarget(contactTypeRepository.save(contactTypeEntity)));
         }
         return ResponseEntity.badRequest().header(MESSAGE_HEADER_STR, "Contact Type couldn't be created.").build();
+    }
+
+    @Override
+    public ResponseEntity<ContactType> update(String contactTypeId, ContactType contactType) {
+        if(Objects.nonNull(contactTypeId) && Objects.nonNull(contactType)) {
+            var uuid = UUID.fromString(contactTypeId);
+            var contactTypePrevious = this.contactTypeRepository.findById(uuid);
+            if(contactTypePrevious.isPresent()) {
+                var contactTypeEntity = contactTypePrevious.get();
+                contactTypeEntity.setName(contactType.getName());
+                contactTypeEntity.setActive(contactType.getActive());
+                contactTypeEntity.setDescription(contactType.getDescription());
+                return ResponseEntity.status(HttpStatus.ACCEPTED).header(MESSAGE_HEADER_STR, "Contact Type updated.")
+                        .body(contactTypeMapper.toTarget(contactTypeRepository.save(contactTypeEntity)));
+            }
+            return ResponseEntity.notFound().header(MESSAGE_HEADER_STR, "Contact Type not founded.").build();
+        }
+        return ResponseEntity.badRequest().header(MESSAGE_HEADER_STR, "Contact Type couldn't be updated.").build();
     }
 }
