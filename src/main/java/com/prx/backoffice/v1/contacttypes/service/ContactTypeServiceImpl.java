@@ -79,8 +79,21 @@ public class ContactTypeServiceImpl implements ContactTypeService {
                 return ResponseEntity.status(HttpStatus.ACCEPTED).header(MESSAGE_HEADER_STR, "Contact Type updated.")
                         .body(contactTypeMapper.toTarget(contactTypeRepository.save(contactTypeEntity)));
             }
-            return ResponseEntity.notFound().header(MESSAGE_HEADER_STR, "Contact Type not founded.").build();
+            return ResponseEntity.notFound().header(MESSAGE_HEADER_STR, "Contact Type not found.").build();
         }
         return ResponseEntity.badRequest().header(MESSAGE_HEADER_STR, "Contact Type couldn't be updated.").build();
+    }
+
+    @Override
+    public ResponseEntity<ContactType> findById(String contactTypeId) {
+        if(Objects.nonNull(contactTypeId)) {
+            var uuid = UUID.fromString(contactTypeId);
+            var contactTypeEntity = contactTypeRepository.findById(uuid);
+            return contactTypeEntity.map(entity -> ResponseEntity.status(HttpStatus.OK)
+                            .header(MESSAGE_HEADER_STR, "Contact Type found.")
+                            .body(contactTypeMapper.toTarget(contactTypeEntity.get())))
+                    .orElseGet(() -> ResponseEntity.notFound().header(MESSAGE_HEADER_STR, "Contact Type not found.").build());
+        }
+        return ResponseEntity.badRequest().header(MESSAGE_HEADER_STR, "Contact Type ID not valid.").build();
     }
 }
