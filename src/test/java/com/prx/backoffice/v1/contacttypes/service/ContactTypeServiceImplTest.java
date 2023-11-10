@@ -12,6 +12,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -145,6 +146,41 @@ class ContactTypeServiceImplTest {
         var result = contactTypeServiceImpl.update(null, null);
         assertNotNull(result);
         assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
+    }
+
+    @Test
+    void testFindById() {
+        final var contactType = getContactType();
+        final var uuidValue = contactType.getId();
+        var contactTypeEntity = new ContactTypeEntity();
+        contactTypeEntity.setId(UUID.fromString(uuidValue));
+        contactTypeEntity.setName("Contact type description 001");
+        contactTypeEntity.setDescription("Contact type description");
+        contactTypeEntity.setActive(true);
+        when(contactTypeRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.of(contactTypeEntity));
+        when(contactTypeMapper.toTarget(Mockito.<ContactTypeEntity>any())).thenReturn(getContactType());
+        var result = contactTypeServiceImpl.findById(uuidValue);
+        assertNotNull(result);
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertEquals(uuidValue, contactType.getId());
+        verify(contactTypeRepository).findById(Mockito.<UUID>any());
+        verify(contactTypeMapper).toTarget(Mockito.<ContactTypeEntity>any());
+    }
+
+    @Test
+    void testFindById_bad_request() {
+        when(contactTypeRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.empty());
+        var result = contactTypeServiceImpl.findById(null);
+        assertNotNull(result);
+        assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
+    }
+
+    @Test
+    void testFindById_not_found() {
+        when(contactTypeRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.empty());
+        var result = contactTypeServiceImpl.findById("efafc19c-b4a7-4d97-a911-bca3a7436c20");
+        assertNotNull(result);
+        assertEquals(HttpStatus.NOT_FOUND, result.getStatusCode());
     }
 
     private static ContactType getContactType() {

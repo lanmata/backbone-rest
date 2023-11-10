@@ -75,6 +75,21 @@ class ContactTypeControllerTest extends MockLoaderBase {
                 .then().assertThat().statusCode(HttpStatus.ACCEPTED.value()).expect(MvcResult::getResponse);
     }
 
+    @Test
+    void testFind() throws JsonProcessingException {
+        var contactTypeRequest = new ContactTypeRequest();
+        var uuid = UUID.randomUUID();
+        contactTypeRequest.setContactType(getContactType());
+        final var contactResponse = ResponseEntity.status(HttpStatus.OK).body(getContactType());
+
+        //when:
+        Mockito.when(contactTypeService.findById(Mockito.anyString())).thenReturn(contactResponse);
+        //then:
+        given().contentType(MediaType.APPLICATION_JSON_VALUE)
+                .accept(MediaType.APPLICATION_JSON_VALUE).when().get(PATH + "/" + uuid.toString())
+                .then().assertThat().statusCode(HttpStatus.OK.value()).expect(MvcResult::getResponse);
+    }
+
     private static ContactType getContactType() {
         final var contactTypeUUID = UUID.randomUUID();
         final var contactType2UUID = UUID.randomUUID();
