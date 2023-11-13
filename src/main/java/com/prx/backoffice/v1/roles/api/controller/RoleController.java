@@ -98,6 +98,20 @@ class RoleController {
 
     /**
      *
+     * @return {@link RoleCollectionResponse}
+     */
+    @Operation(description = "List Roles by status and role id.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = MessageUtil.OK, description = MessageUtil.OK_VALUE),
+            @ApiResponse(responseCode = MessageUtil.NOT_FOUND, description = MessageUtil.NOT_FOUND)
+    })
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<Role>> list() {
+        return roleService.list();
+    }
+
+    /**
+     *
      * @param roleCreateRequest {@link RoleRequest}
      * @return {@link Response}
      */
@@ -138,7 +152,7 @@ class RoleController {
             @ApiResponse(responseCode = MessageUtil.OK, description = MessageUtil.OK_VALUE),
             @ApiResponse(responseCode = MessageUtil.NOT_FOUND, description = MessageUtil.NOT_FOUND)
     })
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/listByUser/{userId}")
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/user/{userId}")
     public ResponseEntity<List<Role>> list(@PathVariable String userId) {
         return roleService.listByUser(userId);
     }

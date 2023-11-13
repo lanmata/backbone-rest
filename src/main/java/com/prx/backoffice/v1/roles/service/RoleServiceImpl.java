@@ -61,7 +61,11 @@ public class RoleServiceImpl implements RoleService {
 		return roleEntity.map(entity -> ResponseEntity.ok(roleMapper.toTarget(entity))).orElseGet(() -> ResponseEntity.notFound().build());
 	}
 
-
+	/** {@inheritDoc} */
+	@Override
+	public ResponseEntity<List<Role>> list() {
+		return getRoleList(roleRepository.findAll()).map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+	}
 
 	/** {@inheritDoc} */
 	@Override
@@ -184,6 +188,16 @@ public class RoleServiceImpl implements RoleService {
 			optional = Optional.of(roleEntities.stream().map(roleMapper::toTarget).toList());
 		}
 		return optional;
+	}
+
+	private Optional<List<Role>> getRoleList(Iterable<RoleEntity> roleEntityIterable) {
+		if(Objects.isNull(roleEntityIterable)) {
+			return Optional.empty();
+		} else {
+			var roles = new ArrayList<Role>();
+			roleEntityIterable.forEach(roleEntity -> roles.add(roleMapper.toTarget(roleEntity)));
+			return Optional.of(roles);
+		}
 	}
 
 }
