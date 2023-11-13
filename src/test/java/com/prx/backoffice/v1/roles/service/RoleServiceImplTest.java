@@ -124,7 +124,7 @@ class RoleServiceImplTest {
      * Method under test: {@link RoleServiceImpl#list(String[])}
      */
     @Test
-    void testList2() {
+    void testListByUser2() {
         ArrayList<RoleEntity> roleEntityList = new ArrayList<>();
         RoleEntity roleEntity = new RoleEntity();
         roleEntity.setActive(true);
@@ -147,7 +147,7 @@ class RoleServiceImplTest {
      * Method under test: {@link RoleServiceImpl#list(String[])}
      */
     @Test
-    void testList3() {
+    void testListByUser3() {
         final var roleId = UUID.randomUUID();
         RoleEntity roleEntity = new RoleEntity();
         roleEntity.setActive(true);
@@ -182,7 +182,7 @@ class RoleServiceImplTest {
      * Method under test: {@link RoleServiceImpl#list(String[])}
      */
     @Test
-    void testList4() {
+    void testListByUser4() {
         final var roleId = UUID.randomUUID();
         RoleEntity roleEntity = new RoleEntity();
         roleEntity.setActive(true);
@@ -226,7 +226,7 @@ class RoleServiceImplTest {
      * Method under test: {@link RoleServiceImpl#list(String[])}
      */
     @Test
-    void testList5() {
+    void testListByUser5() {
         final var roleId = UUID.randomUUID();
 
         Role role = new Role();
@@ -254,7 +254,6 @@ class RoleServiceImplTest {
 
         Optional<List<RoleEntity>> ofResult = Optional.of(new ArrayList<>());
         when(roleRepository.findByUserId(any())).thenReturn(ofResult);
-//        when(roleMapper.toTarget(any())).thenReturn(role);
         ResponseEntity<List<Role>> actualListResult = roleServiceImpl.listByUser(roleId.toString());
         assertTrue(Objects.requireNonNull(actualListResult.getBody()).isEmpty());
         assertEquals(HttpStatus.OK, actualListResult.getStatusCode());
@@ -429,6 +428,37 @@ class RoleServiceImplTest {
      */
     @Test
     void testListByUser_not_found() {
+        when(roleRepository.findByUserId(Mockito.<UUID>any())).thenReturn(Optional.empty());
+        final var response = roleServiceImpl.listByUser("1f057e2e-9392-4418-bcf6-f157f45fcf60");
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertTrue(Objects.isNull(response.getBody()));
+    }
+
+    @Test
+    void link() {
+    }
+
+    @Test
+    void update() {
+    }
+
+    @Test
+    void delete() {
+    }
+
+    @Test
+    void testList_not_found() {
+        when(roleRepository.findAll()).thenReturn(null);
+        final var response = roleServiceImpl.list();
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertTrue(Objects.isNull(response.getBody()));
+    }
+
+    /**
+     * Method under test: {@link RoleServiceImpl#listByUser(String)}
+     */
+    @Test
+    void testList() {
         final var roleId = UUID.randomUUID();
         final var featureId = UUID.randomUUID();
         final var userId = UUID.randomUUID();
@@ -471,27 +501,12 @@ class RoleServiceImplTest {
         roleEntity.setRoleFeatures(new HashSet<>());
         roleEntity.getRoleFeatures().add(roleFeatureEntity);
 
-        when(roleRepository.findByUserId(Mockito.<UUID>any())).thenReturn(Optional.empty());
+        when(roleRepository.findAll()).thenReturn(List.of(roleEntity));
         when(roleMapper.toTarget(Mockito.<RoleEntity>any())).thenReturn(role);
-        final var response = roleServiceImpl.listByUser(userId.toString());
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertTrue(Objects.isNull(response.getBody()));
-    }
-
-    @Test
-    void link() {
-    }
-
-    @Test
-    void update() {
-    }
-
-    @Test
-    void delete() {
-    }
-
-    @Test
-    void testList() {
+        final var response = roleServiceImpl.list();
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(Objects.nonNull(response.getBody()));
+        assertEquals("Name", response.getBody().get(0).getName());
     }
 
     @Test
@@ -517,6 +532,8 @@ class RoleServiceImplTest {
         role.setDescription("Role description");
         return role;
     }
+
+
 
 
 }

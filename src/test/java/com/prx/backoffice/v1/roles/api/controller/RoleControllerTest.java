@@ -70,8 +70,8 @@ class RoleControllerTest extends MockLoaderBase {
     private MockMvcRequestSpecification mockMvcRequestSpecification;
 
     static {
-        LIST_BY_USER = "listByUser/";
-        PATH = "/v1/roles/";
+        LIST_BY_USER = "user/";
+        PATH = "/v1/roles";
         FIND = "find/";
     }
 
@@ -84,7 +84,7 @@ class RoleControllerTest extends MockLoaderBase {
     @DisplayName("Found role")
     void findOK() {
         //when:
-        var response = mockMvcRequestSpecification.get(PATH + FIND.concat("0f9c32bf-33ea-401c-9da2-a2fb47231540"));
+        var response = mockMvcRequestSpecification.get(PATH.concat("/").concat(FIND.concat("0f9c32bf-33ea-401c-9da2-a2fb47231540")));
         // then:
         assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value());
     }
@@ -109,7 +109,7 @@ class RoleControllerTest extends MockLoaderBase {
         when(roleService.update(Mockito.anyString(), Mockito.<Role>any())).thenReturn(response);
         //then:
         given().contentType(MediaType.APPLICATION_JSON_VALUE).body(objectMapper.writeValueAsString(roleRequest))
-                .accept(MediaType.APPLICATION_JSON_VALUE).when().put(PATH.concat(roleRequest.getRole().getId()))
+                .accept(MediaType.APPLICATION_JSON_VALUE).when().put(PATH.concat("/").concat(roleRequest.getRole().getId()))
                 .then().assertThat().statusCode(HttpStatus.ACCEPTED.value()).expect(MvcResult::getResponse);
     }
 
@@ -122,7 +122,7 @@ class RoleControllerTest extends MockLoaderBase {
         when(roleService.update(Mockito.anyString(), Mockito.<Role>any())).thenReturn(ResponseEntity.notFound().build());
         //then:
         given().contentType(MediaType.APPLICATION_JSON_VALUE).body(objectMapper.writeValueAsString(roleRequest))
-                .accept(MediaType.APPLICATION_JSON_VALUE).when().put(PATH.concat(roleRequest.getRole().getId()))
+                .accept(MediaType.APPLICATION_JSON_VALUE).when().put(PATH.concat("/").concat(roleRequest.getRole().getId()))
                 .then().assertThat().statusCode(HttpStatus.NOT_FOUND.value()).expect(MvcResult::getResponse);
     }
 
@@ -130,7 +130,7 @@ class RoleControllerTest extends MockLoaderBase {
     @DisplayName("Find a list with few inactive roles include and id role list")
     void list_ok_001() {
         //when:
-        var response = mockMvcRequestSpecification.get(PATH.concat("true")
+        var response = mockMvcRequestSpecification.get(PATH.concat("/").concat("true")
                 .concat("/0393857c-cdce-4b01-b73c-d1b561ecc57d,803c743c-b217-4895-9816-8bb3981fb782,adae2cd4-5adf-4d94-adb5-9295dee2a70a"));
         // then:
         assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value());
@@ -140,7 +140,7 @@ class RoleControllerTest extends MockLoaderBase {
     @DisplayName("Find a list with few inactive roles and id role list and a nonexistent role")
     void list_ok_002() {
         //when:
-        var response = mockMvcRequestSpecification.get(PATH.concat("true")
+        var response = mockMvcRequestSpecification.get(PATH.concat("/").concat("true")
                 .concat("/0393857c-cdce-4b01-b73c-d1b561ecc57d,803c743c-b217-4895-9816-8bb3981fb782,adae2cd4-5adf-4d94-adb5-9295dee2a70a"));
         // then:
         assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value());
@@ -150,7 +150,7 @@ class RoleControllerTest extends MockLoaderBase {
     @DisplayName("Find roles list by user")
     void list_by_user_id_ok_004() {
         //when:
-        var response = mockMvcRequestSpecification.get(PATH + LIST_BY_USER.concat("0f9c32bf-33ea-401c-9da2-a2fb47231540"));
+        var response = mockMvcRequestSpecification.get(PATH.concat("/") + LIST_BY_USER.concat("0f9c32bf-33ea-401c-9da2-a2fb47231540"));
         // then:
         assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value());
     }
@@ -162,7 +162,18 @@ class RoleControllerTest extends MockLoaderBase {
         //when:
         when(roleService.listByUser(Mockito.anyString())).thenReturn(roleResponse);
         //when:
-        var response = mockMvcRequestSpecification.get(PATH + LIST_BY_USER.concat("0f9c32bf-33ea-401c-9da2-a2fb47231540"));
+        var response = mockMvcRequestSpecification.get(PATH.concat("/") + LIST_BY_USER.concat("0f9c32bf-33ea-401c-9da2-a2fb47231540"));
+        // then:
+        assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value());
+    }
+
+    @Test
+    @DisplayName("Search roles by status and role Id's - OK")
+    void testListById_ok() {
+        //when:
+        when(roleService.list(Mockito.anyBoolean(), anyList())).thenReturn(ResponseEntity.ok(List.of(getRole())));
+        //when:
+        var response = mockMvcRequestSpecification.get(PATH.concat("/").concat(true+"/").concat("0f9c32bf-33ea-401c-9da2-a2fb47231540,0f9c32bf-33ea-401c-9da2-a2fb48521540"));
         // then:
         assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value());
     }
@@ -171,9 +182,9 @@ class RoleControllerTest extends MockLoaderBase {
     @DisplayName("Search roles by status and role Id's - OK")
     void testList_ok() {
         //when:
-        when(roleService.list(Mockito.anyBoolean(), anyList())).thenReturn(ResponseEntity.ok(List.of(getRole())));
+        when(roleService.list()).thenReturn(ResponseEntity.ok(List.of(getRole())));
         //when:
-        var response = mockMvcRequestSpecification.get(PATH.concat(true+"/").concat("0f9c32bf-33ea-401c-9da2-a2fb47231540,0f9c32bf-33ea-401c-9da2-a2fb48521540"));
+        var response = mockMvcRequestSpecification.get(PATH);
         // then:
         assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value());
     }

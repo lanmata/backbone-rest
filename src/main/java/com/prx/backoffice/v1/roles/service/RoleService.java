@@ -79,6 +79,14 @@ public interface RoleService extends CrudService<Role> {
         throw new NotImplementedException();
     }
 
+    /**
+     * Lista un conjunto de roles.
+     * @return Objeto de tipo {@link ResponseEntity<List<Role>>}
+     */
+    default ResponseEntity<List<Role>> list() {
+        throw new NotImplementedException();
+    }
+
     @Override
     default ResponseEntity<Role> delete(String id, Role role) {
         throw new NotImplementedException();
