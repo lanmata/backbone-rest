@@ -21,6 +21,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,14 +47,15 @@ public class UserController {
         this.messageUtil = messageUtil;
     }
 
-    //    @PreAuthorize("hasAnyAuthority('ms_user_test')")
+    @GetMapping()
+    public ResponseEntity<String> checkAliasAvailable(
+            @Parameter(description = "User alias.", required = true) @Valid  @RequestParam(value="alias") String alias) {
+        return userService.aliasValidate(alias);
+    }
+
     @Operation(description = "Busca los usuarios a través del identificador")
     @ApiResponses(value = {
             @ApiResponse(responseCode = MessageUtil.OK, description = "User found.")
-//            @ApiResponse(responseCode = MessageUtil.OK_VALUE, description = "${messages.general.user-find.ok}")
-//            ,
-//            @ApiResponse(responseCode = "404", description = "${messages.general.user-find.nok}"),
-//            @ApiResponse(responseCode = "500", description = "${messages.general.user-find.error}")
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/{userId}")
     public ResponseEntity<UserTO> find(@Parameter(description = STR_ID_USER, required = true) @PathVariable(value = "userId") @NotNull String userId){
@@ -139,4 +141,5 @@ public class UserController {
                          @Parameter(description = "Id de rol") @PathVariable @NotNull String roleId) {
         return userService.link(userId, roleId);
     }
+
 }

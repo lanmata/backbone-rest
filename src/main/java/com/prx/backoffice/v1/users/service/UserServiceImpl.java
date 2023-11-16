@@ -21,7 +21,6 @@ import com.prx.backoffice.v1.users.api.to.UserTO;
 import com.prx.backoffice.v1.users.mapper.UserMapper;
 import com.prx.commons.pojo.Person;
 import com.prx.commons.pojo.User;
-import com.prx.commons.util.ValidatorCommonsUtil;
 import com.prx.persistence.general.domains.UserRoleEntity;
 import com.prx.persistence.general.repositories.UserRepository;
 import org.slf4j.Logger;
@@ -35,6 +34,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import static com.prx.backoffice.util.MessageUtil.MESSAGE_HEADER_STR;
 
 /**
  * Modelo para la gesti&oacute;n de usuarios
@@ -115,7 +116,15 @@ public class UserServiceImpl implements UserService {
 		return null;
 	}
 
-
+	@Override
+	public ResponseEntity<String> aliasValidate(String alias) {
+		final var user = findByAlias(alias);
+		if(Objects.isNull(user)) {
+			return ResponseEntity.status(HttpStatus.OK).header(MESSAGE_HEADER_STR, "Alias available.").build();
+		} else {
+			return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).header(MESSAGE_HEADER_STR, "Alias is not available.").build();
+		}
+	}
 
 	@Override
 	public ResponseEntity<UserTO> findUserById(String userId) {
@@ -133,12 +142,12 @@ public class UserServiceImpl implements UserService {
 	 */
 	@Override
 	public ResponseEntity<UserTO> findUserByAlias(final String alias) {
-		final var userEntity = userRepository.findByAlias(alias);
-		ResponseEntity<UserTO> responseEntity;
-		responseEntity = ValidatorCommonsUtil.esNulo(userEntity) ?
-				 ResponseEntity.notFound().build() : new ResponseEntity<>(userMapper.toTarget(userEntity), HttpStatus.OK);
-		LOGGER.info("{}| alias:{}", responseEntity.getStatusCode(), alias);
-		return responseEntity;
+		var userTO = findByAlias(alias);
+		if(Objects.isNull(userTO)) {
+			return ResponseEntity.notFound().build();
+		} else {
+			return new ResponseEntity<>(userTO, HttpStatus.OK);
+		}
 	}
 
 	/**
@@ -256,5 +265,10 @@ public class UserServiceImpl implements UserService {
 			return personService.create(user.getPerson());
 		}
 		return responseEntity;
+	}
+
+	private UserTO findByAlias(String alias) {
+		final var userEntity = userRepository.findByAlias(alias);
+		return userMapper.toTarget(userEntity);
 	}
 }

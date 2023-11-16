@@ -16,6 +16,7 @@ package com.prx.backoffice.v1.users.service;
 import com.prx.backoffice.services.CrudService;
 import com.prx.backoffice.v1.users.api.to.UserTO;
 import com.prx.commons.pojo.User;
+import org.apache.commons.lang.NotImplementedException;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
@@ -35,7 +36,9 @@ public interface UserService extends CrudService <UserTO> {
      * @param userId {@link Long}
      * @return Objeto de tipo {@link ResponseEntity}
      */
-    ResponseEntity<UserTO> findUserById(String userId);
+    default ResponseEntity<UserTO> findUserById(String userId) {
+        throw new NotImplementedException();
+    }
 
     /**
      * Realiza la b&uacute;squeda de un usuario a trav&eacute;s del alias de usuario. Retorna un objeto de tipo
@@ -44,7 +47,9 @@ public interface UserService extends CrudService <UserTO> {
      * @param alias {@link String}
      * @return Objeto de tipo {@link ResponseEntity}
      */
-    ResponseEntity<UserTO> findUserByAlias(String alias);
+    default ResponseEntity<UserTO> findUserByAlias(String alias) {
+        throw new NotImplementedException();
+    }
 
     /**
      * Realiza la b&uacute;squeda del usuario requerido, valida los datos, si los datos son corrector,
@@ -54,14 +59,18 @@ public interface UserService extends CrudService <UserTO> {
      * @param password Objeto de tipo String
      * @return Objeto de tipo {@link ResponseEntity}
      */
-    ResponseEntity<String> access(String alias, String password);
+    default ResponseEntity<String> access(String alias, String password) {
+        throw new NotImplementedException();
+    }
 
     /**
      * Busca todos los usuarios existentes.
      *
      * @return Objeto de tipo {@link ResponseEntity}
      */
-    ResponseEntity<List<UserTO>> findAll();
+    default ResponseEntity<List<UserTO>> findAll() {
+        throw new NotImplementedException();
+    }
 
     /**
      * Realiza la creacion de un usuario
@@ -69,7 +78,9 @@ public interface UserService extends CrudService <UserTO> {
      * @param user Objeto de tipo {@link User}
      * @return Objeto de tipo {@link ResponseEntity}
      */
-    ResponseEntity<UserTO> create(UserTO user);
+    default ResponseEntity<UserTO> create(UserTO user) {
+        throw new NotImplementedException();
+    }
 
     /**
      * Realiza la desvinculación de un rol a un usuario especifico.
@@ -77,7 +88,9 @@ public interface UserService extends CrudService <UserTO> {
      * @param rolId {@link Integer}
      * @return Objeto de tipo {@link ResponseEntity}
      */
-    ResponseEntity<UserTO> unlink(String userId, String rolId);
+    default ResponseEntity<UserTO> unlink(String userId, String rolId) {
+        throw new NotImplementedException();
+    }
 
     /**
      * Realiza la vinculación de un rol a un usuario especifico.
@@ -85,6 +98,16 @@ public interface UserService extends CrudService <UserTO> {
      * @param rolId {@link Integer}
      * @return Objeto de tipo {@link ResponseEntity}
      */
-    ResponseEntity<UserTO> link(String userId, String rolId);
+    default ResponseEntity<UserTO> link(String userId, String rolId) {
+        throw new NotImplementedException();
+    }
 
+    /**
+     * Validate the user alias is available.
+     * @param alias {@link String} Object type.
+     * @return {@link String} Object type.
+     */
+    default ResponseEntity<String> aliasValidate(String alias) {
+        throw new NotImplementedException();
+    }
 }

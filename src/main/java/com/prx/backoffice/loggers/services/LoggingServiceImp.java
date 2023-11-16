@@ -91,7 +91,7 @@ public class LoggingServiceImp implements LoggingService {
         Enumeration<String> params = request.getParameterNames();
         while(params.hasMoreElements()) {
             var paramName = params.nextElement();
-            parameters.put(params.nextElement(),request.getParameter(paramName));
+            parameters.put(paramName,request.getParameter(paramName));
         }
         return parameters;
     }
