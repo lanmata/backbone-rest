@@ -25,7 +25,6 @@ import com.prx.persistence.general.repositories.PersonRepository;
 import com.prx.persistence.general.repositories.UserRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -392,6 +391,69 @@ UserServiceImplTest extends MockLoaderBase {
     void create_user_null() {
         final ResponseEntity<UserTO> responseEntity = ResponseEntity.badRequest().build();
         Assertions.assertEquals(responseEntity, this.userServiceImpl.create(null));
+    }
+
+    /**
+     * Method under test: {@link UserService#aliasValidate(String)}
+     */
+    @Test
+    void testAliasValidate() {
+        String alias = "Alias";
+        PersonEntity person = new PersonEntity();
+        person.setBirthdate(LocalDate.of(1970, 1, 1));
+        person.setGender("Gender");
+        person.setId(UUID.randomUUID());
+        person.setLastName("Doe");
+        person.setMiddleName("Middle Name");
+        person.setName("Name");
+
+        UserEntity userEntity = new UserEntity();
+        userEntity.setActive(true);
+        userEntity.setAlias("Alias");
+        userEntity.setId(UUID.randomUUID());
+        userEntity.setPassword("iloveyou");
+        userEntity.setPerson(person);
+        userEntity.setUserRole(new HashSet<>());
+
+        Person person2 = new Person();
+        person2.setBirthdate(LocalDate.of(1970, 1, 1));
+        person2.setFirstName("Jane");
+        person2.setGender("Gender");
+        person2.setId("42");
+        person2.setLastName("Doe");
+        person2.setMiddleName("Middle Name");
+
+        UserTO userTO = new UserTO();
+        userTO.setActive(true);
+        userTO.setAlias("Alias");
+        userTO.setId("42");
+        userTO.setPassword("iloveyou");
+        userTO.setPerson(person2);
+        userTO.setRoles(new HashSet<>());
+
+        when(userMapper.toTarget(Mockito.any())).thenReturn(userTO);
+        when(userRepository.findByAlias(Mockito.anyString())).thenReturn(userEntity);
+        // Act
+        ResponseEntity<String> actualAliasValidateResult = userServiceImpl.aliasValidate(alias);
+
+        // Assert
+        assertNotNull(actualAliasValidateResult);
+        assertEquals(HttpStatus.NOT_ACCEPTABLE, actualAliasValidateResult.getStatusCode());
+    }
+
+    /**
+     * Method under test: {@link UserService#aliasValidate(String)}
+     */
+    @Test
+    void testAliasValidate_not_acceptable() {
+        String alias = "Alias";
+        when(userRepository.findByAlias(Mockito.anyString())).thenReturn(null);
+        // Act
+        ResponseEntity<String> actualAliasValidateResult = userServiceImpl.aliasValidate(alias);
+
+        // Assert
+        assertNotNull(actualAliasValidateResult);
+        assertEquals(HttpStatus.OK, actualAliasValidateResult.getStatusCode());
     }
 
 }

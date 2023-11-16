@@ -1,7 +1,9 @@
 package com.prx.backoffice.v1.users.api.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.prx.backoffice.MockLoaderBase;
+import com.prx.backoffice.v1.contacttypes.to.ContactTypeRequest;
 import com.prx.backoffice.v1.users.api.to.UserTO;
 import com.prx.backoffice.v1.users.service.UserServiceImpl;
 import com.prx.commons.pojo.Person;
@@ -17,6 +19,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.List;
 import java.util.Set;
@@ -95,6 +98,19 @@ class UserControllerTest extends MockLoaderBase {
         var response = mockMvcRequestSpecification.get(PATH);
         // then:
         assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value());
+    }
+
+    @Test
+    @DisplayName("Should validate if alias is available")
+    void testFind() {
+        final var userResponse = ResponseEntity.status(HttpStatus.OK).body("");
+
+        //when:
+        Mockito.when(userService.aliasValidate(Mockito.anyString())).thenReturn(userResponse);
+        //then:
+        given().contentType(MediaType.APPLICATION_JSON_VALUE)
+                .accept(MediaType.APPLICATION_JSON_VALUE).when().get(PATH + "?alias=pmora")
+                .then().assertThat().statusCode(HttpStatus.OK.value()).expect(MvcResult::getResponse);
     }
 }
 
