@@ -90,7 +90,6 @@
 	<rule ref="category/java/errorprone.xml/DontImportSun" />
 	<rule ref="category/java/errorprone.xml/DontUseFloatTypeForLoopIndices" />
 	<rule ref="category/java/errorprone.xml/EmptyCatchBlock" />
-	<rule ref="category/java/errorprone.xml/EmptyStatementNotInLoop" />
 	<rule ref="category/java/errorprone.xml/EqualsNull" />
 	<rule ref="category/java/errorprone.xml/IdempotentOperations" />
 	<rule ref="category/java/errorprone.xml/InstantiationToGetClass" />
