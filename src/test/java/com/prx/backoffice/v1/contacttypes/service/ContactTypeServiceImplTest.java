@@ -5,15 +5,12 @@ import com.prx.backoffice.v1.contacttypes.to.ContactTypeRequest;
 import com.prx.commons.pojo.ContactType;
 import com.prx.persistence.general.domains.ContactTypeEntity;
 import com.prx.persistence.general.repositories.ContactTypeRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.time.LocalDateTime;
@@ -27,22 +24,17 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@ContextConfiguration(classes = {ContactTypeServiceImpl.class})
 @ExtendWith(SpringExtension.class)
 class ContactTypeServiceImplTest {
+
+    @InjectMocks
+    private ContactTypeServiceImpl contactTypeServiceImpl;
 
     @MockBean
     private ContactTypeMapper contactTypeMapper;
 
     @MockBean
     private ContactTypeRepository contactTypeRepository;
-
-    @Autowired
-    private ContactTypeServiceImpl contactTypeServiceImpl;
-
-    @BeforeEach
-    void setUp() {
-    }
 
     @Test
     void list() {

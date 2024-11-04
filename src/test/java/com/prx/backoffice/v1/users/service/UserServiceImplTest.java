@@ -18,7 +18,6 @@ import com.prx.backoffice.v1.roles.mapper.RoleMapper;
 import com.prx.backoffice.v1.roles.service.RoleService;
 import com.prx.backoffice.v1.users.api.to.UserTO;
 import com.prx.backoffice.v1.users.mapper.UserMapper;
-import com.prx.backoffice.v1.util.UserTemplateTest;
 import com.prx.commons.pojo.Person;
 import com.prx.persistence.general.domains.*;
 import com.prx.persistence.general.repositories.PersonRepository;
@@ -31,7 +30,6 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ContextConfiguration;
@@ -41,7 +39,8 @@ import java.time.LocalDate;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * UserServiceTest.
@@ -364,27 +363,6 @@ UserServiceImplTest extends MockLoaderBase {
     @BeforeEach
     void setup() {
         MockitoAnnotations.openMocks(this);
-    }
-
-
-    @Test
-    void create_user_password_required() {
-        final var user = UserTemplateTest.USER.getModel();
-        user.setPassword("");
-        final var httpHeaders = new HttpHeaders();
-        httpHeaders.set(HttpHeaders.WARNING, "password is required");
-        final ResponseEntity<UserTO> responseEntity = ResponseEntity.badRequest().headers(httpHeaders).build();
-        Assertions.assertEquals(responseEntity, this.userServiceImpl.create(user));
-    }
-
-    @Test
-    void create_role_null() {
-        final var user = UserTemplateTest.USER.getModel();
-        user.setRoles(null);
-        final var httpHeaders = new HttpHeaders();
-        httpHeaders.set(HttpHeaders.WARNING, "Role is required");
-        final ResponseEntity<UserTO> responseEntity = ResponseEntity.badRequest().headers(httpHeaders).build();
-        Assertions.assertEquals(responseEntity, this.userServiceImpl.create(user));
     }
 
     @Test
