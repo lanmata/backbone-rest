@@ -4,38 +4,41 @@ import com.prx.backoffice.v1.features.mapper.FeatureMapper;
 import com.prx.commons.pojo.Feature;
 import com.prx.persistence.general.domains.FeatureEntity;
 import com.prx.persistence.general.repositories.FeatureRepository;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.*;
-import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@ContextConfiguration(classes = {FeatureServiceImpl.class})
+
+/**
+ * @author Luis Mata
+ */
 @ExtendWith(SpringExtension.class)
 class FeatureServiceImplTest {
-    @MockBean
+    @InjectMocks
+    private FeatureServiceImpl featureServiceImpl;
+
+    @Mock
     private FeatureMapper featureMapper;
 
-    @MockBean
+    @Mock
     private FeatureRepository featureRepository;
-
-    @Autowired
-    private FeatureServiceImpl featureServiceImpl;
 
     /**
      * Method under test: {@link FeatureServiceImpl#create(Feature)}
      */
     @Test
+    @DisplayName("Test creating a feature - Existing feature")
     void testCreate() {
         FeatureEntity featureEntity = new FeatureEntity();
         featureEntity.setActive(true);
@@ -61,6 +64,7 @@ class FeatureServiceImplTest {
      * Method under test: {@link FeatureServiceImpl#create(Feature)}
      */
     @Test
+    @DisplayName("Test creating a feature - New feature")
     void testCreate2() {
         final var featureId = UUID.randomUUID();
         FeatureEntity featureEntity = new FeatureEntity();
@@ -104,6 +108,7 @@ class FeatureServiceImplTest {
      * Method under test: {@link FeatureServiceImpl#create(Feature)}
      */
     @Test
+    @DisplayName("Test creating a feature - Mocked feature")
     void testCreate3() {
         FeatureEntity featureEntity = new FeatureEntity();
         featureEntity.setActive(true);
@@ -153,6 +158,7 @@ class FeatureServiceImplTest {
      * Method under test: {@link FeatureServiceImpl#update(String, Feature)}
      */
     @Test
+    @DisplayName("Test updating a feature - Successful update")
     void testUpdate3() {
         FeatureEntity featureEntity = new FeatureEntity();
         final var featureId = UUID.randomUUID();
@@ -205,6 +211,7 @@ class FeatureServiceImplTest {
      * Method under test: {@link FeatureServiceImpl#update(String, Feature)}
      */
     @Test
+    @DisplayName("Test updating a feature - Feature not found")
     void testUpdate4() {
         var featureId = UUID.fromString("1551c702-154e-47f3-b515-87f6ee960acb");
         Feature feature = new Feature();
@@ -222,6 +229,7 @@ class FeatureServiceImplTest {
      * Method under test: {@link FeatureServiceImpl#update(String, Feature)}
      */
     @Test
+    @DisplayName("Test updating a feature - Mocked feature")
     void testUpdate5() {
         final var featureId = UUID.fromString("fda40349-6850-46de-94fc-3ad07608b043");
         Feature feature = mock(Feature.class);
@@ -243,6 +251,7 @@ class FeatureServiceImplTest {
      * Method under test: {@link FeatureServiceImpl#list(List, boolean)}
      */
     @Test
+    @DisplayName("Test listing features - Empty list")
     void testList() {
         List<FeatureEntity> iterable = new ArrayList<>();
         when(featureRepository.findAll()).thenReturn(iterable);
@@ -257,6 +266,7 @@ class FeatureServiceImplTest {
      * Method under test: {@link FeatureServiceImpl#list(List, boolean)}
      */
     @Test
+    @DisplayName("Test listing features - Non-empty list")
     void testList2() {
         final var featureEntities = getFeatureEntities(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID());
         final var featuresString = featureEntities.stream().map(featureEntity -> featureEntity.getId().toString()).toList();
@@ -271,6 +281,7 @@ class FeatureServiceImplTest {
      * Method under test: {@link FeatureServiceImpl#find(String)}
      */
     @Test
+    @DisplayName("Test finding a feature - Feature found")
     void testFind() {
         FeatureEntity featureEntity = new FeatureEntity();
         final var featureId = UUID.randomUUID();
@@ -298,6 +309,7 @@ class FeatureServiceImplTest {
      * Method under test: {@link FeatureServiceImpl#find(String)}
      */
     @Test
+    @DisplayName("Test finding a feature - Feature not found")
     void testFind_not_found() {
         final var featureId = UUID.randomUUID();
         when(featureRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.empty());
@@ -332,4 +344,3 @@ class FeatureServiceImplTest {
         }).toList();
     }
 }
-

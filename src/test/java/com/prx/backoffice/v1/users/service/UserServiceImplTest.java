@@ -18,13 +18,14 @@ import com.prx.backoffice.v1.roles.mapper.RoleMapper;
 import com.prx.backoffice.v1.roles.service.RoleService;
 import com.prx.backoffice.v1.users.api.to.UserTO;
 import com.prx.backoffice.v1.users.mapper.UserMapper;
-import com.prx.backoffice.v1.util.UserTemplateTest;
 import com.prx.commons.pojo.Person;
+import com.prx.commons.pojo.Role;
 import com.prx.persistence.general.domains.*;
 import com.prx.persistence.general.repositories.PersonRepository;
 import com.prx.persistence.general.repositories.UserRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -41,6 +42,7 @@ import java.time.LocalDate;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 /**
@@ -75,6 +77,7 @@ UserServiceImplTest extends MockLoaderBase {
      * Method under test: {@link UserServiceImpl#update(String, UserTO)}
      */
     @Test
+    @DisplayName("Test update user with valid data")
     void testUpdate() {
         final var userId = UUID.randomUUID();
         Person person = new Person();
@@ -126,6 +129,7 @@ UserServiceImplTest extends MockLoaderBase {
      * Method under test: {@link UserServiceImpl#update(String, UserTO)}
      */
     @Test
+    @DisplayName("Test update user with roles")
     void testUpdate1() {
         final var userId = UUID.randomUUID();
         Person person = new Person();
@@ -195,6 +199,7 @@ UserServiceImplTest extends MockLoaderBase {
      * Method under test: {@link UserServiceImpl#update(String, UserTO)}
      */
     @Test
+    @DisplayName("Test update user with missing person")
     void testUpdate2() {
         final var userId = UUID.randomUUID();
         Person person = new Person();
@@ -244,6 +249,7 @@ UserServiceImplTest extends MockLoaderBase {
      * Method under test: {@link UserServiceImpl#update(String, UserTO)}
      */
     @Test
+    @DisplayName("Test update user with null ID")
     void testUpdate3() {
         UserTO user = new UserTO();
         user.setActive(true);
@@ -260,6 +266,7 @@ UserServiceImplTest extends MockLoaderBase {
      * Method under test: {@link UserServiceImpl#update(String, UserTO)}
      */
     @Test
+    @DisplayName("Test update user with empty ID")
     void testUpdate4() {
         UserTO user = new UserTO();
         user.setActive(true);
@@ -276,6 +283,7 @@ UserServiceImplTest extends MockLoaderBase {
      * Method under test: {@link UserServiceImpl#update(String, UserTO)}
      */
     @Test
+    @DisplayName("Test update user with non-existent user")
     void testUpdate5() {
         final var userId = UUID.randomUUID();
         Person person = new Person();
@@ -303,6 +311,7 @@ UserServiceImplTest extends MockLoaderBase {
      * Method under test: {@link UserServiceImpl#findAll()}
      */
     @Test
+    @DisplayName("Test find all users with empty repository")
     void testFindAll() {
         when(userRepository.findAll()).thenReturn(new ArrayList<>());
         ResponseEntity<List<UserTO>> actualFindAllResult = userServiceImpl.findAll();
@@ -316,43 +325,14 @@ UserServiceImplTest extends MockLoaderBase {
      * Method under test: {@link UserServiceImpl#findAll()}
      */
     @Test
+    @DisplayName("Test find all users with data")
     void testFindAll2() {
-        PersonEntity person = new PersonEntity();
-        person.setBirthdate(LocalDate.of(1970, 1, 1));
-        person.setGender("Gender");
-        person.setId(UUID.randomUUID());
-        person.setLastName("Doe");
-        person.setMiddleName("Middle Name");
-        person.setName("Name");
-
-        UserEntity userEntity = new UserEntity();
-        userEntity.setActive(true);
-        userEntity.setAlias("Alias");
-        userEntity.setId(UUID.randomUUID());
-        userEntity.setPassword("iloveyou");
-        userEntity.setPerson(person);
-        userEntity.setUserRole(new HashSet<>());
 
         ArrayList<UserEntity> userEntityList = new ArrayList<>();
-        userEntityList.add(userEntity);
+        userEntityList.add(getUserEntity(null, null));
         when(userRepository.findAll()).thenReturn(userEntityList);
+        when(userMapper.toTarget(Mockito.<UserEntity>any())).thenReturn(getUserTO(null, null));
 
-        Person person2 = new Person();
-        person2.setBirthdate(LocalDate.of(1970, 1, 1));
-        person2.setFirstName("Jane");
-        person2.setGender("Gender");
-        person2.setId("42");
-        person2.setLastName("Doe");
-        person2.setMiddleName("Middle Name");
-
-        UserTO userTO = new UserTO();
-        userTO.setActive(true);
-        userTO.setAlias("Alias");
-        userTO.setId("42");
-        userTO.setPassword("iloveyou");
-        userTO.setPerson(person2);
-        userTO.setRoles(new HashSet<>());
-        when(userMapper.toTarget(Mockito.<UserEntity>any())).thenReturn(userTO);
         ResponseEntity<List<UserTO>> actualFindAllResult = userServiceImpl.findAll();
         assertTrue(actualFindAllResult.hasBody());
         assertEquals(HttpStatus.OK, actualFindAllResult.getStatusCode());
@@ -366,28 +346,8 @@ UserServiceImplTest extends MockLoaderBase {
         MockitoAnnotations.openMocks(this);
     }
 
-
     @Test
-    void create_user_password_required() {
-        final var user = UserTemplateTest.USER.getModel();
-        user.setPassword("");
-        final var httpHeaders = new HttpHeaders();
-        httpHeaders.set(HttpHeaders.WARNING, "password is required");
-        final ResponseEntity<UserTO> responseEntity = ResponseEntity.badRequest().headers(httpHeaders).build();
-        Assertions.assertEquals(responseEntity, this.userServiceImpl.create(user));
-    }
-
-    @Test
-    void create_role_null() {
-        final var user = UserTemplateTest.USER.getModel();
-        user.setRoles(null);
-        final var httpHeaders = new HttpHeaders();
-        httpHeaders.set(HttpHeaders.WARNING, "Role is required");
-        final ResponseEntity<UserTO> responseEntity = ResponseEntity.badRequest().headers(httpHeaders).build();
-        Assertions.assertEquals(responseEntity, this.userServiceImpl.create(user));
-    }
-
-    @Test
+    @DisplayName("Test create user with null data")
     void create_user_null() {
         final ResponseEntity<UserTO> responseEntity = ResponseEntity.badRequest().build();
         Assertions.assertEquals(responseEntity, this.userServiceImpl.create(null));
@@ -397,42 +357,13 @@ UserServiceImplTest extends MockLoaderBase {
      * Method under test: {@link UserService#aliasValidate(String)}
      */
     @Test
+    @DisplayName("Test alias validation with existing alias")
     void testAliasValidate() {
         String alias = "Alias";
-        PersonEntity person = new PersonEntity();
-        person.setBirthdate(LocalDate.of(1970, 1, 1));
-        person.setGender("Gender");
-        person.setId(UUID.randomUUID());
-        person.setLastName("Doe");
-        person.setMiddleName("Middle Name");
-        person.setName("Name");
+        String password = "password";
 
-        UserEntity userEntity = new UserEntity();
-        userEntity.setActive(true);
-        userEntity.setAlias("Alias");
-        userEntity.setId(UUID.randomUUID());
-        userEntity.setPassword("iloveyou");
-        userEntity.setPerson(person);
-        userEntity.setUserRole(new HashSet<>());
-
-        Person person2 = new Person();
-        person2.setBirthdate(LocalDate.of(1970, 1, 1));
-        person2.setFirstName("Jane");
-        person2.setGender("Gender");
-        person2.setId("42");
-        person2.setLastName("Doe");
-        person2.setMiddleName("Middle Name");
-
-        UserTO userTO = new UserTO();
-        userTO.setActive(true);
-        userTO.setAlias("Alias");
-        userTO.setId("42");
-        userTO.setPassword("iloveyou");
-        userTO.setPerson(person2);
-        userTO.setRoles(new HashSet<>());
-
-        when(userMapper.toTarget(Mockito.any())).thenReturn(userTO);
-        when(userRepository.findByAlias(Mockito.anyString())).thenReturn(userEntity);
+        when(userMapper.toTarget(Mockito.any())).thenReturn(getUserTO(alias, password));
+        when(userRepository.findByAlias(Mockito.anyString())).thenReturn(getUserEntity(alias, password));
         // Act
         ResponseEntity<String> actualAliasValidateResult = userServiceImpl.aliasValidate(alias);
 
@@ -445,6 +376,7 @@ UserServiceImplTest extends MockLoaderBase {
      * Method under test: {@link UserService#aliasValidate(String)}
      */
     @Test
+    @DisplayName("Test alias validation with non-existing alias")
     void testAliasValidate_not_acceptable() {
         String alias = "Alias";
         when(userRepository.findByAlias(Mockito.anyString())).thenReturn(null);
@@ -454,6 +386,276 @@ UserServiceImplTest extends MockLoaderBase {
         // Assert
         assertNotNull(actualAliasValidateResult);
         assertEquals(HttpStatus.OK, actualAliasValidateResult.getStatusCode());
+    }
+
+    @Test
+    @DisplayName("Test delete user")
+    void testDelete() {
+        String userId = UUID.randomUUID().toString();
+        UserTO user = new UserTO();
+        user.setId(userId);
+
+        doNothing().when(userRepository).deleteById(UUID.fromString(userId));
+        ResponseEntity<UserTO> responseEntity = userServiceImpl.delete(userId, user);
+
+        Assertions.assertNull(responseEntity);
+    }
+
+    @Test
+    @DisplayName("Test find user by ID")
+    void testFind() {
+        String userId = UUID.randomUUID().toString();
+        UserEntity userEntity = new UserEntity();
+        userEntity.setId(UUID.fromString(userId));
+
+        when(userRepository.findById(UUID.fromString(userId))).thenReturn(Optional.of(userEntity));
+        when(userMapper.toTarget(userEntity)).thenReturn(new UserTO());
+
+        ResponseEntity<UserTO> responseEntity = userServiceImpl.find(userId);
+
+        Assertions.assertNull(responseEntity);
+    }
+
+    @Test
+    @DisplayName("Test list all users")
+    void testList() {
+        List<UserEntity> userEntities = new ArrayList<>();
+        userEntities.add(new UserEntity());
+
+        when(userRepository.findAll()).thenReturn(userEntities);
+        when(userMapper.toTarget(any(UserEntity.class))).thenReturn(new UserTO());
+
+        ResponseEntity<List<UserTO>> responseEntity = userServiceImpl.list();
+
+        Assertions.assertNull(responseEntity);
+    }
+
+    @Test
+    @DisplayName("Test unlink user from role")
+    void testUnlink() {
+        String userId = UUID.randomUUID().toString();
+        String roleId = UUID.randomUUID().toString();
+
+        Assertions.assertThrows(UnsupportedOperationException.class, () -> {
+            userServiceImpl.unlink(userId, roleId);
+        });
+    }
+
+    @Test
+    @DisplayName("Test link user to role")
+    void testLink() {
+        String userId = UUID.randomUUID().toString();
+        String roleId = UUID.randomUUID().toString();
+        UserEntity userEntity = new UserEntity();
+        RoleEntity roleEntity = new RoleEntity();
+        Set<UserRoleEntity> userRoleEntities = new HashSet<>();
+        userEntity.setId(UUID.fromString(userId));
+        roleEntity.setId(UUID.randomUUID());
+        UserRoleEntity userRoleEntity = new UserRoleEntity();
+        userRoleEntity.setRole(roleEntity);
+        userRoleEntities.add(userRoleEntity);
+        userEntity.setUserRole(userRoleEntities);
+
+        when(userRepository.findById(UUID.fromString(userId))).thenReturn(Optional.of(userEntity));
+        when(roleService.find(roleId)).thenReturn(ResponseEntity.ok(new Role()));
+        when(userMapper.toTarget(userEntity)).thenReturn(new UserTO());
+
+        ResponseEntity<UserTO> responseEntity = userServiceImpl.link(userId, roleId);
+
+        Assertions.assertNotNull(responseEntity);
+        Assertions.assertEquals(HttpStatus.ACCEPTED, responseEntity.getStatusCode());
+    }
+
+    @Test
+    @DisplayName("Test access with valid alias and password")
+    void testAccessValidAliasAndPassword() {
+        String alias = "validAlias";
+        String password = "iloveyou";
+
+        when(userRepository.findByAlias(Mockito.anyString())).thenReturn(getUserEntity(alias, password));
+        when(userMapper.toTarget(Mockito.any())).thenReturn(getUserTO(alias, password));
+
+        ResponseEntity<String> response = userServiceImpl.access(alias, password);
+
+        assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
+    }
+
+    @Test
+    @DisplayName("Test access with valid alias and invalid password")
+    void testAccessValidAliasInvalidPassword() {
+        String alias = "validAlias";
+        String password = "invalidPassword";
+        UserTO userTO = new UserTO();
+        userTO.setPassword("validPassword");
+
+        when(userRepository.findByAlias(Mockito.anyString())).thenReturn(getUserEntity(alias, password));
+        when(userMapper.toTarget(Mockito.any())).thenReturn(userTO);
+
+        ResponseEntity<String> response = userServiceImpl.access(alias, password);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    @Test
+    @DisplayName("Test access with inactive user")
+    void testAccessInactiveUser() {
+        String alias = "validAlias";
+        String password = "iloveyou";
+        var userTO = getUserTO(alias, password);
+        userTO.setActive(false);
+
+        when(userRepository.findByAlias(Mockito.anyString())).thenReturn(getUserEntity(alias, password));
+        when(userMapper.toTarget(Mockito.any())).thenReturn(userTO);
+
+        ResponseEntity<String> response = userServiceImpl.access(alias, password);
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    @Test
+    @DisplayName("Test access with user null")
+    void testAccessUserNull() {
+        String alias = "validAlias";
+        String password = "iloveyou";
+
+        when(userRepository.findByAlias(Mockito.anyString())).thenReturn(null);
+
+        ResponseEntity<String> response = userServiceImpl.access(alias, password);
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    @DisplayName("Test access with non-existing alias")
+    void testAccessNonExistingAlias() {
+        String alias = "nonExistingAlias";
+        String password = "password";
+
+        when(userRepository.findByAlias(Mockito.anyString())).thenReturn(null);
+
+        ResponseEntity<String> response = userServiceImpl.access(alias, password);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    @DisplayName("Test create user with null data")
+    void testCreateUserWithNullData() {
+        ResponseEntity<UserTO> response = userServiceImpl.create(null);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    @DisplayName("Test create user with blank alias")
+    void testCreateUserWithBlankAlias() {
+        UserTO user = new UserTO();
+        user.setAlias("");
+        user.setPassword("password");
+        user.setRoles(new HashSet<>());
+
+        ResponseEntity<UserTO> response = userServiceImpl.create(user);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("username is required", response.getHeaders().getFirst(HttpHeaders.WARNING));
+    }
+
+    @Test
+    @DisplayName("Test create user with blank password")
+    void testCreateUserWithBlankPassword() {
+        UserTO user = new UserTO();
+        user.setAlias("alias");
+        user.setPassword("");
+        user.setRoles(new HashSet<>());
+
+        ResponseEntity<UserTO> response = userServiceImpl.create(user);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("password is required", response.getHeaders().getFirst(HttpHeaders.WARNING));
+    }
+
+    @Test
+    @DisplayName("Test create user with empty roles")
+    void testCreateUserWithEmptyRoles() {
+        UserTO user = new UserTO();
+        user.setAlias("alias");
+        user.setPassword("password");
+        user.setRoles(new HashSet<>());
+
+        ResponseEntity<UserTO> response = userServiceImpl.create(user);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("Role is required", response.getHeaders().getFirst(HttpHeaders.WARNING));
+    }
+
+    @Test
+    @DisplayName("Test create user with existing alias")
+    void testCreateUserWithExistingAlias() {
+        String alias = "alias";
+        String password = "password";
+        var userTO = getUserTO(alias, password);
+        userTO.getRoles().add(178L);
+
+        when(userRepository.findByAlias(Mockito.anyString())).thenReturn(getUserEntity(alias, password));
+        when(userMapper.toTarget(Mockito.any())).thenReturn(userTO);
+
+        ResponseEntity<UserTO> response = userServiceImpl.create(userTO);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("User previously exist.", response.getHeaders().getFirst(HttpHeaders.WARNING));
+    }
+
+    @Test
+    @DisplayName("Test create user successfully")
+    void testCreateUserSuccessfully() {
+        String alias = "alias";
+        String password = "password";
+        var userTO = getUserTO(alias, password);
+        userTO.getRoles().add(178L);
+
+        when(userRepository.findByAlias(Mockito.anyString())).thenReturn(null);
+        when(userMapper.toTarget(Mockito.any())).thenReturn(userTO);
+        when(personService.create(userTO.getPerson())).thenReturn(ResponseEntity.status(HttpStatus.CREATED).body(new Person()));
+        when(userMapper.toSource(userTO)).thenReturn(new UserEntity());
+        when(userRepository.save(any(UserEntity.class))).thenReturn(new UserEntity());
+        when(userMapper.toTarget(any(UserEntity.class))).thenReturn(userTO);
+
+        ResponseEntity<UserTO> response = userServiceImpl.create(userTO);
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertNotNull(response.getBody());
+    }
+
+    private UserTO getUserTO(String alias, String password) {
+        Person person2 = new Person();
+        person2.setBirthdate(LocalDate.of(1970, 1, 1));
+        person2.setFirstName("Jane");
+        person2.setGender("Gender");
+        person2.setId("42");
+        person2.setLastName("Doe");
+        person2.setMiddleName("Middle Name");
+
+        UserTO userTO = new UserTO();
+        userTO.setActive(true);
+        userTO.setAlias(alias);
+        userTO.setId("42");
+        userTO.setPassword(password);
+        userTO.setPerson(person2);
+        userTO.setRoles(new HashSet<>());
+
+        return userTO;
+    }
+
+    private UserEntity getUserEntity(String alias, String password) {
+        PersonEntity person = new PersonEntity();
+        person.setBirthdate(LocalDate.of(1970, 1, 1));
+        person.setGender("Gender");
+        person.setId(UUID.randomUUID());
+        person.setLastName("Doe");
+        person.setMiddleName("Middle Name");
+        person.setName("Name");
+
+        UserEntity userEntity = new UserEntity();
+        userEntity.setActive(true);
+        userEntity.setAlias(alias);
+        userEntity.setId(UUID.randomUUID());
+        userEntity.setPassword(password);
+        userEntity.setPerson(person);
+        userEntity.setUserRole(new HashSet<>());
+
+        return userEntity;
     }
 
 }

@@ -16,7 +16,7 @@
 package com.prx.backoffice.util;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 /**
  * Clase utilitaria para gestion de mensajes
@@ -24,7 +24,7 @@ import org.springframework.stereotype.Service;
  * @author <a href="mailto:luis.antonio.mata@gmail.com">Luis Antonio Mata</a>
  * @version 1.0.1.20200904-01, 2019-10-14
  */
-@Service
+@Component
 public class MessageUtil {
     @Value("${messages.user.solicitud-nula-vacia}")
     private String userSolicitudNulaVacia;
@@ -170,7 +170,6 @@ public class MessageUtil {
     }
 
     /**
-     *
      * @return Objeto de tipo {@link String}
      */
     @Override

@@ -3,10 +3,10 @@ package com.prx.backoffice.v1.contacttypes.service;
 import com.prx.backoffice.v1.contacttypes.to.ContactTypeRequest;
 import com.prx.commons.pojo.ContactType;
 import org.apache.commons.lang.NotImplementedException;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -19,6 +19,7 @@ class ContactTypeServiceTest {
      * Method under test: {@link ContactTypeService#listById(List)}
      */
     @Test
+    @DisplayName("Test listing contact types by ID - Empty List")
     void testListById() {
         assertThrows(NotImplementedException.class, () -> contactTypeService.listById(new ArrayList<>()));
     }
@@ -27,6 +28,7 @@ class ContactTypeServiceTest {
      * Method under test: {@link ContactTypeService#listById(List)}
      */
     @Test
+    @DisplayName("Test listing contact types by ID - Single ID")
     void testListById2() {
         ArrayList<String> contactTypeIds = new ArrayList<>();
         contactTypeIds.add("aa7ca292-eede-4319-b20b-5db61a56efa8");
@@ -37,6 +39,7 @@ class ContactTypeServiceTest {
      * Method under test: {@link ContactTypeService#listById(List)}
      */
     @Test
+    @DisplayName("Test listing contact types by ID - Multiple IDs")
     void testListById3() {
         ArrayList<String> contactTypeIds = new ArrayList<>();
         contactTypeIds.add("d65f84d0-4845-46fb-a541-e46ef3dd30e0");
@@ -48,6 +51,7 @@ class ContactTypeServiceTest {
      * Method under test: {@link ContactTypeService#update(String, ContactType)}
      */
     @Test
+    @DisplayName("Test updating a contact type")
     void testUpdate() {
         assertThrows(NotImplementedException.class, () -> contactTypeService.update("d425105c-9539-4790-b281-32ff22407888", new ContactType()));
     }
@@ -56,6 +60,7 @@ class ContactTypeServiceTest {
      * Method under test: {@link ContactTypeService#create(ContactTypeRequest)}
      */
     @Test
+    @DisplayName("Test creating a contact type")
     void testCreate() {
         assertThrows(NotImplementedException.class, () -> contactTypeService.create(new ContactTypeRequest()));
     }
@@ -64,6 +69,7 @@ class ContactTypeServiceTest {
      * Method under test: {@link ContactTypeService#list()}
      */
     @Test
+    @DisplayName("Test listing all contact types")
     void testList() {
         assertThrows(NotImplementedException.class, contactTypeService::list);
     }
@@ -72,6 +78,7 @@ class ContactTypeServiceTest {
      * Method under test: {@link ContactTypeService#list()}
      */
     @Test
+    @DisplayName("Test deleting a contact type")
     void testDelete() {
         assertThrows(NotImplementedException.class, () -> contactTypeService.delete("c241fa1f-1770-4e6a-ab50-99e86562fd4a"));
     }
@@ -80,8 +87,8 @@ class ContactTypeServiceTest {
      * Method under test: {@link ContactTypeService#list()}
      */
     @Test
+    @DisplayName("Test finding a contact type by ID")
     void testFindById() {
         assertThrows(NotImplementedException.class, () -> contactTypeService.findById("c241fa1f-1770-4e6a-ab50-99e86562fd4a"));
     }
 }
-

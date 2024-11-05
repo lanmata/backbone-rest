@@ -4,7 +4,7 @@ import com.prx.backoffice.v1.contacts.api.to.ContactRequest;
 import com.prx.commons.pojo.Contact;
 import com.prx.commons.pojo.ContactType;
 import com.prx.commons.pojo.Person;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
@@ -12,13 +12,11 @@ import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+
 class ContactRequestTest {
 
-    @BeforeEach
-    void setUp() {
-    }
-
     @Test
+    @DisplayName("Test getters and setters for ContactRequest")
     void testGetterAndSetter() {
         final var contactRequest = new ContactRequest();
         final var contact = new Contact();

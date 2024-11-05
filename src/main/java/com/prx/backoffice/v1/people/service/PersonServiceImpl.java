@@ -86,7 +86,7 @@ public class PersonServiceImpl implements PersonService {
 		Iterable<PersonEntity> personEntityListResult;
 		List<Person> personList = new ArrayList<>();
 		List<UUID> uuidList = new ArrayList<>();
-		if(Objects.nonNull(ids) && Objects.nonNull(ids[0])){
+		if(Objects.nonNull(ids) && ids.length > 0 && Objects.nonNull(ids[0])){
 			Arrays.stream(ids).toList().forEach(s -> uuidList.add(UUID.fromString(s)));
 		}
 		personEntityListResult = uuidList.isEmpty() ? personRepository.findAll():personRepository.findAllById(uuidList);
