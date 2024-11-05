@@ -11,14 +11,17 @@ import com.prx.persistence.general.domains.ContactEntity;
 import com.prx.persistence.general.domains.ContactTypeEntity;
 import com.prx.persistence.general.domains.PersonEntity;
 import com.prx.persistence.general.repositories.ContactRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -31,22 +34,28 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
 class ContactServiceImplTest {
-    @MockBean
-    private ContactMapper contactMapper;
-
-    @MockBean
-    private ContactRepository contactRepository;
-
-    @Autowired
+    @InjectMocks
     private ContactServiceImpl contactServiceImpl;
 
-    @MockBean
+    @Mock
+    private ContactMapper contactMapper;
+
+    @Mock
+    private ContactRepository contactRepository;
+
+    @Mock
     private ContactTypeMapper contactTypeMapper;
+
+    @BeforeEach
+    public void setup() {
+        ReflectionTestUtils.setField(contactServiceImpl, "contactLimit", 10);
+    }
 
     /**
      * Method under test: {@link ContactServiceImpl#saveAll(List)}
      */
     @Test
+    @DisplayName("Test saving all contacts with empty list")
     void testSaveAll() {
         assertTrue(contactServiceImpl.saveAll(new ArrayList<>()).isEmpty());
     }
@@ -55,6 +64,7 @@ class ContactServiceImplTest {
      * Method under test: {@link ContactServiceImpl#saveAll(List)}
      */
     @Test
+    @DisplayName("Test saving all contacts with valid data")
     void testSaveAll2() {
         ContactTypeEntity contactType = new ContactTypeEntity();
         contactType.setActive(true);
@@ -155,6 +165,7 @@ class ContactServiceImplTest {
      * Method under test: {@link ContactServiceImpl#saveAll(List)}
      */
     @Test
+    @DisplayName("Test saving all contacts with mixed valid and invalid data")
     void testSaveAll3() {
         ContactTypeEntity contactType = new ContactTypeEntity();
         contactType.setActive(true);
@@ -277,6 +288,7 @@ class ContactServiceImplTest {
      * Method under test: {@link ContactServiceImpl#create(Contact)}
      */
     @Test
+    @DisplayName("Test creating a contact with valid data")
     void testCreate() {
         final var contactTypeUUID1 = UUID.randomUUID();
         final var contactTypeUUID2 = UUID.randomUUID();
@@ -374,12 +386,19 @@ class ContactServiceImplTest {
         contact2.setContent("Not all who wander are lost");
         contact2.setId(contactUUID2.toString());
         contact2.setPerson(person2);
+
+        when(contactRepository.listByPersonId(any(UUID.class))).thenReturn(Optional.of(List.of(contactEntity1, contactEntity2)));
+        when(contactMapper.toSource(any(Contact.class))).thenReturn(contactEntity1);
+        when(contactRepository.save(any(ContactEntity.class))).thenReturn(contactEntity2);
+        when(contactMapper.toTarget(any(ContactEntity.class))).thenReturn(contact2);
+
         ResponseEntity<Contact> actualCreateResult = contactServiceImpl.create(contact2);
+
         assertTrue(actualCreateResult.hasBody());
         assertFalse(actualCreateResult.getHeaders().isEmpty());
         assertEquals(HttpStatus.CREATED, actualCreateResult.getStatusCode());
         verify(contactRepository).listByPersonId(Mockito.<UUID>any());
-        verify(contactMapper, times(2)).toTarget(Mockito.<ContactEntity>any());
+        verify(contactMapper, times(3)).toTarget(Mockito.<ContactEntity>any());
         verify(contactRepository).save(Mockito.<ContactEntity>any());
         verify(contactMapper).toSource(Mockito.<Contact>any());
     }
@@ -388,6 +407,7 @@ class ContactServiceImplTest {
      * Method under test: {@link ContactServiceImpl#create(Contact)}
      */
     @Test
+    @DisplayName("Test creating a contact with null data")
     void testCreate_bad_request() {
         ResponseEntity<Contact> actualCreateResult = contactServiceImpl.create(null);
         assertTrue(actualCreateResult.getHeaders().isEmpty());
@@ -399,24 +419,14 @@ class ContactServiceImplTest {
      * Method under test: {@link ContactServiceImpl#update(Contact, String)}
      */
     @Test
+    @DisplayName("Test updating a contact with null data")
     void testUpdate() {
-        //   Diffblue Cover was unable to write a Spring test,
-        //   so wrote a non-Spring test instead.
-        //   Reason: R013 No inputs found that don't throw a trivial exception.
-        //   Diffblue Cover tried to run the arrange/act section, but the method under
-        //   test threw
-        //   java.lang.IllegalArgumentException: Invalid UUID string: 42
-        //       at java.util.UUID.fromString1(UUID.java:280)
-        //       at java.util.UUID.fromString(UUID.java:258)
-        //       at com.prx.backoffice.v1.contacts.service.ContactServiceImpl.update(ContactServiceImpl.java:72)
-        //   See https://diff.blue/R013 to resolve this issue.
-
         ContactRepository contactRepository = mock(ContactRepository.class);
         ContactMapperImpl contactMapper = new ContactMapperImpl();
         ResponseEntity<Contact> actualUpdateResult = (new ContactServiceImpl(contactRepository, contactMapper,
                 new ContactTypeMapperImpl())).update(null, null);
         assertNull(actualUpdateResult.getBody());
-        assertEquals(404, actualUpdateResult.getStatusCodeValue());
+        assertEquals(HttpStatus.NOT_FOUND, actualUpdateResult.getStatusCode());
         assertTrue(actualUpdateResult.getHeaders().isEmpty());
     }
 
@@ -424,6 +434,7 @@ class ContactServiceImplTest {
      * Method under test: {@link ContactServiceImpl#update(Contact, String)}
      */
     @Test
+    @DisplayName("Test updating a contact with null contact and valid contactId")
     void testUpdate2() {
         ContactRepository contactRepository = mock(ContactRepository.class);
         ContactMapperImpl contactMapper = new ContactMapperImpl();
@@ -438,6 +449,7 @@ class ContactServiceImplTest {
      * Method under test: {@link ContactServiceImpl#find(String)}
      */
     @Test
+    @DisplayName("Test finding a contact with null contactId")
     void testFind() {
         ContactMapperImpl contactMapper = new ContactMapperImpl();
         ResponseEntity<Contact> actualFindResult = (new ContactServiceImpl(contactRepository, contactMapper,
@@ -451,6 +463,7 @@ class ContactServiceImplTest {
      * Method under test: {@link ContactServiceImpl#listByPersonId(String)}
      */
     @Test
+    @DisplayName("Test listing contacts by personId with valid data")
     void testListByPersonId() {
         UUID personId = UUID.randomUUID();
         UUID contactId = UUID.randomUUID();
@@ -510,6 +523,7 @@ class ContactServiceImplTest {
      * Method under test: {@link ContactServiceImpl#listByPersonId(String)}
      */
     @Test
+    @DisplayName("Test listing contacts by personId with no data found")
     void testListByPersonId_NotFound() {
         UUID personId = UUID.randomUUID();
         Optional<List<ContactEntity>> optionalContactEntityList = Optional.empty();
@@ -524,6 +538,7 @@ class ContactServiceImplTest {
      * Method under test: {@link ContactServiceImpl#deleteById(String)}
      */
     @Test
+    @DisplayName("Test deleting a contact by ID with valid data")
     void testDeleteById() {
         UUID personId = UUID.randomUUID();
         UUID contactId = UUID.randomUUID();
@@ -556,11 +571,93 @@ class ContactServiceImplTest {
      * Method under test: {@link ContactServiceImpl#deleteById(String)}
      */
     @Test
+    @DisplayName("Test deleting a contact by ID with no data found")
     void testDeleteById_not_found() {
         var personId = UUID.randomUUID();
         when(contactRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.empty());
         ResponseEntity<String> actualFindResult = contactServiceImpl.deleteById(personId.toString());
         assertEquals(HttpStatus.NOT_FOUND, actualFindResult.getStatusCode());
     }
-}
 
+    @Test
+    @DisplayName("Update contact with valid data")
+    void updateContactWithValidData() {
+        Contact contact = new Contact();
+        contact.setContent("New Content");
+        contact.setActive(true);
+        contact.setContactType(new ContactType());
+
+        ContactEntity contactEntity = new ContactEntity();
+        contactEntity.setId(UUID.randomUUID());
+        contactEntity.setContent("Old Content");
+        contactEntity.setActive(false);
+
+        when(contactRepository.findById(any(UUID.class))).thenReturn(Optional.of(contactEntity));
+        when(contactTypeMapper.toSource(any(ContactType.class))).thenReturn(new ContactTypeEntity());
+        when(contactRepository.save(any(ContactEntity.class))).thenReturn(contactEntity);
+        when(contactMapper.toTarget(any(ContactEntity.class))).thenReturn(contact);
+
+        ResponseEntity<Contact> response = contactServiceImpl.update(contact, contactEntity.getId().toString());
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals("New Content", response.getBody().getContent());
+    }
+
+    @Test
+    @DisplayName("Update contact with null contact")
+    void updateContactWithNullContact() {
+        ResponseEntity<Contact> response = contactServiceImpl.update(null, UUID.randomUUID().toString());
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    @DisplayName("Update contact with null contactId")
+    void updateContactWithNullContactId() {
+        Contact contact = new Contact();
+        ResponseEntity<Contact> response = contactServiceImpl.update(contact, null);
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    @DisplayName("Update contact with non-existent contactId")
+    void updateContactWithNonExistentContactId() {
+        Contact contact = new Contact();
+        when(contactRepository.findById(any(UUID.class))).thenReturn(Optional.empty());
+
+        ResponseEntity<Contact> response = contactServiceImpl.update(contact, UUID.randomUUID().toString());
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    @DisplayName("Find contact with valid contactId")
+    void findContactWithValidContactId() {
+        ContactEntity contactEntity = new ContactEntity();
+        contactEntity.setId(UUID.randomUUID());
+        when(contactRepository.findById(any(UUID.class))).thenReturn(Optional.of(contactEntity));
+        when(contactMapper.toTarget(any(ContactEntity.class))).thenReturn(new Contact());
+
+        ResponseEntity<Contact> response = contactServiceImpl.find(contactEntity.getId().toString());
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+    }
+
+    @Test
+    @DisplayName("Find contact with null contactId")
+    void findContactWithNullContactId() {
+        ResponseEntity<Contact> response = contactServiceImpl.find(null);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    @DisplayName("Find contact with non-existent contactId")
+    void findContactWithNonExistentContactId() {
+        when(contactRepository.findById(any(UUID.class))).thenReturn(Optional.empty());
+
+        ResponseEntity<Contact> response = contactServiceImpl.find(UUID.randomUUID().toString());
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+}

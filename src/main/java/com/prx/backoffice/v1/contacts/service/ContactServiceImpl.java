@@ -54,7 +54,7 @@ public class ContactServiceImpl implements ContactService {
         final List<ContactEntity> results = new ArrayList<>();
         contacts.forEach(contact -> results.add(contactRepository.save(contactMapper.toSource(contact))));
 
-        if(!results.isEmpty()) {
+        if (!results.isEmpty()) {
             return results.stream().map(contactMapper::toTarget).collect(Collectors.toList());
         }
 
@@ -64,11 +64,11 @@ public class ContactServiceImpl implements ContactService {
     @Override
     public ResponseEntity<Contact> create(Contact contact) {
         if (null == contact) {
-           return ResponseEntity.notFound().build();
+            return ResponseEntity.notFound().build();
         }
         var contactList = listByPersonId(contact.getPerson().getId());
-        if(contactList.getStatusCode().equals(HttpStatus.OK) && contactList.hasBody() && Objects.nonNull(contactList.getBody())) {
-            if(contactList.getBody().size() < contactLimit) {
+        if (contactList.getStatusCode().equals(HttpStatus.OK) && contactList.hasBody() && Objects.nonNull(contactList.getBody())) {
+            if (contactList.getBody().size() < contactLimit) {
                 var contactEntity = contactMapper.toSource(contact);
                 var response = contactRepository.save(contactEntity);
                 return ResponseEntity.status(HttpStatus.CREATED).header(MESSAGE_HEADER_STR, "Contact created").body(contactMapper.toTarget(response));
@@ -81,11 +81,11 @@ public class ContactServiceImpl implements ContactService {
 
     @Override
     public ResponseEntity<Contact> update(Contact contact, String contactId) {
-        if(null == contactId || null == contact){
+        if (null == contactId || null == contact) {
             return ResponseEntity.notFound().build();
         }
         var contactOptionResult = contactRepository.findById(UUID.fromString(contactId));
-        if(contactOptionResult.isPresent()) {
+        if (contactOptionResult.isPresent()) {
             var contactEntity = contactOptionResult.get();
             contactEntity.setContent(contact.getContent());
             contactEntity.setActive(contact.getActive());
@@ -98,11 +98,11 @@ public class ContactServiceImpl implements ContactService {
 
     @Override
     public ResponseEntity<Contact> find(String contactId) {
-        if(null == contactId) {
+        if (null == contactId) {
             return ResponseEntity.badRequest().build();
         }
         var contactEntityResult = contactRepository.findById(UUID.fromString(contactId));
-        if(contactEntityResult.isPresent()) {
+        if (contactEntityResult.isPresent()) {
             var contact = contactMapper.toTarget(contactEntityResult.get());
             return ResponseEntity.ok(contact);
         } else {
@@ -113,7 +113,7 @@ public class ContactServiceImpl implements ContactService {
     @Override
     public ResponseEntity<List<Contact>> listByPersonId(String personId) {
         var optionalContactList = contactRepository.listByPersonId(UUID.fromString(personId));
-        if(optionalContactList.isPresent()) {
+        if (optionalContactList.isPresent()) {
             var contactList = new ArrayList<Contact>();
             optionalContactList.get().stream().toList().forEach(contactEntity -> contactList.add(contactMapper.toTarget(contactEntity)));
             return ResponseEntity.ok(contactList);
@@ -126,7 +126,7 @@ public class ContactServiceImpl implements ContactService {
     public ResponseEntity<String> deleteById(String contactId) {
         var contactUUID = UUID.fromString(contactId);
         var contactItem = contactRepository.findById(contactUUID);
-        if(contactItem.isPresent()) {
+        if (contactItem.isPresent()) {
             contactRepository.deleteById(contactUUID);
             return ResponseEntity.accepted().header(MESSAGE_HEADER_STR, "The Contact has been removed.").build();
         }

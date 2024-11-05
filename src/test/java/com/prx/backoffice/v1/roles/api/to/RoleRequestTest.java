@@ -15,6 +15,7 @@ package com.prx.backoffice.v1.roles.api.to;
 
 import com.prx.commons.pojo.Feature;
 import com.prx.commons.pojo.Role;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
@@ -33,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public class RoleRequestTest {
 
     @Test
+    @DisplayName("Test getters and setters of RoleRequest")
     public void testGettersAndSetters(){
         final var rolRequest = new RoleRequest();
         final var rol = new Role();

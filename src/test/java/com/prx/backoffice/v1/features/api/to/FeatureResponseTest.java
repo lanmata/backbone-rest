@@ -1,21 +1,8 @@
-/*
- * @(#)$file.className.java.
- *
- * Copyright (c) Luis Antonio Mata Mata. All rights reserved.
- *
- * All rights to this product are owned by Luis Antonio Mata Mata and may only
- * be used under the terms of its associated license document. You may NOT
- * copy, modify, sublicense, or distribute this source file or portions of
- * it unless previously authorized in writing by Luis Antonio Mata Mata.
- * In any event, this notice and the above copyright must always be included
- * verbatim with this file.
- */
-
 package com.prx.backoffice.v1.features.api.to;
 
 import com.prx.backoffice.enums.keys.FeatureMessageKey;
-import com.prx.backoffice.v1.features.api.to.FeatureResponse;
 import com.prx.commons.pojo.Feature;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
@@ -28,12 +15,13 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 /**
  * FeatureResponseTest.
  *
- * @author <a href='mailto:luis.antonio.mata@gmail.com'>Luis Antonio Mata</a>
  * @version 1.0.0, 14-02-2021
  */
 
 public class FeatureResponseTest {
+
     @Test
+    @DisplayName("Test getters and setters of FeatureResponse")
     public void gettersAndSetters() {
         final var featureResponse = new FeatureResponse();
         final var feature = new Feature();
@@ -53,5 +41,4 @@ public class FeatureResponseTest {
                 () -> assertNotNull(featureResponse.toString())
         );
     }
-
 }

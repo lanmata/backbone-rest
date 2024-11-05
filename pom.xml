@@ -64,7 +64,7 @@
         <sonar.organization>prx-open</sonar.organization>
         <!--        Coverage and Sonar-->
         <sonar.organization>prx-open</sonar.organization>
-        <sonar.coverage.exclusions>**/*.xml,**/*Application.*,**/config/*,**/mapper/*</sonar.coverage.exclusions>
+        <sonar.coverage.exclusions>**/*.xml,**/*Application.*,**/config/*,**/mapper/*,**/converter/*</sonar.coverage.exclusions>
         <sonar.exclusions>**/*.xml,**/*Application.*,**/config/*,**/mapper/*</sonar.exclusions>
         <project.ruleset>${project.basedir}/ruleset.xml</project.ruleset>
     </properties>
@@ -359,7 +359,7 @@
                                         <limit>
                                             <counter>LINE</counter>
                                             <value>COVEREDRATIO</value>
-                                            <minimum>0</minimum>
+                                            <minimum>0.5</minimum>
                                         </limit>
                                     </limits>
                                 </rule>
@@ -369,7 +369,7 @@
                                         <limit>
                                             <counter>BRANCH</counter>
                                             <value>COVEREDRATIO</value>
-                                            <minimum>0</minimum>
+                                            <minimum>0.5</minimum>
                                         </limit>
                                     </limits>
                                 </rule>

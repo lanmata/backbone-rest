@@ -26,15 +26,15 @@ import com.prx.persistence.general.repositories.RoleFeatureRepository;
 import com.prx.persistence.general.repositories.RoleRepository;
 import jakarta.validation.constraints.NotNull;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.*;
@@ -49,32 +49,32 @@ import static org.mockito.Mockito.*;
  * @version 1.0.0, 17-12-2021
  * @since 11
  */
-@ContextConfiguration(classes = {RoleServiceImpl.class})
 @ExtendWith(SpringExtension.class)
 class RoleServiceImplTest {
 
-    @MockBean
-    private FeatureService featureService;
-
-    @MockBean
-    private RoleFeatureRepository roleFeatureRepository;
-
-    @Autowired
+    @InjectMocks
     private RoleServiceImpl roleServiceImpl;
 
-    @MockBean
+    @Mock
+    private FeatureService featureService;
+
+    @Mock
+    private RoleFeatureRepository roleFeatureRepository;
+
+    @Mock
     private RoleMapper roleMapper;
 
-    @MockBean
+    @Mock
     private FeatureMapper featureMapper;
 
-    @MockBean
+    @Mock
     private RoleRepository roleRepository;
 
-    @MockBean
+    @Mock
     private FeatureMapperUtil featureMapperUtil;
 
     @Test
+    @DisplayName("Test finding a role by ID")
     void find() {
         final var roleId = UUID.randomUUID();
         var roleEntity = new RoleEntity();
@@ -99,6 +99,7 @@ class RoleServiceImplTest {
     }
 
     @Test
+    @DisplayName("Test listing roles by IDs")
     void list() {
         final var roles = new ArrayList<RoleEntity>();
         final Optional<List<RoleEntity>> rolesOption = Optional.of(roles);
@@ -113,6 +114,7 @@ class RoleServiceImplTest {
      * Method under test: {@link RoleServiceImpl#list(Boolean, List)}
      */
     @Test
+    @DisplayName("Test listing roles with empty list")
     void testList6() {
         ResponseEntity<List<Role>> actualListResult = roleServiceImpl.list(true, new ArrayList<>());
         assertNull(actualListResult.getBody());
@@ -124,6 +126,7 @@ class RoleServiceImplTest {
      * Method under test: {@link RoleServiceImpl#list(String[])}
      */
     @Test
+    @DisplayName("Test listing roles by user ID")
     void testListByUser2() {
         ArrayList<RoleEntity> roleEntityList = new ArrayList<>();
         RoleEntity roleEntity = new RoleEntity();
@@ -147,6 +150,7 @@ class RoleServiceImplTest {
      * Method under test: {@link RoleServiceImpl#list(String[])}
      */
     @Test
+    @DisplayName("Test listing roles by user ID with multiple roles")
     void testListByUser3() {
         final var roleId = UUID.randomUUID();
         RoleEntity roleEntity = new RoleEntity();
@@ -182,6 +186,7 @@ class RoleServiceImplTest {
      * Method under test: {@link RoleServiceImpl#list(String[])}
      */
     @Test
+    @DisplayName("Test listing roles by user ID with multiple roles and entities")
     void testListByUser4() {
         final var roleId = UUID.randomUUID();
         RoleEntity roleEntity = new RoleEntity();
@@ -226,6 +231,7 @@ class RoleServiceImplTest {
      * Method under test: {@link RoleServiceImpl#list(String[])}
      */
     @Test
+    @DisplayName("Test listing roles by user ID with empty result")
     void testListByUser5() {
         final var roleId = UUID.randomUUID();
 
@@ -262,6 +268,7 @@ class RoleServiceImplTest {
     }
 
     @Test
+    @DisplayName("Test creating a role")
     void testCreate() {
         final var roleId = UUID.randomUUID();
         final var featureId = UUID.randomUUID();
@@ -292,6 +299,7 @@ class RoleServiceImplTest {
      * Method under test: {@link RoleServiceImpl#update(String, Role)}
      */
     @Test
+    @DisplayName("Test updating a role")
     void testUpdate() {
         final var roleId = UUID.randomUUID();
         Role role = new Role();
@@ -320,6 +328,7 @@ class RoleServiceImplTest {
      * Method under test: {@link RoleServiceImpl#update(String, Role)}
      */
     @Test
+    @DisplayName("Test updating a role with features")
     void testUpdate2() {
         final var featureId = UUID.randomUUID();
         final var roleId = UUID.randomUUID();
@@ -372,6 +381,7 @@ class RoleServiceImplTest {
      * Method under test: {@link RoleServiceImpl#listByUser(String)}
      */
     @Test
+    @DisplayName("Test listing roles by user ID with features")
     void testListByUser() {
         final var roleId = UUID.randomUUID();
         final var featureId = UUID.randomUUID();
@@ -427,6 +437,7 @@ class RoleServiceImplTest {
      * Method under test: {@link RoleServiceImpl#listByUser(String)}
      */
     @Test
+    @DisplayName("Test listing roles by user ID not found")
     void testListByUser_not_found() {
         when(roleRepository.findByUserId(Mockito.<UUID>any())).thenReturn(Optional.empty());
         final var response = roleServiceImpl.listByUser("1f057e2e-9392-4418-bcf6-f157f45fcf60");
@@ -447,6 +458,7 @@ class RoleServiceImplTest {
     }
 
     @Test
+    @DisplayName("Test listing roles not found")
     void testList_not_found() {
         when(roleRepository.findAll()).thenReturn(null);
         final var response = roleServiceImpl.list();
@@ -458,6 +470,7 @@ class RoleServiceImplTest {
      * Method under test: {@link RoleServiceImpl#listByUser(String)}
      */
     @Test
+    @DisplayName("Test listing roles")
     void testList() {
         final var roleId = UUID.randomUUID();
         final var featureId = UUID.randomUUID();
@@ -532,8 +545,6 @@ class RoleServiceImplTest {
         role.setDescription("Role description");
         return role;
     }
-
-
 
 
 }

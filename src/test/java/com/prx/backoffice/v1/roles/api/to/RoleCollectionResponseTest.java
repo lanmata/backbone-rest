@@ -1,20 +1,8 @@
-/*
- * @(#)$file.className.java.
- *
- * Copyright (c) Luis Antonio Mata Mata. All rights reserved.
- *
- * All rights to this product are owned by Luis Antonio Mata Mata and may only
- * be used under the terms of its associated license document. You may NOT
- * copy, modify, sublicense, or distribute this source file or portions of
- * it unless previously authorized in writing by Luis Antonio Mata Mata.
- * In any event, this notice and the above copyright must always be included
- * verbatim with this file.
- */
-
 package com.prx.backoffice.v1.roles.api.to;
 
 import com.prx.commons.pojo.Feature;
 import com.prx.commons.pojo.Role;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
@@ -33,7 +21,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public class RoleCollectionResponseTest {
 
     @Test
-    public void testGettersAndSetters(){
+    @DisplayName("Test getters and setters of RoleCollectionResponse")
+    public void testGettersAndSetters() {
         final var rolCollectionResponse = new RoleCollectionResponse();
         final var rol = new Role();
         final var feature = new Feature();
