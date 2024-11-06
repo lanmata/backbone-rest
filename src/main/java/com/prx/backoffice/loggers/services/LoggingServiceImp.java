@@ -33,7 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class LoggingServiceImp implements LoggingService {
 
-    @Value("${logging.trace.enabled}")
+    @Value("${prx.logging.trace.enabled}")
     private boolean isTraceEnabled;
 
     private static final Logger logger = LoggerFactory.getLogger(LoggingServiceImp.class);

@@ -34,6 +34,22 @@ class FeatureServiceImplTest {
     @Mock
     private FeatureRepository featureRepository;
 
+    @Test
+    @DisplayName("Create feature when feature already exists")
+    void createFeatureWhenFeatureAlreadyExists() {
+        var feature = new Feature();
+        var featureEntity = new FeatureEntity();
+
+        feature.setName("Test Feature");
+        featureEntity.setName("Test Feature");
+
+        when(featureRepository.findByName(feature.getName())).thenReturn(Optional.of(featureEntity));
+
+        ResponseEntity<Feature> response = featureServiceImpl.create(feature);
+
+        assertEquals(HttpStatus.NOT_ACCEPTABLE, response.getStatusCode());
+    }
+
     /**
      * Method under test: {@link FeatureServiceImpl#create(Feature)}
      */
@@ -153,6 +169,21 @@ class FeatureServiceImplTest {
         verify(feature2).setName(Mockito.<String>any());
     }
 
+    @Test
+    @DisplayName("Update feature when feature does not exist")
+    void updateFeatureWhenFeatureDoesNotExist() {
+        var feature = new Feature();
+        var featureEntity = new FeatureEntity();
+        String featureId = UUID.randomUUID().toString();
+
+        feature.setName("Test Feature");
+        featureEntity.setName("Test Feature");
+        when(featureRepository.findById(UUID.fromString(featureId))).thenReturn(Optional.empty());
+
+        ResponseEntity<Feature> response = featureServiceImpl.update(featureId, feature);
+
+        assertEquals(HttpStatus.NOT_ACCEPTABLE, response.getStatusCode());
+    }
 
     /**
      * Method under test: {@link FeatureServiceImpl#update(String, Feature)}
@@ -262,6 +293,27 @@ class FeatureServiceImplTest {
         verify(featureRepository).findAll();
     }
 
+    @Test
+    @DisplayName("List features with null featureIds and empty result")
+    void listFeaturesWithNullFeatureIdsAndEmptyResult() {
+        when(featureRepository.findAll()).thenReturn(Collections.emptyList());
+
+        ResponseEntity<List<Feature>> response = featureServiceImpl.list(null, true);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    @DisplayName("List features with non-empty featureIds and empty result")
+    void listFeaturesWithNonEmptyFeatureIdsAndEmptyResult() {
+        List<String> featureIds = List.of(UUID.randomUUID().toString());
+        when(featureRepository.findByIdAndStatus(anyList(), eq(true))).thenReturn(Optional.empty());
+
+        ResponseEntity<List<Feature>> response = featureServiceImpl.list(featureIds, true);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
     /**
      * Method under test: {@link FeatureServiceImpl#list(List, boolean)}
      */
@@ -270,8 +322,11 @@ class FeatureServiceImplTest {
     void testList2() {
         final var featureEntities = getFeatureEntities(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID());
         final var featuresString = featureEntities.stream().map(featureEntity -> featureEntity.getId().toString()).toList();
+        final var featureList = getFeatureList(featureEntities);
+
+        when(featureRepository.findByIdAndStatus(Mockito.any(), Mockito.anyBoolean())).thenReturn(Optional.of(featureEntities));
+        when(featureMapper.toTarget(Mockito.any())).thenReturn(featureList.get(0));
         when(featureRepository.findAllById(Mockito.<Iterable<UUID>>any())).thenReturn(featureEntities);
-        when(featureMapper.toTargetList(Mockito.<List<FeatureEntity>>any())).thenReturn(getFeatureList(featureEntities));
         when(featureMapper.toSourceList(Mockito.<List<Feature>>any())).thenReturn(featureEntities);
         var result = featureServiceImpl.list(featuresString, true);
         assertNotNull(result);

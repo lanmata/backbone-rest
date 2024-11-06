@@ -34,10 +34,13 @@
         <google.gson.version>2.10.1</google.gson.version>
         <!--        PRX Commons-->
         <com.prx.commons.version>1.0.0</com.prx.commons.version>
+        <com.prx.persistence.version>1.0.0</com.prx.persistence.version>
         <!--        MAVEN-->
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
-        <maven.plugin.javadoc.version>3.2.0</maven.plugin.javadoc.version>
+        <maven.compiler.plugin.version>3.13.0</maven.compiler.plugin.version>
+        <maven.resource.plugin.version>3.3.1</maven.resource.plugin.version>
+        <maven.plugin.javadoc.version>3.6.3</maven.plugin.javadoc.version>
         <maven.plugin.jacoco.version>0.8.12</maven.plugin.jacoco.version>
         <maven.plugin.pmd.version>3.21.2</maven.plugin.pmd.version>
         <maven.plugin.jxr.version>3.0.0</maven.plugin.jxr.version>
@@ -46,22 +49,20 @@
         <repsy.account.user>lmata</repsy.account.user>
         <repsy.account.password>1$Pormenos</repsy.account.password>
         <!--        SPRING -->
-        <spring-core.version>6.0.6</spring-core.version>
+        <spring-core.version>6.1.13</spring-core.version>
         <spring-boot.version>3.3.4</spring-boot.version>
         <spring-cloud.version>2023.0.3</spring-cloud.version>
         <spring-security-aouth2-autoconfigure.version>2.4.2</spring-security-aouth2-autoconfigure.version>
         <spring-cloud-dep.version>4.1.3</spring-cloud-dep.version>
+        <mapstruct.version>1.5.5.Final</mapstruct.version>
         <!--        Test Dependencies-->
-        <!--        JUnit 4.x-->
-        <junit-core.version>4.13.1</junit-core.version>
         <!--        JUnit 5.x-->
         <junit.jupiter.version>5.10.3</junit.jupiter.version>
         <junit.jupiter.core.version>5.9.3</junit.jupiter.core.version>
         <!--        Mockito-->
-        <mockserver.junit.jupiter.version>5.11.2</mockserver.junit.jupiter.version>
-        <mockito.junit.jupiter.version>4.8.0</mockito.junit.jupiter.version>
+        <mockserver.junit.jupiter.version>5.15.0</mockserver.junit.jupiter.version>
+        <mockito.junit.jupiter.version>4.8.0</mockito.junit.jupiter.version> <!-- PENDING to remove-->
         <mockito.version>5.14.2</mockito.version>
-        <sonar.organization>prx-open</sonar.organization>
         <!--        Coverage and Sonar-->
         <sonar.organization>prx-open</sonar.organization>
         <sonar.coverage.exclusions>**/*.xml,**/*Application.*,**/config/*,**/mapper/*,**/converter/*</sonar.coverage.exclusions>
@@ -97,9 +98,19 @@
             <version>${spring-cloud-dep.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-vault-config</artifactId>
+            <version>${spring-cloud-dep.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.netflix.eureka</groupId>
+            <artifactId>eureka-client-jersey3</artifactId>
+            <version>2.0.3</version>
+        </dependency>
+        <dependency>
             <groupId>com.fasterxml.woodstox</groupId>
             <artifactId>woodstox-core</artifactId>
-            <version>6.7.0</version>
+            <version>7.0.0</version>
         </dependency>
         <dependency>
             <groupId>com.thoughtworks.xstream</groupId>
@@ -138,12 +149,12 @@
         <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
-            <version>1.5.5.Final</version>
+            <version>${mapstruct.version}</version>
         </dependency>
         <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct-processor</artifactId>
-            <version>1.5.5.Final</version>
+            <version>${mapstruct.version}</version>
         </dependency>
         <!--        PRX Dependencies-->
         <dependency>
@@ -153,8 +164,8 @@
         </dependency>
         <dependency>
             <groupId>com.prx</groupId>
-            <artifactId>prx-persistence</artifactId>
-            <version>0.0.2-2023</version>
+            <artifactId>persistence</artifactId>
+            <version>${com.prx.persistence.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents.client5</groupId>
@@ -199,7 +210,7 @@
                     <groupId>com.google.code.findbugs</groupId>
                 </exclusion>
             </exclusions>
-            <version>5.15.0</version>
+            <version>${mockserver.junit.jupiter.version}</version>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
@@ -282,7 +293,7 @@
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
-                <version>3.14.0</version>
+                <version>${commons-lang3.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
