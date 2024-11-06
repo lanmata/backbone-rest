@@ -8,18 +8,18 @@ app:
   api:
     endpoint: /api/v1
   # The name of the application
-  name: jobs-backend-api
+  name: backbone-rest
   # The version of the application
-  version: 0.0.1-2024
+  version: 0.0.3
 # Spring Boot specific configurations
 # Server specific configurations
 server:
-  port: 8092
+  port: ${APP_PORT}
   ssl:
     # Enables SSL for the server
     enabled: true
     # The SSL bundle for the server
-    bundle: jobs-offer-security
+    bundle: backbone-rest-security
     enabled-protocols: TLSv1.3
     compression:
       enabled: true
