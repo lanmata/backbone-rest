@@ -15,12 +15,12 @@ package com.prx.backoffice.v1.report.service.impl;
 
 import com.prx.backoffice.v1.report.service.DocumentService;
 import com.prx.commons.util.DateUtil;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFRun;
 import org.apache.poi.xwpf.usermodel.XWPFTable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -44,15 +44,20 @@ import java.util.regex.Pattern;
  * @version 1.0.0, 27-12-2021
  * @since 11
  */
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class DocumentServiceImpl implements DocumentService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DocumentServiceImpl.class);
     private static final String BACKUP_PATH = "\\ambients\\tempo\\templates\\backup\\";
-    private static final String TEMPLATE_PATH = "\\ambients\\tempo\\templates\\";
     private static final String CURLY_BRACE_OPEN = "{";
     private static final String CURLY_BRACE_CLOSE = "}";
     private static final String REGEX = "~\\{\\w+\\}~";
+
+    /**
+     * Default constructor
+     */
+    public DocumentServiceImpl() {
+        // Default constructor
+    }
 
     @Override
     public ResponseEntity<Resource> process(Map<String, String> values, MultipartFile documentTemplate) {
@@ -62,7 +67,7 @@ public class DocumentServiceImpl implements DocumentService {
                 return ResponseEntity.ok(new FileSystemResource(BACKUP_PATH + filenameResult));
             }
         } catch (Exception e) {
-            log.warn("Fail read file.", e);
+            LOGGER.warn("Fail read file.", e);
         }
         return ResponseEntity.badRequest().build();
     }
@@ -94,7 +99,7 @@ public class DocumentServiceImpl implements DocumentService {
                 }
             });
         } catch (IOException e) {
-            log.error("Can't write the templateDocument parameter.", e);
+            LOGGER.error("Can't write the templateDocument parameter.", e);
         }
         return placeholdersResult;
     }
@@ -122,7 +127,7 @@ public class DocumentServiceImpl implements DocumentService {
                 xwpfDocument.write(fileOutputStream);
             }
         } catch (IOException e) {
-            log.error("Can't write the templateDocument parameter.", e);
+            LOGGER.error("Can't write the templateDocument parameter.", e);
         }
         return filenameResult;
     }

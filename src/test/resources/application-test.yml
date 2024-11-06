@@ -54,11 +54,11 @@ spring:
   jpa:
     hibernate.ddl-auto: none
     show-sql: false
-    open-in-view: false
     database: POSTGRESQL
-    database-platform: org.hibernate.dialect.PostgreSQL9Dialect
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     properties:
       hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
         jdbc:
           lob.non_contextual_creation: true
     log-level: error

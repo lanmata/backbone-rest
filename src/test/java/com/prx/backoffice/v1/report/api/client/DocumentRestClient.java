@@ -120,7 +120,7 @@ public class DocumentRestClient {
         var basicHttpClientConnectionManager = new BasicHttpClientConnectionManager(socketFactoryRegistry);
         var httpClient = HttpClients.custom().setSSLSocketFactory(sslConnectionSocketFactory)
                 .setConnectionManager(basicHttpClientConnectionManager).build();
-        httpComponentsClientHttpRequestFactory.setHttpClient(httpClient);
+        httpComponentsClientHttpRequestFactory.setHttpClient((org.apache.hc.client5.http.classic.HttpClient) httpClient);
         supportedMediaTypes.add(MediaType.MULTIPART_FORM_DATA);
         mappingJackson2HttpMessageConverter.setSupportedMediaTypes(supportedMediaTypes);
         messageConverters.add(mappingJackson2HttpMessageConverter);

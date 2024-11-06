@@ -13,6 +13,7 @@
 
 package com.prx.backoffice.services;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
@@ -25,11 +26,17 @@ public interface CrudService <T> {
      * @param t Objeto de tipo {@link T}
      * @return Objeto de tipo {@link ResponseEntity}
      */
-    ResponseEntity<T> create(T t);
+    default ResponseEntity<T> create(T t) {
+        throw new NotImplementedException();
+    }
 
-    ResponseEntity<T> update(Long id, T t);
+    default ResponseEntity<T> update(String id, T t) {
+        throw new NotImplementedException();
+    }
 
-    ResponseEntity<T> delete(Long id, T t);
+    default ResponseEntity<T> delete(String id, T t) {
+        throw new NotImplementedException();
+    }
 
     /**
      * Realiza la busqueda de una persona
@@ -37,8 +44,12 @@ public interface CrudService <T> {
      * @param id Objeto de tipo {@link T}
      * @return Objeto de tipo {@link ResponseEntity}
      */
-    ResponseEntity<T> find(Long id);
+    default ResponseEntity<T> find(String id) {
+        throw new NotImplementedException();
+    }
 
-    ResponseEntity<List<T>> list(Long... id);
+    default ResponseEntity<List<T>> list(String... id) {
+        throw new NotImplementedException();
+    }
 
 }

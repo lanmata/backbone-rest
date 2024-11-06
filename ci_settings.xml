@@ -49,13 +49,8 @@ under the License.
 <servers>
 	<server>
       <username>luis.antonio.mata@gmail.com</username>
-      <password>AKCp8krVNcabpydAKZfLu2vE4ZCQw2P6jwSDuRVKqgGf145rF73sTfdxaRNqnudCsx2UaLTTq</password>
-      <id>central</id>
-    </server>
-    <server>
-      <username>luis.antonio.mata@gmail.com</username>
-      <password>AKCp8krVNcabpydAKZfLu2vE4ZCQw2P6jwSDuRVKqgGf145rF73sTfdxaRNqnudCsx2UaLTTq</password>
-      <id>snapshots</id>
+      <password>1$Pormenos</password>
+      <id>repsy</id>
     </server>
   </servers>
 <profiles>
@@ -65,15 +60,9 @@ under the License.
           <snapshots>
             <enabled>false</enabled>
           </snapshots>
-          <id>central</id>
+          <id>repsy</id>
           <name>default-maven-virtual</name>
-          <url>https://prx.jfrog.io/artifactory/default-maven-virtual</url>
-        </repository>
-        <repository>
-          <snapshots />
-          <id>snapshots</id>
-          <name>default-maven-virtual</name>
-          <url>https://prx.jfrog.io/artifactory/default-maven-virtual</url>
+          <url>https://repo.repsy.io/mvn/lmata/prx</url>
         </repository>
       </repositories>
       <pluginRepositories>
@@ -81,21 +70,15 @@ under the License.
           <snapshots>
             <enabled>false</enabled>
           </snapshots>
-          <id>central</id>
+          <id>repsy</id>
           <name>default-maven-virtual</name>
-          <url>https://prx.jfrog.io/artifactory/default-maven-virtual</url>
-        </pluginRepository>
-        <pluginRepository>
-          <snapshots />
-          <id>snapshots</id>
-          <name>default-maven-virtual</name>
-          <url>https://prx.jfrog.io/artifactory/default-maven-virtual</url>
+          <url>https://repo.repsy.io/mvn/lmata/prx</url>
         </pluginRepository>
       </pluginRepositories>
-      <id>artifactory</id>
+      <id>repsy</id>
     </profile>
   </profiles>
   <activeProfiles>
-    <activeProfile>prx.artifactory</activeProfile>
+    <activeProfile>repsy</activeProfile>
   </activeProfiles>
 </settings>

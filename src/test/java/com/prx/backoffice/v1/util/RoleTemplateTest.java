@@ -31,7 +31,7 @@ public enum RoleTemplateTest implements TemplateUtil<Role, RoleEntity> {
         @Override
         public Role getModel() {
             final var role = new Role();
-            role.setId(11L);
+            role.setId("11L");
             role.setActive(true);
             role.setName("Nombre de rol");
             role.setDescription("Descripcion de rol");

@@ -12,7 +12,6 @@
  */
 package com.prx.backoffice;
 
-import com.prx.backoffice.config.SecurityKeycloakTestConfig;
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -28,7 +27,6 @@ import org.mockserver.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -38,7 +36,7 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import java.nio.charset.StandardCharsets;
+import static org.apache.http.Consts.UTF_8;
 
 /**
  * MockLoaderBase.
@@ -46,28 +44,27 @@ import java.nio.charset.StandardCharsets;
  * @author <a href='mailto:luis.antonio.mata@gmail.com'>Luis Antonio Mata</a>
  * @version 1.0.0, 19-02-2021
  */
-@SpringBootTest
 @ActiveProfiles("test")
 @AutoConfigureTestDatabase
-@Import(SecurityKeycloakTestConfig.class)
 @RunWith(MockitoJUnitRunner.class)
 @MockServerSettings(perTestSuite = true)
 @ExtendWith(value = {MockServerExtension.class})
 @TestPropertySource(locations = "classpath:application-test.yml")
+@SpringBootTest(properties = {"spring.cloud.config.enabled=false", "SPRING_BOOT_PROFILE_ACTIVE=local", "app.environments.contact.limit=5"})
 public abstract class MockLoaderBase {
 
 //	protected MockMvc mockMvc;
 
 	@Autowired
-	WebApplicationContext applicationContext;
+	public WebApplicationContext applicationContext;
 
 	/** URL de prueba */
 	public static final String TEST_URL = "https://localhost:";
 	/** clientAndServer */
-	private ClientAndServer clientAndServer;
+	public ClientAndServer clientAndServer;
 
 	@BeforeEach
-	void init(){
+	public void init(){
 //		mockMvc = MockMvcBuilders.webAppContextSetup(applicationContext).build();
 		RestAssuredMockMvc.webAppContextSetup(applicationContext);
 	}
@@ -105,7 +102,7 @@ public abstract class MockLoaderBase {
 	 * @return Archivo Respuesta {@link String}
 	 */
 	public static String loadSoapStringResponse(final String responseName) {
-		return new String(MockLoaderBase.loadSoapResponse(responseName), StandardCharsets.UTF_8);
+		return new String(MockLoaderBase.loadSoapResponse(responseName), UTF_8);
 	}
 
 	/**
@@ -125,7 +122,7 @@ public abstract class MockLoaderBase {
 	 * @return Archivo Respuesta {@link String}
 	 */
 	public static String loadJsonStringResponse(final String responseName) {
-		return new String(MockLoaderBase.loadJsonResponse(responseName), StandardCharsets.UTF_8);
+		return new String(MockLoaderBase.loadJsonResponse(responseName), UTF_8);
 	}
 
 	@BeforeEach

@@ -14,7 +14,6 @@
 package com.prx.backoffice.loggers.interceptor;
 
 import com.prx.backoffice.loggers.services.LoggingService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -33,9 +32,12 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
  * @since 11
  */
 @ControllerAdvice
-@RequiredArgsConstructor
 public class ResponseBodyInterceptor implements ResponseBodyAdvice<Object> {
     private final LoggingService loggingService;
+
+    public ResponseBodyInterceptor(LoggingService loggingService) {
+        this.loggingService = loggingService;
+    }
 
     @Override
     public boolean supports(MethodParameter methodParameter, Class<? extends HttpMessageConverter<?>> aClass) {

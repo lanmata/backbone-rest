@@ -15,7 +15,6 @@ package com.prx.backoffice.v1.report.api.controller;
 
 import com.prx.backoffice.v1.report.api.to.TemplateDocumentModel;
 import com.prx.backoffice.v1.report.service.DocumentService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -33,12 +32,15 @@ import java.util.Map;
  * @since 11
  */
 @RestController
-@RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 @RequestMapping("v1/report")
 public class DocumentController {
 
     private final DocumentService documentService;
+
+    public DocumentController(DocumentService documentService) {
+        this.documentService = documentService;
+    }
 
     @GetMapping(consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE},
             produces = {MediaType.APPLICATION_OCTET_STREAM_VALUE}, path = "/template")

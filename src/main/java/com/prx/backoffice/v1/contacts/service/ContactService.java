@@ -1,0 +1,100 @@
+/*
+ * @(#)$file.className.java.
+ *
+ * Copyright (c) Luis Antonio Mata Mata. All rights reserved.
+ *
+ * All rights to this product are owned by Luis Antonio Mata Mata and may only
+ * be used under the terms of its associated license document. You may NOT
+ * copy, modify, sublicense, or distribute this source file or portions of
+ * it unless previously authorized in writing by Luis Antonio Mata Mata.
+ * In any event, this notice and the above copyright must always be included
+ * verbatim with this file.
+ */
+
+package com.prx.backoffice.v1.contacts.service;
+
+import com.prx.commons.pojo.Contact;
+import org.apache.commons.lang.NotImplementedException;
+import org.springframework.http.ResponseEntity;
+
+import java.math.BigInteger;
+import java.util.List;
+
+/**
+ * ContactService.
+ *
+ * @author <a href="mailto:luis.antonio.mata@gmail.com">Luis Antonio Mata</a>
+ * @version 1.0.1.20200904-01, 02-11-2020
+ */
+public interface ContactService {
+
+    /**
+     * Records incoming contacts associated with individuals.
+     *
+     * @param contacts {@link List} object type.
+     * @return {@link List} object type with a {@link Contact} object type.
+     */
+    default List<Contact> saveAll(List<Contact> contacts) {
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Save a contact.
+     *
+     * @param contact {@link Contact} object type.
+     * @return {@link ResponseEntity} object type with a {@link Contact} object type.
+     */
+    default ResponseEntity<Contact> create(Contact contact) {
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Update a contact exist.
+     *
+     * @param contact {@link Contact} object type.
+     * @return {@link ResponseEntity} object type with a {@link Contact} object type.
+     */
+    default ResponseEntity<Contact> update(Contact contact, String contactId){
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Find contact by contact id.
+     *
+     * @param contactId {@link BigInteger} object type.
+     * @return {@link ResponseEntity} object type with a {@link Contact} object type.
+     */
+    default ResponseEntity<Contact> find(String contactId) {
+        throw new NotImplementedException();
+    }
+
+    /**
+     * List contacts by person id.
+     *
+     * @param personId {@link String} object type.
+     * @return {@link ResponseEntity} object type with a {@link Contact} object type.
+     */
+    default ResponseEntity<List<Contact>> listByPersonId(String personId) {
+        throw new NotImplementedException();
+    }
+
+    /**
+     * List contact by contact id.
+     *
+     * @param contactIds {@link String} object type.
+     * @return {@link ResponseEntity} object type with a {@link Contact} object type.
+     */
+    default ResponseEntity<List<Contact>> list(List<String> contactIds) {
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Delete contact by contactId.
+     *
+     * @param contactId {@link String}
+     * @return {@link ResponseEntity} object type.
+     */
+    default ResponseEntity<String> deleteById(String contactId) {
+        throw new NotImplementedException();
+    }
+}
