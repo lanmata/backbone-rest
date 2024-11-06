@@ -12,7 +12,6 @@
  */
 package com.prx.backoffice.v1.users.service;
 
-import com.prx.backoffice.MockLoaderBase;
 import com.prx.backoffice.v1.people.service.PersonService;
 import com.prx.backoffice.v1.roles.mapper.RoleMapper;
 import com.prx.backoffice.v1.roles.service.RoleService;
@@ -28,14 +27,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.time.LocalDate;
@@ -51,27 +49,29 @@ import static org.mockito.Mockito.*;
  * @author Luis Antonio Mata
  * @version 1.0.0, 27-10-2020
  */
-@ContextConfiguration(classes = {UserServiceImpl.class})
 @ExtendWith(SpringExtension.class)
-class
-UserServiceImplTest extends MockLoaderBase {
+class UserServiceImplTest {
 
-    @MockBean
-    private RoleService roleService;
-
-    @Autowired
+    @InjectMocks
     private UserServiceImpl userServiceImpl;
 
-    @MockBean
-    PersonService personService;
-    @MockBean
-    UserRepository userRepository;
-    @MockBean
-    PersonRepository personRepository;
-    @MockBean
-    UserMapper userMapper;
-    @MockBean
-    RoleMapper roleMapper;
+    @Mock
+    private RoleService roleService;
+
+    @Mock
+    private PersonService personService;
+
+    @Mock
+    private UserRepository userRepository;
+
+    @Mock
+    private PersonRepository personRepository;
+
+    @Mock
+    private UserMapper userMapper;
+
+    @Mock
+    private RoleMapper roleMapper;
 
     /**
      * Method under test: {@link UserServiceImpl#update(String, UserTO)}
@@ -341,11 +341,6 @@ UserServiceImplTest extends MockLoaderBase {
         verify(userMapper).toTarget(Mockito.<UserEntity>any());
     }
 
-    @BeforeEach
-    void setup() {
-        MockitoAnnotations.openMocks(this);
-    }
-
     @Test
     @DisplayName("Test create user with null data")
     void create_user_null() {
@@ -471,8 +466,9 @@ UserServiceImplTest extends MockLoaderBase {
     void testAccessValidAliasAndPassword() {
         String alias = "validAlias";
         String password = "iloveyou";
+        var userEntity = getUserEntity(alias, password);
 
-        when(userRepository.findByAlias(Mockito.anyString())).thenReturn(getUserEntity(alias, password));
+        when(userRepository.findByAlias(alias)).thenReturn(userEntity);
         when(userMapper.toTarget(Mockito.any())).thenReturn(getUserTO(alias, password));
 
         ResponseEntity<String> response = userServiceImpl.access(alias, password);
@@ -618,7 +614,7 @@ UserServiceImplTest extends MockLoaderBase {
         assertNotNull(response.getBody());
     }
 
-    private UserTO getUserTO(String alias, String password) {
+    private static UserTO getUserTO(String alias, String password) {
         Person person2 = new Person();
         person2.setBirthdate(LocalDate.of(1970, 1, 1));
         person2.setFirstName("Jane");
@@ -638,7 +634,7 @@ UserServiceImplTest extends MockLoaderBase {
         return userTO;
     }
 
-    private UserEntity getUserEntity(String alias, String password) {
+    private static UserEntity getUserEntity(String alias, String password) {
         PersonEntity person = new PersonEntity();
         person.setBirthdate(LocalDate.of(1970, 1, 1));
         person.setGender("Gender");
