@@ -52,7 +52,7 @@
         <spring-core.version>6.1.13</spring-core.version>
         <spring-boot.version>3.3.4</spring-boot.version>
         <spring-cloud.version>2023.0.3</spring-cloud.version>
-        <spring-security-aouth2-autoconfigure.version>2.4.2</spring-security-aouth2-autoconfigure.version>
+        <spring-security-aouth2-autoconfigure.version>3.3.2</spring-security-aouth2-autoconfigure.version>
         <spring-cloud-dep.version>4.1.3</spring-cloud-dep.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
         <!--        Test Dependencies-->
@@ -136,6 +136,17 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
             <version>${spring-boot.version}</version>
+        </dependency>
+<!--        Security and OAuth2-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+            <version>${spring-security-aouth2-autoconfigure.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+            <version>${spring-security-aouth2-autoconfigure.version}</version>
         </dependency>
 
         <dependency>
@@ -315,7 +326,6 @@
                 <artifactId>maven-pmd-plugin</artifactId>
                 <version>${maven.plugin.pmd.version}</version>
                 <configuration>
-                    <inputEncoding>${project.build.sourceEncoding}</inputEncoding>
                     <targetJdk>${java.version}</targetJdk>
                     <linkXRef>false</linkXRef>
                     <rulesets>

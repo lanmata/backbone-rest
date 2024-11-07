@@ -546,5 +546,83 @@ class RoleServiceImplTest {
         return role;
     }
 
+    @Test
+    @DisplayName("Find role with invalid UUID format")
+    void findRoleWithInvalidUUIDFormat() {
+        String invalidUUID = "invalid-uuid";
+
+        assertThrows(IllegalArgumentException.class, () -> roleServiceImpl.find(invalidUUID));
+    }
+
+    @Test
+    @DisplayName("List roles with null IDs")
+    void listRolesWithNullIds() {
+        ResponseEntity<List<Role>> response = roleServiceImpl.list((String[]) null);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    @DisplayName("List roles with non-existent IDs")
+    void listRolesWithNonExistentIds() {
+        when(roleRepository.findById(anyList())).thenReturn(Optional.empty());
+
+        ResponseEntity<List<Role>> response = roleServiceImpl.list(UUID.randomUUID().toString());
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    @DisplayName("Create role with null role")
+    void createRoleWithNullRole() {
+        ResponseEntity<Role> response = roleServiceImpl.create(null);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    @DisplayName("Create role with valid role")
+    void createRoleWithValidRole() {
+        Role role = new Role();
+        role.setName("Test Role");
+        role.setDescription("Test Description");
+        role.setActive(true);
+        role.setFeatures(new ArrayList<>());
+
+        RoleEntity roleEntity = new RoleEntity();
+        roleEntity.setName("Test Role");
+        roleEntity.setDescription("Test Description");
+        roleEntity.setActive(true);
+
+        when(roleMapper.toSource(role)).thenReturn(roleEntity);
+        when(roleRepository.save(roleEntity)).thenReturn(roleEntity);
+        when(roleMapper.toTarget(roleEntity)).thenReturn(role);
+
+        ResponseEntity<Role> response = roleServiceImpl.create(role);
+
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals("Test Role", response.getBody().getName());
+    }
+
+    @Test
+    @DisplayName("Update role with invalid UUID format")
+    void updateRoleWithInvalidUUIDFormat() {
+        String invalidUUID = "invalid-uuid";
+
+        assertThrows(IllegalArgumentException.class, () -> roleServiceImpl.update(invalidUUID, getRole()));
+    }
+
+    @Test
+    @DisplayName("Update role with non-existent role ID")
+    void updateRoleWithNonExistentRoleId() {
+        String roleId = UUID.randomUUID().toString();
+        when(roleRepository.findById(UUID.fromString(roleId))).thenReturn(Optional.empty());
+
+        ResponseEntity<Role> response = roleServiceImpl.update(roleId, getRole());
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
 
 }
