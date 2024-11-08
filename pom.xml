@@ -65,8 +65,7 @@
         <mockito.version>5.14.2</mockito.version>
         <!--        Coverage and Sonar-->
         <sonar.organization>prx-open</sonar.organization>
-        <sonar.coverage.exclusions>**/*.xml,**/*Application.*,**/config/*,**/mapper/*,**/converter/*</sonar.coverage.exclusions>
-        <sonar.exclusions>**/*.xml,**/*Application.*,**/config/*,**/mapper/*</sonar.exclusions>
+        <sonar.exclusions>**/*.xml,**/*Application.*,**/config/*,**/mapper/*,**/converter/*, **/*Test*</sonar.exclusions>
         <project.ruleset>${project.basedir}/ruleset.xml</project.ruleset>
     </properties>
 
@@ -137,7 +136,7 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
             <version>${spring-boot.version}</version>
         </dependency>
-<!--        Security and OAuth2-->
+        <!--        Security and OAuth2-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
@@ -395,6 +394,9 @@
                                     </limits>
                                 </rule>
                             </rules>
+                            <excludes>
+                                <exclude>${sonar.exclusions}</exclude>
+                            </excludes>
                         </configuration>
                     </execution>
                 </executions>
