@@ -36,7 +36,7 @@ qodana:
   variables:
     QODANA_TOKEN: $qodana_token
   script:
-    - qodana --save-report --results-dir=$CI_PROJECT_DIR/.qodana
+    - qodana --save-report --results-dir=$CI_PROJECT_DIR/.qodana/results
       --cache-dir=$CI_PROJECT_DIR/.qodana/cache -s ci_settings.xml
   artifacts:
     paths:
