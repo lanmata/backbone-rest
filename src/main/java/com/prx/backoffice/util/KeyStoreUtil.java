@@ -2,7 +2,7 @@ package com.prx.backoffice.util;
 
 import com.prx.backoffice.config.security.SecurityProperties;
 import com.prx.backoffice.config.security.StoreProperties;
-import com.prx.backoffice.exceptions.CertificateSecurityException;
+import com.prx.commons.exception.CertificateSecurityException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ssl.SslBundle;

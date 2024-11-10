@@ -2,8 +2,8 @@ package com.prx.backoffice.config.security;
 
 import com.prx.backoffice.config.jwt.JwtConverter;
 import com.prx.backoffice.config.jwt.JwtConverterProperties;
-import com.prx.backoffice.exceptions.CertificateSecurityException;
 import com.prx.backoffice.util.KeyStoreUtil;
+import com.prx.commons.exception.CertificateSecurityException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
