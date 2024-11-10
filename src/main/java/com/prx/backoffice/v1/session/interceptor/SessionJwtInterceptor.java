@@ -7,6 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+import static com.prx.backoffice.v1.session.services.SessionJwtService.SESSION_KEY;
+
 /**
  * Interceptor to handle JWT session validation.
  */
@@ -34,8 +36,8 @@ public class SessionJwtInterceptor implements HandlerInterceptor {
      */
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-        String sessionToken = request.getHeader("Session-Token");
-        if (sessionToken == null || !"session_token".equals(sessionJwtService.getTokenClaims(sessionToken).get("type"))) {
+        String sessionToken = request.getHeader(SESSION_KEY);
+        if (sessionToken == null || !SESSION_KEY.equals(sessionJwtService.getTokenClaims(sessionToken).get("type"))) {
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             response.addHeader("Session", "Token invalid.");
             return false;

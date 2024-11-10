@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Objects;
 import java.util.UUID;
 
+import static com.prx.backoffice.v1.session.services.SessionJwtService.SESSION_KEY;
+
 @RestController
 @RequestMapping("/v1/session")
 public class SessionController {
@@ -63,11 +65,11 @@ public class SessionController {
 
     @PostMapping("/validate")
     public ResponseEntity<Boolean> validateSessionToken(
-            @RequestHeader("Session-Token") String sessionToken) {
+            @RequestHeader(SESSION_KEY) String sessionToken) {
         boolean isValid = false;
         try {
             var value = sessionJwtService.getTokenClaims(sessionToken).get("type");
-            isValid = "Session-Token".equals(value) && !sessionJwtService.isTokenExpired(sessionToken);
+            isValid = SESSION_KEY.equals(value) && !sessionJwtService.isTokenExpired(sessionToken);
 
         } catch (ExpiredJwtException e) {
             return ResponseEntity.ok(false);
