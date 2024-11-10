@@ -2,6 +2,10 @@
 # It uses the YAML format for easier readability and nested configuration.
 
 # Application specific configurations
+prx:
+  jwt:
+    secret: ${APP_TOKEN_SECRET}
+    expirationMs: ${APP_TOKEN_EXPIRATION}
 app:
   clientRoles: jobs-offer-frontend-client, jobs-offer-frontend-client_o
   # The environments for the application

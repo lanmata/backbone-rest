@@ -12,29 +12,29 @@
  */
 package com.prx.backoffice.loggers.config;
 
-import com.prx.backoffice.loggers.interceptor.InterceptorLog;
-import org.springframework.stereotype.Component;
+import com.prx.backoffice.loggers.interceptor.LogInterceptor;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
- * CustomWebConfigurer.
+ * LoggerWebConfigurer.
  *
  * @author Luis Antonio Mata
  * @version 1.0.0, 15-05-2022
  * @since 11
  */
-@Component
-public class CustomWebConfigurer implements WebMvcConfigurer {
+@Configuration
+public class LoggerWebConfigurer implements WebMvcConfigurer {
 
-    private final InterceptorLog interceptorLog;
+    private final LogInterceptor logInterceptor;
 
-    public CustomWebConfigurer(InterceptorLog interceptorLog) {
-        this.interceptorLog = interceptorLog;
+    public LoggerWebConfigurer(LogInterceptor logInterceptor) {
+        this.logInterceptor = logInterceptor;
     }
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(interceptorLog);
+        registry.addInterceptor(logInterceptor);
     }
 }
