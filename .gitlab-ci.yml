@@ -5,7 +5,7 @@ variables:
   SPRING_BOOT_PROFILE_ACTIVE: "test"
   SPRING_CLOUD_CONFIG_LABEL: Develop
   VAULT_SERVER_URL: "http://vault.qa.prx.test"
-  VAULT_TOKEN: "[VAULT_TOKEN_VALUE]"
+  VAULT_TOKEN: "ABC73738"
   SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"  # Defines the location of the analysis task cache
   GIT_DEPTH: "0"  # Tells git to fetch all the branches of the project, required by the analysis task
 # SonarCloud configuration
@@ -24,13 +24,13 @@ sonarcloud-check:
 # Qodana configuration
 qodana:
   image:
-    name: jetbrains/qodana-jvm-community:2024.2
-    entrypoint: [ "" ]
+    name: jetbrains/qodana-jvm-community:2024.1
+    entrypoint: [""]
   cache:
-    - key: qodana-2024.2-$CI_DEFAULT_BRANCH-$CI_COMMIT_REF_SLUG
+    - key: qodana-2024.1-$CI_DEFAULT_BRANCH-$CI_COMMIT_REF_SLUG
       fallback_keys:
-        - qodana-2024.2-$CI_DEFAULT_BRANCH-
-        - qodana-2024.2-
+        - qodana-2024.1-$CI_DEFAULT_BRANCH-
+        - qodana-2024.1-
       paths:
         - .qodana/cache
   variables:
@@ -39,11 +39,11 @@ qodana:
     - qodana --save-report --results-dir=$CI_PROJECT_DIR/.qodana/results
       --cache-dir=$CI_PROJECT_DIR/.qodana/cache -s ci_settings.xml
   artifacts:
-    paths:
-      - .qodana/results/
-    expose_as: 'Qodana report'
-    reports:
-      codequality: .qodana/results/gl-code-quality-report.json
+      paths:
+         - .qodana/results/
+      expose_as: 'Qodana report'
+      reports:
+        codequality: .qodana/results/gl-code-quality-report.json
   only:
     - merge_requests
     - master
