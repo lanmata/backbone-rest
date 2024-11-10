@@ -13,7 +13,6 @@
 package com.prx.backoffice.v1.users.api.controller;
 
 import com.prx.backoffice.util.MessageUtil;
-import com.prx.backoffice.v1.users.api.to.UserAccessRequest;
 import com.prx.backoffice.v1.users.api.to.UserTO;
 import com.prx.backoffice.v1.users.service.UserService;
 import com.prx.commons.util.ValidatorCommonsUtil;
@@ -40,16 +39,14 @@ public class UserController {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserController.class);
 
     private final UserService userService;
-    private final MessageUtil messageUtil;
 
-    public UserController(UserService userService, MessageUtil messageUtil) {
+    public UserController(UserService userService) {
         this.userService = userService;
-        this.messageUtil = messageUtil;
     }
 
     @GetMapping()
     public ResponseEntity<String> checkAliasAvailable(
-            @Parameter(description = "User alias.", required = true) @Valid  @RequestParam(value="alias") String alias) {
+            @Parameter(description = "User alias.", required = true) @Valid @RequestParam(value = "alias") String alias) {
         return userService.aliasValidate(alias);
     }
 
@@ -58,7 +55,7 @@ public class UserController {
             @ApiResponse(responseCode = MessageUtil.OK, description = "User found.")
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/{userId}")
-    public ResponseEntity<UserTO> find(@Parameter(description = STR_ID_USER, required = true) @PathVariable(value = "userId") @NotNull String userId){
+    public ResponseEntity<UserTO> find(@Parameter(description = STR_ID_USER, required = true) @PathVariable(value = "userId") @NotNull String userId) {
         return userService.findUserById(userId);
     }
 
@@ -67,25 +64,8 @@ public class UserController {
             @ApiResponse(responseCode = MessageUtil.OK, description = "User Found")
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/")
-    public ResponseEntity<List<UserTO>> findAll(){
+    public ResponseEntity<List<UserTO>> findAll() {
         return userService.findAll();
-    }
-
-    @Operation(description = "Realiza la autenticación de usuario")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK, description = "Usuario encontrado")
-    })
-    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/login")
-    public ResponseEntity<String> login(@Parameter(description = "Objeto de tipo UserAccessRequest", required = true)
-                                    @RequestBody UserAccessRequest userAccessRequest) {
-        if(ValidatorCommonsUtil.esNulo(userAccessRequest)){
-            return new ResponseEntity<>(messageUtil.getUserSolicitudNulaVacia(), HttpStatus.NOT_ACCEPTABLE);
-        }else if(ValidatorCommonsUtil.esVacio(userAccessRequest.getAlias())){
-            return new ResponseEntity<>(messageUtil.getUserAliasNuloVacio(), HttpStatus.NOT_ACCEPTABLE);
-        }else if(ValidatorCommonsUtil.esVacio(userAccessRequest.getPassword())){
-            return new ResponseEntity<>(messageUtil.getUserClaveNulaVacia(), HttpStatus.NOT_ACCEPTABLE);
-        }
-        return userService.access(userAccessRequest.getAlias(), userAccessRequest.getPassword());
     }
 
     @Operation(description = "Crea un nuevo usuario")
@@ -94,12 +74,12 @@ public class UserController {
     })
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/")
     public ResponseEntity<UserTO> create(@Parameter(description = "Objeto de tipo UserCreateRequest", required = true)
-                           @RequestBody UserTO userTO) {
+                                         @RequestBody UserTO userTO) {
         LOGGER.info("{} /create", MessageUtil.LOG_START_MSG);
-        if(ValidatorCommonsUtil.esNulo(userTO)){
+        if (ValidatorCommonsUtil.esNulo(userTO)) {
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build();
-        }else if(ValidatorCommonsUtil.esNulo(userTO.getAlias())
-                || ValidatorCommonsUtil.esNulo(userTO.getPassword())){
+        } else if (ValidatorCommonsUtil.esNulo(userTO.getAlias())
+                || ValidatorCommonsUtil.esNulo(userTO.getPassword())) {
             return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).build();
         }
         return userService.create(userTO);
@@ -124,21 +104,21 @@ public class UserController {
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/findByAlias/{alias}")
     public ResponseEntity<UserTO> findByAlias(@Parameter(description = "Alias de usuario", required = true)
-                                    @PathVariable @NotNull String alias) {
+                                              @PathVariable @NotNull String alias) {
         return userService.findUserByAlias(alias);
     }
 
     @Operation(description = "Desvincula un rol de usuario")
     @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/unlink/{userId}/{roleId}")
     public ResponseEntity<UserTO> unlink(@Parameter(description = "Id de usuario") @PathVariable @NotNull String userId,
-                           @Parameter(description = "Id de rol") @PathVariable @NotNull String roleId) {
+                                         @Parameter(description = "Id de rol") @PathVariable @NotNull String roleId) {
         return userService.unlink(userId, roleId);
     }
 
     @Operation(description = "Vincula un rol de usuario")
     @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/link/{userId}/{roleId}")
     public ResponseEntity<UserTO> link(@Parameter(description = STR_ID_USER) @PathVariable @NotNull String userId,
-                         @Parameter(description = "Id de rol") @PathVariable @NotNull String roleId) {
+                                       @Parameter(description = "Id de rol") @PathVariable @NotNull String roleId) {
         return userService.link(userId, roleId);
     }
 

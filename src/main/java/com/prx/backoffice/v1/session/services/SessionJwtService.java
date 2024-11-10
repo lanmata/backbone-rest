@@ -22,6 +22,7 @@ public class SessionJwtService {
 
     private final JwtConfigProperties jwtConfigProperties;
     private final SecretKey key;
+    public final static String SESSION_KEY = "session_token";
 
     /**
      * Constructor to initialize SessionJwtService with JwtConfigProperties.
@@ -71,7 +72,7 @@ public class SessionJwtService {
      */
     public String generateSessionToken(String username) {
         Map<String, Object> claims = new ConcurrentHashMap<>();
-        claims.put("type", "Session-Token");
+        claims.put("type", SESSION_KEY);
         claims.put("sessionId", username);
         claims.put("iat", new Date());
         claims.put("jti", UUID.randomUUID().toString());

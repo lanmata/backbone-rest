@@ -43,42 +43,44 @@ under the License.
  | values (values used when the setting is not specified) are provided.
  |
  |-->
-<settings xmlns="http://maven.apache.org/SETTINGS/1.2.0"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<settings xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xmlns="http://maven.apache.org/SETTINGS/1.2.0"
           xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.2.0 https://maven.apache.org/xsd/settings-1.2.0.xsd">
-<servers>
-	<server>
-      <username>luis.antonio.mata@gmail.com</username>
-      <password>1$Pormenos</password>
-      <id>repsy</id>
-    </server>
-  </servers>
-<profiles>
-	<profile>
-      <repositories>
-        <repository>
-          <snapshots>
-            <enabled>false</enabled>
-          </snapshots>
-          <id>repsy</id>
-          <name>default-maven-virtual</name>
-          <url>https://repo.repsy.io/mvn/lmata/prx</url>
-        </repository>
-      </repositories>
-      <pluginRepositories>
-        <pluginRepository>
-          <snapshots>
-            <enabled>false</enabled>
-          </snapshots>
-          <id>repsy</id>
-          <name>default-maven-virtual</name>
-          <url>https://repo.repsy.io/mvn/lmata/prx</url>
-        </pluginRepository>
-      </pluginRepositories>
-      <id>repsy</id>
-    </profile>
-  </profiles>
-  <activeProfiles>
-    <activeProfile>repsy</activeProfile>
-  </activeProfiles>
+    <servers>
+        <server>
+            <username>lmata</username>
+            <password>1$Pormenos</password>
+            <id>repsy</id>
+        </server>
+    </servers>
+    <profiles>
+        <profile>
+            <repositories>
+                <repository>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                    <id>repsy</id>
+                    <name>default-maven-virtual</name>
+                    <url>https://repo.repsy.io/mvn/lmata/prx</url>
+                </repository>
+            </repositories>
+            <pluginRepositories>
+                <pluginRepository>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                    <id>repsy</id>
+                    <name>default-maven-virtual</name>
+                    <url>https://repo.repsy.io/mvn/lmata/prx</url>
+                </pluginRepository>
+            </pluginRepositories>
+            <id>repsy</id>
+        </profile>
+    </profiles>
+    <activeProfiles>
+        <activeProfile>repsy</activeProfile>
+    </activeProfiles>
 </settings>
+
+
