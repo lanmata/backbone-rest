@@ -29,11 +29,11 @@ import org.springframework.web.servlet.HandlerInterceptor;
  * @since 11
  */
 @Component
-public class InterceptorLog implements HandlerInterceptor {
+public class LogInterceptor implements HandlerInterceptor {
 
     private final LoggingService loggingService;
 
-    public InterceptorLog(LoggingService loggingService) {
+    public LogInterceptor(LoggingService loggingService) {
         this.loggingService = loggingService;
     }
 
