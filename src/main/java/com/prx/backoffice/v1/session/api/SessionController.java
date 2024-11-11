@@ -1,11 +1,11 @@
 package com.prx.backoffice.v1.session.api;
 
 import com.prx.backoffice.util.MessageUtil;
-import com.prx.backoffice.v1.session.services.SessionJwtService;
 import com.prx.backoffice.v1.session.to.SessionTokenResponse;
 import com.prx.backoffice.v1.users.api.to.UserAccessRequest;
 import com.prx.backoffice.v1.users.service.UserService;
 import com.prx.commons.util.ValidatorCommonsUtil;
+import com.prx.security.SessionJwtService;
 import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Objects;
 import java.util.UUID;
 
-import static com.prx.backoffice.v1.session.services.SessionJwtService.SESSION_KEY;
+import static com.prx.backoffice.v1.session.services.SessionJwtServiceImpl.SESSION_KEY;
 
 @RestController
 @RequestMapping("/v1/session")

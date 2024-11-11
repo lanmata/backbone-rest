@@ -1,6 +1,7 @@
 package com.prx.backoffice.v1.session.services;
 
-import com.prx.backoffice.config.jwt.JwtConfigProperties;
+import com.prx.security.SessionJwtService;
+import com.prx.security.jwt.JwtConfigProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -18,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Service class for handling JWT operations related to sessions.
  */
 @Service
-public class SessionJwtService {
+public class SessionJwtServiceImpl implements SessionJwtService {
 
     private final JwtConfigProperties jwtConfigProperties;
     private final SecretKey key;
@@ -29,7 +30,7 @@ public class SessionJwtService {
      *
      * @param jwtConfigProperties the configuration properties for JWT
      */
-    public SessionJwtService(JwtConfigProperties jwtConfigProperties) {
+    public SessionJwtServiceImpl(JwtConfigProperties jwtConfigProperties) {
         this.jwtConfigProperties = jwtConfigProperties;
         this.key = generateKey();
     }

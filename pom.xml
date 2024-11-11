@@ -35,6 +35,7 @@
         <!--        PRX Commons-->
         <com.prx.commons.version>1.0.1</com.prx.commons.version>
         <com.prx.persistence.version>1.0.0</com.prx.persistence.version>
+        <com.prx.security-oauth.version>0.0.1</com.prx.security-oauth.version>
         <!--        MAVEN-->
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
@@ -196,6 +197,11 @@
             <groupId>com.prx</groupId>
             <artifactId>persistence</artifactId>
             <version>${com.prx.persistence.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.prx</groupId>
+            <artifactId>security-oauth</artifactId>
+            <version>${com.prx.security-oauth.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents.client5</groupId>
