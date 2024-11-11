@@ -39,18 +39,18 @@ public class SessionController {
         String messageError = "";
         ResponseEntity<String> userResponse;
 
-        if(ValidatorCommonsUtil.esNulo(userAccessRequest)){
-            messageError =  messageUtil.getUserSolicitudNulaVacia();
+        if (ValidatorCommonsUtil.esNulo(userAccessRequest)) {
+            messageError = messageUtil.getUserSolicitudNulaVacia();
             isFieldsInvalid = true;
-        }else if(ValidatorCommonsUtil.esVacio(userAccessRequest.getAlias())){
-            messageError =  messageUtil.getUserAliasNuloVacio();
+        } else if (ValidatorCommonsUtil.esVacio(userAccessRequest.getAlias())) {
+            messageError = messageUtil.getUserAliasNuloVacio();
             isFieldsInvalid = true;
-        }else if(ValidatorCommonsUtil.esVacio(userAccessRequest.getPassword())){
-            messageError =  messageUtil.getUserClaveNulaVacia();
+        } else if (ValidatorCommonsUtil.esVacio(userAccessRequest.getPassword())) {
+            messageError = messageUtil.getUserClaveNulaVacia();
             isFieldsInvalid = true;
         }
 
-        if(isFieldsInvalid) {
+        if (isFieldsInvalid) {
             responseEntity = new ResponseEntity<>(new SessionTokenResponse(messageError), HttpStatus.NOT_ACCEPTABLE);
             return responseEntity;
         }
@@ -63,7 +63,7 @@ public class SessionController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
-    @PostMapping("/validate")
+    @GetMapping("/validate")
     public ResponseEntity<Boolean> validateSessionToken(
             @RequestHeader(SESSION_KEY) String sessionToken) {
         boolean isValid = false;
