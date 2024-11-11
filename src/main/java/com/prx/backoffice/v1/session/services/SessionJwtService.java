@@ -22,7 +22,7 @@ public class SessionJwtService {
 
     private final JwtConfigProperties jwtConfigProperties;
     private final SecretKey key;
-    public final static String SESSION_KEY = "session_token";
+    public final static String SESSION_KEY = "session-token";
 
     /**
      * Constructor to initialize SessionJwtService with JwtConfigProperties.
