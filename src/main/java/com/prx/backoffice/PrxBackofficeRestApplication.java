@@ -30,7 +30,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
  * @version 1.0.1.20200904-01, 26-10-2020
  */
 @FeignClient
-@EnableDiscoveryClient
 @SpringBootApplication
 @EntityScan(basePackages = {"com.prx.persistence"})
 @EnableJpaRepositories(basePackages = {"com.prx.persistence"})
