@@ -11,6 +11,7 @@ app:
   # The environments for the application
   api:
     endpoint: /v1
+    excludes: /v1/sessions/token, /v1/sessions/validate
   # The name of the application
   name: backbone-rest
   # The version of the application
