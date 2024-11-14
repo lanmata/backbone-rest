@@ -10,7 +10,8 @@ app:
   clientRoles: jobs-offer-frontend-client, jobs-offer-frontend-client_o
   # The environments for the application
   api:
-    endpoint: /api/v1
+    endpoint: /v1
+    excludes: /v1/sessions/token, /v1/sessions/validate
   # The name of the application
   name: backbone-rest
   # The version of the application

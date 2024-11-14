@@ -1,6 +1,7 @@
 package com.prx.backoffice.v1.session.services;
 
-import com.prx.backoffice.config.jwt.JwtConfigProperties;
+import com.prx.security.SessionJwtService;
+import com.prx.security.jwt.JwtConfigProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -10,58 +11,28 @@ import org.springframework.stereotype.Service;
 import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static com.prx.security.constant.ConstantApp.SESSION_TOKEN_KEY;
 
 /**
  * Service class for handling JWT operations related to sessions.
  */
 @Service
-public class SessionJwtService {
+public class SessionJwtServiceImpl implements SessionJwtService {
 
     private final JwtConfigProperties jwtConfigProperties;
     private final SecretKey key;
-    public final static String SESSION_KEY = "session-token";
 
     /**
      * Constructor to initialize SessionJwtService with JwtConfigProperties.
      *
      * @param jwtConfigProperties the configuration properties for JWT
      */
-    public SessionJwtService(JwtConfigProperties jwtConfigProperties) {
+    public SessionJwtServiceImpl(JwtConfigProperties jwtConfigProperties) {
         this.jwtConfigProperties = jwtConfigProperties;
         this.key = generateKey();
-    }
-
-    /**
-     * Checks if the given token is expired.
-     *
-     * @param token the JWT token
-     * @return true if the token is expired, false otherwise
-     */
-    public boolean isTokenExpired(String token) {
-        try {
-            Claims claims = getTokenClaims(token);
-            return claims.getExpiration().before(new Date());
-        } catch (Exception e) {
-            return true;
-        }
-    }
-
-    /**
-     * Retrieves the Keycloak user ID from the given token.
-     *
-     * @param token the JWT token
-     * @return an Optional containing the user ID if present, otherwise an empty Optional
-     */
-    public Optional<String> getKeycloakUserIdFromToken(String token) {
-        try {
-            Claims claims = getTokenClaims(token);
-            return Optional.ofNullable(claims.getSubject());
-        } catch (Exception e) {
-            return Optional.empty();
-        }
     }
 
     /**
@@ -72,7 +43,7 @@ public class SessionJwtService {
      */
     public String generateSessionToken(String username) {
         Map<String, Object> claims = new ConcurrentHashMap<>();
-        claims.put("type", SESSION_KEY);
+        claims.put("type", SESSION_TOKEN_KEY);
         claims.put("sessionId", username);
         claims.put("iat", new Date());
         claims.put("jti", UUID.randomUUID().toString());

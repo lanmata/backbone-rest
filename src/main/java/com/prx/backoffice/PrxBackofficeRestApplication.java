@@ -30,11 +30,10 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
  * @version 1.0.1.20200904-01, 26-10-2020
  */
 @FeignClient
-@EnableDiscoveryClient
 @SpringBootApplication
 @EntityScan(basePackages = {"com.prx.persistence"})
 @EnableJpaRepositories(basePackages = {"com.prx.persistence"})
-@ComponentScan(basePackages = {"com.prx.backoffice", "com.prx.commons.properties"})
+@ComponentScan(basePackages = {"com.prx.backoffice", "com.prx.commons.properties", "com.prx.security"})
 public class PrxBackofficeRestApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(PrxBackofficeRestApplication.class, args);

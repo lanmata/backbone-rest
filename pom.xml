@@ -35,6 +35,7 @@
         <!--        PRX Commons-->
         <com.prx.commons.version>1.0.1</com.prx.commons.version>
         <com.prx.persistence.version>1.0.0</com.prx.persistence.version>
+        <com.prx.security-oauth.version>0.0.1</com.prx.security-oauth.version>
         <!--        MAVEN-->
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
@@ -55,7 +56,7 @@
         <spring-security-aouth2-autoconfigure.version>3.3.2</spring-security-aouth2-autoconfigure.version>
         <spring-cloud-dep.version>4.1.3</spring-cloud-dep.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
-<!--        JWT Dependencies version-->
+        <!--        JWT Dependencies version-->
         <jwt.version>0.12.3</jwt.version>
         <!--        Test Dependencies-->
         <!--        JUnit 5.x-->
@@ -141,33 +142,6 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
             <version>${spring-boot.version}</version>
         </dependency>
-        <!--        Security and OAuth2-->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>
-            <version>${spring-security-aouth2-autoconfigure.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
-            <version>${spring-security-aouth2-autoconfigure.version}</version>
-        </dependency>
-<!--        JWT Dependencies-->
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-api</artifactId>
-            <version>${jwt.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-impl</artifactId>
-            <version>0.12.3</version>
-        </dependency>
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-jackson</artifactId>
-            <version>0.12.3</version>
-        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
@@ -196,6 +170,11 @@
             <groupId>com.prx</groupId>
             <artifactId>persistence</artifactId>
             <version>${com.prx.persistence.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.prx</groupId>
+            <artifactId>security-oauth</artifactId>
+            <version>${com.prx.security-oauth.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents.client5</groupId>
@@ -306,7 +285,6 @@
             <version>${junit.jupiter.version}</version>
             <scope>test</scope>
             <type>pom</type>
-            <!--            <scope>test</scope>-->
         </dependency>
     </dependencies>
 
