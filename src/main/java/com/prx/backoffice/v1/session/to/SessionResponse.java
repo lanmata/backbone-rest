@@ -1,5 +1,5 @@
 /*
- * @(#)$file.className.java.
+ * @(#)SessionResponse.java.
  *
  * Copyright (c) Luis Antonio Mata Mata. All rights reserved.
  *
@@ -11,34 +11,65 @@
  * verbatim with this file.
  */
 
-package com.prx.backoffice.v1.users.api.to;
+package com.prx.backoffice.v1.session.to;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.prx.commons.to.Response;
+
+/**
+ * Data Transfer Object for session responses.
+ * Contains the session token.
+ *
+ * @version 1.0.0, 20-10-2020
+ */
 @JsonPropertyOrder({
         "token"
 })
-public class UserAccessResponse extends Response {
+public class SessionResponse {
     @JsonProperty("token")
     private String token;
 
     /**
      * Default Constructor.
      */
-    public UserAccessResponse() {
+    public SessionResponse() {
         super();
         // Default Constructor.
     }
 
+    /**
+     * Constructor with token parameter.
+     *
+     * @param token the session token
+     */
+    public SessionResponse(String token) {
+        super();
+        this.token = token;
+    }
+
+    /**
+     * Gets the session token.
+     *
+     * @return the session token
+     */
     public String getToken() {
         return token;
     }
 
+    /**
+     * Sets the session token.
+     *
+     * @param token the session token
+     */
     public void setToken(String token) {
         this.token = token;
     }
 
+    /**
+     * Returns a string representation of the session response.
+     *
+     * @return a string representation of the session response
+     */
     @Override
     public String toString() {
         return "UserAccessResponse{" +

@@ -13,6 +13,7 @@
 package com.prx.backoffice.v1.users.api.controller;
 
 import com.prx.backoffice.util.MessageUtil;
+import com.prx.backoffice.v1.session.to.UserAliasTO;
 import com.prx.backoffice.v1.users.api.to.UserTO;
 import com.prx.backoffice.v1.users.service.UserService;
 import com.prx.commons.util.ValidatorCommonsUtil;
@@ -47,7 +48,7 @@ public class UserController {
     @GetMapping()
     public ResponseEntity<String> checkAliasAvailable(
             @Parameter(description = "User alias.", required = true) @Valid @RequestParam(value = "alias") String alias) {
-        return userService.aliasValidate(alias);
+        return userService.validateAlias(alias);
     }
 
     @Operation(description = "Busca los usuarios a través del identificador")
@@ -106,6 +107,16 @@ public class UserController {
     public ResponseEntity<UserTO> findByAlias(@Parameter(description = "Alias de usuario", required = true)
                                               @PathVariable @NotNull String alias) {
         return userService.findUserByAlias(alias);
+    }
+
+    @Operation(description = "Busca un usuario por un alias")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = MessageUtil.OK, description = "Usuario encontrado.")
+    })
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/findAliasByAlias/{alias}")
+    public ResponseEntity<UserAliasTO> findAliasByAlias(@Parameter(description = "Alias de usuario", required = true)
+                                              @PathVariable @NotNull String alias) {
+        return userService.findUserAliasByAlias(alias);
     }
 
     @Operation(description = "Desvincula un rol de usuario")

@@ -1,6 +1,6 @@
 package com.prx.backoffice.v1.features.api.to;
 
-import com.prx.backoffice.enums.keys.FeatureMessageKey;
+import com.prx.backoffice.constant.keys.FeatureMessageKey;
 import com.prx.commons.pojo.Feature;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;

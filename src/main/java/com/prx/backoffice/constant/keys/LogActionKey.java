@@ -11,24 +11,38 @@
  * verbatim with this file.
  */
 
-package com.prx.backoffice.enums.keys;
+package com.prx.backoffice.constant.keys;
 
 /**
- * LogActionKey.
+ * Enum representing various log action keys used in the application.
+ * Provides a value for each log action key.
+ *
+ * @version 1.0.0, 22-03-2021
  *
  * @author <a href='mailto:luis.antonio.mata@gmail.com'>Luis Antonio Mata</a>
- * @version 1.0.0, 22-03-2021
  */
-
 public enum LogActionKey {
+    /**
+     * Represents an empty log action key.
+     */
     EMPTY("");
 
     private final String value;
 
+    /**
+     * Constructor for LogActionKey enum.
+     *
+     * @param value the value of the log action key
+     */
     LogActionKey(String value){
         this.value = value;
     }
 
+    /**
+     * Gets the value of the log action key.
+     *
+     * @return the value of the log action key
+     */
     public String getValue() {
         return value;
     }

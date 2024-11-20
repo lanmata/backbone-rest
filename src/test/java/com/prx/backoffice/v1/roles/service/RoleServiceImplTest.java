@@ -135,7 +135,7 @@ class RoleServiceImplTest {
         roleEntity.setId(UUID.fromString("cc8f6d52-500d-4021-99c2-e53baafdc30b"));
         roleEntity.setName("Name");
         roleEntity.setRoleFeatures(new HashSet<>());
-        roleEntity.setUserRoleEntities(new HashSet<>());
+        roleEntity.setUserRoles(new HashSet<>());
         roleEntityList.add(roleEntity);
         when(roleRepository.findByUserId(any())).thenReturn(Optional.of(roleEntityList));
         ResponseEntity<List<Role>> actualListResult = roleServiceImpl.listByUser("cc8f6d52-500d-4021-99c2-e53baafdc30b");
@@ -159,7 +159,7 @@ class RoleServiceImplTest {
         roleEntity.setId(roleId);
         roleEntity.setName("Name");
         roleEntity.setRoleFeatures(new HashSet<>());
-        roleEntity.setUserRoleEntities(new HashSet<>());
+        roleEntity.setUserRoles(new HashSet<>());
 
         ArrayList<RoleEntity> roleEntityList = new ArrayList<>();
         roleEntityList.add(roleEntity);
@@ -172,14 +172,14 @@ class RoleServiceImplTest {
         role.setFeatures(new ArrayList<>());
         role.setId(roleId.toString());
         role.setName("Name");
-        when(roleMapper.toTarget(any())).thenReturn(role);
+        when(roleMapper.toTarget(any(RoleEntity.class))).thenReturn(role);
         ResponseEntity<List<Role>> actualListResult = roleServiceImpl.listByUser(roleId.toString());
         assertEquals(1, Objects.requireNonNull(actualListResult.getBody()).size());
         assertTrue(actualListResult.hasBody());
         assertTrue(actualListResult.getHeaders().isEmpty());
         assertEquals(HttpStatus.OK, actualListResult.getStatusCode());
         verify(roleRepository).findByUserId(any());
-        verify(roleMapper).toTarget(any());
+        verify(roleMapper).toTarget(any(RoleEntity.class));
     }
 
     /**
@@ -195,7 +195,7 @@ class RoleServiceImplTest {
         roleEntity.setId(roleId);
         roleEntity.setName("Name");
         roleEntity.setRoleFeatures(new HashSet<>());
-        roleEntity.setUserRoleEntities(new HashSet<>());
+        roleEntity.setUserRoles(new HashSet<>());
 
         RoleEntity roleEntity1 = new RoleEntity();
         roleEntity1.setActive(true);
@@ -203,7 +203,7 @@ class RoleServiceImplTest {
         roleEntity1.setId(roleId);
         roleEntity1.setName("Name");
         roleEntity1.setRoleFeatures(new HashSet<>());
-        roleEntity1.setUserRoleEntities(new HashSet<>());
+        roleEntity1.setUserRoles(new HashSet<>());
 
         ArrayList<RoleEntity> roleEntityList = new ArrayList<>();
         roleEntityList.add(roleEntity1);
@@ -248,7 +248,7 @@ class RoleServiceImplTest {
         roleEntity.setId(roleId);
         roleEntity.setName("Name");
         roleEntity.setRoleFeatures(new HashSet<>());
-        roleEntity.setUserRoleEntities(new HashSet<>());
+        roleEntity.setUserRoles(new HashSet<>());
 
         RoleEntity roleEntity1 = new RoleEntity();
         roleEntity1.setActive(true);
@@ -256,7 +256,7 @@ class RoleServiceImplTest {
         roleEntity1.setId(roleId);
         roleEntity1.setName("Name");
         roleEntity1.setRoleFeatures(new HashSet<>());
-        roleEntity1.setUserRoleEntities(new HashSet<>());
+        roleEntity1.setUserRoles(new HashSet<>());
 
         Optional<List<RoleEntity>> ofResult = Optional.of(new ArrayList<>());
         when(roleRepository.findByUserId(any())).thenReturn(ofResult);

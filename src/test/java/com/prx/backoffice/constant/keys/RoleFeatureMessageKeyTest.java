@@ -11,7 +11,7 @@
  * verbatim with this file.
  */
 
-package com.prx.backoffice.enums.keys;
+package com.prx.backoffice.constant.keys;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -24,12 +24,12 @@ import java.util.Arrays;
  * @author <a href='mailto:luis.antonio.mata@gmail.com'>Luis Antonio Mata</a>
  * @version 1.0.0, 18-02-2021
  */
-public class RolFeatureMessageKeyTest {
+public class RoleFeatureMessageKeyTest {
 
     @Test
     void keys() {
-        for (final var tp : RolFeatureMessageKey.values()) {
-            Assertions.assertTrue(Arrays.asList(RolFeatureMessageKey.values()).contains(tp));
+        for (final var tp : RoleFeatureMessageKey.values()) {
+            Assertions.assertTrue(Arrays.asList(RoleFeatureMessageKey.values()).contains(tp));
             Assertions.assertNotEquals(0, tp.getCode());
             Assertions.assertNotNull(tp.getStatus());
         }

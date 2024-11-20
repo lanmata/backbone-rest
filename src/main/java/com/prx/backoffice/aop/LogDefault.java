@@ -13,14 +13,16 @@
 
 package com.prx.backoffice.aop;
 
-import com.prx.backoffice.enums.keys.LogActionKey;
-import com.prx.backoffice.enums.keys.UserMessageKey;
+import com.prx.backoffice.constant.keys.LogActionKey;
+import com.prx.backoffice.constant.keys.UserMessageKey;
 import com.prx.commons.enums.types.MessageType;
 
 import java.lang.annotation.*;
 
 /**
- * LogDefault.
+ * Annotation for logging default actions in the application.
+ * Can be applied to methods, fields, and parameters.
+ * Specifies the log action key and the message type detail.
  *
  * @author <a href='mailto:luis.antonio.mata@gmail.com'>Luis Antonio Mata</a>
  * @version 1.0.0, 19-03-2021
@@ -30,8 +32,20 @@ import java.lang.annotation.*;
 @Target({ElementType.METHOD, ElementType.FIELD, ElementType.PARAMETER})
 public @interface LogDefault {
 
+    /**
+     * Specifies the log action key.
+     * Defaults to LogActionKey.EMPTY.
+     *
+     * @return the log action key
+     */
     LogActionKey action() default LogActionKey.EMPTY;
 
+    /**
+     * Specifies the message type detail.
+     * Defaults to UserMessageKey.class.
+     *
+     * @return the message type detail class
+     */
     Class<? extends MessageType> detail() default UserMessageKey.class;
 
 }

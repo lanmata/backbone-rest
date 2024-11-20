@@ -1,5 +1,5 @@
 /*
- * @(#)$file.className.java.
+ * @(#)UserMapper.java.
  *
  * Copyright (c) Luis Antonio Mata Mata. All rights reserved.
  *
@@ -12,6 +12,7 @@
  */
 package com.prx.backoffice.v1.users.mapper;
 
+import com.prx.backoffice.config.jackson.MapperAppConfig;
 import com.prx.backoffice.v1.people.mapper.PersonMapper;
 import com.prx.backoffice.v1.roles.mapper.RoleMapper;
 import com.prx.backoffice.v1.users.api.to.UserTO;
@@ -19,21 +20,37 @@ import com.prx.persistence.general.domains.UserEntity;
 import org.mapstruct.*;
 
 /**
- * UserMapper.
+ * UserMapper interface for mapping between UserEntity and UserTO objects.
+ * Utilizes MapStruct for automatic mapping.
+ * Configured with MapperAppConfig and uses RoleMapper, PersonMapper, and UserRoleMapper.
+ *
+ * @version 1.0.0, 20-10-2020
  *
  * @author Luis Antonio Mata
- * @version 1.0.0, 20-10-2020
  */
 @Mapper(
-        componentModel = "spring",
-        uses = {RoleMapper.class, PersonMapper.class},
-        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
+        // Specifies the configuration class to use for this mapper.
+        config = MapperAppConfig.class,
+        uses = {RoleMapper.class, PersonMapper.class, UserRoleMapper.class}
 )
-@MapperConfig(unmappedTargetPolicy = ReportingPolicy.ERROR, unmappedSourcePolicy = ReportingPolicy.ERROR)
 public interface UserMapper {
 
+    /**
+     * Maps a UserEntity object to a UserTO object.
+     *
+     * @param userEntity the UserEntity object to map from
+     * @return the mapped UserTO object
+     */
+    @Mapping(source = "userRole", target = "roles")
     UserTO toTarget(UserEntity userEntity);
 
+    /**
+     * Maps a UserTO object to a UserEntity object.
+     * Inherits the inverse configuration from the toTarget method.
+     *
+     * @param user the UserTO object to map from
+     * @return the mapped UserEntity object
+     */
     @InheritInverseConfiguration
     UserEntity toSource(UserTO user);
 }

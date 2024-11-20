@@ -1,5 +1,5 @@
 /*
- * @(#)UserMessageKeyTest.java.
+ * @(#)PersonMessageKeyTest.java.
  *
  * Copyright (c) Luis Antonio Mata Mata. All rights reserved.
  *
@@ -11,7 +11,7 @@
  * verbatim with this file.
  */
 
-package com.prx.backoffice.enums.keys;
+package com.prx.backoffice.constant.keys;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -19,18 +19,20 @@ import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 
 /**
- * UserMessageKeyTest.
+ * PersonMessageKeyTest.
  *
  * @author <a href='mailto:luis.antonio.mata@gmail.com'>Luis Antonio Mata</a>
- * @version 1.0.0, 18-02-2021
+ * @version 1.0.0, 26-03-2021
  */
-public class UserMessageKeyTest {
+
+public class PersonMessageKeyTest {
 
     @Test
     void keys() {
-        for (final var tp : UserMessageKey.values()) {
-            Assertions.assertTrue(Arrays.asList(UserMessageKey.values()).contains(tp));
+        for (final var tp : PersonMessageKey.values()) {
+            Assertions.assertTrue(Arrays.asList(PersonMessageKey.values()).contains(tp));
             Assertions.assertNotEquals(0, tp.getCode());
+            Assertions.assertNotEquals("0", tp.getStatus());
             Assertions.assertNotNull(tp.getStatus());
         }
     }

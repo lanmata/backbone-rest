@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import com.prx.backoffice.v1.users.api.to.UserAccessResponse;
+import com.prx.backoffice.v1.session.to.SessionResponse;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -27,25 +27,19 @@ import org.junit.jupiter.api.Test;
  * @author Luis Antonio Mata
  * @version 1.0.0, 20-10-2020
  */
-class UserAccessResponseTest {
+class SessionResponseTest {
 
     @Test
     void gettersAndSetters() {
-        final var userAccessResponse = new UserAccessResponse();
+        final var userAccessResponse = new SessionResponse();
 
         userAccessResponse.setToken("ABC22598");
-        userAccessResponse.setCode(200);
-        userAccessResponse.setDateTime(LocalDateTime.now(ZoneId.systemDefault()));
-        userAccessResponse.setMessage("Mensaje de respuesta");
 
         assertAll("Test Getters and Setters",
             () -> assertNotNull(userAccessResponse.getToken()),
-            () -> assertNotNull(userAccessResponse.getCode()),
-            () -> assertNotNull(userAccessResponse.getDateTime()),
-            () -> assertNotNull(userAccessResponse.getMessage()),
             () -> assertNotNull(userAccessResponse.toString()),
             () -> assertNotEquals(1, userAccessResponse.hashCode()),
-            () -> assertNotEquals(new UserAccessResponse(), userAccessResponse)
+            () -> assertNotEquals(new SessionResponse(), userAccessResponse)
                  );
 
     }
