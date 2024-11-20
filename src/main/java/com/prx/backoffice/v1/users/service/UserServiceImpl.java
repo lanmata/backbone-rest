@@ -35,8 +35,6 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static com.prx.backoffice.util.MessageUtil.MESSAGE_HEADER_STR;
-
 /**
  * Modelo para la gesti&oacute;n de usuarios
  *
@@ -117,16 +115,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResponseEntity<String> aliasValidate(String alias) {
-        final var user = findByAlias(alias);
-        if (Objects.isNull(user)) {
-            return ResponseEntity.status(HttpStatus.OK).header(MESSAGE_HEADER_STR, "Alias available.").build();
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).header(MESSAGE_HEADER_STR, "Alias is not available.").build();
-        }
-    }
-
-    @Override
     public ResponseEntity<UserTO> findUserById(String userId) {
         ResponseEntity<UserTO> responseEntity;
         final var optionalUser = userRepository.findById(UUID.fromString(userId));
@@ -148,28 +136,6 @@ public class UserServiceImpl implements UserService {
         } else {
             return new ResponseEntity<>(userTO, HttpStatus.OK);
         }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public ResponseEntity<String> access(String alias, String password) {
-        final ResponseEntity<UserTO> responseEntity = findUserByAlias(alias);
-        ResponseEntity<String> responseResult;
-        if (HttpStatus.OK.value() == responseEntity.getStatusCode().value()) {
-            final var user = responseEntity.getBody();
-            if (Objects.nonNull(user) && user.isActive()) {
-                responseResult = user.getPassword().equals(password) ?
-                        ResponseEntity.accepted().build() : ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            } else {
-                responseResult = new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-            }
-        } else {
-            responseResult = ResponseEntity.notFound().build();
-        }
-        LOGGER.info(responseResult.getStatusCode().toString());
-        return responseResult;
     }
 
     /**
@@ -228,7 +194,7 @@ public class UserServiceImpl implements UserService {
         if (optionalUserEntity.isPresent()) {
             final var userEntity = optionalUserEntity.get();
             for (UserRoleEntity userRolEntity : userEntity.getUserRole()) {
-                if (userRolEntity.getRole().getId().equals(roleId)) {
+                if (userRolEntity.getRole().getId().equals(UUID.fromString(roleId))) {
                     responseEntity = new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
                     return responseEntity;
                 }
