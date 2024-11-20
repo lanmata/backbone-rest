@@ -1,5 +1,5 @@
 /*
- * @(#)RolMessageKeyTest.java.
+ * @(#)FeatureMessageKeyTest.java.
  *
  * Copyright (c) Luis Antonio Mata Mata. All rights reserved.
  *
@@ -11,28 +11,28 @@
  * verbatim with this file.
  */
 
-package com.prx.backoffice.enums.keys;
+package com.prx.backoffice.constant.keys;
+
+import java.util.Arrays;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
-
 /**
- * RolMessageKeyTest.
+ * FeatureMessageKeyTest.
  *
  * @author <a href='mailto:luis.antonio.mata@gmail.com'>Luis Antonio Mata</a>
  * @version 1.0.0, 18-02-2021
  */
-public class RolMessageKeyTest {
+class FeatureMessageKeyTest {
 
-    @Test
-    void keys() {
-        for (final var tp : RolMessageKey.values()) {
-            Assertions.assertTrue(Arrays.asList(RolMessageKey.values()).contains(tp));
-            Assertions.assertNotEquals(0, tp.getCode());
-            Assertions.assertNotNull(tp.getStatus());
-        }
-    }
+	@Test
+	void keys() {
+		for (final var tp : FeatureMessageKey.values()) {
+			Assertions.assertTrue(Arrays.asList(FeatureMessageKey.values()).contains(tp));
+			Assertions.assertNotEquals(0, tp.getCode());
+			Assertions.assertNotNull(tp.getStatus());
+		}
+	}
 
 }

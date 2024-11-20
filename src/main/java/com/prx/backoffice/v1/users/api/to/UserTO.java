@@ -14,6 +14,7 @@
 package com.prx.backoffice.v1.users.api.to;
 
 import com.prx.commons.pojo.Person;
+import com.prx.commons.pojo.Role;
 
 import java.util.Set;
 
@@ -30,7 +31,7 @@ public class UserTO {
     private String password;
     private boolean active;
     private Person person;
-    private Set<Long> roles;
+    private Set<Role> roles;
 
     /**
      * Default Constructor.
@@ -79,11 +80,11 @@ public class UserTO {
         this.person = person;
     }
 
-    public Set<Long> getRoles() {
+    public Set<Role> getRoles() {
         return roles;
     }
 
-    public void setRoles(Set<Long> roles) {
+    public void setRoles(Set<Role> roles) {
         this.roles = roles;
     }
 

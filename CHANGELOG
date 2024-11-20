@@ -1,0 +1,19 @@
+# Changelog
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+- Created `AuthKey` enum to represent the authentication keys.
+- Created `MapperAppConfig` interface for Mapper configuration.
+- Created `SessionController`, `SessionRequest`, and `SessionResponse` classes for the session API operations.
+- Created `SessionService` interface and `SessionServiceImpl` class.
+- Created `CHANGELOG`.
+
+### Changed
+- Refactored `enums` package to `constant` package.
+- Refactored `RolMessageKey` to `RoleMessageKey` enum.
+- Updated Spring Boot from 3.3.4 to 3.3.5.

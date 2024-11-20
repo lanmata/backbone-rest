@@ -12,8 +12,8 @@
  */
 package com.prx.backoffice.v1.users.service;
 
-import com.prx.backoffice.enums.keys.RolMessageKey;
-import com.prx.backoffice.enums.keys.UserMessageKey;
+import com.prx.backoffice.constant.keys.RoleMessageKey;
+import com.prx.backoffice.constant.keys.UserMessageKey;
 import com.prx.backoffice.v1.people.service.PersonService;
 import com.prx.backoffice.v1.roles.mapper.RoleMapper;
 import com.prx.backoffice.v1.roles.service.RoleService;
@@ -234,7 +234,7 @@ public class UserServiceImpl implements UserService {
                 }
             }
             final var messageActivityRole = roleService.find(roleId);
-            if (RolMessageKey.ROL_OK.getCode() == messageActivityRole.getStatusCode().value()) {
+            if (RoleMessageKey.ROL_OK.getCode() == messageActivityRole.getStatusCode().value()) {
                 if (null != userEntity.getUserRole()) {
                     final var userRoleEntity = new UserRoleEntity();
                     final var roleEntity = roleMapper.toSource(messageActivityRole.getBody());

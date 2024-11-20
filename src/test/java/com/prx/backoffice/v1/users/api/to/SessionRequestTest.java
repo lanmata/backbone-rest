@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import com.prx.backoffice.v1.users.api.to.UserAccessRequest;
+import com.prx.backoffice.v1.session.to.SessionRequest;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -27,11 +27,11 @@ import org.junit.jupiter.api.Test;
  * @author Luis Antonio Mata
  * @version 1.0.0, 20-10-2020
  */
-class UserAccessRequestTest {
+class SessionRequestTest {
 
     @Test
     void gettersAndSetters() {
-        final var userAccessRequest = new UserAccessRequest();
+        final var userAccessRequest = new SessionRequest();
 
         userAccessRequest.setAlias("lmata");
         userAccessRequest.setPassword("123456789");
@@ -47,7 +47,7 @@ class UserAccessRequestTest {
             () -> assertNotNull(userAccessRequest.getAppToken()),
             () -> assertNotNull(userAccessRequest.toString()),
             () -> assertNotEquals(1, userAccessRequest.hashCode()),
-            () -> assertNotEquals(new UserAccessRequest(), userAccessRequest)
+            () -> assertNotEquals(new SessionRequest(), userAccessRequest)
                  );
     }
 
