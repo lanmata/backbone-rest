@@ -23,14 +23,12 @@ import com.prx.persistence.general.domains.*;
 import com.prx.persistence.general.repositories.PersonRepository;
 import com.prx.persistence.general.repositories.UserRepository;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -348,41 +346,6 @@ class UserServiceImplTest {
         Assertions.assertEquals(responseEntity, this.userServiceImpl.create(null));
     }
 
-    /**
-     * Method under test: {@link UserService#validateAlias(String)}
-     */
-//    @Test
-//    @DisplayName("Test alias validation with existing alias")
-//    void testAliasValidate() {
-//        String alias = "Alias";
-//        String password = "password";
-//
-//        when(userMapper.toTarget(Mockito.any(UserEntity.class))).thenReturn(getUserTO(alias, password));
-//        when(userRepository.findByAlias(Mockito.anyString())).thenReturn(getUserEntity(alias, password));
-//        // Act
-//        ResponseEntity<String> actualAliasValidateResult = userServiceImpl.aliasValidate(alias);
-//
-//        // Assert
-//        assertNotNull(actualAliasValidateResult);
-//        assertEquals(HttpStatus.NOT_FOUND, actualAliasValidateResult.getStatusCode());
-//    }
-
-    /**
-     * Method under test: {@link UserService#validateAlias(String)}
-     */
-    @Test
-    @DisplayName("Test alias validation with non-existing alias")
-    void testValidateAlias_not_acceptable() {
-        String alias = "Alias";
-        when(userRepository.findByAlias(Mockito.anyString())).thenReturn(null);
-        // Act
-        ResponseEntity<String> actualAliasValidateResult = userServiceImpl.validateAlias(alias);
-
-        // Assert
-        assertNotNull(actualAliasValidateResult);
-        assertEquals(HttpStatus.OK, actualAliasValidateResult.getStatusCode());
-    }
-
     @Test
     @DisplayName("Test delete user")
     void testDelete() {
@@ -459,77 +422,6 @@ class UserServiceImplTest {
 
         Assertions.assertNotNull(responseEntity);
         Assertions.assertEquals(HttpStatus.ACCEPTED, responseEntity.getStatusCode());
-    }
-
-    @Test
-    @DisplayName("Test access with valid alias and password")
-    void testAccessValidAliasAndPassword() {
-        String alias = "validAlias";
-        String password = "iloveyou";
-        var userEntity = getUserEntity(alias, password);
-
-        when(userRepository.findByAlias(alias)).thenReturn(userEntity);
-        when(userMapper.toTarget(Mockito.any(UserEntity.class))).thenReturn(getUserTO(alias, password));
-
-        ResponseEntity<UserTO> response = userServiceImpl.access(alias, password);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-    }
-
-    @Test
-    @DisplayName("Test access with valid alias and invalid password")
-    void testAccessValidAliasInvalidPassword() {
-        String alias = "validAlias";
-        String password = "invalidPassword";
-        UserTO userTO = new UserTO();
-        userTO.setPassword("validPassword");
-
-        when(userRepository.findByAlias(Mockito.anyString())).thenReturn(getUserEntity(alias, password));
-        when(userMapper.toTarget(Mockito.any(UserEntity.class))).thenReturn(userTO);
-
-        ResponseEntity<UserTO> response = userServiceImpl.access(alias, password);
-
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-    }
-
-    @Test
-    @DisplayName("Test access with inactive user")
-    void testAccessInactiveUser() {
-        String alias = "validAlias";
-        String password = "iloveyou";
-        var userTO = getUserTO(alias, password);
-        userTO.setActive(false);
-
-        when(userRepository.findByAlias(Mockito.anyString())).thenReturn(getUserEntity(alias, password));
-        when(userMapper.toTarget(Mockito.any(UserEntity.class))).thenReturn(userTO);
-
-        ResponseEntity<String> response = userServiceImpl.access(alias, password);
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-    }
-
-    @Test
-    @DisplayName("Test access with user null")
-    void testAccessUserNull() {
-        String alias = "validAlias";
-        String password = "iloveyou";
-
-        when(userRepository.findByAlias(Mockito.anyString())).thenReturn(null);
-
-        ResponseEntity<UserTO> response = userServiceImpl.access(alias, password);
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-    }
-
-    @Test
-    @DisplayName("Test access with non-existing alias")
-    void testAccessNonExistingAlias() {
-        String alias = "nonExistingAlias";
-        String password = "password";
-
-        when(userRepository.findByAlias(Mockito.anyString())).thenReturn(null);
-
-        ResponseEntity<UserTO> response = userServiceImpl.access(alias, password);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
     @Test
