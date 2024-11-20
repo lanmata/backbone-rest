@@ -24,9 +24,9 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * LoggingServiceImp.
+ * Implementation of the LoggingService interface.
+ * Provides methods to log HTTP requests and responses.
  *
- * @author Luis Antonio Mata
  * @version 1.0.0, 09-05-2022
  * @since 11
  */

@@ -56,7 +56,7 @@ class UserServiceTest {
 
     @Test
     @DisplayName("Test alias validation")
-    void aliasValidate() {
-        assertThrows(NotImplementedException.class, () -> userService.aliasValidate("pepe"));
+    void validateAlias() {
+        assertThrows(NotImplementedException.class, () -> userService.validateAlias("pepe"));
     }
 }

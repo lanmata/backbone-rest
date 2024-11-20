@@ -1,79 +1,76 @@
+/*
+ * @(#)SessionController.java.
+ *
+ * Copyright (c) Luis Antonio Mata Mata. All rights reserved.
+ *
+ * All rights to this product are owned by Luis Antonio Mata Mata and may only
+ * be used under the terms of its associated license document. You may NOT
+ * copy, modify, sublicense, or distribute this source file or portions of
+ * it unless previously authorized in writing by Luis Antonio Mata Mata.
+ * In any event, this notice and the above copyright must always be included
+ * verbatim with this file.
+ */
 package com.prx.backoffice.v1.session.api;
 
-import com.prx.backoffice.util.MessageUtil;
-import com.prx.backoffice.v1.session.to.SessionTokenResponse;
-import com.prx.backoffice.v1.users.api.to.UserAccessRequest;
-import com.prx.backoffice.v1.users.service.UserService;
-import com.prx.commons.util.ValidatorCommonsUtil;
-import com.prx.security.SessionJwtService;
+import com.prx.backoffice.v1.session.services.SessionService;
+import com.prx.backoffice.v1.session.to.SessionRequest;
+import com.prx.backoffice.v1.session.to.SessionResponse;
 import io.jsonwebtoken.ExpiredJwtException;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Objects;
-import java.util.UUID;
-
 import static com.prx.security.constant.ConstantApp.SESSION_TOKEN_KEY;
 
+/**
+ * REST controller for managing session-related operations.
+ * Provides endpoints for generating and validating session tokens.
+ *
+ * @version 1.0.0, 12-02-2021
+ */
 @RestController
 @RequestMapping("/v1/session")
 public class SessionController {
 
-    private final SessionJwtService sessionJwtService;
-    private final UserService userService;
-    private final MessageUtil messageUtil;
+    private final SessionService sessionService;
 
-    public SessionController(SessionJwtService sessionJwtService, UserService userService, MessageUtil messageUtil) {
-        this.sessionJwtService = sessionJwtService;
-        this.userService = userService;
-        this.messageUtil = messageUtil;
+    /**
+     * Constructor for SessionController.
+     *
+     * @param sessionService the session service to be used by this controller
+     */
+    public SessionController(SessionService sessionService) {
+        this.sessionService = sessionService;
     }
 
-    @PostMapping("/token")
-    public ResponseEntity<SessionTokenResponse> generateSessionToken(@RequestBody UserAccessRequest userAccessRequest) {
-        String sessionId = UUID.randomUUID().toString();
-        String sessionToken;
-        ResponseEntity<SessionTokenResponse> responseEntity;
-        boolean isFieldsInvalid = false;
-        String messageError = "";
-        ResponseEntity<String> userResponse;
-
-        if (ValidatorCommonsUtil.esNulo(userAccessRequest)) {
-            messageError = messageUtil.getUserSolicitudNulaVacia();
-            isFieldsInvalid = true;
-        } else if (ValidatorCommonsUtil.esVacio(userAccessRequest.getAlias())) {
-            messageError = messageUtil.getUserAliasNuloVacio();
-            isFieldsInvalid = true;
-        } else if (ValidatorCommonsUtil.esVacio(userAccessRequest.getPassword())) {
-            messageError = messageUtil.getUserClaveNulaVacia();
-            isFieldsInvalid = true;
-        }
-
-        if (isFieldsInvalid) {
-            responseEntity = new ResponseEntity<>(new SessionTokenResponse(messageError), HttpStatus.NOT_ACCEPTABLE);
-            return responseEntity;
-        }
-
-        userResponse = userService.access(userAccessRequest.getAlias(), userAccessRequest.getPassword());
-        if (Objects.nonNull(userResponse) && userResponse.getStatusCode().equals(HttpStatus.ACCEPTED)) {
-            sessionToken = sessionJwtService.generateSessionToken(sessionId);
-            return ResponseEntity.ok(new SessionTokenResponse(sessionToken));
-        }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    /**
+     * Endpoint to generate a session token.
+     *
+     * @param sessionRequest the session request containing user credentials
+     * @return a ResponseEntity containing the session response with the generated token
+     */
+    @PostMapping
+    public ResponseEntity<SessionResponse> generateSessionToken(@RequestBody SessionRequest sessionRequest) {
+        return sessionService.loadSession(sessionRequest);
     }
 
+    /**
+     * Endpoint to validate a session token.
+     *
+     * @param sessionToken the session token to be validated
+     * @return a ResponseEntity containing a boolean indicating whether the token is valid
+     */
     @GetMapping("/validate")
     public ResponseEntity<Boolean> validateSessionToken(
             @RequestHeader(SESSION_TOKEN_KEY) String sessionToken) {
         boolean isValid = false;
         try {
-            var value = sessionJwtService.getTokenClaims(sessionToken).get("type");
-            isValid = SESSION_TOKEN_KEY.equals(value) && !sessionJwtService.isTokenExpired(sessionToken);
+            var value = sessionService.getTokenClaims(sessionToken).get("type");
+            isValid = SESSION_TOKEN_KEY.equals(value) && !sessionService.isTokenExpired(sessionToken);
 
         } catch (ExpiredJwtException e) {
             return ResponseEntity.ok(false);
         }
         return ResponseEntity.ok(isValid);
     }
+
 }

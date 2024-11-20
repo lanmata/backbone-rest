@@ -14,6 +14,7 @@
 package com.prx.backoffice.v1.users.service;
 
 import com.prx.backoffice.services.CrudService;
+import com.prx.backoffice.v1.session.to.UserAliasTO;
 import com.prx.backoffice.v1.users.api.to.UserTO;
 import com.prx.commons.pojo.User;
 import org.apache.commons.lang.NotImplementedException;
@@ -27,7 +28,7 @@ import java.util.List;
  * @author <a href="mailto:luis.antonio.mata@gmail.com">Luis Antonio Mata</a>
  * @version 1.0.1.20200904-01, 27-10-2020
  */
-public interface UserService extends CrudService <UserTO> {
+public interface UserService extends CrudService<UserTO> {
 
     /**
      * Realiza la b&uacute;squeda de un usuario a trav&eacute;s del identificador de usuario. Retorna un objeto de tipo
@@ -52,14 +53,25 @@ public interface UserService extends CrudService <UserTO> {
     }
 
     /**
+     * Realiza la b&uacute;squeda de un usuario a trav&eacute;s del alias de usuario. Retorna un objeto de tipo
+     * {@link }
+     *
+     * @param alias {@link String}
+     * @return Objeto de tipo {@link ResponseEntity}
+     */
+    default ResponseEntity<UserAliasTO> findUserAliasByAlias(String alias) {
+        throw new NotImplementedException();
+    }
+
+    /**
      * Realiza la b&uacute;squeda del usuario requerido, valida los datos, si los datos son corrector,
      * retorna un token, en caso contrario, informa el motivo de rechazo.
      *
-     * @param alias Objeto de tipo String
+     * @param alias    Objeto de tipo String
      * @param password Objeto de tipo String
-     * @return Objeto de tipo {@link ResponseEntity}
+     * @return Objeto de tipo {@link ResponseEntity}<{@link UserTO}>
      */
-    default ResponseEntity<String> access(String alias, String password) {
+    default ResponseEntity<UserTO> access(String alias, String password) {
         throw new NotImplementedException();
     }
 
@@ -84,8 +96,9 @@ public interface UserService extends CrudService <UserTO> {
 
     /**
      * Realiza la desvinculación de un rol a un usuario especifico.
+     *
      * @param userId {@link Long}
-     * @param rolId {@link Integer}
+     * @param rolId  {@link Integer}
      * @return Objeto de tipo {@link ResponseEntity}
      */
     default ResponseEntity<UserTO> unlink(String userId, String rolId) {
@@ -94,8 +107,9 @@ public interface UserService extends CrudService <UserTO> {
 
     /**
      * Realiza la vinculación de un rol a un usuario especifico.
+     *
      * @param userId {@link Long}
-     * @param rolId {@link Integer}
+     * @param rolId  {@link Integer}
      * @return Objeto de tipo {@link ResponseEntity}
      */
     default ResponseEntity<UserTO> link(String userId, String rolId) {
@@ -104,10 +118,11 @@ public interface UserService extends CrudService <UserTO> {
 
     /**
      * Validate the user alias is available.
+     *
      * @param alias {@link String} Object type.
      * @return {@link String} Object type.
      */
-    default ResponseEntity<String> aliasValidate(String alias) {
+    default ResponseEntity<String> validateAlias(String alias) {
         throw new NotImplementedException();
     }
 }
