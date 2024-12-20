@@ -14,6 +14,7 @@ package com.prx.backoffice.v1.users.service;
 
 import com.prx.backoffice.constant.keys.RoleMessageKey;
 import com.prx.backoffice.constant.keys.UserMessageKey;
+import com.prx.backoffice.v1.application.service.ApplicationService;
 import com.prx.backoffice.v1.people.service.PersonService;
 import com.prx.backoffice.v1.roles.mapper.RoleMapper;
 import com.prx.backoffice.v1.roles.service.RoleService;
@@ -21,8 +22,13 @@ import com.prx.backoffice.v1.users.api.to.UserTO;
 import com.prx.backoffice.v1.users.mapper.UserMapper;
 import com.prx.commons.pojo.Person;
 import com.prx.commons.pojo.User;
+import com.prx.persistence.general.domains.ApplicationEntity;
+import com.prx.persistence.general.domains.ApplicationUserEntity;
+import com.prx.persistence.general.domains.ApplicationUserEntityKey;
 import com.prx.persistence.general.domains.UserRoleEntity;
+import com.prx.persistence.general.repositories.ApplicationUserRepository;
 import com.prx.persistence.general.repositories.UserRepository;
+import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -30,10 +36,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
  * Modelo para la gesti&oacute;n de usuarios
@@ -47,14 +54,16 @@ public class UserServiceImpl implements UserService {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserServiceImpl.class);
 
     private final UserRepository userRepository;
+    private final ApplicationUserRepository applicationUserRepository;
     private final PersonService personService;
     private final RoleService roleService;
     private final UserMapper userMapper;
     private final RoleMapper roleMapper;
 
-    public UserServiceImpl(UserRepository userRepository, PersonService personService, RoleService roleService,
+    public UserServiceImpl(UserRepository userRepository, ApplicationUserRepository applicationUserRepository, PersonService personService, RoleService roleService,
                            UserMapper userMapper, RoleMapper roleMapper) {
         this.userRepository = userRepository;
+        this.applicationUserRepository = applicationUserRepository;
         this.personService = personService;
         this.roleService = roleService;
         this.userMapper = userMapper;
@@ -78,7 +87,7 @@ public class UserServiceImpl implements UserService {
                     if (null != userEntity.getUserRole()) {
                         userEntity.getUserRole().forEach(userRoleEntity -> {
                             userRoleEntity.setUser(userEntity);
-                            userRoleEntity.setActive(true);
+                            userRoleEntity.setActive(Boolean.TRUE);
                         });
                     }
                     var result = userRepository.save(userEntity);
@@ -92,10 +101,9 @@ public class UserServiceImpl implements UserService {
                 responseEntity = ResponseEntity.badRequest().header(HttpHeaders.WARNING, "Invalid user").build();
             }
         } catch (Exception ex) {
-            LOGGER.error(UserMessageKey.USER_ERROR_CREATED.getStatus() + "| {}", user, ex);
+            LOGGER.error("{}| {}", UserMessageKey.USER_ERROR_CREATED.getStatus(), user, ex);
             responseEntity = ResponseEntity.unprocessableEntity().build();
         }
-        LOGGER.info(responseEntity.getStatusCode().toString());
         return responseEntity;
     }
 
@@ -121,7 +129,7 @@ public class UserServiceImpl implements UserService {
         responseEntity = optionalUser.map(userEntity ->
                 new ResponseEntity<>(userMapper.toTarget(userEntity), HttpStatus.OK)).orElseGet(() ->
                 ResponseEntity.notFound().build());
-        LOGGER.info(responseEntity.getStatusCode() + "| userId:{}", userId);
+        LOGGER.info("{}| userId:{}", responseEntity.getStatusCode().value(), userId);
         return responseEntity;
     }
 
@@ -148,7 +156,7 @@ public class UserServiceImpl implements UserService {
             return ResponseEntity.notFound().build();
         } else {
             return new ResponseEntity<>(userEntityList.stream()
-                    .map(userMapper::toTarget).collect(Collectors.toList()), HttpStatus.OK);
+                    .map(userMapper::toTarget).toList(), HttpStatus.OK);
         }
     }
 
@@ -156,6 +164,7 @@ public class UserServiceImpl implements UserService {
      * {@inheritDoc}
      */
     @Override
+    @Transactional
     public ResponseEntity<UserTO> create(UserTO user) {
         if (null == user) {
             return ResponseEntity.badRequest().build();
@@ -171,8 +180,33 @@ public class UserServiceImpl implements UserService {
         var personResponse = personService.create(user.getPerson());
         if (personResponse.getStatusCode().equals(HttpStatus.CREATED)) {
             user.setPerson(personResponse.getBody());
-            return ResponseEntity.status(HttpStatus.CREATED).body(userMapper.toTarget(userRepository.save(userMapper.toSource(user))));
+            user.setCreatedDate(LocalDateTime.now());
+            user.setLastUpdate(LocalDateTime.now());
+            var userEntity = userMapper.toSource(user);
+            var applicationUserSet = new HashSet<ApplicationUserEntity>();
+            var applicationUserEntity = new ApplicationUserEntity();
+            var applicationUserEntityKey = new ApplicationUserEntityKey();
+
+            ApplicationEntity applicationEntity = new ApplicationEntity();
+            applicationEntity.setId(UUID.fromString("afabda33-6601-4228-821a-4bf90accd4c7"));
+            applicationUserEntityKey.setApplicationId(applicationEntity.getId());
+            applicationUserEntityKey.setUserId(userEntity.getId());
+            applicationUserEntity.setActive(true);
+            applicationUserEntity.setId(applicationUserEntityKey);
+
+            applicationUserEntity.setApplication(applicationEntity);
+            applicationUserEntity.setUser(userEntity);
+            applicationUserSet.add(applicationUserEntity);
+            userEntity.setApplicationUser(applicationUserSet);
+
+            var result = userRepository.save(userEntity);
+            var applicationUserResult = applicationUserRepository.save(applicationUserEntity);
+            var userResult = userMapper.toTarget(result);
+            userResult.setServiceId(applicationUserResult.getApplication().getId());
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(userResult);
         }
+
         return ResponseEntity.badRequest().build();
     }
 
@@ -206,7 +240,7 @@ public class UserServiceImpl implements UserService {
                     final var roleEntity = roleMapper.toSource(messageActivityRole.getBody());
                     userRoleEntity.setUser(userEntity);
                     userRoleEntity.setRole(roleEntity);
-                    userRoleEntity.setActive(true);
+                    userRoleEntity.setActive(Boolean.TRUE);
                     userEntity.getUserRole().add(userRoleEntity);
                     userRepository.save(userEntity);
                     responseEntity = new ResponseEntity<>(userMapper.toTarget(userEntity), HttpStatus.ACCEPTED);

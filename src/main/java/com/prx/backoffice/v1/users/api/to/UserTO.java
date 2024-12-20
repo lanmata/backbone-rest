@@ -16,7 +16,9 @@ package com.prx.backoffice.v1.users.api.to;
 import com.prx.commons.pojo.Person;
 import com.prx.commons.pojo.Role;
 
+import java.time.LocalDateTime;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * UserTO.
@@ -26,12 +28,15 @@ import java.util.Set;
  * @since 11
  */
 public class UserTO {
-    private String id;
+    private UUID id;
     private String alias;
     private String password;
+    private LocalDateTime createdDate;
+    private LocalDateTime lastUpdate;
     private boolean active;
     private Person person;
     private Set<Role> roles;
+    private UUID serviceId;
 
     /**
      * Default Constructor.
@@ -40,11 +45,11 @@ public class UserTO {
         //Default Constructor.
     }
 
-    public String getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 
@@ -62,6 +67,22 @@ public class UserTO {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public LocalDateTime getCreatedDate() {
+        return createdDate;
+    }
+
+    public void setCreatedDate(LocalDateTime createdDate) {
+        this.createdDate = createdDate;
+    }
+
+    public LocalDateTime getLastUpdate() {
+        return lastUpdate;
+    }
+
+    public void setLastUpdate(LocalDateTime lastUpdate) {
+        this.lastUpdate = lastUpdate;
     }
 
     public boolean isActive() {
@@ -88,6 +109,14 @@ public class UserTO {
         this.roles = roles;
     }
 
+    public UUID getServiceId() {
+        return serviceId;
+    }
+
+    public void setServiceId(UUID serviceId) {
+        this.serviceId = serviceId;
+    }
+
     @Override
     public String toString() {
         return "UserTO{" +
@@ -97,6 +126,7 @@ public class UserTO {
                 ", active=" + active +
                 ", person=" + person +
                 ", roles=" + roles +
+                ", serviceId=" + serviceId +
                 '}';
     }
 }

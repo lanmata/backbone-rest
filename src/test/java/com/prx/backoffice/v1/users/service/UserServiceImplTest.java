@@ -20,6 +20,7 @@ import com.prx.backoffice.v1.users.mapper.UserMapper;
 import com.prx.commons.pojo.Person;
 import com.prx.commons.pojo.Role;
 import com.prx.persistence.general.domains.*;
+import com.prx.persistence.general.repositories.ApplicationUserRepository;
 import com.prx.persistence.general.repositories.PersonRepository;
 import com.prx.persistence.general.repositories.UserRepository;
 import org.junit.jupiter.api.Assertions;
@@ -35,6 +36,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -66,6 +68,9 @@ class UserServiceImplTest {
     private PersonRepository personRepository;
 
     @Mock
+    private ApplicationUserRepository applicationUserRepository;
+
+    @Mock
     private UserMapper userMapper;
 
     @Mock
@@ -89,7 +94,7 @@ class UserServiceImplTest {
         UserTO user = new UserTO();
         user.setActive(true);
         user.setAlias("Alias");
-        user.setId(userId.toString());
+        user.setId(userId);
         user.setPassword("iloveyou");
         user.setPerson(person);
         user.setRoles(new HashSet<>());
@@ -141,7 +146,7 @@ class UserServiceImplTest {
         UserTO user = new UserTO();
         user.setActive(true);
         user.setAlias("Alias");
-        user.setId(userId.toString());
+        user.setId(userId);
         user.setPassword("iloveyou");
         user.setPerson(person);
         user.setRoles(new HashSet<>());
@@ -211,7 +216,7 @@ class UserServiceImplTest {
         UserTO user = new UserTO();
         user.setActive(true);
         user.setAlias("Alias");
-        user.setId(userId.toString());
+        user.setId(userId);
         user.setPassword("iloveyou");
         user.setPerson(person);
         user.setRoles(new HashSet<>());
@@ -349,12 +354,12 @@ class UserServiceImplTest {
     @Test
     @DisplayName("Test delete user")
     void testDelete() {
-        String userId = UUID.randomUUID().toString();
+        UUID userId = UUID.randomUUID();
         UserTO user = new UserTO();
         user.setId(userId);
 
-        doNothing().when(userRepository).deleteById(UUID.fromString(userId));
-        ResponseEntity<UserTO> responseEntity = userServiceImpl.delete(userId, user);
+        doNothing().when(userRepository).deleteById(userId);
+        ResponseEntity<UserTO> responseEntity = userServiceImpl.delete(userId.toString(), user);
 
         Assertions.assertNull(responseEntity);
     }
@@ -491,14 +496,33 @@ class UserServiceImplTest {
     void testCreateUserSuccessfully() {
         String alias = "alias";
         String password = "password";
+        var application = new ApplicationEntity();
+        var applicationUserEntity = new ApplicationUserEntity();
+        var applicationUserKey = new ApplicationUserEntityKey();
         var userTO = getUserTO(alias, password);
+        Set<ApplicationUserEntity> applicationUserSet = new HashSet<>();
         userTO.getRoles().add(new Role());
+
+        var userEntity = new UserEntity();
+        userEntity.setCreatedDate(LocalDateTime.now());
+        userEntity.setLastUpdate(LocalDateTime.now());
+        userEntity.setId(UUID.randomUUID());
+        userEntity.setActive(true);
+        application.setId(UUID.randomUUID());
+        applicationUserEntity.setApplication(application);
+        applicationUserEntity.setUser(userEntity);
+        applicationUserKey.setApplicationId(applicationUserEntity.getApplication().getId());
+        applicationUserKey.setUserId(applicationUserEntity.getUser().getId());
+        applicationUserEntity.setId(applicationUserKey);
+        applicationUserSet.add(applicationUserEntity);
+        userEntity.setApplicationUser(applicationUserSet);
 
         when(userRepository.findByAlias(Mockito.anyString())).thenReturn(null);
         when(userMapper.toTarget(Mockito.any(UserEntity.class))).thenReturn(userTO);
+        when(applicationUserRepository.save(Mockito.any(ApplicationUserEntity.class))).thenReturn(applicationUserEntity);
         when(personService.create(userTO.getPerson())).thenReturn(ResponseEntity.status(HttpStatus.CREATED).body(new Person()));
-        when(userMapper.toSource(userTO)).thenReturn(new UserEntity());
-        when(userRepository.save(any(UserEntity.class))).thenReturn(new UserEntity());
+        when(userMapper.toSource(userTO)).thenReturn(userEntity);
+        when(userRepository.save(any(UserEntity.class))).thenReturn(userEntity);
         when(userMapper.toTarget(any(UserEntity.class))).thenReturn(userTO);
 
         ResponseEntity<UserTO> response = userServiceImpl.create(userTO);
@@ -508,17 +532,18 @@ class UserServiceImplTest {
 
     private static UserTO getUserTO(String alias, String password) {
         Person person2 = new Person();
+        var uuid = UUID.randomUUID();
         person2.setBirthdate(LocalDate.of(1970, 1, 1));
         person2.setFirstName("Jane");
         person2.setGender("Gender");
-        person2.setId("42");
+        person2.setId(uuid.toString());
         person2.setLastName("Doe");
         person2.setMiddleName("Middle Name");
 
         UserTO userTO = new UserTO();
         userTO.setActive(true);
         userTO.setAlias(alias);
-        userTO.setId("42");
+        userTO.setId(uuid);
         userTO.setPassword(password);
         userTO.setPerson(person2);
         userTO.setRoles(new HashSet<>());
