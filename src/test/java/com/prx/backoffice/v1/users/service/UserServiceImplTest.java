@@ -1,26 +1,29 @@
 /*
- * @(#)$file.className.java.
+ *  @(#)UserServiceImplTest.java
  *
- * Copyright (c) Luis Antonio Mata Mata. All rights reserved.
+ *  Copyright (c) Luis Antonio Mata Mata. All rights reserved.
  *
- * All rights to this product are owned by Luis Antonio Mata Mata and may only
- * be used under the terms of its associated license document. You may NOT
- * copy, modify, sublicense, or distribute this source file or portions of
- * it unless previously authorized in writing by Luis Antonio Mata Mata.
- * In any event, this notice and the above copyright must always be included
- * verbatim with this file.
+ *   All rights to this product are owned by Luis Antonio Mata Mata and may only
+ *  be used under the terms of its associated license document. You may NOT
+ *  copy, modify, sublicense, or distribute this source file or portions of
+ *  it unless previously authorized in writing by Luis Antonio Mata Mata.
+ *  In any event, this notice and the above copyright must always be included
+ *  verbatim with this file.
  */
 package com.prx.backoffice.v1.users.service;
 
+import com.prx.backoffice.v1.people.mapper.PersonMapper;
 import com.prx.backoffice.v1.people.service.PersonService;
 import com.prx.backoffice.v1.roles.mapper.RoleMapper;
 import com.prx.backoffice.v1.roles.service.RoleService;
+import com.prx.backoffice.v1.users.api.to.UserCreateRequest;
+import com.prx.backoffice.v1.users.api.to.UserCreateResponse;
 import com.prx.backoffice.v1.users.api.to.UserTO;
 import com.prx.backoffice.v1.users.mapper.UserMapper;
 import com.prx.commons.pojo.Person;
 import com.prx.commons.pojo.Role;
 import com.prx.persistence.general.domains.*;
-import com.prx.persistence.general.repositories.ApplicationUserRepository;
+import com.prx.persistence.general.repositories.ApplicationRoleUserRepository;
 import com.prx.persistence.general.repositories.PersonRepository;
 import com.prx.persistence.general.repositories.UserRepository;
 import org.junit.jupiter.api.Assertions;
@@ -68,10 +71,13 @@ class UserServiceImplTest {
     private PersonRepository personRepository;
 
     @Mock
-    private ApplicationUserRepository applicationUserRepository;
+    private ApplicationRoleUserRepository applicationRoleUserRepository;
 
     @Mock
     private UserMapper userMapper;
+
+    @Mock
+    private PersonMapper personMapper;
 
     @Mock
     private RoleMapper roleMapper;
@@ -113,7 +119,7 @@ class UserServiceImplTest {
         userEntity.setActive(user.isActive());
         userEntity.setPassword(user.getPassword());
         userEntity.setPerson(personEntity);
-        userEntity.setUserRole(new HashSet<>());
+        userEntity.setApplicationRoleUser(new HashSet<>());
 
         final var responsePerson = ResponseEntity.ok(person);
 
@@ -156,7 +162,7 @@ class UserServiceImplTest {
         roleEntity.setActive(true);
         roleEntity.setId(UUID.randomUUID());
         roleEntity.setName("Aftan Langley");
-        roleEntity.setUserRoles(new HashSet<>());
+        roleEntity.setApplicationRoleUser(new HashSet<>());
         roleEntity.setRoleFeatures(new HashSet<>());
 
         PersonEntity personEntity = new PersonEntity();
@@ -174,17 +180,17 @@ class UserServiceImplTest {
         userEntity.setPassword(user.getPassword());
         userEntity.setPerson(personEntity);
 
-        UserRoleEntity userRoleEntity = new UserRoleEntity();
-        userRoleEntity.setUser(userEntity);
-        userRoleEntity.setRole(roleEntity);
-        userRoleEntity.setActive(true);
-        UserRolePK userRolePK = new UserRolePK();
+        ApplicationRoleUserEntity applicationRoleUserEntity = new ApplicationRoleUserEntity();
+        applicationRoleUserEntity.setUser(userEntity);
+        applicationRoleUserEntity.setRole(roleEntity);
+        applicationRoleUserEntity.setActive(true);
+        ApplicationRoleUserEntityId userRolePK = new ApplicationRoleUserEntityId();
         userRolePK.setUserId(userEntity.getId());
         userRolePK.setRoleId(roleEntity.getId());
-//        userRoleEntity.setUserRolePK(userRolePK);
-        userEntity.setUserRole(Set.of(userRoleEntity));
+//        applicationRoleUserEntity.setUserRolePK(userRolePK);
+        userEntity.setApplicationRoleUser(Set.of(applicationRoleUserEntity));
 
-        userEntity.setUserRole(Set.of(userRoleEntity));
+        userEntity.setApplicationRoleUser(Set.of(applicationRoleUserEntity));
         final var responsePerson = ResponseEntity.ok(person);
 
         when(userMapper.toSource(user)).thenReturn(userEntity);
@@ -235,7 +241,7 @@ class UserServiceImplTest {
         userEntity.setActive(user.isActive());
         userEntity.setPassword(user.getPassword());
         userEntity.setPerson(personEntity);
-        userEntity.setUserRole(new HashSet<>());
+        userEntity.setApplicationRoleUser(new HashSet<>());
 
         when(userMapper.toSource(user)).thenReturn(userEntity);
         when(userRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.of(userEntity));
@@ -348,7 +354,7 @@ class UserServiceImplTest {
     @DisplayName("Test create user with null data")
     void create_user_null() {
         final ResponseEntity<UserTO> responseEntity = ResponseEntity.badRequest().build();
-        Assertions.assertEquals(responseEntity, this.userServiceImpl.create(null));
+        Assertions.assertEquals(responseEntity, this.userServiceImpl.create((UserCreateRequest) null));
     }
 
     @Test
@@ -411,19 +417,19 @@ class UserServiceImplTest {
         String roleId = UUID.randomUUID().toString();
         UserEntity userEntity = new UserEntity();
         RoleEntity roleEntity = new RoleEntity();
-        Set<UserRoleEntity> userRoleEntities = new HashSet<>();
+        Set<ApplicationRoleUserEntity> userRoleEntities = new HashSet<>();
         userEntity.setId(UUID.fromString(userId));
         roleEntity.setId(UUID.randomUUID());
-        UserRoleEntity userRoleEntity = new UserRoleEntity();
-        userRoleEntity.setRole(roleEntity);
-        userRoleEntities.add(userRoleEntity);
-        userEntity.setUserRole(userRoleEntities);
+        ApplicationRoleUserEntity applicationRoleUserEntity = new ApplicationRoleUserEntity();
+        applicationRoleUserEntity.setRole(roleEntity);
+        userRoleEntities.add(applicationRoleUserEntity);
+        userEntity.setApplicationRoleUser(userRoleEntities);
 
         when(userRepository.findById(UUID.fromString(userId))).thenReturn(Optional.of(userEntity));
         when(roleService.find(roleId)).thenReturn(ResponseEntity.ok(new Role()));
         when(userMapper.toTarget(userEntity)).thenReturn(new UserTO());
 
-        ResponseEntity<UserTO> responseEntity = userServiceImpl.link(userId, roleId);
+        ResponseEntity<UserTO> responseEntity = userServiceImpl.roleLink(userId, roleId);
 
         Assertions.assertNotNull(responseEntity);
         Assertions.assertEquals(HttpStatus.ACCEPTED, responseEntity.getStatusCode());
@@ -432,19 +438,16 @@ class UserServiceImplTest {
     @Test
     @DisplayName("Test create user with null data")
     void testCreateUserWithNullData() {
-        ResponseEntity<UserTO> response = userServiceImpl.create(null);
+        ResponseEntity<UserCreateResponse> response = userServiceImpl.create((UserCreateRequest) null);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
     @Test
     @DisplayName("Test create user with blank alias")
     void testCreateUserWithBlankAlias() {
-        UserTO user = new UserTO();
-        user.setAlias("");
-        user.setPassword("password");
-        user.setRoles(new HashSet<>());
-
-        ResponseEntity<UserTO> response = userServiceImpl.create(user);
+        ResponseEntity<UserCreateResponse> response = userServiceImpl.create(getUserCreateRequest(
+                "", "nvbgd233", " user@domain.ext",
+                UUID.randomUUID(), UUID.randomUUID()));
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals("username is required", response.getHeaders().getFirst(HttpHeaders.WARNING));
     }
@@ -452,12 +455,7 @@ class UserServiceImplTest {
     @Test
     @DisplayName("Test create user with blank password")
     void testCreateUserWithBlankPassword() {
-        UserTO user = new UserTO();
-        user.setAlias("alias");
-        user.setPassword("");
-        user.setRoles(new HashSet<>());
-
-        ResponseEntity<UserTO> response = userServiceImpl.create(user);
+        ResponseEntity<UserCreateResponse> response = userServiceImpl.create(getUserCreateRequest("alias", "", " user@domain.ext", UUID.randomUUID(), UUID.randomUUID()));
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals("password is required", response.getHeaders().getFirst(HttpHeaders.WARNING));
     }
@@ -465,12 +463,7 @@ class UserServiceImplTest {
     @Test
     @DisplayName("Test create user with empty roles")
     void testCreateUserWithEmptyRoles() {
-        UserTO user = new UserTO();
-        user.setAlias("alias");
-        user.setPassword("password");
-        user.setRoles(new HashSet<>());
-
-        ResponseEntity<UserTO> response = userServiceImpl.create(user);
+        ResponseEntity<UserCreateResponse> response = userServiceImpl.create(getUserCreateRequest("alias", "nvbgd233", " user@domain.ext", null, UUID.randomUUID()));
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals("Role is required", response.getHeaders().getFirst(HttpHeaders.WARNING));
     }
@@ -497,11 +490,10 @@ class UserServiceImplTest {
         String alias = "alias";
         String password = "password";
         var application = new ApplicationEntity();
-        var applicationUserEntity = new ApplicationUserEntity();
-        var applicationUserKey = new ApplicationUserEntityKey();
-        var userTO = getUserTO(alias, password);
-        Set<ApplicationUserEntity> applicationUserSet = new HashSet<>();
-        userTO.getRoles().add(new Role());
+        var applicationRoleUserEntity = new ApplicationRoleUserEntity();
+        var applicationRoleUserEntityId = new ApplicationRoleUserEntityId();
+        var userCreateRequest = getUserCreateRequest("alias", "nvbgd233", " user@domain.ext", UUID.randomUUID(), UUID.randomUUID());
+        Set<ApplicationRoleUserEntity> applicationUserSet = new HashSet<>();
 
         var userEntity = new UserEntity();
         userEntity.setCreatedDate(LocalDateTime.now());
@@ -509,46 +501,84 @@ class UserServiceImplTest {
         userEntity.setId(UUID.randomUUID());
         userEntity.setActive(true);
         application.setId(UUID.randomUUID());
-        applicationUserEntity.setApplication(application);
-        applicationUserEntity.setUser(userEntity);
-        applicationUserKey.setApplicationId(applicationUserEntity.getApplication().getId());
-        applicationUserKey.setUserId(applicationUserEntity.getUser().getId());
-        applicationUserEntity.setId(applicationUserKey);
-        applicationUserSet.add(applicationUserEntity);
-        userEntity.setApplicationUser(applicationUserSet);
+        applicationRoleUserEntity.setApplication(application);
+        applicationRoleUserEntity.setUser(userEntity);
+        applicationRoleUserEntityId.setApplicationId(applicationRoleUserEntity.getApplication().getId());
+        applicationRoleUserEntityId.setUserId(applicationRoleUserEntity.getUser().getId());
+        applicationRoleUserEntity.setId(applicationRoleUserEntityId);
+        applicationUserSet.add(applicationRoleUserEntity);
+        userEntity.setApplicationRoleUser(applicationUserSet);
 
         when(userRepository.findByAlias(Mockito.anyString())).thenReturn(null);
-        when(userMapper.toTarget(Mockito.any(UserEntity.class))).thenReturn(userTO);
-        when(applicationUserRepository.save(Mockito.any(ApplicationUserEntity.class))).thenReturn(applicationUserEntity);
-        when(personService.create(userTO.getPerson())).thenReturn(ResponseEntity.status(HttpStatus.CREATED).body(new Person()));
-        when(userMapper.toSource(userTO)).thenReturn(userEntity);
+        when(userMapper.toUserCreateResponse(Mockito.any(UserEntity.class))).thenReturn(getUserCreateResponse(userCreateRequest));
+        when(applicationRoleUserRepository.save(Mockito.any(ApplicationRoleUserEntity.class))).thenReturn(applicationRoleUserEntity);
+        when(personService.create(Mockito.any(Person.class))).thenReturn(ResponseEntity.status(HttpStatus.CREATED).body(getPerson()));
+        when(userMapper.toSource(userCreateRequest)).thenReturn(userEntity);
         when(userRepository.save(any(UserEntity.class))).thenReturn(userEntity);
-        when(userMapper.toTarget(any(UserEntity.class))).thenReturn(userTO);
+        when(userMapper.toUserCreateResponse(any(UserEntity.class))).thenReturn(getUserCreateResponse(userCreateRequest));
 
-        ResponseEntity<UserTO> response = userServiceImpl.create(userTO);
+        ResponseEntity<UserCreateResponse> response = userServiceImpl.create(userCreateRequest);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertNotNull(response.getBody());
     }
 
+    private static UserCreateRequest getUserCreateRequest(
+            final String alias,
+            final String password,
+            final String email,
+            final UUID roleId,
+            final UUID applicationId
+            ) {
+        return new UserCreateRequest(
+                null,
+                alias,
+                password,
+                email,
+                true,
+                new Person(),
+                roleId,
+                applicationId
+        );
+    }
+
+    private static UserCreateResponse getUserCreateResponse(UserCreateRequest userCreateRequest) {
+        return new UserCreateResponse(
+                UUID.randomUUID(),
+                userCreateRequest.alias(),
+                LocalDateTime.now(),
+                LocalDateTime.now(),
+                userCreateRequest.active(),
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                UUID.randomUUID()
+        );
+    }
+
     private static UserTO getUserTO(String alias, String password) {
-        Person person2 = new Person();
         var uuid = UUID.randomUUID();
-        person2.setBirthdate(LocalDate.of(1970, 1, 1));
-        person2.setFirstName("Jane");
-        person2.setGender("Gender");
-        person2.setId(uuid.toString());
-        person2.setLastName("Doe");
-        person2.setMiddleName("Middle Name");
 
         UserTO userTO = new UserTO();
         userTO.setActive(true);
         userTO.setAlias(alias);
         userTO.setId(uuid);
         userTO.setPassword(password);
-        userTO.setPerson(person2);
+        userTO.setPerson(getPerson());
         userTO.setRoles(new HashSet<>());
 
         return userTO;
+    }
+
+    private static Person getPerson() {
+        Person person = new Person();
+        var uuid = UUID.randomUUID();
+        person.setBirthdate(LocalDate.of(1970, 1, 1));
+        person.setFirstName("Jane");
+        person.setGender("Gender");
+        person.setId(uuid.toString());
+        person.setLastName("Doe");
+        person.setMiddleName("Middle Name");
+
+        return person;
     }
 
     private static UserEntity getUserEntity(String alias, String password) {
@@ -566,7 +596,7 @@ class UserServiceImplTest {
         userEntity.setId(UUID.randomUUID());
         userEntity.setPassword(password);
         userEntity.setPerson(person);
-        userEntity.setUserRole(new HashSet<>());
+        userEntity.setApplicationRoleUser(new HashSet<>());
 
         return userEntity;
     }

@@ -1,32 +1,30 @@
 /*
- * @(#)$file.className.java.
+ *  @(#)UserServiceImpl.java
  *
- * Copyright (c) Luis Antonio Mata Mata. All rights reserved.
+ *  Copyright (c) Luis Antonio Mata Mata. All rights reserved.
  *
- * All rights to this product are owned by Luis Antonio Mata Mata and may only
- * be used under the terms of its associated license document. You may NOT
- * copy, modify, sublicense, or distribute this source file or portions of
- * it unless previously authorized in writing by Luis Antonio Mata Mata.
- * In any event, this notice and the above copyright must always be included
- * verbatim with this file.
+ *   All rights to this product are owned by Luis Antonio Mata Mata and may only
+ *  be used under the terms of its associated license document. You may NOT
+ *  copy, modify, sublicense, or distribute this source file or portions of
+ *  it unless previously authorized in writing by Luis Antonio Mata Mata.
+ *  In any event, this notice and the above copyright must always be included
+ *  verbatim with this file.
  */
 package com.prx.backoffice.v1.users.service;
 
 import com.prx.backoffice.constant.keys.RoleMessageKey;
 import com.prx.backoffice.constant.keys.UserMessageKey;
-import com.prx.backoffice.v1.application.service.ApplicationService;
+import com.prx.backoffice.v1.people.mapper.PersonMapper;
 import com.prx.backoffice.v1.people.service.PersonService;
 import com.prx.backoffice.v1.roles.mapper.RoleMapper;
 import com.prx.backoffice.v1.roles.service.RoleService;
+import com.prx.backoffice.v1.users.api.to.UserCreateRequest;
+import com.prx.backoffice.v1.users.api.to.UserCreateResponse;
 import com.prx.backoffice.v1.users.api.to.UserTO;
 import com.prx.backoffice.v1.users.mapper.UserMapper;
 import com.prx.commons.pojo.Person;
-import com.prx.commons.pojo.User;
-import com.prx.persistence.general.domains.ApplicationEntity;
-import com.prx.persistence.general.domains.ApplicationUserEntity;
-import com.prx.persistence.general.domains.ApplicationUserEntityKey;
-import com.prx.persistence.general.domains.UserRoleEntity;
-import com.prx.persistence.general.repositories.ApplicationUserRepository;
+import com.prx.persistence.general.domains.*;
+import com.prx.persistence.general.repositories.ApplicationRoleUserRepository;
 import com.prx.persistence.general.repositories.UserRepository;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
@@ -42,34 +40,51 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * Modelo para la gesti&oacute;n de usuarios
- *
- * @author <a href="mailto:luis.antonio.mata@gmail.com">Luis Antonio Mata</a>
- * @version 1.0.1.20200904-01, 2019-10-14
- */
+/// Implementation of the UserService interface for managing users.
+/// Provides methods for creating, updating, deleting, and finding users.
+/// Uses various mappers and services to handle user-related operations.
+///
+/// @author
+/// <a href="mailto:luis.antonio.mata@gmail.com">Luis Antonio Mata</a>
+/// @version 1.0.1.20200904-01, 2019-10-14
 @Service
 public class UserServiceImpl implements UserService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UserServiceImpl.class);
 
     private final UserRepository userRepository;
-    private final ApplicationUserRepository applicationUserRepository;
+    private final ApplicationRoleUserRepository applicationRoleUserRepository;
     private final PersonService personService;
     private final RoleService roleService;
     private final UserMapper userMapper;
     private final RoleMapper roleMapper;
+    private final PersonMapper personMapper;
 
-    public UserServiceImpl(UserRepository userRepository, ApplicationUserRepository applicationUserRepository, PersonService personService, RoleService roleService,
-                           UserMapper userMapper, RoleMapper roleMapper) {
+    /// Constructor for UserServiceImpl.
+    ///
+    /// @param userRepository the user repository
+    /// @param applicationRoleUserRepository the application role user repository
+    /// @param personService the person service
+    /// @param roleService the role service
+    /// @param userMapper the user mapper
+    /// @param roleMapper the role mapper
+    /// @param personMapper the person mapper
+    public UserServiceImpl(UserRepository userRepository, ApplicationRoleUserRepository applicationRoleUserRepository,
+                           PersonService personService, RoleService roleService, UserMapper userMapper, RoleMapper roleMapper, PersonMapper personMapper) {
         this.userRepository = userRepository;
-        this.applicationUserRepository = applicationUserRepository;
+        this.applicationRoleUserRepository = applicationRoleUserRepository;
         this.personService = personService;
         this.roleService = roleService;
         this.userMapper = userMapper;
         this.roleMapper = roleMapper;
+        this.personMapper = personMapper;
     }
 
+    /// Updates a user with the given user ID and user data.
+    ///
+    /// @param userId the user ID
+    /// @param user the user data
+    /// @return the response entity containing the updated user data
     @Override
     public ResponseEntity<UserTO> update(String userId, UserTO user) {
         ResponseEntity<UserTO> responseEntity;
@@ -84,10 +99,10 @@ public class UserServiceImpl implements UserService {
                     user.setPerson(responseEntityPerson.getBody());
                     final var userEntity = userMapper.toSource(user);
                     userEntity.setId(UUID.fromString(userId));
-                    if (null != userEntity.getUserRole()) {
-                        userEntity.getUserRole().forEach(userRoleEntity -> {
-                            userRoleEntity.setUser(userEntity);
-                            userRoleEntity.setActive(Boolean.TRUE);
+                    if (null != userEntity.getApplicationRoleUser()) {
+                        userEntity.getApplicationRoleUser().forEach(applicationRoleUserEntity -> {
+                            applicationRoleUserEntity.setUser(userEntity);
+                            applicationRoleUserEntity.setActive(Boolean.TRUE);
                         });
                     }
                     var result = userRepository.save(userEntity);
@@ -107,21 +122,38 @@ public class UserServiceImpl implements UserService {
         return responseEntity;
     }
 
+    /// Deletes a user with the given user ID and user data.
+    ///
+    /// @param userId the user ID
+    /// @param user the user data
+    /// @return the response entity
     @Override
     public ResponseEntity<UserTO> delete(String userId, UserTO user) {
         return null;
     }
 
+    /// Finds a user with the given ID.
+    ///
+    /// @param id the user ID
+    /// @return the response entity containing the user data
     @Override
     public ResponseEntity<UserTO> find(String id) {
         return null;
     }
 
+    /// Lists users with the given IDs.
+    ///
+    /// @param id the user IDs
+    /// @return the response entity containing the list of users
     @Override
     public ResponseEntity<List<UserTO>> list(String... id) {
         return null;
     }
 
+    /// Finds a user by the given user ID.
+    ///
+    /// @param userId the user ID
+    /// @return the response entity containing the user data
     @Override
     public ResponseEntity<UserTO> findUserById(String userId) {
         ResponseEntity<UserTO> responseEntity;
@@ -133,9 +165,10 @@ public class UserServiceImpl implements UserService {
         return responseEntity;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /// Finds a user by the given alias.
+    ///
+    /// @param alias the user alias
+    /// @return the response entity containing the user data
     @Override
     public ResponseEntity<UserTO> findUserByAlias(final String alias) {
         var userTO = findByAlias(alias);
@@ -146,9 +179,9 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /// Finds all users.
+    ///
+    /// @return the response entity containing the list of users
     @Override
     public ResponseEntity<List<UserTO>> findAll() {
         final var userEntityList = userRepository.findAll();
@@ -160,74 +193,65 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /// Creates a new user with the given user creation request.
+    ///
+    /// @param userCreateRequest the user creation request
+    /// @return the response entity containing the created user data
     @Override
     @Transactional
-    public ResponseEntity<UserTO> create(UserTO user) {
-        if (null == user) {
+    public ResponseEntity<UserCreateResponse> create(UserCreateRequest userCreateRequest) {
+        if (null == userCreateRequest) {
             return ResponseEntity.badRequest().build();
-        } else if (user.getAlias().isBlank()) {
+        } else if (userCreateRequest.alias().isBlank()) {
             return ResponseEntity.badRequest().header(HttpHeaders.WARNING, "username is required").build();
-        } else if (user.getPassword().isBlank()) {
+        } else if (userCreateRequest.password().isBlank()) {
             return ResponseEntity.badRequest().header(HttpHeaders.WARNING, "password is required").build();
-        } else if (null == user.getRoles() || user.getRoles().isEmpty()) {
+        } else if (Objects.isNull(userCreateRequest.roleId())) {
             return ResponseEntity.badRequest().header(HttpHeaders.WARNING, "Role is required").build();
-        } else if (findUserByAlias(user.getAlias()).getStatusCode().equals(HttpStatus.OK)) {
+        } else if (findUserByAlias(userCreateRequest.alias()).getStatusCode().equals(HttpStatus.OK)) {
             return ResponseEntity.badRequest().header(HttpHeaders.WARNING, "User previously exist.").build();
         }
-        var personResponse = personService.create(user.getPerson());
+        var personResponse = personService.create(userCreateRequest.person());
         if (personResponse.getStatusCode().equals(HttpStatus.CREATED)) {
-            user.setPerson(personResponse.getBody());
-            user.setCreatedDate(LocalDateTime.now());
-            user.setLastUpdate(LocalDateTime.now());
-            var userEntity = userMapper.toSource(user);
-            var applicationUserSet = new HashSet<ApplicationUserEntity>();
-            var applicationUserEntity = new ApplicationUserEntity();
-            var applicationUserEntityKey = new ApplicationUserEntityKey();
+            personResponse.getBody();
+            var userEntity = userMapper.toSource(userCreateRequest);
+            userEntity.setCreatedDate(LocalDateTime.now());
+            userEntity.setLastUpdate(LocalDateTime.now());
+            userEntity.setPerson(personMapper.toSource(personResponse.getBody()));
+            userEntity.setApplicationRoleUser(new HashSet<>());
 
-            ApplicationEntity applicationEntity = new ApplicationEntity();
-            applicationEntity.setId(UUID.fromString("afabda33-6601-4228-821a-4bf90accd4c7"));
-            applicationUserEntityKey.setApplicationId(applicationEntity.getId());
-            applicationUserEntityKey.setUserId(userEntity.getId());
-            applicationUserEntity.setActive(true);
-            applicationUserEntity.setId(applicationUserEntityKey);
-
-            applicationUserEntity.setApplication(applicationEntity);
-            applicationUserEntity.setUser(userEntity);
-            applicationUserSet.add(applicationUserEntity);
-            userEntity.setApplicationUser(applicationUserSet);
-
-            var result = userRepository.save(userEntity);
-            var applicationUserResult = applicationUserRepository.save(applicationUserEntity);
-            var userResult = userMapper.toTarget(result);
-            userResult.setServiceId(applicationUserResult.getApplication().getId());
+            var userEntityResult = userRepository.save(userEntity); // Save
+            // Adding ApplicationRoleUser
+            userEntityResult.getApplicationRoleUser().add(applicationLink(userEntityResult, userCreateRequest.roleId(), userCreateRequest.applicationId()));
+            var userResult = userMapper.toUserCreateResponse(userEntityResult);
 
             return ResponseEntity.status(HttpStatus.CREATED).body(userResult);
         }
-
         return ResponseEntity.badRequest().build();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /// Unlinks a role from a user with the given user ID and role ID.
+    ///
+    /// @param userId the user ID
+    /// @param rolId the role ID
+    /// @return the response entity
     @Override
     public ResponseEntity<UserTO> unlink(String userId, String rolId) {
         throw new UnsupportedOperationException();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /// Links a role to a user with the given user ID and role ID.
+    ///
+    /// @param userId the user ID
+    /// @param roleId the role ID
+    /// @return the response entity containing the updated user data
     @Override
-    public ResponseEntity<UserTO> link(String userId, String roleId) {
+    public ResponseEntity<UserTO> roleLink(String userId, String roleId) {
         ResponseEntity<UserTO> responseEntity = null;
         final var optionalUserEntity = userRepository.findById(UUID.fromString(userId));
         if (optionalUserEntity.isPresent()) {
             final var userEntity = optionalUserEntity.get();
-            for (UserRoleEntity userRolEntity : userEntity.getUserRole()) {
+            for (ApplicationRoleUserEntity userRolEntity : userEntity.getApplicationRoleUser()) {
                 if (userRolEntity.getRole().getId().equals(UUID.fromString(roleId))) {
                     responseEntity = new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
                     return responseEntity;
@@ -235,13 +259,13 @@ public class UserServiceImpl implements UserService {
             }
             final var messageActivityRole = roleService.find(roleId);
             if (RoleMessageKey.ROL_OK.getCode() == messageActivityRole.getStatusCode().value()) {
-                if (null != userEntity.getUserRole()) {
-                    final var userRoleEntity = new UserRoleEntity();
+                if (null != userEntity.getApplicationRoleUser()) {
+                    final var applicationRoleUserEntity = new ApplicationRoleUserEntity();
                     final var roleEntity = roleMapper.toSource(messageActivityRole.getBody());
-                    userRoleEntity.setUser(userEntity);
-                    userRoleEntity.setRole(roleEntity);
-                    userRoleEntity.setActive(Boolean.TRUE);
-                    userEntity.getUserRole().add(userRoleEntity);
+                    applicationRoleUserEntity.setUser(userEntity);
+                    applicationRoleUserEntity.setRole(roleEntity);
+                    applicationRoleUserEntity.setActive(Boolean.TRUE);
+                    userEntity.getApplicationRoleUser().add(applicationRoleUserEntity);
                     userRepository.save(userEntity);
                     responseEntity = new ResponseEntity<>(userMapper.toTarget(userEntity), HttpStatus.ACCEPTED);
                 }
@@ -256,12 +280,40 @@ public class UserServiceImpl implements UserService {
         return responseEntity;
     }
 
-    /**
-     * Obtiene el objeto persona asociado al usuario o lo crea en caso de existir.
-     *
-     * @param user {@link User}
-     * @return {@link Person}
-     */
+    /// Creates an ApplicationRoleUserEntity link between a user and a role in an application.
+    ///
+    /// @param userEntity the user entity
+    /// @param roleId the role ID
+    /// @param applicationId the application ID
+    /// @return the created ApplicationRoleUserEntity
+    private ApplicationRoleUserEntity applicationLink(UserEntity userEntity, UUID roleId, UUID applicationId) {
+        final var applicationRoleUserEntities = new HashSet<ApplicationRoleUserEntity>();
+        final var applicationRoleUserEntity = new ApplicationRoleUserEntity();
+        final var applicationRoleUserEntityId = new ApplicationRoleUserEntityId();
+        final var roleEntity = new RoleEntity();
+        roleEntity.setId(roleId);
+
+        ApplicationEntity applicationEntity = new ApplicationEntity();
+        applicationEntity.setId(applicationId);
+        applicationRoleUserEntityId.setApplicationId(applicationEntity.getId());
+        applicationRoleUserEntityId.setUserId(userEntity.getId());
+        applicationRoleUserEntityId.setRoleId(roleEntity.getId());
+        applicationRoleUserEntity.setActive(true);
+        applicationRoleUserEntity.setId(applicationRoleUserEntityId);
+
+        applicationRoleUserEntity.setApplication(applicationEntity);
+        applicationRoleUserEntity.setRole(roleEntity);
+        applicationRoleUserEntity.setUser(userEntity);
+        applicationRoleUserEntities.add(applicationRoleUserEntity);
+        userEntity.setApplicationRoleUser(applicationRoleUserEntities);
+
+        return applicationRoleUserRepository.save(applicationRoleUserEntity);
+    }
+
+    /// Obtains the person associated with the user or creates a new one if it does not exist.
+    ///
+    /// @param user the user data
+    /// @return the response entity containing the person data
     private ResponseEntity<Person> getPerson(UserTO user) {
         final var responseEntity = personService.find(user.getPerson().getId());
         if (HttpStatus.FOUND.value() == responseEntity.getStatusCode().value()) {
@@ -270,6 +322,10 @@ public class UserServiceImpl implements UserService {
         return responseEntity;
     }
 
+    /// Finds a user by the given alias.
+    ///
+    /// @param alias the user alias
+    /// @return the user data
     private UserTO findByAlias(String alias) {
         final var userEntity = userRepository.findByAlias(alias);
         return Objects.nonNull(userEntity) ? userMapper.toTarget(userEntity) : null;
