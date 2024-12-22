@@ -1,79 +1,80 @@
+/*
+ *  @(#)ApplicationService.java
+ *
+ *  Copyright (c) Luis Antonio Mata Mata. All rights reserved.
+ *
+ *   All rights to this product are owned by Luis Antonio Mata Mata and may only
+ *  be used under the terms of its associated license document. You may NOT
+ *  copy, modify, sublicense, or distribute this source file or portions of
+ *  it unless previously authorized in writing by Luis Antonio Mata Mata.
+ *  In any event, this notice and the above copyright must always be included
+ *  verbatim with this file.
+ */
+
 package com.prx.backoffice.v1.application.service;
 
 import com.prx.backoffice.services.CrudService;
-import com.prx.backoffice.v1.application.Service;
+import com.prx.commons.pojo.Application;
 import org.apache.commons.lang.NotImplementedException;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 
-/**
- * Interface for service operations.
- * Extends the CrudService interface to provide CRUD operations for Service entities.
- *
- * @version 1.0.0, 20-10-2020
- */
-public interface ApplicationService extends CrudService<Service> {
+/// Interface for application operations.
+/// Extends the CrudService interface to provide CRUD operations for [com.prx.persistence.general.domains.ApplicationEntity].
+///
+/// @version 1.0.0, 20-10-2020
+public interface ApplicationService extends CrudService<Application> {
 
-    /**
-     * Creates a new service.
-     *
-     * @param service the service to create
-     * @return the created service wrapped in a ResponseEntity
-     * @throws NotImplementedException if the method is not implemented
-     */
+    /// Creates a new application.
+    ///
+    /// @param application the application to create
+    /// @return the created application wrapped in a ResponseEntity
+    /// @throws NotImplementedException if the method is not implemented
     @Override
-    default ResponseEntity<Service> create(Service service)  {
+    default ResponseEntity<Application> create(Application application)  {
         throw new NotImplementedException();
     }
 
-    /**
-     * Finds a service by its ID.
-     *
-     * @param id the ID of the service to find
-     * @return the found service wrapped in a ResponseEntity
-     * @throws NotImplementedException if the method is not implemented
-     */
+    /// Finds a application by its ID.
+    ///
+    /// @param id the ID of the application to find
+    /// @return the found application wrapped in a ResponseEntity
+    /// @throws NotImplementedException if the method is not implemented
     @Override
-    default ResponseEntity<Service> find(String id)  {
+    default ResponseEntity<Application> find(String id)  {
         throw new NotImplementedException();
     }
 
-    /**
-     * Updates an existing service.
-     *
-     * @param id the ID of the service to update
-     * @param service the service with updated information
-     * @return the updated service wrapped in a ResponseEntity
-     * @throws NotImplementedException if the method is not implemented
-     */
+    /// Updates an existing application.
+    ///
+    /// @param id the ID of the application to update
+    /// @param application the application with updated information
+    /// @return the updated application wrapped in a ResponseEntity
+    /// @throws NotImplementedException if the method is not implemented
     @Override
-    default ResponseEntity<Service> update(String id, Service service)  {
+    default ResponseEntity<Application> update(String id, Application application)  {
         throw new NotImplementedException();
     }
 
-    /**
-     * Deletes a service.
-     *
-     * @param id the ID of the service to delete
-     * @param service the service to delete
-     * @return the deleted service wrapped in a ResponseEntity
-     * @throws NotImplementedException if the method is not implemented
-     */
+    /// Deletes a application.
+    ///
+    /// @param id the ID of the application to delete
+    /// @param application the application to delete
+    /// @return the deleted application wrapped in a ResponseEntity
+    /// @throws NotImplementedException if the method is not implemented
     @Override
-    default ResponseEntity<Service> delete(String id, Service service)  {
+    default ResponseEntity<Application> delete(String id, Application application)  {
         throw new NotImplementedException();
     }
 
-    /**
-     * Lists services by their IDs.
-     *
-     * @param id the IDs of the services to list
-     * @return a list of services wrapped in a ResponseEntity
-     * @throws NotImplementedException if the method is not implemented
-     */
+    /// Lists services by their IDs.
+    ///
+    /// @param id the IDs of the application to list
+    /// @return a list of application wrapped in a ResponseEntity
+    /// @throws NotImplementedException if the method is not implemented
     @Override
-    default ResponseEntity<List<Service>> list(String... id) {
+    default ResponseEntity<List<Application>> list(String... id) {
         throw new NotImplementedException();
     }
 }

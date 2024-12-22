@@ -1,11 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~  @(#)pom.xml
+  ~
+  ~  Copyright (c) Luis Antonio Mata Mata. All rights reserved.
+  ~
+  ~   All rights to this product are owned by Luis Antonio Mata Mata and may only
+  ~  be used under the terms of its associated license document. You may NOT
+  ~  copy, modify, sublicense, or distribute this source file or portions of
+  ~  it unless previously authorized in writing by Luis Antonio Mata Mata.
+  ~  In any event, this notice and the above copyright must always be included
+  ~  verbatim with this file.
+  -->
+
 <!--suppress XmlHighlighting -->
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.prx.backbone</groupId>
     <artifactId>backbone-rest</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
     <name>PRX Backbone REST</name>
     <description>Management service to system entities</description>
 
@@ -33,7 +46,7 @@
         <postgresql.version>42.7.4</postgresql.version>
         <google.gson.version>2.10.1</google.gson.version>
         <!--        PRX Commons-->
-        <com.prx.commons.version>1.0.1</com.prx.commons.version>
+        <com.prx.commons.version>1.0.2</com.prx.commons.version>
         <com.prx.persistence.version>1.0.2</com.prx.persistence.version>
         <com.prx.security-oauth.version>0.0.1</com.prx.security-oauth.version>
         <!--        MAVEN-->
@@ -71,7 +84,7 @@
         <!--        Coverage and Sonar-->
         <sonar.organization>prx-open</sonar.organization>
         <sonar.exclusions>
-            **/*.xml,**/*Application.*,**/config/*,**/config/jwt/*,**/config/jackson/*,**/config/security/*,**/loggers/*,**/loggers/interceptor/*,
+            **/*.xml,**/PrxBackofficeRestApplication.*,**/config/*,**/config/jwt/*,**/config/jackson/*,**/config/security/*,**/loggers/*,**/loggers/interceptor/*,
             **/exceptions/*,**/mapper/*,**/mapper/decorator/*,**/converter/*, **/*Test*, **/session/*
         </sonar.exclusions>
         <project.ruleset>${project.basedir}/ruleset.xml</project.ruleset>

@@ -1,14 +1,14 @@
 /*
- * @(#)$file.className.java.
+ *  @(#)RoleServiceImplTest.java
  *
- * Copyright (c) Luis Antonio Mata Mata. All rights reserved.
+ *  Copyright (c) Luis Antonio Mata Mata. All rights reserved.
  *
- * All rights to this product are owned by Luis Antonio Mata Mata and may only
- * be used under the terms of its associated license document. You may NOT
- * copy, modify, sublicense, or distribute this source file or portions of
- * it unless previously authorized in writing by Luis Antonio Mata Mata.
- * In any event, this notice and the above copyright must always be included
- * verbatim with this file.
+ *   All rights to this product are owned by Luis Antonio Mata Mata and may only
+ *  be used under the terms of its associated license document. You may NOT
+ *  copy, modify, sublicense, or distribute this source file or portions of
+ *  it unless previously authorized in writing by Luis Antonio Mata Mata.
+ *  In any event, this notice and the above copyright must always be included
+ *  verbatim with this file.
  */
 package com.prx.backoffice.v1.roles.service;
 
@@ -135,7 +135,7 @@ class RoleServiceImplTest {
         roleEntity.setId(UUID.fromString("cc8f6d52-500d-4021-99c2-e53baafdc30b"));
         roleEntity.setName("Name");
         roleEntity.setRoleFeatures(new HashSet<>());
-        roleEntity.setUserRoles(new HashSet<>());
+        roleEntity.setApplicationRoleUser(new HashSet<>());
         roleEntityList.add(roleEntity);
         when(roleRepository.findByUserId(any())).thenReturn(Optional.of(roleEntityList));
         ResponseEntity<List<Role>> actualListResult = roleServiceImpl.listByUser("cc8f6d52-500d-4021-99c2-e53baafdc30b");
@@ -159,7 +159,7 @@ class RoleServiceImplTest {
         roleEntity.setId(roleId);
         roleEntity.setName("Name");
         roleEntity.setRoleFeatures(new HashSet<>());
-        roleEntity.setUserRoles(new HashSet<>());
+        roleEntity.setApplicationRoleUser(new HashSet<>());
 
         ArrayList<RoleEntity> roleEntityList = new ArrayList<>();
         roleEntityList.add(roleEntity);
@@ -195,7 +195,7 @@ class RoleServiceImplTest {
         roleEntity.setId(roleId);
         roleEntity.setName("Name");
         roleEntity.setRoleFeatures(new HashSet<>());
-        roleEntity.setUserRoles(new HashSet<>());
+        roleEntity.setApplicationRoleUser(new HashSet<>());
 
         RoleEntity roleEntity1 = new RoleEntity();
         roleEntity1.setActive(true);
@@ -203,7 +203,7 @@ class RoleServiceImplTest {
         roleEntity1.setId(roleId);
         roleEntity1.setName("Name");
         roleEntity1.setRoleFeatures(new HashSet<>());
-        roleEntity1.setUserRoles(new HashSet<>());
+        roleEntity1.setApplicationRoleUser(new HashSet<>());
 
         ArrayList<RoleEntity> roleEntityList = new ArrayList<>();
         roleEntityList.add(roleEntity1);
@@ -248,7 +248,7 @@ class RoleServiceImplTest {
         roleEntity.setId(roleId);
         roleEntity.setName("Name");
         roleEntity.setRoleFeatures(new HashSet<>());
-        roleEntity.setUserRoles(new HashSet<>());
+        roleEntity.setApplicationRoleUser(new HashSet<>());
 
         RoleEntity roleEntity1 = new RoleEntity();
         roleEntity1.setActive(true);
@@ -256,7 +256,7 @@ class RoleServiceImplTest {
         roleEntity1.setId(roleId);
         roleEntity1.setName("Name");
         roleEntity1.setRoleFeatures(new HashSet<>());
-        roleEntity1.setUserRoles(new HashSet<>());
+        roleEntity1.setApplicationRoleUser(new HashSet<>());
 
         Optional<List<RoleEntity>> ofResult = Optional.of(new ArrayList<>());
         when(roleRepository.findByUserId(any())).thenReturn(ofResult);
@@ -430,7 +430,7 @@ class RoleServiceImplTest {
         final var response = roleServiceImpl.listByUser(userId.toString());
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertTrue(Objects.nonNull(response.getBody()));
-        assertEquals("Name", response.getBody().get(0).getName());
+        assertEquals("Name", response.getBody().getFirst().getName());
     }
 
     /**
@@ -519,7 +519,7 @@ class RoleServiceImplTest {
         final var response = roleServiceImpl.list();
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertTrue(Objects.nonNull(response.getBody()));
-        assertEquals("Name", response.getBody().get(0).getName());
+        assertEquals("Name", response.getBody().getFirst().getName());
     }
 
     @Test
