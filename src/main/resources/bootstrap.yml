@@ -7,11 +7,13 @@ prx:
     secret: ${APP_TOKEN_SECRET}
     expirationMs: ${APP_TOKEN_EXPIRATION}
 app:
-  clientRoles: jobs-offer-frontend-client, jobs-offer-frontend-client_o
+  clientRoles: backbone-rest-client
   # The environments for the application
   api:
     endpoint: /v1
     excludes: /v1/sessions/token, /v1/sessions/validate
+    exclude:
+      methods: accessToken
   # The name of the application
   name: backbone-rest
   # The version of the application
