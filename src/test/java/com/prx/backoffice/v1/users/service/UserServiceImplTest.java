@@ -545,6 +545,7 @@ class UserServiceImplTest {
         return new UserCreateResponse(
                 UUID.randomUUID(),
                 userCreateRequest.alias(),
+                userCreateRequest.email(),
                 LocalDateTime.now(),
                 LocalDateTime.now(),
                 userCreateRequest.active(),
