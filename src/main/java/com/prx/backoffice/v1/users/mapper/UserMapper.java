@@ -61,6 +61,7 @@ public interface UserMapper {
 
     @Mapping(target = "id", source = "id")
     @Mapping(target = "alias", source = "alias")
+    @Mapping(target = "email", source = "email")
     @Mapping(target = "active", source = "active")
     @Mapping(target = "personId", source = "person.id")
     @Mapping(target = "applicationId", expression = "java(getApplicationId(userEntity))")
