@@ -28,6 +28,9 @@ public record UserCreateResponse(
         /// The alias of the user.
         String alias,
 
+        /// The email of the user.
+        String email,
+
         /// The date and time when the user was created.
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime createdDate,
 
