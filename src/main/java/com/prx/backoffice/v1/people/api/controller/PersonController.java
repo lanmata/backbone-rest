@@ -15,8 +15,8 @@ package com.prx.backoffice.v1.people.api.controller;
 import com.prx.backoffice.util.MessageUtil;
 import com.prx.backoffice.v1.people.api.to.PersonRequest;
 import com.prx.backoffice.v1.people.service.PersonService;
-import com.prx.commons.pojo.Person;
-import com.prx.commons.to.Response;
+import com.prx.commons.general.pojo.Person;
+import com.prx.commons.general.to.Response;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -26,6 +26,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * PersonController. Clase controladora para la exposición de los endpoint pertenecientes a la gestión de usuario
@@ -35,7 +36,7 @@ import java.util.List;
  */
 @RestController
 @CrossOrigin(origins = "*")
-@RequestMapping("v1/people")
+@RequestMapping("/api/v1/people")
 public class PersonController {
     /** personService */
     private final PersonService personService;
@@ -66,7 +67,7 @@ public class PersonController {
             @ApiResponse(responseCode = MessageUtil.UNPROCESSABLE_ENTITY, description = "Person not found")
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/{personId}")
-    public ResponseEntity<Person> find(@PathVariable final String personId) {
+    public ResponseEntity<Person> find(@PathVariable final UUID personId) {
         return personService.find(personId);
     }
 
@@ -78,7 +79,7 @@ public class PersonController {
             @ApiResponse(responseCode = MessageUtil.BAD_REQUEST, description = "Person not founded")
     })
     @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/{personId}")
-    public ResponseEntity<Person> update(@PathVariable final String personId, @RequestBody final PersonRequest personRequest) {
+    public ResponseEntity<Person> update(@PathVariable final UUID personId, @RequestBody final PersonRequest personRequest) {
         return personService.update(personId, personRequest.getPerson());
     }
 
@@ -89,6 +90,6 @@ public class PersonController {
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/")
     public ResponseEntity<List<Person>> list() {
-        return personService.list((String) null);
+        return personService.list((UUID) null);
     }
 }

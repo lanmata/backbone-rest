@@ -14,12 +14,13 @@
 package com.prx.backoffice.v1.application.service;
 
 import com.prx.backoffice.v1.application.mapper.ApplicationMapper;
-import com.prx.commons.pojo.Application;
+import com.prx.commons.general.pojo.Application;
 import com.prx.persistence.general.repositories.ApplicationRepository;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @org.springframework.stereotype.Service
 public class ApplicationServiceImpl implements ApplicationService {
@@ -41,25 +42,25 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     /** {@inheritDoc} */
     @Override
-    public ResponseEntity<Application> find(String id) {
+    public ResponseEntity<Application> find(UUID id) {
         return ApplicationService.super.find(id);
     }
 
     /** {@inheritDoc} */
     @Override
-    public ResponseEntity<Application> update(String id, Application application) {
+    public ResponseEntity<Application> update(UUID id, Application application) {
         return ApplicationService.super.update(id, application);
     }
 
     /** {@inheritDoc} */
     @Override
-    public ResponseEntity<Application> delete(String id, Application application) {
+    public ResponseEntity<Application> delete(UUID id, Application application) {
         return ApplicationService.super.delete(id, application);
     }
 
     /** {@inheritDoc} */
     @Override
-    public ResponseEntity<List<Application>> list(String... id) {
+    public ResponseEntity<List<Application>> list(UUID... id) {
         return ApplicationService.super.list(id);
     }
 }

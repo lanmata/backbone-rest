@@ -13,11 +13,12 @@
 
 package com.prx.backoffice.v1.people.api.to;
 
-import com.prx.commons.pojo.Person;
+import com.prx.commons.general.pojo.Person;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -32,19 +33,20 @@ class PersonRequestTest {
     @Test
     @DisplayName("Test getters and setters of PersonRequest")
     void testGettersAndSetters() {
+        final var uuid = UUID.fromString("b1c4fbd2-a6b1-4615-af78-d2a037f66d29");
         final var personCreateRequest = new PersonRequest();
         final var person = new Person();
         person.setBirthdate(LocalDate.of(1979, 4, 14));
         person.setFirstName("Pepe");
         person.setGender("M");
-        person.setId("b1c4fbd2-a6b1-4615-af78-d2a037f66d29");
+        person.setId(uuid);
         person.setLastName("Perez");
         person.setMiddleName("Peter");
         personCreateRequest.setPerson(person);
 
         assertAll(() -> assertNotNull(personCreateRequest),
                 () -> assertNotNull(personCreateRequest.getPerson()),
-                () -> assertEquals("b1c4fbd2-a6b1-4615-af78-d2a037f66d29", personCreateRequest.getPerson().getId()),
+                () -> assertEquals(uuid, personCreateRequest.getPerson().getId()),
                 () -> assertNotNull(personCreateRequest.getPerson().getGender()),
                 () -> assertNotNull(personCreateRequest.getPerson().getBirthdate()),
                 () -> assertNotNull(personCreateRequest.getPerson().getFirstName()),

@@ -13,11 +13,11 @@
 
 package com.prx.backoffice.v1.users.mapper;
 
-import com.prx.backoffice.config.jackson.MapperAppConfig;
 import com.prx.backoffice.v1.features.mapper.FeatureMapper;
-import com.prx.commons.pojo.Application;
-import com.prx.commons.pojo.Role;
-import com.prx.commons.pojo.User;
+import com.prx.commons.general.pojo.Application;
+import com.prx.commons.general.pojo.Role;
+import com.prx.commons.general.pojo.User;
+import com.prx.commons.services.config.mapper.MapperAppConfig;
 import com.prx.persistence.general.domains.ApplicationRoleUserEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

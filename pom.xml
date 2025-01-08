@@ -46,9 +46,10 @@
         <postgresql.version>42.7.4</postgresql.version>
         <google.gson.version>2.10.1</google.gson.version>
         <!--        PRX Commons-->
-        <com.prx.commons.version>1.0.2</com.prx.commons.version>
-        <com.prx.persistence.version>1.0.2</com.prx.persistence.version>
+        <com.prx.commons.version>0.0.4</com.prx.commons.version>
+        <com.prx.persistence.version>0.0.3</com.prx.persistence.version>
         <com.prx.security-oauth.version>0.0.1</com.prx.security-oauth.version>
+        <com.prx.commons-services.version>0.0.1</com.prx.commons-services.version>
         <!--        MAVEN-->
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
@@ -185,6 +186,11 @@
             <groupId>com.prx</groupId>
             <artifactId>prx-commons</artifactId>
             <version>${com.prx.commons.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.prx</groupId>
+            <artifactId>commons-services</artifactId>
+            <version>${com.prx.commons-services.version}</version>
         </dependency>
         <dependency>
             <groupId>com.prx</groupId>

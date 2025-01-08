@@ -14,7 +14,7 @@
 package com.prx.backoffice.v1.features.api.to;
 
 import com.prx.backoffice.constant.keys.FeatureMessageKey;
-import com.prx.commons.pojo.Feature;
+import com.prx.commons.general.pojo.Feature;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.UUID;
 
 /**
  * FeatureListResponseTest.
@@ -34,11 +35,12 @@ public class FeatureListResponseTest {
     @Test
     @DisplayName("Test getters and setters of FeatureListResponse")
     public void gettersAndSetters() {
+        final var uuid = UUID.randomUUID();
         final var featureListResponse = new FeatureListResponse();
         var feature = new Feature();
-        feature.setId("1L");
+        feature.setId(uuid);
         feature.setName("Feature");
-        feature.setDescription("Descripción de feature");
+        feature.setDescription("Feature Description");
         feature.setActive(true);
         featureListResponse.setList(new ArrayList<>());
         featureListResponse.getList().add(feature);

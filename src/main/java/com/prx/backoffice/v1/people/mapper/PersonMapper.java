@@ -12,8 +12,8 @@
  */
 package com.prx.backoffice.v1.people.mapper;
 
-import com.prx.backoffice.config.jackson.MapperAppConfig;
-import com.prx.commons.pojo.Person;
+import com.prx.commons.general.pojo.Person;
+import com.prx.commons.services.config.mapper.MapperAppConfig;
 import com.prx.persistence.general.domains.PersonEntity;
 import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;

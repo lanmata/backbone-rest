@@ -14,9 +14,9 @@
 package com.prx.backoffice.v1.users.api.to;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.prx.commons.pojo.Application;
-import com.prx.commons.pojo.Person;
-import com.prx.commons.pojo.Role;
+import com.prx.commons.general.pojo.Application;
+import com.prx.commons.general.pojo.Person;
+import com.prx.commons.general.pojo.Role;
 
 import java.time.LocalDateTime;
 import java.util.Set;

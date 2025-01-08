@@ -15,7 +15,7 @@ package com.prx.backoffice.v1.application.api.controller;
 
 import com.prx.backoffice.v1.application.api.to.ApplicationCreateRequest;
 import com.prx.backoffice.v1.application.service.ApplicationService;
-import com.prx.commons.pojo.Application;
+import com.prx.commons.general.pojo.Application;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,7 +27,7 @@ import java.util.Objects;
 /// Provides endpoints for creating applications.
 @RestController
 @CrossOrigin(origins = "*")
-@RequestMapping("v1/applications")
+@RequestMapping("/api/v1/applications")
 public class ApplicationController implements ApplicationApi {
 
     private final ApplicationService applicationService;

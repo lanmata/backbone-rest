@@ -13,9 +13,11 @@
 
 package com.prx.backoffice.v1.util;
 
-import com.prx.commons.pojo.Feature;
+import com.prx.commons.general.pojo.Feature;
 import com.prx.persistence.general.domains.FeatureEntity;
 import org.apache.commons.lang.NotImplementedException;
+
+import java.util.UUID;
 
 /**
  * FeatureTestTemplate.
@@ -29,7 +31,7 @@ public enum FeatureTemplateTest implements TemplateUtil<Feature, FeatureEntity>{
         @Override
         public Feature getModel() {
             final var feature = new Feature();
-            feature.setId("1L");
+            feature.setId(UUID.randomUUID());
             feature.setActive(true);
             feature.setName("Nombre de feature");
             feature.setDescription("Descripcin de feature");

@@ -15,7 +15,7 @@ package com.prx.backoffice.v1.contacts.api;
 
 import com.prx.backoffice.util.MessageUtil;
 import com.prx.backoffice.v1.contacts.service.ContactService;
-import com.prx.commons.pojo.Contact;
+import com.prx.commons.general.pojo.Contact;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -25,6 +25,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * ContactApiController.
@@ -35,7 +36,7 @@ import java.util.List;
  */
 @RestController
 @CrossOrigin(origins = "*")
-@RequestMapping("v1/contacts")
+@RequestMapping("/api/v1/contacts")
 public class ContactController {
 
     private final ContactService contactService;
@@ -58,8 +59,8 @@ public class ContactController {
             @ApiResponse(responseCode = MessageUtil.OK, description = "OK")
     })
     @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/{contactId}")
-    public ResponseEntity<Contact> update(@PathVariable final String contactId, @RequestBody Contact contact) {
-        return contactService.update(contact, contactId);
+    public ResponseEntity<Contact> update(@PathVariable final UUID contactId, @RequestBody Contact contact) {
+        return contactService.update(contactId, contact);
     }
 
     @Operation(description = "Find a contact list.")
@@ -67,7 +68,7 @@ public class ContactController {
             @ApiResponse(responseCode = MessageUtil.OK, description = "OK")
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/{contactId}")
-    public ResponseEntity<Contact> find(@PathVariable(value = "contactId") final String contactId) {
+    public ResponseEntity<Contact> find(@PathVariable(value = "contactId") final UUID contactId) {
         return contactService.find(contactId);
     }
 
@@ -76,7 +77,7 @@ public class ContactController {
             @ApiResponse(responseCode = MessageUtil.OK, description = "OK")
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/list/{contactIds}")
-    public ResponseEntity<List<Contact>> list(@PathVariable List<String> contactIds){
+    public ResponseEntity<List<Contact>> list(@PathVariable List<UUID> contactIds){
         return contactService.list(contactIds);
     }
 
@@ -85,7 +86,7 @@ public class ContactController {
             @ApiResponse(responseCode = MessageUtil.OK, description = "OK")
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/person/{personId}")
-    public ResponseEntity<List<Contact>> list(@PathVariable String personId){
+    public ResponseEntity<List<Contact>> list(@PathVariable UUID personId){
         return contactService.listByPersonId(personId);
     }
 
@@ -103,7 +104,7 @@ public class ContactController {
             @ApiResponse(responseCode = MessageUtil.OK, description = "OK")
     })
     @DeleteMapping(path = "/{contactId}")
-    public ResponseEntity<String> delete(@PathVariable final String contactId) {
+    public ResponseEntity<String> delete(@PathVariable final UUID contactId) {
         return contactService.deleteById(contactId);
     }
 

@@ -15,7 +15,7 @@ package com.prx.backoffice.v1.features.api.controller;
 import com.prx.backoffice.util.MessageUtil;
 import com.prx.backoffice.v1.features.api.to.FeatureRequest;
 import com.prx.backoffice.v1.features.service.FeatureService;
-import com.prx.commons.pojo.Feature;
+import com.prx.commons.general.pojo.Feature;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -25,6 +25,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * FeatureController.
@@ -34,7 +35,7 @@ import java.util.List;
  */
 @RestController
 @CrossOrigin(origins = "*")
-@RequestMapping(value = "/v1/features")
+@RequestMapping(value = "/api/v1/features")
 public class FeatureController {
 
     private final FeatureService featureService;
@@ -55,7 +56,7 @@ public class FeatureController {
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/find/{featureId}")
     public ResponseEntity<Feature> find(@Parameter(description = "Id de feature", required = true)
-                                        @PathVariable final String featureId) {
+                                        @PathVariable final UUID featureId) {
         return featureService.find(featureId);
     }
 
@@ -98,7 +99,7 @@ public class FeatureController {
             @ApiResponse(responseCode = MessageUtil.NOT_ACCEPTABLE, description = "Feature not registered")
     })
     @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/{featureId}")
-    public ResponseEntity<Feature> update(@PathVariable String featureId, @RequestBody FeatureRequest featureRequest){
+    public ResponseEntity<Feature> update(@PathVariable UUID featureId, @RequestBody FeatureRequest featureRequest){
         return featureService.update(featureId, featureRequest.getFeature());
     }
 }

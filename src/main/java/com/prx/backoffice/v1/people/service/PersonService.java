@@ -13,10 +13,12 @@
 
 package com.prx.backoffice.v1.people.service;
 
-import com.prx.backoffice.services.CrudService;
-import com.prx.commons.pojo.Person;
+import com.prx.commons.services.CrudService;
+import com.prx.commons.general.pojo.Person;
 import org.apache.commons.lang.NotImplementedException;
 import org.springframework.http.ResponseEntity;
+
+import java.util.UUID;
 
 /**
  * PersonService.
@@ -24,10 +26,10 @@ import org.springframework.http.ResponseEntity;
  * @author Luis Antonio Mata
  * @version 1.0.1.20200904-01, 02-11-2020
  */
-public interface PersonService extends CrudService <Person> {
+public interface PersonService extends CrudService <UUID, Person> {
 
     @Override
-    default ResponseEntity<Person> delete(String personId, Person person) {
+    default ResponseEntity<Person> delete(UUID personId, Person person) {
         throw new NotImplementedException();
     }
 }

@@ -13,10 +13,12 @@
 
 package com.prx.backoffice.v1.roles.service;
 
-import com.prx.commons.pojo.Role;
+import com.prx.commons.general.pojo.Role;
 import org.apache.commons.lang.NotImplementedException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -28,7 +30,7 @@ class RoleServiceTest {
     @Test
     @DisplayName("Test finding a role")
     void find() {
-        assertThrows(NotImplementedException.class, () -> roleService.find("abc123"));
+        assertThrows(NotImplementedException.class, () -> roleService.find(UUID.randomUUID()));
     }
 
     @Test
@@ -40,30 +42,30 @@ class RoleServiceTest {
     @Test
     @DisplayName("Test updating a role")
     void update() {
-        assertThrows(NotImplementedException.class, () -> roleService.update("abc1", new Role()));
+        assertThrows(NotImplementedException.class, () -> roleService.update(UUID.randomUUID(), new Role()));
     }
 
     @Test
     @DisplayName("Test listing roles by user")
     void listByUser() {
-        assertThrows(NotImplementedException.class, () -> roleService.listByUser("abc123"));
+        assertThrows(NotImplementedException.class, () -> roleService.listByUser(UUID.randomUUID()));
     }
 
     @Test
     @DisplayName("Test listing roles")
     void list() {
-        assertThrows(NotImplementedException.class, () -> roleService.list());
+        assertThrows(NotImplementedException.class, roleService::list);
     }
 
     @Test
     @DisplayName("Test listing roles by user (duplicate)")
     void testList() {
-        assertThrows(NotImplementedException.class, () -> roleService.listByUser("abc123"));
+        assertThrows(NotImplementedException.class, () -> roleService.listByUser(UUID.randomUUID()));
     }
 
     @Test
     @DisplayName("Test deleting a role")
     void delete() {
-        assertThrows(NotImplementedException.class, () -> roleService.delete("abc123", new Role()));
+        assertThrows(NotImplementedException.class, () -> roleService.delete(UUID.randomUUID(), new Role()));
     }
 }

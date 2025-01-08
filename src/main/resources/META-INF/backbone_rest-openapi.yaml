@@ -1,0 +1,1263 @@
+openapi: "3.1.0"
+info:
+  title: "Backbone REST API"
+  description: "backbone_rest API"
+  version: "1.0.0"
+servers:
+- url: "https://backbone_rest"
+tags:
+- name: "users"
+  description: "The user API"
+- name: "service"
+  description: "The service API"
+paths:
+  /api/v1/contacts/{contactId}:
+    put:
+      summary: ""
+      description: "Update a contact."
+      operationId: ""
+      parameters:
+      - name: "contactId"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Contact"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Contact"
+    delete:
+      summary: ""
+      description: "Delete a contact."
+      operationId: ""
+      parameters:
+      - name: "contactId"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+    get:
+      summary: ""
+      description: "Find a contact list."
+      operationId: ""
+      parameters:
+      - name: "contactId"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Contact"
+  /api/v1/contacts/:
+    post:
+      summary: ""
+      description: "Create a contact."
+      operationId: ""
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Contact"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Contact"
+  /api/v1/contacts/list/{contactIds}:
+    get:
+      summary: ""
+      description: "Find a contact list by ids."
+      operationId: ""
+      parameters:
+      - name: "contactIds"
+        in: "path"
+        required: true
+        schema:
+          type: "array"
+          items:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Contact"
+  /api/v1/contacts/person/{personId}:
+    get:
+      summary: ""
+      description: "List contacts by person Id."
+      operationId: ""
+      parameters:
+      - name: "personId"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Contact"
+  /api/v1/contacts/list:
+    get:
+      summary: ""
+      description: "Get a contact list."
+      operationId: ""
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Contact"
+  /api/v1/features/{featureId}:
+    put:
+      summary: ""
+      description: "Update a Feature"
+      operationId: ""
+      parameters:
+      - name: "featureId"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FeatureRequest"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Feature"
+  /api/v1/features/:
+    post:
+      summary: ""
+      description: "Create a Feature"
+      operationId: ""
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FeatureRequest"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Feature"
+  /api/v1/features/find/{featureId}:
+    get:
+      summary: ""
+      description: "Realiza la busqueda da un feature"
+      operationId: ""
+      parameters:
+      - name: "featureId"
+        in: "path"
+        required: true
+        description: "Id de feature"
+        schema:
+          type: "string"
+          format: "uuid"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Feature"
+  /api/v1/features/{includeInactive}:
+    get:
+      summary: ""
+      description: "Get a list of active and/or inactive features."
+      operationId: ""
+      parameters:
+      - name: "includeInactive"
+        in: "path"
+        required: true
+        description: "Non/Include the features inactive"
+        schema:
+          type: "boolean"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Feature"
+  /api/v1/features/{includeInactive}/{featuresIds}:
+    get:
+      summary: ""
+      description: "Get a list of active and/or inactive features."
+      operationId: ""
+      parameters:
+      - name: "includeInactive"
+        in: "path"
+        required: true
+        description: "Non/Include the features inactive"
+        schema:
+          type: "boolean"
+      - name: "featuresIds"
+        in: "path"
+        required: true
+        description: "Features id list"
+        schema:
+          type: "array"
+          items:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Feature"
+  /api/v1/roles/{roleId}:
+    put:
+      summary: ""
+      description: "Update a role"
+      operationId: ""
+      parameters:
+      - name: "roleId"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoleRequest"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Role"
+  /api/v1/roles/:
+    post:
+      summary: ""
+      description: "Create a role"
+      operationId: ""
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoleRequest"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Role"
+  /api/v1/roles/find/{roleId}:
+    get:
+      summary: ""
+      description: "Look for a roles"
+      operationId: ""
+      parameters:
+      - name: "roleId"
+        in: "path"
+        required: true
+        description: "Request to find a role"
+        schema:
+          type: "string"
+          format: "uuid"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Role"
+  /api/v1/roles/{includeInactive}/{roleIds}:
+    get:
+      summary: ""
+      description: "List Roles by status and role id."
+      operationId: ""
+      parameters:
+      - name: "includeInactive"
+        in: "path"
+        required: true
+        description: "Include/exclude inactive roles."
+        schema:
+          type: "boolean"
+      - name: "roleIds"
+        in: "path"
+        required: true
+        description: "Role list requested."
+        schema:
+          type: "array"
+          items:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Role"
+  /api/v1/roles/{includeInactive}:
+    get:
+      summary: ""
+      description: "List Roles by status and role id."
+      operationId: ""
+      parameters:
+      - name: "includeInactive"
+        in: "path"
+        required: true
+        description: "Include/exclude inactive roles."
+        schema:
+          type: "boolean"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Role"
+  /api/v1/roles:
+    get:
+      summary: ""
+      description: "List Roles by status and role id."
+      operationId: ""
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Role"
+  /api/v1/roles/user/{userId}:
+    get:
+      summary: ""
+      description: "List Roles by Id"
+      operationId: ""
+      parameters:
+      - name: "userId"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Role"
+  /api/v1/users/{userId}:
+    put:
+      summary: ""
+      description: "Update a user"
+      operationId: ""
+      parameters:
+      - name: "userId"
+        in: "path"
+        required: true
+        description: "User ID"
+        schema:
+          type: "string"
+          format: "uuid"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserTO"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserTO"
+  /api/v1/users/unlink/user/{userId}/role/{roleId}:
+    put:
+      summary: ""
+      description: "Unlinks a role from a user"
+      operationId: ""
+      parameters:
+      - name: "userId"
+        in: "path"
+        required: true
+        description: "User ID"
+        schema:
+          type: "string"
+          format: "uuid"
+      - name: "roleId"
+        in: "path"
+        required: true
+        description: "Role ID"
+        schema:
+          type: "string"
+          format: "uuid"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserTO"
+  /api/v1/users/link/user/{userId}/role/{roleId}:
+    put:
+      summary: ""
+      description: "Links a role to a user"
+      operationId: ""
+      parameters:
+      - name: "userId"
+        in: "path"
+        required: true
+        description: "User ID"
+        schema:
+          type: "string"
+          format: "uuid"
+      - name: "roleId"
+        in: "path"
+        required: true
+        description: "Role ID"
+        schema:
+          type: "string"
+          format: "uuid"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserTO"
+  /api/v1/users:
+    post:
+      summary: ""
+      description: "Create a new user."
+      operationId: ""
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserCreateRequest"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserCreateResponse"
+  /api/v1/users/check/alias/{alias}/application/{applicationId}:
+    get:
+      summary: ""
+      description: "Checks if a user alias is available."
+      operationId: ""
+      parameters:
+      - name: "alias"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      - name: "applicationId"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Void"
+  /api/v1/users/check/email/{email}/application/{applicationId}:
+    get:
+      summary: ""
+      description: "Checks if a user email is available."
+      operationId: ""
+      parameters:
+      - name: "email"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      - name: "applicationId"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Void"
+  /api/v1/users/user/{userId}:
+    get:
+      summary: ""
+      description: "Find a user by ID"
+      operationId: ""
+      parameters:
+      - name: "userId"
+        in: "path"
+        required: true
+        description: "User ID"
+        schema:
+          type: "string"
+          format: "uuid"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserTO"
+  /api/v1/users/application/{applicationId}:
+    get:
+      summary: ""
+      description: "Getting an user list"
+      operationId: ""
+      parameters:
+      - name: "applicationId"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/UserTO"
+  /api/v1/users/userByAlias/{alias}/application/{applicationId}:
+    get:
+      summary: ""
+      description: "Find a user by alias"
+      operationId: ""
+      parameters:
+      - name: "alias"
+        in: "path"
+        required: true
+        description: "Alias user"
+        schema:
+          type: "string"
+      - name: "applicationId"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserTO"
+  /api/v1/users/alias/{alias}/application/{applicationId}:
+    get:
+      summary: ""
+      description: "Find a user alias by alias"
+      operationId: ""
+      parameters:
+      - name: "alias"
+        in: "path"
+        required: true
+        description: "User alias"
+        schema:
+          type: "string"
+      - name: "applicationId"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserAliasTO"
+  /api/v1/applications:
+    post:
+      summary: "POST api/v1/applications"
+      operationId: "create"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApplicationCreateRequest"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Application"
+  /api/v1/people/{personId}:
+    put:
+      summary: "Update a person"
+      description: "Update and return the person."
+      operationId: ""
+      parameters:
+      - name: "personId"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PersonRequest"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Person"
+    get:
+      summary: "Fetch person by ID"
+      description: "Return a person."
+      operationId: ""
+      parameters:
+      - name: "personId"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Person"
+  /api/v1/people/:
+    post:
+      summary: "Create a person"
+      description: "Create and return the person."
+      operationId: ""
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PersonRequest"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Person"
+    get:
+      summary: "Fetch all people"
+      description: "Return all people."
+      operationId: ""
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Person"
+  /api/v1/report/template:
+    get:
+      summary: "GET api/v1/report/template"
+      operationId: "createWordDocument"
+      parameters:
+      - name: "values"
+        in: "query"
+        required: true
+        schema:
+          type: "string"
+      - name: "documentTemplate"
+        in: "query"
+        required: true
+        schema:
+          type: "string"
+          format: "binary"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/octet-stream:
+              schema:
+                $ref: "#/components/schemas/Resource"
+  /api/v1/report/placeholdervalues:
+    get:
+      summary: "GET api/v1/report/placeholdervalues"
+      operationId: "placeholderValues"
+      parameters:
+      - name: "templateDocumentModel"
+        in: "query"
+        required: true
+        schema:
+          $ref: "#/components/schemas/TemplateDocumentModel"
+      - name: "documentTemplate"
+        in: "query"
+        required: true
+        schema:
+          type: "string"
+          format: "binary"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/octet-stream:
+              schema:
+                type: "array"
+                items:
+                  type: "string"
+  /api/v1/session:
+    post:
+      summary: "POST api/v1/session"
+      operationId: "generateSessionToken"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SessionRequest"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SessionResponse"
+  /api/v1/session/validate:
+    get:
+      summary: "GET api/v1/session/validate"
+      operationId: "validateSessionToken"
+      parameters:
+      - name: "session-token"
+        in: "header"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "boolean"
+  /api/v1/contact-types/{contactTypeId}:
+    put:
+      summary: ""
+      description: "Find a contact type list."
+      operationId: ""
+      parameters:
+      - name: "contactTypeId"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContactType"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContactType"
+    delete:
+      summary: ""
+      description: "Delete a contact type."
+      operationId: ""
+      parameters:
+      - name: "contactTypeId"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ContactType"
+    get:
+      summary: ""
+      description: "Find a contact type list."
+      operationId: ""
+      parameters:
+      - name: "contactTypeId"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+          format: "uuid"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContactType"
+  /api/v1/contact-types/:
+    post:
+      summary: ""
+      description: "Create a contact type."
+      operationId: ""
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContactTypeRequest"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContactType"
+  /api/v1/contact-types/list/{contactTypeIds}:
+    get:
+      summary: ""
+      description: "Find a contact type list by ids."
+      operationId: ""
+      parameters:
+      - name: "contactTypeIds"
+        in: "path"
+        required: true
+        schema:
+          type: "array"
+          items:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/ContactType"
+  /api/v1/contact-types/list:
+    get:
+      summary: ""
+      description: "Get a contact type list."
+      operationId: ""
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/ContactType"
+components:
+  schemas:
+    ContactType:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        name:
+          type: "string"
+        description:
+          type: "string"
+        active:
+          type: "boolean"
+    Person:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        firstName:
+          type: "string"
+        middleName:
+          type: "string"
+        lastName:
+          type: "string"
+        gender:
+          type: "string"
+        birthdate:
+          type: "string"
+          format: "date"
+    Contact:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        content:
+          type: "string"
+        contactType:
+          $ref: "#/components/schemas/ContactType"
+        person:
+          $ref: "#/components/schemas/Person"
+        active:
+          type: "boolean"
+    Feature:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        name:
+          type: "string"
+        description:
+          type: "string"
+        active:
+          type: "boolean"
+    FeatureRequest:
+      type: "object"
+      properties:
+        feature:
+          $ref: "#/components/schemas/Feature"
+        dateTime:
+          type: "string"
+          format: "date-time"
+        appName:
+          type: "string"
+        appToken:
+          type: "string"
+    Role:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        name:
+          type: "string"
+        description:
+          type: "string"
+        features:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/Feature"
+        active:
+          type: "boolean"
+    RoleRequest:
+      type: "object"
+      properties:
+        role:
+          $ref: "#/components/schemas/Role"
+        dateTime:
+          type: "string"
+          format: "date-time"
+        appName:
+          type: "string"
+        appToken:
+          type: "string"
+    User:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        alias:
+          type: "string"
+        password:
+          type: "string"
+        email:
+          type: "string"
+        active:
+          type: "boolean"
+        person:
+          $ref: "#/components/schemas/Person"
+        roles:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/Role"
+        applications:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/Application"
+    Application:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        name:
+          type: "string"
+        description:
+          type: "string"
+        active:
+          type: "boolean"
+        createdDate:
+          type: "string"
+          format: "date-time"
+        lastUpdate:
+          type: "string"
+          format: "date-time"
+        serviceTypeId:
+          type: "string"
+          format: "uuid"
+        userList:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/User"
+        roleList:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/Role"
+    UserTO:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        alias:
+          type: "string"
+        password:
+          type: "string"
+        createdDate:
+          type: "string"
+          format: "date-time"
+        lastUpdate:
+          type: "string"
+          format: "date-time"
+        active:
+          type: "boolean"
+        person:
+          $ref: "#/components/schemas/Person"
+        roles:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/Role"
+        applications:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/Application"
+    UserCreateRequest:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        alias:
+          type: "string"
+        password:
+          type: "string"
+        email:
+          type: "string"
+        active:
+          type: "boolean"
+        person:
+          $ref: "#/components/schemas/Person"
+        roleId:
+          type: "string"
+          format: "uuid"
+        applicationId:
+          type: "string"
+          format: "uuid"
+    UserCreateResponse:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        alias:
+          type: "string"
+        email:
+          type: "string"
+        createdDate:
+          type: "string"
+          format: "date-time"
+        lastUpdate:
+          type: "string"
+          format: "date-time"
+        active:
+          type: "boolean"
+        personId:
+          type: "string"
+          format: "uuid"
+        roleId:
+          type: "string"
+          format: "uuid"
+        applicationId:
+          type: "string"
+          format: "uuid"
+    Void:
+      type: "object"
+      properties: {}
+    UserAliasTO:
+      type: "object"
+      properties:
+        userId:
+          type: "string"
+          format: "uuid"
+        alias:
+          type: "string"
+        firstname:
+          type: "string"
+        lastname:
+          type: "string"
+        roles:
+          type: "array"
+          items:
+            type: "string"
+            format: "uuid"
+    ApplicationCreateRequest:
+      type: "object"
+      properties:
+        application:
+          $ref: "#/components/schemas/Application"
+        dateTime:
+          type: "string"
+          format: "date-time"
+        appName:
+          type: "string"
+        appToken:
+          type: "string"
+    PersonRequest:
+      type: "object"
+      properties:
+        person:
+          $ref: "#/components/schemas/Person"
+        dateTime:
+          type: "string"
+          format: "date-time"
+        appName:
+          type: "string"
+        appToken:
+          type: "string"
+    Resource:
+      type: "object"
+      properties: {}
+    TemplateDocumentModel:
+      type: "object"
+      properties:
+        versionId:
+          type: "integer"
+          format: "int64"
+        templateName:
+          type: "string"
+        description:
+          type: "string"
+        createdBy:
+          type: "string"
+        createdTimestamp:
+          type: "string"
+          format: "date"
+        lastModifiedBy:
+          type: "string"
+        lastModifiedTimestamp:
+          type: "string"
+          format: "date"
+    SessionRequest:
+      type: "object"
+      properties:
+        alias:
+          type: "string"
+        password:
+          type: "string"
+        dateTime:
+          type: "string"
+          format: "date-time"
+        appName:
+          type: "string"
+        appToken:
+          type: "string"
+    SessionResponse:
+      type: "object"
+      properties:
+        token:
+          type: "string"
+    ContactTypeRequest:
+      type: "object"
+      properties:
+        contactType:
+          $ref: "#/components/schemas/ContactType"
+        dateTime:
+          type: "string"
+          format: "date-time"
+        appName:
+          type: "string"
+        appToken:
+          type: "string"

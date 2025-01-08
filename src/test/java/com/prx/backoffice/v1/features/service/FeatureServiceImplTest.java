@@ -14,7 +14,7 @@
 package com.prx.backoffice.v1.features.service;
 
 import com.prx.backoffice.v1.features.mapper.FeatureMapper;
-import com.prx.commons.pojo.Feature;
+import com.prx.commons.general.pojo.Feature;
 import com.prx.persistence.general.domains.FeatureEntity;
 import com.prx.persistence.general.repositories.FeatureRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -163,7 +163,7 @@ class FeatureServiceImplTest {
         when(feature2.getName()).thenReturn("Name");
         doNothing().when(feature2).setActive(Mockito.<Boolean>any());
         doNothing().when(feature2).setDescription(Mockito.<String>any());
-        doNothing().when(feature2).setId(Mockito.<String>any());
+        doNothing().when(feature2).setId(Mockito.<UUID>any());
         doNothing().when(feature2).setName(Mockito.<String>any());
         feature2.setActive(true);
         feature2.setDescription("The characteristics of someone or something");
@@ -187,11 +187,11 @@ class FeatureServiceImplTest {
     void updateFeatureWhenFeatureDoesNotExist() {
         var feature = new Feature();
         var featureEntity = new FeatureEntity();
-        String featureId = UUID.randomUUID().toString();
+        final var  featureId = UUID.randomUUID();
 
         feature.setName("Test Feature");
         featureEntity.setName("Test Feature");
-        when(featureRepository.findById(UUID.fromString(featureId))).thenReturn(Optional.empty());
+        when(featureRepository.findById(featureId)).thenReturn(Optional.empty());
 
         ResponseEntity<Feature> response = featureServiceImpl.update(featureId, feature);
 
@@ -199,7 +199,7 @@ class FeatureServiceImplTest {
     }
 
     /**
-     * Method under test: {@link FeatureServiceImpl#update(String, Feature)}
+     * Method under test: {@link FeatureServiceImpl#update(UUID, Feature)}
      */
     @Test
     @DisplayName("Test updating a feature - Successful update")
@@ -216,7 +216,7 @@ class FeatureServiceImplTest {
         Feature feature = new Feature();
         feature.setActive(true);
         feature.setDescription("The characteristics of someone or something");
-        feature.setId(featureId.toString());
+        feature.setId(featureId);
         feature.setName("Name");
 
         FeatureEntity featureEntity2 = new FeatureEntity();
@@ -232,13 +232,13 @@ class FeatureServiceImplTest {
         Feature feature2 = mock(Feature.class);
         doNothing().when(feature2).setActive(Mockito.<Boolean>any());
         doNothing().when(feature2).setDescription(Mockito.<String>any());
-        doNothing().when(feature2).setId(Mockito.<String>any());
+        doNothing().when(feature2).setId(Mockito.<UUID>any());
         doNothing().when(feature2).setName(Mockito.<String>any());
         feature2.setActive(true);
         feature2.setDescription("The characteristics of someone or something");
-        feature2.setId(featureId.toString());
+        feature2.setId(featureId);
         feature2.setName("Name");
-        ResponseEntity<Feature> actualUpdateResult = featureServiceImpl.update(featureId.toString(), feature2);
+        ResponseEntity<Feature> actualUpdateResult = featureServiceImpl.update(featureId, feature2);
         assertTrue(actualUpdateResult.hasBody());
         assertTrue(actualUpdateResult.getHeaders().isEmpty());
         assertEquals(HttpStatus.ACCEPTED, actualUpdateResult.getStatusCode());
@@ -247,12 +247,12 @@ class FeatureServiceImplTest {
         verify(featureMapper).toSource(Mockito.<Feature>any());
         verify(feature2).setActive(Mockito.<Boolean>any());
         verify(feature2).setDescription(Mockito.<String>any());
-        verify(feature2, atLeast(1)).setId(Mockito.<String>any());
+        verify(feature2, atLeast(1)).setId(Mockito.<UUID>any());
         verify(feature2).setName(Mockito.<String>any());
     }
 
     /**
-     * Method under test: {@link FeatureServiceImpl#update(String, Feature)}
+     * Method under test: {@link FeatureServiceImpl#update(UUID, Feature)}
      */
     @Test
     @DisplayName("Test updating a feature - Feature not found")
@@ -261,16 +261,16 @@ class FeatureServiceImplTest {
         Feature feature = new Feature();
         feature.setActive(true);
         feature.setDescription("The characteristics of someone or something");
-        feature.setId(featureId.toString());
+        feature.setId(featureId);
         feature.setName("Name");
-        var result = featureServiceImpl.update(featureId.toString(), feature);
+        var result = featureServiceImpl.update(featureId, feature);
         verify(featureRepository).findById(Mockito.<UUID>any());
         assertTrue(result.hasBody());
         assertTrue(result.getHeaders().isEmpty());
     }
 
     /**
-     * Method under test: {@link FeatureServiceImpl#update(String, Feature)}
+     * Method under test: {@link FeatureServiceImpl#update(UUID, Feature)}
      */
     @Test
     @DisplayName("Test updating a feature - Mocked feature")
@@ -279,13 +279,13 @@ class FeatureServiceImplTest {
         Feature feature = mock(Feature.class);
         doNothing().when(feature).setActive(Mockito.<Boolean>any());
         doNothing().when(feature).setDescription(Mockito.<String>any());
-        doNothing().when(feature).setId(Mockito.<String>any());
+        doNothing().when(feature).setId(Mockito.<UUID>any());
         doNothing().when(feature).setName(Mockito.<String>any());
         feature.setActive(true);
         feature.setDescription("The characteristics of someone or something");
-        feature.setId(featureId.toString());
+        feature.setId(featureId);
         feature.setName("Name");
-        var result = featureServiceImpl.update(featureId.toString(), feature);
+        var result = featureServiceImpl.update(featureId, feature);
         verify(featureRepository).findById(Mockito.<UUID>any());
         assertTrue(result.hasBody());
         assertTrue(result.getHeaders().isEmpty());
@@ -346,7 +346,7 @@ class FeatureServiceImplTest {
     }
 
     /**
-     * Method under test: {@link FeatureServiceImpl#find(String)}
+     * Method under test: {@link FeatureServiceImpl#find(UUID)}
      */
     @Test
     @DisplayName("Test finding a feature - Feature found")
@@ -356,7 +356,7 @@ class FeatureServiceImplTest {
         Feature feature = new Feature();
         feature.setActive(true);
         feature.setDescription("The characteristics of someone or something");
-        feature.setId(featureId.toString());
+        feature.setId(featureId);
         feature.setName("Name");
         featureEntity.setActive(true);
         featureEntity.setDescription("The characteristics of someone or something");
@@ -367,14 +367,14 @@ class FeatureServiceImplTest {
         when(featureMapper.toTarget(Mockito.<FeatureEntity>any())).thenReturn(feature);
         when(featureMapper.toSource(Mockito.<Feature>any())).thenReturn(featureEntity);
 
-        ResponseEntity<Feature> response = featureServiceImpl.find(featureId.toString());
+        ResponseEntity<Feature> response = featureServiceImpl.find(featureId);
         assertTrue(response.hasBody());
         assertTrue(response.getHeaders().isEmpty());
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     /**
-     * Method under test: {@link FeatureServiceImpl#find(String)}
+     * Method under test: {@link FeatureServiceImpl#find(UUID)}
      */
     @Test
     @DisplayName("Test finding a feature - Feature not found")
@@ -382,7 +382,7 @@ class FeatureServiceImplTest {
         final var featureId = UUID.randomUUID();
         when(featureRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.empty());
 
-        ResponseEntity<Feature> response = featureServiceImpl.find(featureId.toString());
+        ResponseEntity<Feature> response = featureServiceImpl.find(featureId);
         assertFalse(response.hasBody());
         assertTrue(response.getHeaders().isEmpty());
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
@@ -407,7 +407,7 @@ class FeatureServiceImplTest {
             feature.setActive(featureEntity.getActive());
             feature.setDescription(featureEntity.getDescription());
             feature.setName(featureEntity.getName());
-            feature.setId(featureEntity.getId().toString());
+            feature.setId(featureEntity.getId());
             return feature;
         }).toList();
     }

@@ -15,7 +15,7 @@ package com.prx.backoffice.v1.contacttypes.api;
 import com.prx.backoffice.util.MessageUtil;
 import com.prx.backoffice.v1.contacttypes.service.ContactTypeService;
 import com.prx.backoffice.v1.contacttypes.to.ContactTypeRequest;
-import com.prx.commons.pojo.ContactType;
+import com.prx.commons.general.pojo.ContactType;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -25,6 +25,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * ContactTypeApiController.
@@ -35,7 +36,7 @@ import java.util.List;
  */
 @RestController
 @CrossOrigin(origins = "*")
-@RequestMapping("v1/contact-types")
+@RequestMapping("/api/v1/contact-types")
 public class ContactTypeController {
     private final ContactTypeService contactTypeService;
 
@@ -57,7 +58,7 @@ public class ContactTypeController {
             @ApiResponse(responseCode = MessageUtil.OK, description = "OK")
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/{contactTypeId}")
-    public ResponseEntity<ContactType> find(@PathVariable final String contactTypeId) {
+    public ResponseEntity<ContactType> find(@PathVariable final UUID contactTypeId) {
         return contactTypeService.findById(contactTypeId);
     }
 
@@ -68,7 +69,7 @@ public class ContactTypeController {
             @ApiResponse(responseCode = MessageUtil.BAD_REQUEST, description = "Contact Type couldn't be updated.")
     })
     @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/{contactTypeId}")
-    public ResponseEntity<ContactType> update(@PathVariable final String contactTypeId, @RequestBody ContactType contactType) {
+    public ResponseEntity<ContactType> update(@PathVariable final UUID contactTypeId, @RequestBody ContactType contactType) {
         return contactTypeService.update(contactTypeId, contactType);
     }
 
@@ -77,7 +78,7 @@ public class ContactTypeController {
             @ApiResponse(responseCode = MessageUtil.OK, description = "OK")
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/list/{contactTypeIds}")
-    public ResponseEntity<List<ContactType>> list(@PathVariable final List<String> contactTypeIds){
+    public ResponseEntity<List<ContactType>> list(@PathVariable final List<UUID> contactTypeIds){
         return contactTypeService.listById(contactTypeIds);
     }
 
@@ -96,7 +97,7 @@ public class ContactTypeController {
             @ApiResponse(responseCode = MessageUtil.OK, description = "OK")
     })
     @DeleteMapping(path = "/{contactTypeId}")
-    public ResponseEntity<ContactType> delete(@PathVariable final String contactTypeId) {
+    public ResponseEntity<ContactType> delete(@PathVariable final UUID contactTypeId) {
         return contactTypeService.delete(contactTypeId);
     }
 }

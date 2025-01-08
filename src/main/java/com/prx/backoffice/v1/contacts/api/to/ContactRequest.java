@@ -13,8 +13,9 @@
 
 package com.prx.backoffice.v1.contacts.api.to;
 
-import com.prx.commons.pojo.Contact;
-import com.prx.commons.to.Request;
+
+import com.prx.commons.general.pojo.Contact;
+import com.prx.commons.general.to.Request;
 
 import java.io.Serializable;
 

@@ -13,13 +13,10 @@
 
 package com.prx.backoffice.v1.application.mapper;
 
-import com.prx.backoffice.config.jackson.MapperAppConfig;
-import com.prx.commons.pojo.Application;
+import com.prx.commons.general.pojo.Application;
+import com.prx.commons.services.config.mapper.MapperAppConfig;
 import com.prx.persistence.general.domains.ApplicationEntity;
-import org.mapstruct.InheritInverseConfiguration;
-import org.mapstruct.Mapper;
-import org.mapstruct.MapperConfig;
-import org.mapstruct.ReportingPolicy;
+import org.mapstruct.*;
 
 /// Mapper interface for converting between Service and ServiceEntity objects.
 /// Utilizes MapStruct for automatic mapping.
@@ -41,6 +38,10 @@ public interface ApplicationMapper {
     ///
     /// @param applicationEntity the ServiceEntity object to convert
     /// @return the converted Service object
+    @Mapping(target = "userList", ignore = true)
+    @Mapping(target = "roleList", ignore = true)
+    @Mapping(target = "lastUpdate", ignore = true)
+    @Mapping(target = "createdDate", ignore = true)
     Application toTarget(ApplicationEntity applicationEntity);
 
     /// Converts a Service object to a ServiceEntity object.

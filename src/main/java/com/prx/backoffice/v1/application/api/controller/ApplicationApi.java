@@ -15,7 +15,7 @@ package com.prx.backoffice.v1.application.api.controller;
 
 import com.prx.backoffice.v1.application.api.to.ApplicationCreateRequest;
 import com.prx.backoffice.v1.application.service.ApplicationService;
-import com.prx.commons.pojo.Application;
+import com.prx.commons.general.pojo.Application;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;

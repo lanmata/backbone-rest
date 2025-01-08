@@ -13,13 +13,13 @@
 
 package com.prx.backoffice.v1.session.mapper;
 
-import com.prx.backoffice.config.jackson.MapperAppConfig;
 import com.prx.backoffice.v1.people.mapper.PersonMapper;
 import com.prx.backoffice.v1.roles.mapper.RoleMapper;
 import com.prx.backoffice.v1.session.to.UserAliasTO;
 import com.prx.backoffice.v1.users.api.to.UserTO;
 import com.prx.backoffice.v1.users.mapper.UserMapper;
-import com.prx.commons.pojo.Role;
+import com.prx.commons.general.pojo.Role;
+import com.prx.commons.services.config.mapper.MapperAppConfig;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -48,14 +48,14 @@ public interface UserAliasMapper {
         }
         return roles.stream()
                 .filter(Objects::nonNull)
-                .map(role -> UUID.fromString(role.getId()))
+                .map(Role::getId)
                 .collect(Collectors.toSet());
     }
 
     @AfterMapping
     default void map(Role role, @MappingTarget Set<UUID> uuid) {
         if(Objects.nonNull(role)) {
-            uuid.add(UUID.fromString(role.getId()));
+            uuid.add(role.getId());
         }
     }
 }

@@ -13,8 +13,8 @@
 
 package com.prx.backoffice.v1.contacttypes.to;
 
-import com.prx.commons.pojo.ContactType;
-import com.prx.commons.to.Request;
+import com.prx.commons.general.pojo.ContactType;
+import com.prx.commons.general.to.Request;
 
 import java.io.Serializable;
 

@@ -33,7 +33,7 @@ import java.util.Map;
  */
 @RestController
 @CrossOrigin(origins = "*")
-@RequestMapping("v1/report")
+@RequestMapping("/api/v1/report")
 public class DocumentController {
 
     private final DocumentService documentService;

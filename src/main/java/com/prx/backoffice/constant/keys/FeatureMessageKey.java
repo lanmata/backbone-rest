@@ -13,7 +13,8 @@
 
 package com.prx.backoffice.constant.keys;
 
-import com.prx.commons.enums.types.MessageType;
+
+import com.prx.commons.constants.types.MessageType;
 
 /**
  * Enum representing various feature message keys used in the application.

@@ -15,7 +15,7 @@ package com.prx.backoffice.v1.people.service;
 
 import com.prx.backoffice.v1.people.mapper.PersonMapper;
 import com.prx.commons.exception.StandardException;
-import com.prx.commons.pojo.Person;
+import com.prx.commons.general.pojo.Person;
 import com.prx.persistence.general.domains.PersonEntity;
 import com.prx.persistence.general.repositories.PersonRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -29,7 +29,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -50,7 +49,7 @@ class PersonServiceImplTest {
     private PersonRepository personRepository;
 
     /**
-     * Method under test: {@link PersonServiceImpl#update(String, Person)}
+     * Method under test: {@link PersonServiceImpl#update(UUID, Person)}
      */
     @Test
     @DisplayName("Test update method with valid person and existing person entity")
@@ -60,7 +59,7 @@ class PersonServiceImplTest {
         doNothing().when(person).setBirthdate(Mockito.<LocalDate>any());
         doNothing().when(person).setFirstName(Mockito.<String>any());
         doNothing().when(person).setGender(Mockito.<String>any());
-        doNothing().when(person).setId(Mockito.<String>any());
+        doNothing().when(person).setId(Mockito.<UUID>any());
         doNothing().when(person).setLastName(Mockito.<String>any());
         doNothing().when(person).setMiddleName(Mockito.<String>any());
         person.setBirthdate(LocalDate.of(1970, 1, 1));
@@ -81,7 +80,7 @@ class PersonServiceImplTest {
         when(personMapper.toTarget(Mockito.<PersonEntity>any())).thenReturn(person);
         when(personRepository.save(Mockito.<PersonEntity>any())).thenReturn(personEntity);
 
-        final var response = personServiceImpl.update(personId.toString(), person);
+        final var response = personServiceImpl.update(personId, person);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         verify(personRepository).findById(Mockito.<UUID>any());
         verify(personMapper).toSource(Mockito.<Person>any());
@@ -90,7 +89,7 @@ class PersonServiceImplTest {
     }
 
     /**
-     * Method under test: {@link PersonServiceImpl#update(String, Person)}
+     * Method under test: {@link PersonServiceImpl#update(UUID, Person)}
      */
     @Test
     void testUpdate2() {
@@ -99,7 +98,7 @@ class PersonServiceImplTest {
         doNothing().when(person).setBirthdate(Mockito.<LocalDate>any());
         doNothing().when(person).setFirstName(Mockito.<String>any());
         doNothing().when(person).setGender(Mockito.<String>any());
-        doNothing().when(person).setId(Mockito.<String>any());
+        doNothing().when(person).setId(Mockito.<UUID>any());
         doNothing().when(person).setLastName(Mockito.<String>any());
         doNothing().when(person).setMiddleName(Mockito.<String>any());
         person.setBirthdate(LocalDate.of(1970, 1, 1));
@@ -110,13 +109,13 @@ class PersonServiceImplTest {
 
         when(personRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.empty());
 
-        final var response = personServiceImpl.update(personId.toString(), person);
+        final var response = personServiceImpl.update(personId, person);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         verify(personRepository).findById(Mockito.<UUID>any());
     }
 
     /**
-     * Method under test: {@link PersonServiceImpl#update(String, Person)}
+     * Method under test: {@link PersonServiceImpl#update(UUID, Person)}
      */
     @Test
     void testUpdate3() {
@@ -124,7 +123,7 @@ class PersonServiceImplTest {
         doNothing().when(person).setBirthdate(Mockito.<LocalDate>any());
         doNothing().when(person).setFirstName(Mockito.<String>any());
         doNothing().when(person).setGender(Mockito.<String>any());
-        doNothing().when(person).setId(Mockito.<String>any());
+        doNothing().when(person).setId(Mockito.<UUID>any());
         doNothing().when(person).setLastName(Mockito.<String>any());
         doNothing().when(person).setMiddleName(Mockito.<String>any());
         person.setBirthdate(LocalDate.of(1970, 1, 1));
@@ -140,18 +139,18 @@ class PersonServiceImplTest {
     }
 
     /**
-     * Method under test: {@link PersonServiceImpl#update(String, Person)}
+     * Method under test: {@link PersonServiceImpl#update(UUID, Person)}
      */
     @Test
     void testUpdate4() {
         final var personId = UUID.randomUUID();
         when(personRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.empty());
-        final var response = personServiceImpl.update(personId.toString(), null);
+        final var response = personServiceImpl.update(personId, null);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
     /**
-     * Method under test: {@link PersonServiceImpl#find(String)}
+     * Method under test: {@link PersonServiceImpl#find(UUID)}
      */
     @Test
     void testFind() {
@@ -165,14 +164,14 @@ class PersonServiceImplTest {
         personEntity.setName("Name");
         Person person = new Person();
         person.setGender("Gender");
-        person.setId(personId.toString());
+        person.setId(personId);
         person.setLastName("Doe");
         person.setMiddleName("Middle Name");
         person.setFirstName("Name");
         person.setBirthdate(LocalDate.of(1970, 1, 1));
         when(personRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.of(personEntity));
         when(personMapper.toTarget(Mockito.<PersonEntity>any())).thenReturn(person);
-        final var result = personServiceImpl.find(personId.toString());
+        final var result = personServiceImpl.find(personId);
         assertNotNull(result);
         assertNotNull(result.getBody());
         assertEquals(HttpStatus.OK, result.getStatusCode());
@@ -185,7 +184,7 @@ class PersonServiceImplTest {
     }
 
     /**
-     * Method under test: {@link PersonServiceImpl#find(String)}
+     * Method under test: {@link PersonServiceImpl#find(UUID)}
      */
     @Test
     void testFind_not_found() {
@@ -198,18 +197,18 @@ class PersonServiceImplTest {
         personEntity.setMiddleName("Middle Name");
         personEntity.setName("Name");
         when(personRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.empty());
-        final var result = personServiceImpl.find(personId.toString());
+        final var result = personServiceImpl.find(personId);
         assertNotNull(result);
         assertEquals(HttpStatus.NOT_FOUND, result.getStatusCode());
         verify(personRepository).findById(Mockito.<UUID>any());
     }
 
     /**
-     * Method under test: {@link PersonServiceImpl#find(String)}
+     * Method under test: {@link PersonServiceImpl#find(UUID)}
      */
     @Test
     void testFind_null_parameter() {
-        final var result = personServiceImpl.find((String) null);
+        final var result = personServiceImpl.find((UUID) null);
         assertNotNull(result);
         assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, result.getStatusCode());
     }
@@ -285,7 +284,7 @@ class PersonServiceImplTest {
         var personEntity2 = getPersonEntity();
         var person = getPerson();
         personEntity2.setId(UUID.randomUUID());
-        person.setId(UUID.randomUUID().toString());
+        person.setId(UUID.randomUUID());
 
         List<PersonEntity> personEntities = List.of(personEntity1, personEntity2 );
         when(personRepository.findAll()).thenReturn(personEntities);
@@ -305,7 +304,7 @@ class PersonServiceImplTest {
         when(personRepository.findAllById(anyList())).thenReturn(personEntities);
         when(personMapper.toTarget(any(PersonEntity.class))).thenReturn(getPerson());
 
-        ResponseEntity<List<Person>> response = personServiceImpl.list(UUID.randomUUID().toString(), UUID.randomUUID().toString());
+        ResponseEntity<List<Person>> response = personServiceImpl.list(UUID.randomUUID(), UUID.randomUUID());
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -317,15 +316,9 @@ class PersonServiceImplTest {
     void listPersonsWithEmptyResult() {
         when(personRepository.findAll()).thenReturn(List.of(getPersonEntity()));
 
-        ResponseEntity<List<Person>> response = personServiceImpl.list(UUID.randomUUID().toString());
+        ResponseEntity<List<Person>> response = personServiceImpl.list(UUID.randomUUID());
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-    }
-
-    @Test
-    @DisplayName("List persons with invalid UUID format")
-    void listPersonsWithInvalidUUIDFormat() {
-        assertThrows(IllegalArgumentException.class, () -> personServiceImpl.list("invalid-uuid"));
     }
 
     private Person getPerson() {

@@ -13,12 +13,13 @@
 
 package com.prx.backoffice.v1.contacts.service;
 
-import com.prx.commons.pojo.Contact;
+import com.prx.commons.general.pojo.Contact;
+import com.prx.commons.services.CrudService;
 import org.apache.commons.lang.NotImplementedException;
 import org.springframework.http.ResponseEntity;
 
-import java.math.BigInteger;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * ContactService.
@@ -26,7 +27,7 @@ import java.util.List;
  * @author <a href="mailto:luis.antonio.mata@gmail.com">Luis Antonio Mata</a>
  * @version 1.0.1.20200904-01, 02-11-2020
  */
-public interface ContactService {
+public interface ContactService extends CrudService<UUID, Contact> {
 
     /**
      * Records incoming contacts associated with individuals.
@@ -54,47 +55,47 @@ public interface ContactService {
      * @param contact {@link Contact} object type.
      * @return {@link ResponseEntity} object type with a {@link Contact} object type.
      */
-    default ResponseEntity<Contact> update(Contact contact, String contactId){
+    default ResponseEntity<Contact> update(UUID contactId, Contact contact){
         throw new NotImplementedException();
     }
 
     /**
      * Find contact by contact id.
      *
-     * @param contactId {@link BigInteger} object type.
+     * @param id {@link UUID} object type.
      * @return {@link ResponseEntity} object type with a {@link Contact} object type.
      */
-    default ResponseEntity<Contact> find(String contactId) {
+    default ResponseEntity<Contact> find(UUID id) {
         throw new NotImplementedException();
     }
 
     /**
      * List contacts by person id.
      *
-     * @param personId {@link String} object type.
+     * @param personId {@link UUID} object type.
      * @return {@link ResponseEntity} object type with a {@link Contact} object type.
      */
-    default ResponseEntity<List<Contact>> listByPersonId(String personId) {
+    default ResponseEntity<List<Contact>> listByPersonId(UUID personId) {
         throw new NotImplementedException();
     }
 
     /**
      * List contact by contact id.
      *
-     * @param contactIds {@link String} object type.
+     * @param contactIds {@link UUID} object type.
      * @return {@link ResponseEntity} object type with a {@link Contact} object type.
      */
-    default ResponseEntity<List<Contact>> list(List<String> contactIds) {
+    default ResponseEntity<List<Contact>> list(List<UUID> contactIds) {
         throw new NotImplementedException();
     }
 
     /**
      * Delete contact by contactId.
      *
-     * @param contactId {@link String}
+     * @param id {@link UUID}
      * @return {@link ResponseEntity} object type.
      */
-    default ResponseEntity<String> deleteById(String contactId) {
+    default ResponseEntity<String> deleteById(UUID id) {
         throw new NotImplementedException();
     }
 }

@@ -14,7 +14,7 @@ package com.prx.backoffice.v1.features.service;
 
 import com.prx.backoffice.util.MessageUtil;
 import com.prx.backoffice.v1.features.mapper.FeatureMapper;
-import com.prx.commons.pojo.Feature;
+import com.prx.commons.general.pojo.Feature;
 import com.prx.persistence.general.domains.FeatureEntity;
 import com.prx.persistence.general.repositories.FeatureRepository;
 import org.slf4j.Logger;
@@ -68,9 +68,9 @@ public class FeatureServiceImpl implements FeatureService {
 
 	/** {@inheritDoc} */
 	@Override
-	public ResponseEntity<Feature> update(String featureId, Feature feature) {
+	public ResponseEntity<Feature> update(UUID featureId, Feature feature) {
 		ResponseEntity<Feature> responseEntity;
-		final var optFeature = featureRepository.findById(UUID.fromString(featureId));
+		final var optFeature = featureRepository.findById(featureId);
 		if (optFeature.isPresent()) {
 			feature.setId(featureId);
 			responseEntity = ResponseEntity.accepted().body(featureMapper.toTarget(
@@ -110,9 +110,9 @@ public class FeatureServiceImpl implements FeatureService {
 
 	/** {@inheritDoc} */
 	@Override
-	public ResponseEntity<Feature> find(String featureId) {
+	public ResponseEntity<Feature> find(UUID featureId) {
 		ResponseEntity<Feature> responseEntity;
-		final var featureEntity = featureRepository.findById(UUID.fromString(featureId)).orElse(new FeatureEntity());
+		final var featureEntity = featureRepository.findById(featureId).orElse(new FeatureEntity());
 		if (esNulo(featureEntity.getId())) {
 			responseEntity = ResponseEntity.notFound().build();
 		} else {

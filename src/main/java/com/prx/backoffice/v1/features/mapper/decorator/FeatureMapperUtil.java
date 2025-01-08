@@ -14,15 +14,18 @@
 package com.prx.backoffice.v1.features.mapper.decorator;
 
 import com.prx.backoffice.v1.features.mapper.FeatureMapper;
-import com.prx.commons.pojo.Feature;
-import com.prx.commons.pojo.Role;
+import com.prx.commons.general.pojo.Feature;
+import com.prx.commons.general.pojo.Role;
 import com.prx.commons.util.ValidatorCommonsUtil;
 import com.prx.persistence.general.domains.FeatureEntity;
 import com.prx.persistence.general.domains.RoleEntity;
 import com.prx.persistence.general.domains.RoleFeatureEntity;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * FeatureMapperUtil.
@@ -53,7 +56,7 @@ public class FeatureMapperUtil {
 
 		rolFeatureEntities.forEach(rolFeatureEntity -> {
 			var feature = new Feature();
-			feature.setId(rolFeatureEntity.getFeature().getId().toString());
+			feature.setId(rolFeatureEntity.getFeature().getId());
 			features.add(feature);
 		});
 		return features;
@@ -72,7 +75,7 @@ public class FeatureMapperUtil {
 			features.forEach(feature -> {
 				final var roleFeatureEntity = new RoleFeatureEntity();
 				final var featureEntity = new FeatureEntity();
-				featureEntity.setId(UUID.fromString(feature.getId()));
+				featureEntity.setId(feature.getId());
 				featureEntity.setName(featureEntity.getName());
 				featureEntity.setDescription(featureEntity.getDescription());
 				featureEntity.setActive(feature.getActive());
@@ -95,7 +98,7 @@ public class FeatureMapperUtil {
 	public List<RoleFeatureEntity> toRoleFeatureEntity(Role rol, List<Feature> features) {
 		final var roleFeatureEntities = new ArrayList<RoleFeatureEntity>();
 		final var roleEntity = new RoleEntity();
-		roleEntity.setId(UUID.fromString(rol.getId()));
+		roleEntity.setId(rol.getId());
 		roleEntity.setActive(rol.getActive());
 		roleEntity.setDescription(rol.getDescription());
 		roleEntity.setName(rol.getName());

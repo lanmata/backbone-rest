@@ -13,7 +13,7 @@
 
 package com.prx.backoffice.v1.features.mapper;
 
-import com.prx.commons.pojo.Feature;
+import com.prx.commons.general.pojo.Feature;
 import com.prx.persistence.general.domains.FeatureEntity;
 import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;

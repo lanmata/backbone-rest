@@ -13,8 +13,9 @@
 
 package com.prx.backoffice.v1.application.api.to;
 
-import com.prx.commons.pojo.Application;
-import com.prx.commons.to.Request;
+
+import com.prx.commons.general.pojo.Application;
+import com.prx.commons.general.to.Request;
 
 /// Data transfer object for creating an application.
 /// Extends the base Request class.

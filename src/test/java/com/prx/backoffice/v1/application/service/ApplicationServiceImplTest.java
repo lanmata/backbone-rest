@@ -14,7 +14,7 @@
 package com.prx.backoffice.v1.application.service;
 
 import com.prx.backoffice.v1.application.mapper.ApplicationMapper;
-import com.prx.commons.pojo.Application;
+import com.prx.commons.general.pojo.Application;
 import com.prx.persistence.general.domains.ApplicationEntity;
 import com.prx.persistence.general.repositories.ApplicationRepository;
 import org.apache.commons.lang.NotImplementedException;
@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -69,7 +70,7 @@ class ApplicationServiceImplTest {
         when(applicationRepository.findById(any())).thenReturn(Optional.of(new ApplicationEntity()));
         when(applicationMapper.toTarget(any())).thenReturn(application);
 
-        assertThrows(NotImplementedException.class, () ->  applicationService.find("1"));
+        assertThrows(NotImplementedException.class, () ->  applicationService.find(UUID.randomUUID()));
     }
 
     @Test
@@ -81,7 +82,7 @@ class ApplicationServiceImplTest {
 
         when(applicationRepository.findById(any())).thenReturn(Optional.empty());
 
-        assertThrows(NotImplementedException.class, () ->  applicationService.find("1"));
+        assertThrows(NotImplementedException.class, () ->  applicationService.find(UUID.randomUUID()));
 
     }
 
@@ -98,7 +99,7 @@ class ApplicationServiceImplTest {
         when(applicationRepository.save(any())).thenReturn(new Application());
         when(applicationMapper.toTarget(any())).thenReturn(application);
 
-        assertThrows(NotImplementedException.class, () ->  applicationService.update("1", application));
+        assertThrows(NotImplementedException.class, () ->  applicationService.update(UUID.randomUUID(), application));
 
     }
 
@@ -112,7 +113,7 @@ class ApplicationServiceImplTest {
         Application application = new Application();
         when(applicationRepository.findById(any())).thenReturn(Optional.empty());
 
-        assertThrows(NotImplementedException.class, () -> applicationService.update("1", application));
+        assertThrows(NotImplementedException.class, () -> applicationService.update(UUID.randomUUID(), application));
     }
 
     @Test
@@ -127,7 +128,7 @@ class ApplicationServiceImplTest {
         doNothing().when(applicationRepository).delete(any());
 
 
-        assertThrows(NotImplementedException.class, () -> applicationService.delete("1", application));
+        assertThrows(NotImplementedException.class, () -> applicationService.delete(UUID.randomUUID(), application));
     }
 
     @Test
@@ -140,7 +141,7 @@ class ApplicationServiceImplTest {
         Application application = new Application();
         when(applicationRepository.findById(any())).thenReturn(Optional.empty());
 
-        assertThrows(NotImplementedException.class, () ->  applicationService.delete("1", application));
+        assertThrows(NotImplementedException.class, () ->  applicationService.delete(UUID.randomUUID(), application));
 
     }
 }
