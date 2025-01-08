@@ -12,12 +12,12 @@
  */
 package com.prx.backoffice.v1.users.mapper;
 
-import com.prx.backoffice.config.jackson.MapperAppConfig;
 import com.prx.backoffice.v1.people.mapper.PersonMapper;
 import com.prx.backoffice.v1.roles.mapper.RoleMapper;
 import com.prx.backoffice.v1.users.api.to.UserCreateRequest;
 import com.prx.backoffice.v1.users.api.to.UserCreateResponse;
 import com.prx.backoffice.v1.users.api.to.UserTO;
+import com.prx.commons.services.config.mapper.MapperAppConfig;
 import com.prx.persistence.general.domains.UserEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

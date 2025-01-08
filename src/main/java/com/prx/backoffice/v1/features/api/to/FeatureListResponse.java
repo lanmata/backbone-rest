@@ -14,8 +14,8 @@
 package com.prx.backoffice.v1.features.api.to;
 
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import com.prx.commons.pojo.Feature;
-import com.prx.commons.to.Response;
+import com.prx.commons.general.pojo.Feature;
+import com.prx.commons.general.to.Response;
 
 import java.util.List;
 

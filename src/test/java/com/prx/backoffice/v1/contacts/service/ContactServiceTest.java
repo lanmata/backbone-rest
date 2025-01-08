@@ -13,7 +13,7 @@
 
 package com.prx.backoffice.v1.contacts.service;
 
-import com.prx.commons.pojo.Contact;
+import com.prx.commons.general.pojo.Contact;
 import org.apache.commons.lang.NotImplementedException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -45,30 +45,30 @@ class ContactServiceTest {
     @Test
     @DisplayName("Test update method")
     void update() {
-        assertThrows(NotImplementedException.class, () -> contactService.update(new Contact(), UUID.randomUUID().toString()));
+        assertThrows(NotImplementedException.class, () -> contactService.update(UUID.randomUUID(), new Contact()));
     }
 
     @Test
     @DisplayName("Test find method")
     void find() {
-        assertThrows(NotImplementedException.class, () -> contactService.find(UUID.randomUUID().toString()));
+        assertThrows(NotImplementedException.class, () -> contactService.find(UUID.randomUUID()));
     }
 
     @Test
     @DisplayName("Test listByPersonId method")
     void listByPersonId() {
-        assertThrows(NotImplementedException.class, () -> contactService.listByPersonId(UUID.randomUUID().toString()));
+        assertThrows(NotImplementedException.class, () -> contactService.listByPersonId(UUID.randomUUID()));
     }
 
     @Test
     @DisplayName("Test list method")
     void list() {
-        assertThrows(NotImplementedException.class, () -> contactService.list(List.of(UUID.randomUUID().toString())));
+        assertThrows(NotImplementedException.class, () -> contactService.list(List.of(UUID.randomUUID())));
     }
 
     @Test
     @DisplayName("Test deleteById method")
     void deleteById() {
-        assertThrows(NotImplementedException.class, () -> contactService.deleteById(UUID.randomUUID().toString()));
+        assertThrows(NotImplementedException.class, () -> contactService.deleteById(UUID.randomUUID()));
     }
 }

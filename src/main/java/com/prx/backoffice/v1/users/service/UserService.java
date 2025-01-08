@@ -13,7 +13,7 @@
 
 package com.prx.backoffice.v1.users.service;
 
-import com.prx.backoffice.services.CrudService;
+import com.prx.commons.services.CrudService;
 import com.prx.backoffice.v1.session.to.UserAliasTO;
 import com.prx.backoffice.v1.users.api.to.UserCreateRequest;
 import com.prx.backoffice.v1.users.api.to.UserCreateResponse;
@@ -22,88 +22,97 @@ import org.apache.commons.lang.NotImplementedException;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
+import java.util.UUID;
 
-/// UserService.
+/// UserService. Interface that defines the operations that can be performed on a user.
 ///
 /// @author <a href="mailto:luis.antonio.mata@gmail.com">Luis Antonio Mata</a>
-/// @version 1.0.1.20200904-01, 27-10-2020
-public interface UserService extends CrudService<UserTO> {
+/// @version 0.0.2
+public interface UserService extends CrudService<UUID, UserTO> {
 
-    /// Realiza la b&uacute;squeda de un usuario a trav&eacute;s del identificador de usuario. Retorna un objeto de tipo
-    /// []
+    /// Find a user by ID.
     ///
-    /// @param userId [Long]
-    /// @return Objeto de tipo [ResponseEntity]
-    default ResponseEntity<UserTO> findUserById(String userId) {
+    /// @param userId the user ID to find the user
+    /// @return the user wrapped in a ResponseEntity
+    default ResponseEntity<UserTO> findUserById(UUID userId) {
         throw new NotImplementedException();
     }
 
-    /// Realiza la b&uacute;squeda de un usuario a trav&eacute;s del alias de usuario. Retorna un objeto de tipo
-    /// []
+    /// Find a user by alias.
     ///
-    /// @param alias [String]
-    /// @return Objeto de tipo [ResponseEntity]
-    default ResponseEntity<UserTO> findUserByAlias(String alias) {
+    /// @param alias the user alias to find the user
+    /// @param applicationId the application ID to find the user
+    /// @return the user wrapped in a ResponseEntity
+    default ResponseEntity<UserTO> findUserByAlias(String alias, UUID applicationId) {
         throw new NotImplementedException();
     }
 
-    /// Realiza la b&uacute;squeda de un usuario a trav&eacute;s del alias de usuario. Retorna un objeto de tipo
-    /// []
+    /// Find a user alias by alias.
     ///
-    /// @param alias [String]
-    /// @return Objeto de tipo [ResponseEntity]
-    default ResponseEntity<UserAliasTO> findUserAliasByAlias(String alias) {
+    /// @param alias the user alias to find the user alias
+    /// @return the user alias wrapped in a ResponseEntity
+    default ResponseEntity<UserAliasTO> findUserAliasByAlias(String alias, UUID applicationId) {
         throw new NotImplementedException();
     }
 
-    /// Realiza la b&uacute;squeda del usuario requerido, valida los datos, si los datos son corrector,
-    /// retorna un token, en caso contrario, informa el motivo de rechazo.
+    /// Find a user by email.
     ///
-    /// @param alias    Objeto de tipo String
-    /// @param password Objeto de tipo String
-    /// @return Objeto de tipo [ResponseEntity]<[UserTO]>
+    /// @param alias the user email to find the user
+    /// @param password the user password to find the user
+    /// @return the user wrapped in a ResponseEntity
     default ResponseEntity<UserTO> access(String alias, String password) {
         throw new NotImplementedException();
     }
 
-    /// Busca todos los usuarios existentes.
+    /// Find all users.
     ///
-    /// @return Objeto de tipo [ResponseEntity]
-    default ResponseEntity<List<UserTO>> findAll() {
+    /// @param applicationId the application ID to find the users
+    /// @return the list of users wrapped in a ResponseEntity
+    default ResponseEntity<List<UserTO>> findAll(UUID applicationId) {
         throw new NotImplementedException();
     }
 
-    /// Realiza la creacion de un usuario
+    /// Create a new user.
     ///
-    /// @param userCreateRequest Objeto de tipo [UserCreateRequest]
-    /// @return Objeto de tipo [ResponseEntity]<[UserCreateResponse]>
+    /// @param userCreateRequest the user create request
+    /// @return the user create response wrapped in a ResponseEntity
     default ResponseEntity<UserCreateResponse> create(UserCreateRequest userCreateRequest) {
         throw new NotImplementedException();
     }
 
     /// Realiza la desvinculaci&oacute;n de un rol a un usuario especifico.
     ///
-    /// @param userId [Long]
-    /// @param rolId  [Integer]
-    /// @return Objeto de tipo [ResponseEntity]
-    default ResponseEntity<UserTO> unlink(String userId, String rolId) {
+    /// @param userId [UUID] the user ID to unlink the role from
+    /// @param roleId  [UUID] the role ID to unlink from the user
+    /// @return Object type [ResponseEntity] with the user
+    default ResponseEntity<UserTO> unlink(UUID userId, UUID roleId) {
         throw new NotImplementedException();
     }
 
     /// Realiza la vinculaci&oacute;n de un rol a un usuario especifico.
     ///
-    /// @param userId [Long]
-    /// @param rolId  [Integer]
-    /// @return Objeto de tipo [ResponseEntity]
-    default ResponseEntity<UserTO> roleLink(String userId, String rolId) {
+    /// @param userId [UUID] the user ID to link the role to
+    /// @param roleId  [UUID] the role ID to link to the user
+    /// @return Object type [ResponseEntity] with the user
+    default ResponseEntity<UserTO> roleLink(UUID userId, UUID roleId) {
         throw new NotImplementedException();
     }
 
     /// Validate the user alias is available.
     ///
     /// @param alias [String] Object type.
+    /// @param applicationId [UUID] Object type.
     /// @return [String] Object type.
-    default ResponseEntity<String> validateAlias(String alias) {
+    default ResponseEntity<Void> validateAlias(String alias, UUID applicationId) {
+        throw new NotImplementedException();
+    }
+
+    /// Validate the user email is available.
+    ///
+    /// @param email [String] Object type.
+    /// @param applicationId [UUID] Object type.
+    /// @return [String] Object type.
+    default ResponseEntity<Void> validateEmail(String email, UUID applicationId) {
         throw new NotImplementedException();
     }
 }

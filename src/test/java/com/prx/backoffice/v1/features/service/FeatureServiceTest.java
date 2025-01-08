@@ -13,7 +13,7 @@
 
 package com.prx.backoffice.v1.features.service;
 
-import com.prx.commons.pojo.Feature;
+import com.prx.commons.general.pojo.Feature;
 import org.apache.commons.lang.NotImplementedException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -44,18 +44,18 @@ class FeatureServiceTest {
     @Test
     @DisplayName("Test updating a feature")
     void update() {
-        assertThrows(NotImplementedException.class, () -> featureService.update("abc", new Feature()));
+        assertThrows(NotImplementedException.class, () -> featureService.update(UUID.randomUUID(), new Feature()));
     }
 
     @Test
     @DisplayName("Test deleting a feature")
     void delete() {
-        assertThrows(NotImplementedException.class, () -> featureService.delete("abc", new Feature()));
+        assertThrows(NotImplementedException.class, () -> featureService.delete(UUID.randomUUID(), new Feature()));
     }
 
     @Test
     @DisplayName("Test listing features with IDs")
     void testList() {
-        assertThrows(NotImplementedException.class, () -> featureService.list("abc1", "abc2", "abc3"));
+        assertThrows(NotImplementedException.class, () -> featureService.list(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID()));
     }
 }

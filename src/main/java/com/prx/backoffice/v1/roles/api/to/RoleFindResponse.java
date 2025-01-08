@@ -14,8 +14,8 @@
 package com.prx.backoffice.v1.roles.api.to;
 
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import com.prx.commons.pojo.Role;
-import com.prx.commons.to.Response;
+import com.prx.commons.general.pojo.Role;
+import com.prx.commons.general.to.Response;
 
 /**
  * RolFindResponse.

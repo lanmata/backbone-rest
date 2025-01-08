@@ -13,11 +13,12 @@
 
 package com.prx.backoffice.v1.util;
 
-import com.prx.commons.pojo.Role;
+import com.prx.commons.general.pojo.Role;
 import com.prx.persistence.general.domains.RoleEntity;
 import org.apache.commons.lang.NotImplementedException;
 
 import java.util.ArrayList;
+import java.util.UUID;
 
 /**
  * RoleTemplateTest.
@@ -31,10 +32,10 @@ public enum RoleTemplateTest implements TemplateUtil<Role, RoleEntity> {
         @Override
         public Role getModel() {
             final var role = new Role();
-            role.setId("11L");
+            role.setId(UUID.randomUUID());
             role.setActive(true);
-            role.setName("Nombre de rol");
-            role.setDescription("Descripcion de rol");
+            role.setName("Role name");
+            role.setDescription("Role description");
             role.setFeatures(new ArrayList<>());
             role.getFeatures().add(FeatureTemplateTest.FEATURE_TO.getModel());
             return role;

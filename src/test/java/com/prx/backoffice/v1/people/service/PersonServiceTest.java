@@ -13,10 +13,12 @@
 
 package com.prx.backoffice.v1.people.service;
 
-import com.prx.commons.pojo.Person;
+import com.prx.commons.general.pojo.Person;
 import org.apache.commons.lang.NotImplementedException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -28,6 +30,6 @@ class PersonServiceTest {
     @Test
     @DisplayName("Test deleting a person")
     void delete() {
-        assertThrows(NotImplementedException.class, () -> personService.delete("abc11", new Person()));
+        assertThrows(NotImplementedException.class, () -> personService.delete(UUID.randomUUID(), new Person()));
     }
 }

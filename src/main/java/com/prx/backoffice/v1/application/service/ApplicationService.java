@@ -13,18 +13,19 @@
 
 package com.prx.backoffice.v1.application.service;
 
-import com.prx.backoffice.services.CrudService;
-import com.prx.commons.pojo.Application;
+import com.prx.commons.general.pojo.Application;
+import com.prx.commons.services.CrudService;
 import org.apache.commons.lang.NotImplementedException;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
+import java.util.UUID;
 
 /// Interface for application operations.
 /// Extends the CrudService interface to provide CRUD operations for [com.prx.persistence.general.domains.ApplicationEntity].
 ///
 /// @version 1.0.0, 20-10-2020
-public interface ApplicationService extends CrudService<Application> {
+public interface ApplicationService extends CrudService<UUID, Application> {
 
     /// Creates a new application.
     ///
@@ -42,7 +43,7 @@ public interface ApplicationService extends CrudService<Application> {
     /// @return the found application wrapped in a ResponseEntity
     /// @throws NotImplementedException if the method is not implemented
     @Override
-    default ResponseEntity<Application> find(String id)  {
+    default ResponseEntity<Application> find(UUID id)  {
         throw new NotImplementedException();
     }
 
@@ -53,7 +54,7 @@ public interface ApplicationService extends CrudService<Application> {
     /// @return the updated application wrapped in a ResponseEntity
     /// @throws NotImplementedException if the method is not implemented
     @Override
-    default ResponseEntity<Application> update(String id, Application application)  {
+    default ResponseEntity<Application> update(UUID id, Application application)  {
         throw new NotImplementedException();
     }
 
@@ -64,7 +65,7 @@ public interface ApplicationService extends CrudService<Application> {
     /// @return the deleted application wrapped in a ResponseEntity
     /// @throws NotImplementedException if the method is not implemented
     @Override
-    default ResponseEntity<Application> delete(String id, Application application)  {
+    default ResponseEntity<Application> delete(UUID id, Application application)  {
         throw new NotImplementedException();
     }
 
@@ -74,7 +75,7 @@ public interface ApplicationService extends CrudService<Application> {
     /// @return a list of application wrapped in a ResponseEntity
     /// @throws NotImplementedException if the method is not implemented
     @Override
-    default ResponseEntity<List<Application>> list(String... id) {
+    default ResponseEntity<List<Application>> list(UUID... id) {
         throw new NotImplementedException();
     }
 }

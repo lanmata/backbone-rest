@@ -14,11 +14,13 @@
 package com.prx.backoffice.v1.contacttypes.service;
 
 import com.prx.backoffice.v1.contacttypes.to.ContactTypeRequest;
-import com.prx.commons.pojo.ContactType;
+import com.prx.commons.general.pojo.ContactType;
+import com.prx.commons.services.CrudService;
 import org.apache.commons.lang.NotImplementedException;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * ContactType.
@@ -27,7 +29,7 @@ import java.util.List;
  * @version 1.0.0, 14-04-2022
  * @since 11
  */
-public interface ContactTypeService {
+public interface ContactTypeService extends CrudService<UUID, ContactType> {
 
     default ResponseEntity<List<ContactType>> list() {
         throw new NotImplementedException();
@@ -37,19 +39,19 @@ public interface ContactTypeService {
         throw new NotImplementedException();
     }
 
-    default ResponseEntity<ContactType> findById(String contactTypeId) {
+    default ResponseEntity<ContactType> findById(UUID contactTypeId) {
         throw new NotImplementedException();
     }
 
-    default ResponseEntity<List<ContactType>> listById(List<String> contactTypeIds) {
+    default ResponseEntity<List<ContactType>> listById(List<UUID> contactTypeIds) {
         throw new NotImplementedException();
     }
 
-    default ResponseEntity<ContactType> delete(String contactTypeId) {
+    default ResponseEntity<ContactType> delete(UUID contactTypeId) {
         throw new NotImplementedException();
     }
 
-    default ResponseEntity<ContactType> update(String contactTypeId, ContactType contactType) {
+    default ResponseEntity<ContactType> update(UUID contactTypeId, ContactType contactType) {
         throw new NotImplementedException();
     }
 }

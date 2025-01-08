@@ -17,9 +17,9 @@ import com.prx.backoffice.v1.contacts.mapper.ContactMapper;
 import com.prx.backoffice.v1.contacts.mapper.ContactMapperImpl;
 import com.prx.backoffice.v1.contacttypes.mapper.ContactTypeMapper;
 import com.prx.backoffice.v1.contacttypes.mapper.ContactTypeMapperImpl;
-import com.prx.commons.pojo.Contact;
-import com.prx.commons.pojo.ContactType;
-import com.prx.commons.pojo.Person;
+import com.prx.commons.general.pojo.Contact;
+import com.prx.commons.general.pojo.ContactType;
+import com.prx.commons.general.pojo.Person;
 import com.prx.persistence.general.domains.ContactEntity;
 import com.prx.persistence.general.domains.ContactTypeEntity;
 import com.prx.persistence.general.domains.PersonEntity;
@@ -79,16 +79,17 @@ class ContactServiceImplTest {
     @Test
     @DisplayName("Test saving all contacts with valid data")
     void testSaveAll2() {
+        var uuid = UUID.randomUUID();
         ContactTypeEntity contactType = new ContactTypeEntity();
         contactType.setActive(true);
         contactType.setDescription("The characteristics of someone or something");
-        contactType.setId(UUID.randomUUID());
+        contactType.setId(uuid);
         contactType.setName("Name");
 
         PersonEntity person = new PersonEntity();
         person.setBirthdate(LocalDate.of(1970, 1, 1));
         person.setGender("Gender");
-        person.setId(UUID.randomUUID());
+        person.setId(uuid);
         person.setLastName("Doe");
         person.setMiddleName("Middle Name");
         person.setName("Name");
@@ -104,14 +105,14 @@ class ContactServiceImplTest {
         ContactType contactType2 = new ContactType();
         contactType2.setActive(true);
         contactType2.setDescription("The characteristics of someone or something");
-        contactType2.setId("42");
+        contactType2.setId(uuid);
         contactType2.setName("Name");
 
         Person person2 = new Person();
         person2.setBirthdate(LocalDate.of(1970, 1, 1));
         person2.setFirstName("Jane");
         person2.setGender("Gender");
-        person2.setId("42");
+        person2.setId(uuid);
         person2.setLastName("Doe");
         person2.setMiddleName("Middle Name");
 
@@ -119,7 +120,7 @@ class ContactServiceImplTest {
         contact.setActive(true);
         contact.setContactType(contactType2);
         contact.setContent("Not all who wander are lost");
-        contact.setId("42");
+        contact.setId(uuid);
         contact.setPerson(person2);
 
         ContactTypeEntity contactType3 = new ContactTypeEntity();
@@ -148,14 +149,14 @@ class ContactServiceImplTest {
         ContactType contactType4 = new ContactType();
         contactType4.setActive(true);
         contactType4.setDescription("The characteristics of someone or something");
-        contactType4.setId("42");
+        contactType4.setId(uuid);
         contactType4.setName("Name");
 
         Person person4 = new Person();
         person4.setBirthdate(LocalDate.of(1970, 1, 1));
         person4.setFirstName("Jane");
         person4.setGender("Gender");
-        person4.setId("42");
+        person4.setId(uuid);
         person4.setLastName("Doe");
         person4.setMiddleName("Middle Name");
 
@@ -163,7 +164,7 @@ class ContactServiceImplTest {
         contact2.setActive(true);
         contact2.setContactType(contactType4);
         contact2.setContent("Not all who wander are lost");
-        contact2.setId("42");
+        contact2.setId(uuid);
         contact2.setPerson(person4);
 
         ArrayList<Contact> contacts = new ArrayList<>();
@@ -180,6 +181,7 @@ class ContactServiceImplTest {
     @Test
     @DisplayName("Test saving all contacts with mixed valid and invalid data")
     void testSaveAll3() {
+        var uuid = UUID.randomUUID();
         ContactTypeEntity contactType = new ContactTypeEntity();
         contactType.setActive(true);
         contactType.setDescription("The characteristics of someone or something");
@@ -205,14 +207,14 @@ class ContactServiceImplTest {
         ContactType contactType2 = new ContactType();
         contactType2.setActive(true);
         contactType2.setDescription("The characteristics of someone or something");
-        contactType2.setId("42");
+        contactType2.setId(uuid);
         contactType2.setName("Name");
 
         Person person2 = new Person();
         person2.setBirthdate(LocalDate.of(1970, 1, 1));
         person2.setFirstName("Jane");
         person2.setGender("Gender");
-        person2.setId("42");
+        person2.setId(uuid);
         person2.setLastName("Doe");
         person2.setMiddleName("Middle Name");
 
@@ -220,7 +222,7 @@ class ContactServiceImplTest {
         contact.setActive(true);
         contact.setContactType(contactType2);
         contact.setContent("Not all who wander are lost");
-        contact.setId("42");
+        contact.setId(uuid);
         contact.setPerson(person2);
 
         ContactTypeEntity contactType3 = new ContactTypeEntity();
@@ -249,14 +251,14 @@ class ContactServiceImplTest {
         ContactType contactType4 = new ContactType();
         contactType4.setActive(true);
         contactType4.setDescription("The characteristics of someone or something");
-        contactType4.setId("42");
+        contactType4.setId(uuid);
         contactType4.setName("Name");
 
         Person person4 = new Person();
         person4.setBirthdate(LocalDate.of(1970, 1, 1));
         person4.setFirstName("Jane");
         person4.setGender("Gender");
-        person4.setId("42");
+        person4.setId(uuid);
         person4.setLastName("Doe");
         person4.setMiddleName("Middle Name");
 
@@ -264,28 +266,28 @@ class ContactServiceImplTest {
         contact2.setActive(true);
         contact2.setContactType(contactType4);
         contact2.setContent("Not all who wander are lost");
-        contact2.setId("42");
+        contact2.setId(uuid);
         contact2.setPerson(person4);
 
         ContactType contactType5 = new ContactType();
         contactType5.setActive(false);
         contactType5.setDescription("Description");
-        contactType5.setId("Id");
-        contactType5.setName("42");
+        contactType5.setId(uuid);
+        contactType5.setName("Name");
 
         Person person5 = new Person();
         person5.setBirthdate(LocalDate.of(1970, 1, 1));
         person5.setFirstName("John");
-        person5.setGender("42");
-        person5.setId("Id");
+        person5.setGender("M");
+        person5.setId(uuid);
         person5.setLastName("Smith");
-        person5.setMiddleName("42");
+        person5.setMiddleName("Jane");
 
         Contact contact3 = new Contact();
         contact3.setActive(false);
         contact3.setContactType(contactType5);
         contact3.setContent("Content");
-        contact3.setId("Id");
+        contact3.setId(uuid);
         contact3.setPerson(person5);
 
         ArrayList<Contact> contacts = new ArrayList<>();
@@ -335,14 +337,14 @@ class ContactServiceImplTest {
         ContactType contactType1 = new ContactType();
         contactType1.setActive(true);
         contactType1.setDescription("The characteristics of someone or something");
-        contactType1.setId(contactTypeUUID1.toString());
+        contactType1.setId(contactTypeUUID1);
         contactType1.setName("Name");
 
         Person person1 = new Person();
         person1.setBirthdate(LocalDate.of(1970, 1, 1));
         person1.setFirstName("Jane");
         person1.setGender("Gender");
-        person1.setId(personUUID1.toString());
+        person1.setId(personUUID1);
         person1.setLastName("Doe");
         person1.setMiddleName("Middle Name");
 
@@ -350,7 +352,7 @@ class ContactServiceImplTest {
         contact.setActive(true);
         contact.setContactType(contactType1);
         contact.setContent("Not all who wander are lost");
-        contact.setId(contactUUID1.toString());
+        contact.setId(contactUUID1);
         contact.setPerson(person1);
 
         ContactTypeEntity contactTypeEntity2 = new ContactTypeEntity();
@@ -382,14 +384,14 @@ class ContactServiceImplTest {
         ContactType contactType2 = new ContactType();
         contactType2.setActive(true);
         contactType2.setDescription("The characteristics of someone or something");
-        contactType2.setId(contactTypeUUID2.toString());
+        contactType2.setId(contactTypeUUID2);
         contactType2.setName("Name");
 
         Person person2 = new Person();
         person2.setBirthdate(LocalDate.of(1970, 1, 1));
         person2.setFirstName("Jane");
         person2.setGender("Gender");
-        person2.setId(personUUID2.toString());
+        person2.setId(personUUID2);
         person2.setLastName("Doe");
         person2.setMiddleName("Middle Name");
 
@@ -397,7 +399,7 @@ class ContactServiceImplTest {
         contact2.setActive(true);
         contact2.setContactType(contactType2);
         contact2.setContent("Not all who wander are lost");
-        contact2.setId(contactUUID2.toString());
+        contact2.setId(contactUUID2);
         contact2.setPerson(person2);
 
         when(contactRepository.listByPersonId(any(UUID.class))).thenReturn(Optional.of(List.of(contactEntity1, contactEntity2)));
@@ -429,7 +431,7 @@ class ContactServiceImplTest {
     }
 
     /**
-     * Method under test: {@link ContactServiceImpl#update(Contact, String)}
+     * Method under test: {@link ContactServiceImpl#update(UUID, Contact)}
      */
     @Test
     @DisplayName("Test updating a contact with null data")
@@ -437,14 +439,14 @@ class ContactServiceImplTest {
         ContactRepository contactRepository = mock(ContactRepository.class);
         ContactMapperImpl contactMapper = new ContactMapperImpl();
         ResponseEntity<Contact> actualUpdateResult = (new ContactServiceImpl(contactRepository, contactMapper,
-                new ContactTypeMapperImpl())).update(null, null);
+                new ContactTypeMapperImpl())).update((UUID) null, null);
         assertNull(actualUpdateResult.getBody());
         assertEquals(HttpStatus.NOT_FOUND, actualUpdateResult.getStatusCode());
         assertTrue(actualUpdateResult.getHeaders().isEmpty());
     }
 
     /**
-     * Method under test: {@link ContactServiceImpl#update(Contact, String)}
+     * Method under test: {@link ContactServiceImpl#update(UUID, Contact)}
      */
     @Test
     @DisplayName("Test updating a contact with null contact and valid contactId")
@@ -452,14 +454,14 @@ class ContactServiceImplTest {
         ContactRepository contactRepository = mock(ContactRepository.class);
         ContactMapperImpl contactMapper = new ContactMapperImpl();
         ResponseEntity<Contact> actualUpdateResult = (new ContactServiceImpl(contactRepository, contactMapper,
-                new ContactTypeMapperImpl())).update(null, "foo");
+                new ContactTypeMapperImpl())).update(UUID.randomUUID(), null);
         assertNull(actualUpdateResult.getBody());
         assertEquals(404, actualUpdateResult.getStatusCode().value());
         assertTrue(actualUpdateResult.getHeaders().isEmpty());
     }
 
     /**
-     * Method under test: {@link ContactServiceImpl#find(String)}
+     * Method under test: {@link ContactServiceImpl#find(UUID)}
      */
     @Test
     @DisplayName("Test finding a contact with null contactId")
@@ -473,7 +475,7 @@ class ContactServiceImplTest {
     }
 
     /**
-     * Method under test: {@link ContactServiceImpl#listByPersonId(String)}
+     * Method under test: {@link ContactServiceImpl#listByPersonId(UUID)}
      */
     @Test
     @DisplayName("Test listing contacts by personId with valid data")
@@ -503,7 +505,7 @@ class ContactServiceImplTest {
         contactEntity.setId(contactId);
         contactEntity.setContactType(contactTypeEntity);
 
-        person.setId(personId.toString());
+        person.setId(personId);
         person.setBirthdate(LocalDate.now());
         person.setGender("M");
         person.setFirstName("Pepe");
@@ -514,26 +516,26 @@ class ContactServiceImplTest {
         contact.setContactType(contactType);
         contact.setContent("Content description");
         contact.setPerson(person);
-        contact.setId(contactId.toString());
+        contact.setId(contactId);
 
         contactType.setActive(true);
         contactType.setDescription("Contact type description");
         contactType.setName("Contact type");
-        contactType.setId(contactTypeEntity.getId().toString());
+        contactType.setId(contactTypeEntity.getId());
         Optional<List<ContactEntity>> optionalContactEntityList = Optional.of(List.of(contactEntity));
         when(contactRepository.listByPersonId(Mockito.any(UUID.class))).thenReturn(optionalContactEntityList);
         when(contactTypeMapper.toTarget(Mockito.any(ContactTypeEntity.class))).thenReturn(contactType);
         when(contactMapper.toTarget(Mockito.any(ContactEntity.class))).thenReturn(contact);
 
         ContactMapperImpl contactMapper = new ContactMapperImpl();
-        ResponseEntity<List<Contact>> actualFindResult = contactServiceImpl.listByPersonId(personId.toString());
+        ResponseEntity<List<Contact>> actualFindResult = contactServiceImpl.listByPersonId(personId);
         assertTrue(actualFindResult.hasBody());
         assertEquals(HttpStatus.OK, actualFindResult.getStatusCode());
         verify(contactRepository).listByPersonId(Mockito.<UUID>any());
     }
 
     /**
-     * Method under test: {@link ContactServiceImpl#listByPersonId(String)}
+     * Method under test: {@link ContactServiceImpl#listByPersonId(UUID)}
      */
     @Test
     @DisplayName("Test listing contacts by personId with no data found")
@@ -542,13 +544,13 @@ class ContactServiceImplTest {
         Optional<List<ContactEntity>> optionalContactEntityList = Optional.empty();
         when(contactRepository.listByPersonId(Mockito.any(UUID.class))).thenReturn(optionalContactEntityList);
         ContactMapperImpl contactMapper = new ContactMapperImpl();
-        ResponseEntity<List<Contact>> actualFindResult = contactServiceImpl.listByPersonId(personId.toString());
+        ResponseEntity<List<Contact>> actualFindResult = contactServiceImpl.listByPersonId(personId);
         assertFalse(actualFindResult.hasBody());
         assertEquals(HttpStatus.NOT_FOUND, actualFindResult.getStatusCode());
     }
 
     /**
-     * Method under test: {@link ContactServiceImpl#deleteById(String)}
+     * Method under test: {@link ContactServiceImpl#deleteById(UUID)}
      */
     @Test
     @DisplayName("Test deleting a contact by ID with valid data")
@@ -576,19 +578,19 @@ class ContactServiceImplTest {
         contactEntity.setId(contactId);
         contactEntity.setContactType(contactTypeEntity);
         when(contactRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(contactEntity));
-        ResponseEntity<String> actualFindResult = contactServiceImpl.deleteById(personId.toString());
+        ResponseEntity<String> actualFindResult = contactServiceImpl.deleteById(personId);
         assertEquals(HttpStatus.ACCEPTED, actualFindResult.getStatusCode());
     }
 
     /**
-     * Method under test: {@link ContactServiceImpl#deleteById(String)}
+     * Method under test: {@link ContactServiceImpl#deleteById(UUID)}
      */
     @Test
     @DisplayName("Test deleting a contact by ID with no data found")
     void testDeleteById_not_found() {
         var personId = UUID.randomUUID();
         when(contactRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.empty());
-        ResponseEntity<String> actualFindResult = contactServiceImpl.deleteById(personId.toString());
+        ResponseEntity<String> actualFindResult = contactServiceImpl.deleteById(personId);
         assertEquals(HttpStatus.NOT_FOUND, actualFindResult.getStatusCode());
     }
 
@@ -610,7 +612,7 @@ class ContactServiceImplTest {
         when(contactRepository.save(any(ContactEntity.class))).thenReturn(contactEntity);
         when(contactMapper.toTarget(any(ContactEntity.class))).thenReturn(contact);
 
-        ResponseEntity<Contact> response = contactServiceImpl.update(contact, contactEntity.getId().toString());
+        ResponseEntity<Contact> response = contactServiceImpl.update(contactEntity.getId(), contact);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -620,7 +622,7 @@ class ContactServiceImplTest {
     @Test
     @DisplayName("Update contact with null contact")
     void updateContactWithNullContact() {
-        ResponseEntity<Contact> response = contactServiceImpl.update(null, UUID.randomUUID().toString());
+        ResponseEntity<Contact> response = contactServiceImpl.update(UUID.randomUUID(), null);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
@@ -628,7 +630,7 @@ class ContactServiceImplTest {
     @DisplayName("Update contact with null contactId")
     void updateContactWithNullContactId() {
         Contact contact = new Contact();
-        ResponseEntity<Contact> response = contactServiceImpl.update(contact, null);
+        ResponseEntity<Contact> response = contactServiceImpl.update(null, contact);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
@@ -638,7 +640,7 @@ class ContactServiceImplTest {
         Contact contact = new Contact();
         when(contactRepository.findById(any(UUID.class))).thenReturn(Optional.empty());
 
-        ResponseEntity<Contact> response = contactServiceImpl.update(contact, UUID.randomUUID().toString());
+        ResponseEntity<Contact> response = contactServiceImpl.update(UUID.randomUUID(), contact);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
@@ -651,7 +653,7 @@ class ContactServiceImplTest {
         when(contactRepository.findById(any(UUID.class))).thenReturn(Optional.of(contactEntity));
         when(contactMapper.toTarget(any(ContactEntity.class))).thenReturn(new Contact());
 
-        ResponseEntity<Contact> response = contactServiceImpl.find(contactEntity.getId().toString());
+        ResponseEntity<Contact> response = contactServiceImpl.find(contactEntity.getId());
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -669,7 +671,7 @@ class ContactServiceImplTest {
     void findContactWithNonExistentContactId() {
         when(contactRepository.findById(any(UUID.class))).thenReturn(Optional.empty());
 
-        ResponseEntity<Contact> response = contactServiceImpl.find(UUID.randomUUID().toString());
+        ResponseEntity<Contact> response = contactServiceImpl.find(UUID.randomUUID());
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }

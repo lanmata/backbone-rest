@@ -19,28 +19,23 @@ import com.prx.backoffice.v1.users.api.to.UserCreateResponse;
 import com.prx.backoffice.v1.users.api.to.UserTO;
 import com.prx.backoffice.v1.users.service.UserService;
 import com.prx.commons.util.ValidatorCommonsUtil;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.UUID;
 
 /// REST controller for managing users.
 /// Provides endpoints for user operations such as create, update, and find.
 @RestController
-@RequestMapping("/v1/users")
+@RequestMapping("/api/v1/users")
 @CrossOrigin(origins = "*")
-public class UserController {
-    private static final String STR_ID_USER = "User Id";
+public class UserController implements UserApi {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserController.class);
 
     private final UserService userService;
@@ -52,52 +47,33 @@ public class UserController {
         this.userService = userService;
     }
 
-    /// Checks if a user alias is available.
-    ///
-    /// @param alias the user alias
-    /// @return the response entity with the validation result
-    @GetMapping()
-    public ResponseEntity<String> checkAliasAvailable(
-            @Parameter(description = "User alias.", required = true) @Valid @RequestParam(value = "alias") String alias) {
-        return userService.validateAlias(alias);
+    /// {@inheritDoc}
+    @Override
+    public ResponseEntity<Void> checkAliasAvailable(String alias, UUID applicationId) {
+        return userService.validateAlias(alias, applicationId);
     }
 
-    /// Finds a user by ID.
-    ///
-    /// @param userId the user ID
-    /// @return the response entity containing the user
-    @Operation(description = "Busca los usuarios a través del identificador")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK, description = "User found.")
-    })
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/{userId}")
-    public ResponseEntity<UserTO> find(@Parameter(description = STR_ID_USER, required = true) @PathVariable(value = "userId") @NotNull String userId) {
+    /// {@inheritDoc}
+    @Override
+    public ResponseEntity<Void> checkEmailAvailable(String email, UUID applicationId) {
+        return userService.validateEmail(email, applicationId);
+    }
+
+    /// {@inheritDoc}
+    @Override
+    public ResponseEntity<UserTO> findUserById(UUID userId) {
         return userService.findUserById(userId);
     }
 
-    /// Gets a list of all users.
-    ///
-    /// @return the response entity containing the list of users
-    @Operation(description = "Getting an user list")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK, description = "User Found")
-    })
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/")
-    public ResponseEntity<List<UserTO>> findAll() {
-        return userService.findAll();
+    /// {@inheritDoc}
+    @Override
+    public ResponseEntity<List<UserTO>> findAll(UUID applicationId) {
+        return userService.findAll(applicationId);
     }
 
-    /// Creates a new user.
-    ///
-    /// @param userCreateRequest the user creation request
-    /// @return the response entity containing the created user
-    @Operation(description = "Crea un nuevo usuario")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK, description = "Usuario creado con éxito.")
-    })
-    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<UserCreateResponse> create(@Parameter(description = "Objeto de tipo UserCreateRequest", required = true)
-                                         @RequestBody UserCreateRequest userCreateRequest) {
+    /// {@inheritDoc}
+    @Override
+    public ResponseEntity<UserCreateResponse> create(UserCreateRequest userCreateRequest) {
         LOGGER.info("{} /create", MessageUtil.LOG_START_MSG);
         if (ValidatorCommonsUtil.esNulo(userCreateRequest)) {
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build();
@@ -108,73 +84,34 @@ public class UserController {
         return userService.create(userCreateRequest);
     }
 
-    /// Updates an existing user.
-    ///
-    /// @param userId the user ID
-    /// @param user the user details to update
-    /// @return the response entity containing the updated user
-    @Operation(description = "Update a user")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK, description = "Updated user"),
-            @ApiResponse(responseCode = MessageUtil.BAD_REQUEST, description = "User ID empty or null"),
-            @ApiResponse(responseCode = MessageUtil.BAD_REQUEST, description = "The user requested doesn't have a person associated."),
-            @ApiResponse(responseCode = MessageUtil.BAD_REQUEST, description = "Invalid user")
-    })
-    @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/{userId}")
-    public ResponseEntity<UserTO> update(@PathVariable @NotNull String userId, @RequestBody @NotNull UserTO user) {
+    /// {@inheritDoc}
+    @Override
+    public ResponseEntity<UserTO> update(UUID userId, UserTO user) {
         LOGGER.info("{} /update/{userId}", MessageUtil.LOG_START_MSG);
         return userService.update(userId, user);
     }
 
-    /// Finds a user by alias.
-    ///
-    /// @param alias the user alias
-    /// @return the response entity containing the user
-    @Operation(description = "Busca un usuario por un alias")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK, description = "Usuario encontrado.")
-    })
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/findByAlias/{alias}")
-    public ResponseEntity<UserTO> findByAlias(@Parameter(description = "Alias de usuario", required = true)
-                                              @PathVariable @NotNull String alias) {
-        return userService.findUserByAlias(alias);
+    /// {@inheritDoc}
+    @Override
+    public ResponseEntity<UserTO> findUserByAlias(String alias, UUID applicationId) {
+        return userService.findUserByAlias(alias, applicationId);
     }
 
-    /// Finds a user alias by alias.
-    ///
-    /// @param alias the user alias
-    /// @return the response entity containing the user alias
-    @Operation(description = "Busca un usuario por un alias")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK, description = "Usuario encontrado.")
-    })
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/findAliasByAlias/{alias}")
-    public ResponseEntity<UserAliasTO> findAliasByAlias(@Parameter(description = "Alias de usuario", required = true)
-                                              @PathVariable @NotNull String alias) {
-        return userService.findUserAliasByAlias(alias);
+    /// {@inheritDoc}
+    @Override
+    public ResponseEntity<UserAliasTO> findUserAliasByAlias(String alias, UUID applicationId) {
+        return userService.findUserAliasByAlias(alias, applicationId);
     }
 
-    /// Unlinks a role from a user.
-    ///
-    /// @param userId the user ID
-    /// @param roleId the role ID
-    /// @return the response entity containing the updated user
-    @Operation(description = "Desvincula un rol de usuario")
-    @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/unlink/{userId}/{roleId}")
-    public ResponseEntity<UserTO> unlink(@Parameter(description = "Id de usuario") @PathVariable @NotNull String userId,
-                                         @Parameter(description = "Id de rol") @PathVariable @NotNull String roleId) {
+    /// {@inheritDoc}
+    @Override
+    public ResponseEntity<UserTO> unlink(UUID userId, UUID roleId) {
         return userService.unlink(userId, roleId);
     }
 
-    /// Links a role to a user.
-    ///
-    /// @param userId the user ID
-    /// @param roleId the role ID
-    /// @return the response entity containing the updated user
-    @Operation(description = "Vincula un rol de usuario")
-    @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/link/{userId}/{roleId}")
-    public ResponseEntity<UserTO> link(@Parameter(description = STR_ID_USER) @PathVariable @NotNull String userId,
-                                       @Parameter(description = "Id de rol") @PathVariable @NotNull String roleId) {
+    ///  {@inheritDoc}
+    @Override
+    public ResponseEntity<UserTO> link(UUID userId, UUID roleId) {
         return userService.roleLink(userId, roleId);
     }
 

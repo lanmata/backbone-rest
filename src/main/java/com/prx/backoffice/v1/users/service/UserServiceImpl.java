@@ -22,7 +22,7 @@ import com.prx.backoffice.v1.users.api.to.UserCreateRequest;
 import com.prx.backoffice.v1.users.api.to.UserCreateResponse;
 import com.prx.backoffice.v1.users.api.to.UserTO;
 import com.prx.backoffice.v1.users.mapper.UserMapper;
-import com.prx.commons.pojo.Person;
+import com.prx.commons.general.pojo.Person;
 import com.prx.persistence.general.domains.*;
 import com.prx.persistence.general.repositories.ApplicationRoleUserRepository;
 import com.prx.persistence.general.repositories.UserRepository;
@@ -35,17 +35,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 /// Implementation of the UserService interface for managing users.
 /// Provides methods for creating, updating, deleting, and finding users.
 /// Uses various mappers and services to handle user-related operations.
 ///
-/// @author
-/// <a href="mailto:luis.antonio.mata@gmail.com">Luis Antonio Mata</a>
+/// @author <a href="mailto:luis.antonio.mata@gmail.com">Luis Antonio Mata</a>
 /// @version 1.0.1.20200904-01, 2019-10-14
 @Service
 public class UserServiceImpl implements UserService {
@@ -62,13 +59,13 @@ public class UserServiceImpl implements UserService {
 
     /// Constructor for UserServiceImpl.
     ///
-    /// @param userRepository the user repository
+    /// @param userRepository                the user repository
     /// @param applicationRoleUserRepository the application role user repository
-    /// @param personService the person service
-    /// @param roleService the role service
-    /// @param userMapper the user mapper
-    /// @param roleMapper the role mapper
-    /// @param personMapper the person mapper
+    /// @param personService                 the person service
+    /// @param roleService                   the role service
+    /// @param userMapper                    the user mapper
+    /// @param roleMapper                    the role mapper
+    /// @param personMapper                  the person mapper
     public UserServiceImpl(UserRepository userRepository, ApplicationRoleUserRepository applicationRoleUserRepository,
                            PersonService personService, RoleService roleService, UserMapper userMapper, RoleMapper roleMapper, PersonMapper personMapper) {
         this.userRepository = userRepository;
@@ -80,15 +77,36 @@ public class UserServiceImpl implements UserService {
         this.personMapper = personMapper;
     }
 
+
+    @Override
+    public ResponseEntity<Void> validateEmail(String email, UUID applicationId) {
+        var result = userRepository.findByEmailAndApplication(email, applicationId);
+        AtomicReference<ResponseEntity<Void>> responseEntity = new AtomicReference<>();
+        result.ifPresentOrElse(
+                userEntity -> responseEntity.set(new ResponseEntity<>(HttpStatus.CONFLICT)),
+                () -> responseEntity.set(ResponseEntity.status(HttpStatus.NOT_FOUND).build()));
+        return responseEntity.get();
+    }
+
+    @Override
+    public ResponseEntity<Void> validateAlias(String alias, UUID applicationId) {
+        var result = userRepository.findByAliasAndApplication(alias, applicationId);
+        AtomicReference<ResponseEntity<Void>> responseEntity = new AtomicReference<>();
+        result.ifPresentOrElse(
+                userEntity -> responseEntity.set(new ResponseEntity<>(HttpStatus.CONFLICT)),
+                () -> responseEntity.set(ResponseEntity.status(HttpStatus.NOT_FOUND).build()));
+        return responseEntity.get();
+    }
+
     /// Updates a user with the given user ID and user data.
     ///
     /// @param userId the user ID
-    /// @param user the user data
+    /// @param user   the user data
     /// @return the response entity containing the updated user data
     @Override
-    public ResponseEntity<UserTO> update(String userId, UserTO user) {
+    public ResponseEntity<UserTO> update(UUID userId, UserTO user) {
         ResponseEntity<UserTO> responseEntity;
-        if (Objects.isNull(userId) || userId.isEmpty()) {
+        if (Objects.isNull(userId)) {
             return ResponseEntity.badRequest().header(HttpHeaders.WARNING, "User ID empty or null").build();
         }
         final var userResponseEntity = findUserById(userId);
@@ -98,7 +116,7 @@ public class UserServiceImpl implements UserService {
                 if (HttpStatus.OK.equals(responseEntityPerson.getStatusCode())) {
                     user.setPerson(responseEntityPerson.getBody());
                     final var userEntity = userMapper.toSource(user);
-                    userEntity.setId(UUID.fromString(userId));
+                    userEntity.setId(userId);
                     if (null != userEntity.getApplicationRoleUser()) {
                         userEntity.getApplicationRoleUser().forEach(applicationRoleUserEntity -> {
                             applicationRoleUserEntity.setUser(userEntity);
@@ -122,31 +140,12 @@ public class UserServiceImpl implements UserService {
         return responseEntity;
     }
 
-    /// Deletes a user with the given user ID and user data.
-    ///
-    /// @param userId the user ID
-    /// @param user the user data
-    /// @return the response entity
-    @Override
-    public ResponseEntity<UserTO> delete(String userId, UserTO user) {
-        return null;
-    }
-
     /// Finds a user with the given ID.
     ///
     /// @param id the user ID
     /// @return the response entity containing the user data
     @Override
-    public ResponseEntity<UserTO> find(String id) {
-        return null;
-    }
-
-    /// Lists users with the given IDs.
-    ///
-    /// @param id the user IDs
-    /// @return the response entity containing the list of users
-    @Override
-    public ResponseEntity<List<UserTO>> list(String... id) {
+    public ResponseEntity<UserTO> find(UUID id) {
         return null;
     }
 
@@ -155,9 +154,9 @@ public class UserServiceImpl implements UserService {
     /// @param userId the user ID
     /// @return the response entity containing the user data
     @Override
-    public ResponseEntity<UserTO> findUserById(String userId) {
+    public ResponseEntity<UserTO> findUserById(UUID userId) {
         ResponseEntity<UserTO> responseEntity;
-        final var optionalUser = userRepository.findById(UUID.fromString(userId));
+        final var optionalUser = userRepository.findById(userId);
         responseEntity = optionalUser.map(userEntity ->
                 new ResponseEntity<>(userMapper.toTarget(userEntity), HttpStatus.OK)).orElseGet(() ->
                 ResponseEntity.notFound().build());
@@ -170,10 +169,10 @@ public class UserServiceImpl implements UserService {
     /// @param alias the user alias
     /// @return the response entity containing the user data
     @Override
-    public ResponseEntity<UserTO> findUserByAlias(final String alias) {
-        var userTO = findByAlias(alias);
+    public ResponseEntity<UserTO> findUserByAlias(final String alias, final UUID applicationId) {
+        var userTO = findByAlias(alias, applicationId);
         if (Objects.isNull(userTO)) {
-            return ResponseEntity.notFound().build();
+            return new ResponseEntity<>(HttpStatus.CONFLICT);
         } else {
             return new ResponseEntity<>(userTO, HttpStatus.OK);
         }
@@ -183,13 +182,17 @@ public class UserServiceImpl implements UserService {
     ///
     /// @return the response entity containing the list of users
     @Override
-    public ResponseEntity<List<UserTO>> findAll() {
-        final var userEntityList = userRepository.findAll();
+    public ResponseEntity<List<UserTO>> findAll(UUID applicationId) {
+        final List<UserTO> userEntityList = new ArrayList<>();
+        if(Objects.nonNull(applicationId)) {
+            userRepository.findByApplication(applicationId).forEach(userEntity -> userEntityList.add(userMapper.toTarget(userEntity)));
+        } else {
+            userRepository.findAll().forEach(userEntity -> userEntityList.add(userMapper.toTarget(userEntity)));
+        }
         if (userEntityList.isEmpty()) {
             return ResponseEntity.notFound().build();
         } else {
-            return new ResponseEntity<>(userEntityList.stream()
-                    .map(userMapper::toTarget).toList(), HttpStatus.OK);
+            return new ResponseEntity<>(userEntityList, HttpStatus.OK);
         }
     }
 
@@ -208,7 +211,7 @@ public class UserServiceImpl implements UserService {
             return ResponseEntity.badRequest().header(HttpHeaders.WARNING, "password is required").build();
         } else if (Objects.isNull(userCreateRequest.roleId())) {
             return ResponseEntity.badRequest().header(HttpHeaders.WARNING, "Role is required").build();
-        } else if (findUserByAlias(userCreateRequest.alias()).getStatusCode().equals(HttpStatus.OK)) {
+        } else if (findUserByAlias(userCreateRequest.alias(), userCreateRequest.applicationId()).getStatusCode().equals(HttpStatus.OK)) {
             return ResponseEntity.badRequest().header(HttpHeaders.WARNING, "User previously exist.").build();
         }
         var personResponse = personService.create(userCreateRequest.person());
@@ -233,10 +236,10 @@ public class UserServiceImpl implements UserService {
     /// Unlinks a role from a user with the given user ID and role ID.
     ///
     /// @param userId the user ID
-    /// @param rolId the role ID
+    /// @param roleId  the role ID
     /// @return the response entity
     @Override
-    public ResponseEntity<UserTO> unlink(String userId, String rolId) {
+    public ResponseEntity<UserTO> unlink(UUID userId, UUID roleId) {
         throw new UnsupportedOperationException();
     }
 
@@ -246,13 +249,13 @@ public class UserServiceImpl implements UserService {
     /// @param roleId the role ID
     /// @return the response entity containing the updated user data
     @Override
-    public ResponseEntity<UserTO> roleLink(String userId, String roleId) {
+    public ResponseEntity<UserTO> roleLink(UUID userId, UUID roleId) {
         ResponseEntity<UserTO> responseEntity = null;
-        final var optionalUserEntity = userRepository.findById(UUID.fromString(userId));
+        final var optionalUserEntity = userRepository.findById(userId);
         if (optionalUserEntity.isPresent()) {
             final var userEntity = optionalUserEntity.get();
             for (ApplicationRoleUserEntity userRolEntity : userEntity.getApplicationRoleUser()) {
-                if (userRolEntity.getRole().getId().equals(UUID.fromString(roleId))) {
+                if (userRolEntity.getRole().getId().equals(roleId)) {
                     responseEntity = new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
                     return responseEntity;
                 }
@@ -282,8 +285,8 @@ public class UserServiceImpl implements UserService {
 
     /// Creates an ApplicationRoleUserEntity link between a user and a role in an application.
     ///
-    /// @param userEntity the user entity
-    /// @param roleId the role ID
+    /// @param userEntity    the user entity
+    /// @param roleId        the role ID
     /// @param applicationId the application ID
     /// @return the created ApplicationRoleUserEntity
     private ApplicationRoleUserEntity applicationLink(UserEntity userEntity, UUID roleId, UUID applicationId) {
@@ -326,8 +329,17 @@ public class UserServiceImpl implements UserService {
     ///
     /// @param alias the user alias
     /// @return the user data
-    private UserTO findByAlias(String alias) {
-        final var userEntity = userRepository.findByAlias(alias);
+    private UserTO findByAlias(String alias, UUID applicationId) {
+        Optional<UserEntity> userEntityOptional;
+        UserEntity userEntity;
+        if(Objects.isNull(applicationId)) {
+            userEntityOptional = Optional.of(userRepository.findByAlias(alias));
+        } else {
+            userEntityOptional = userRepository.findByAliasAndApplication(alias, applicationId);
+        }
+
+        userEntity = userEntityOptional.orElse(null);
+
         return Objects.nonNull(userEntity) ? userMapper.toTarget(userEntity) : null;
     }
 }

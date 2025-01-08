@@ -14,7 +14,7 @@ package com.prx.backoffice.v1.contacts.mapper;
 
 import com.prx.backoffice.v1.contacttypes.mapper.ContactTypeMapper;
 import com.prx.backoffice.v1.people.mapper.PersonMapper;
-import com.prx.commons.pojo.Contact;
+import com.prx.commons.general.pojo.Contact;
 import com.prx.persistence.general.domains.ContactEntity;
 import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;

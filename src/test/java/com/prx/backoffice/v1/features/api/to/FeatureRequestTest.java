@@ -13,13 +13,14 @@
 
 package com.prx.backoffice.v1.features.api.to;
 
-import com.prx.commons.pojo.Feature;
+import com.prx.commons.general.pojo.Feature;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.UUID;
 
 /**
  * FeatureRequestTest.
@@ -33,10 +34,11 @@ public class FeatureRequestTest {
     @DisplayName("Test getters and setters of FeatureRequest")
     public void gettersAndSetters() {
         final var featureRequest = new FeatureRequest();
+        final var uuid = UUID.randomUUID();
         var feature = new Feature();
-        feature.setId("1L");
-        feature.setName("Feature");
-        feature.setDescription("Descripción de feature");
+        feature.setId(uuid);
+        feature.setName("Feature Name");
+        feature.setDescription("Feature Description");
         feature.setActive(true);
         featureRequest.setAppName("TEST-APP");
         featureRequest.setAppToken("TEST-APP/00252336");

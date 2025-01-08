@@ -17,8 +17,8 @@ import com.prx.backoffice.v1.roles.api.to.RoleCollectionResponse;
 import com.prx.backoffice.v1.roles.api.to.RoleFindResponse;
 import com.prx.backoffice.v1.roles.api.to.RoleRequest;
 import com.prx.backoffice.v1.roles.service.RoleService;
-import com.prx.commons.pojo.Role;
-import com.prx.commons.to.Response;
+import com.prx.commons.general.pojo.Role;
+import com.prx.commons.general.to.Response;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -28,6 +28,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * RolController.
@@ -37,7 +38,7 @@ import java.util.List;
  */
 @RestController
 @CrossOrigin(origins = "*")
-@RequestMapping("v1/roles")
+@RequestMapping("/api/v1/roles")
 class RoleController {
 
     private final RoleService roleService;
@@ -58,7 +59,7 @@ class RoleController {
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/find/{roleId}")
     public ResponseEntity<Role> find(@Parameter(description = "Request to find a role", required = true)
-                                     @PathVariable final String roleId){
+                                     @PathVariable final UUID roleId){
         return roleService.find(roleId);
     }
 
@@ -76,7 +77,7 @@ class RoleController {
     public ResponseEntity<List<Role>> list(@Parameter(description = "Include/exclude inactive roles.")
                                                @PathVariable boolean includeInactive,
                                            @Parameter(description = "Role list requested.")
-                                           @PathVariable List<String> roleIds) {
+                                           @PathVariable List<UUID> roleIds) {
         return roleService.list(includeInactive, roleIds);
     }
 
@@ -138,7 +139,7 @@ class RoleController {
             @ApiResponse(responseCode = MessageUtil.NOT_FOUND, description = MessageUtil.NOT_FOUND)
     })
     @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/{roleId}")
-    public ResponseEntity<Role> update(@PathVariable(value = "roleId") String roleId, @RequestBody final RoleRequest roleRequest){
+    public ResponseEntity<Role> update(@PathVariable(value = "roleId") UUID roleId, @RequestBody final RoleRequest roleRequest){
         return roleService.update(roleId, roleRequest.getRole());
     }
 
@@ -153,7 +154,7 @@ class RoleController {
             @ApiResponse(responseCode = MessageUtil.NOT_FOUND, description = MessageUtil.NOT_FOUND)
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/user/{userId}")
-    public ResponseEntity<List<Role>> list(@PathVariable String userId) {
+    public ResponseEntity<List<Role>> list(@PathVariable UUID userId) {
         return roleService.listByUser(userId);
     }
 

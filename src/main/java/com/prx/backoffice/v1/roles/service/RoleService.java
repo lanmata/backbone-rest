@@ -12,12 +12,13 @@
  */
 package com.prx.backoffice.v1.roles.service;
 
-import com.prx.backoffice.services.CrudService;
-import com.prx.commons.pojo.Role;
+import com.prx.commons.services.CrudService;
+import com.prx.commons.general.pojo.Role;
 import org.apache.commons.lang.NotImplementedException;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * RolService.
@@ -25,7 +26,7 @@ import java.util.List;
  * @author Luis Antonio Mata
  * @version 1.0.0, 20-10-2020
  */
-public interface RoleService extends CrudService<Role> {
+public interface RoleService extends CrudService<UUID, Role> {
 
     /**
      * Realiza la búsqueda de un usuario a través del identificador de usuario. Retorna un objeto de tipo
@@ -34,7 +35,7 @@ public interface RoleService extends CrudService<Role> {
      * @param roleId {@link String}
      * @return Objeto de tipo {@link ResponseEntity}
      */
-    default ResponseEntity<Role> find(String roleId) {
+    default ResponseEntity<Role> find(UUID roleId) {
         throw new NotImplementedException();
     }
 
@@ -50,12 +51,12 @@ public interface RoleService extends CrudService<Role> {
 
     /**
      * Actualiza los campos de nombre y descripción, y activa o inactiva el estado del {@link Role}.
-     * @param rolId {@link String}
+     * @param id {@link String}
      * @param role {@link Role}
      * @return Objeto de tipo {@link ResponseEntity}
      */
     @Override
-    default ResponseEntity<Role> update(String rolId, Role role) {
+    default ResponseEntity<Role> update(UUID id, Role role) {
         throw new NotImplementedException();
     }
 
@@ -64,7 +65,7 @@ public interface RoleService extends CrudService<Role> {
      * @param userId {@link String}
      * @return Objeto de tipo {@link ResponseEntity}
      */
-    default ResponseEntity<List<Role>> listByUser(String userId) {
+    default ResponseEntity<List<Role>> listByUser(UUID userId) {
         throw new NotImplementedException();
     }
 
@@ -75,7 +76,7 @@ public interface RoleService extends CrudService<Role> {
      * @param roleIds {@link List<String>}
      * @return Objeto de tipo {@link ResponseEntity<List<Role>>}
      */
-    default ResponseEntity<List<Role>> list(Boolean inactiveIncluded, List<String> roleIds) {
+    default ResponseEntity<List<Role>> list(Boolean inactiveIncluded, List<UUID> roleIds) {
         throw new NotImplementedException();
     }
 
@@ -87,8 +88,14 @@ public interface RoleService extends CrudService<Role> {
         throw new NotImplementedException();
     }
 
+    /**
+     * Delete a role.
+     * @param id {@link String}
+     * @param role {@link Role}
+     * @return Objeto de tipo {@link ResponseEntity}
+     */
     @Override
-    default ResponseEntity<Role> delete(String id, Role role) {
+    default ResponseEntity<Role> delete(UUID id, Role role) {
         throw new NotImplementedException();
     }
 }

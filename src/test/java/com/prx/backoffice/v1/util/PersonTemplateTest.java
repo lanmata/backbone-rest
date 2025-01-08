@@ -13,7 +13,7 @@
 
 package com.prx.backoffice.v1.util;
 
-import com.prx.commons.pojo.Person;
+import com.prx.commons.general.pojo.Person;
 import com.prx.persistence.general.domains.PersonEntity;
 
 import java.time.LocalDate;
@@ -35,7 +35,7 @@ public enum PersonTemplateTest implements TemplateUtil<Person, PersonEntity>{
             person.setFirstName("Pepe");
             person.setGender("M");
             person.setLastName("Perez");
-            person.setId("1L");
+            person.setId(UUID.randomUUID());
             person.setBirthdate(LocalDate.of(1985, 5, 25));
             return person;
         }

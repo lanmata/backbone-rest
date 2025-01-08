@@ -16,8 +16,8 @@ import com.prx.backoffice.v1.features.mapper.FeatureMapper;
 import com.prx.backoffice.v1.features.mapper.decorator.FeatureMapperUtil;
 import com.prx.backoffice.v1.features.service.FeatureService;
 import com.prx.backoffice.v1.roles.mapper.RoleMapper;
-import com.prx.commons.pojo.Feature;
-import com.prx.commons.pojo.Role;
+import com.prx.commons.general.pojo.Feature;
+import com.prx.commons.general.pojo.Role;
 import com.prx.persistence.general.domains.FeatureEntity;
 import com.prx.persistence.general.domains.RoleEntity;
 import com.prx.persistence.general.domains.RoleFeatureEntity;
@@ -94,7 +94,7 @@ class RoleServiceImplTest {
         var optionalRole = Optional.of(roleEntity);
 
         Mockito.when(roleRepository.findById(Mockito.any(UUID.class))).thenReturn(optionalRole);
-        final var responseEntity = roleServiceImpl.find(roleId.toString());
+        final var responseEntity = roleServiceImpl.find(roleId);
         Assertions.assertNotNull(responseEntity);
     }
 
@@ -104,9 +104,8 @@ class RoleServiceImplTest {
         final var roles = new ArrayList<RoleEntity>();
         final Optional<List<RoleEntity>> rolesOption = Optional.of(roles);
         Mockito.when(roleRepository.findById(Mockito.anyList())).thenReturn(rolesOption);
-        final var response = roleServiceImpl.list("18e4914b-f1f0-4c33-8559-944cf36b4b99",
-                "e255e868-80f2-4161-ab9d-25f47c913cf8", "b4256add-939d-45db-a491-0fb38ad37d60",
-                "87b036e8-a332-4960-8d9f-fb88530ca2bd");
+        final var response = roleServiceImpl.list(UUID.randomUUID(),
+                UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID());
         Assertions.assertNotNull(response);
     }
 
@@ -123,22 +122,23 @@ class RoleServiceImplTest {
     }
 
     /**
-     * Method under test: {@link RoleServiceImpl#list(String[])}
+     * Method under test: {@link RoleServiceImpl#list(UUID[])}
      */
     @Test
     @DisplayName("Test listing roles by user ID")
     void testListByUser2() {
+        var uuid = UUID.randomUUID();
         ArrayList<RoleEntity> roleEntityList = new ArrayList<>();
         RoleEntity roleEntity = new RoleEntity();
         roleEntity.setActive(true);
         roleEntity.setDescription("The characteristics of someone or something");
-        roleEntity.setId(UUID.fromString("cc8f6d52-500d-4021-99c2-e53baafdc30b"));
+        roleEntity.setId(uuid);
         roleEntity.setName("Name");
         roleEntity.setRoleFeatures(new HashSet<>());
         roleEntity.setApplicationRoleUser(new HashSet<>());
         roleEntityList.add(roleEntity);
         when(roleRepository.findByUserId(any())).thenReturn(Optional.of(roleEntityList));
-        ResponseEntity<List<Role>> actualListResult = roleServiceImpl.listByUser("cc8f6d52-500d-4021-99c2-e53baafdc30b");
+        ResponseEntity<List<Role>> actualListResult = roleServiceImpl.listByUser(uuid);
         List<Role> body = actualListResult.getBody();
         assertTrue(Objects.nonNull(body));
         assertEquals(HttpStatus.OK, actualListResult.getStatusCode());
@@ -147,7 +147,7 @@ class RoleServiceImplTest {
     }
 
     /**
-     * Method under test: {@link RoleServiceImpl#list(String[])}
+     * Method under test: {@link RoleServiceImpl#list(UUID[])}
      */
     @Test
     @DisplayName("Test listing roles by user ID with multiple roles")
@@ -170,10 +170,10 @@ class RoleServiceImplTest {
         role.setActive(true);
         role.setDescription("The characteristics of someone or something");
         role.setFeatures(new ArrayList<>());
-        role.setId(roleId.toString());
+        role.setId(roleId);
         role.setName("Name");
         when(roleMapper.toTarget(any(RoleEntity.class))).thenReturn(role);
-        ResponseEntity<List<Role>> actualListResult = roleServiceImpl.listByUser(roleId.toString());
+        ResponseEntity<List<Role>> actualListResult = roleServiceImpl.listByUser(roleId);
         assertEquals(1, Objects.requireNonNull(actualListResult.getBody()).size());
         assertTrue(actualListResult.hasBody());
         assertTrue(actualListResult.getHeaders().isEmpty());
@@ -183,7 +183,7 @@ class RoleServiceImplTest {
     }
 
     /**
-     * Method under test: {@link RoleServiceImpl#list(String[])}
+     * Method under test: {@link RoleServiceImpl#list(UUID[])}
      */
     @Test
     @DisplayName("Test listing roles by user ID with multiple roles and entities")
@@ -215,10 +215,10 @@ class RoleServiceImplTest {
         role.setActive(true);
         role.setDescription("The characteristics of someone or something");
         role.setFeatures(new ArrayList<>());
-        role.setId("123L");
+        role.setId(roleId);
         role.setName("Name");
         when(roleMapper.toTarget((RoleEntity) any())).thenReturn(role);
-        ResponseEntity<List<Role>> actualListResult = roleServiceImpl.listByUser(roleId.toString());
+        ResponseEntity<List<Role>> actualListResult = roleServiceImpl.listByUser(roleId);
         assertEquals(2, Objects.requireNonNull(actualListResult.getBody()).size());
         assertTrue(actualListResult.hasBody());
         assertTrue(actualListResult.getHeaders().isEmpty());
@@ -228,7 +228,7 @@ class RoleServiceImplTest {
     }
 
     /**
-     * Method under test: {@link RoleServiceImpl#list(String[])}
+     * Method under test: {@link RoleServiceImpl#list(UUID[])}
      */
     @Test
     @DisplayName("Test listing roles by user ID with empty result")
@@ -239,7 +239,7 @@ class RoleServiceImplTest {
         role.setActive(true);
         role.setDescription("The characteristics of someone or something");
         role.setFeatures(new ArrayList<>());
-        role.setId(roleId.toString());
+        role.setId(roleId);
         role.setName("Name");
 
         RoleEntity roleEntity = new RoleEntity();
@@ -260,7 +260,7 @@ class RoleServiceImplTest {
 
         Optional<List<RoleEntity>> ofResult = Optional.of(new ArrayList<>());
         when(roleRepository.findByUserId(any())).thenReturn(ofResult);
-        ResponseEntity<List<Role>> actualListResult = roleServiceImpl.listByUser(roleId.toString());
+        ResponseEntity<List<Role>> actualListResult = roleServiceImpl.listByUser(roleId);
         assertTrue(Objects.requireNonNull(actualListResult.getBody()).isEmpty());
         assertEquals(HttpStatus.OK, actualListResult.getStatusCode());
         assertTrue(actualListResult.getHeaders().isEmpty());
@@ -296,7 +296,7 @@ class RoleServiceImplTest {
     }
 
     /**
-     * Method under test: {@link RoleServiceImpl#update(String, Role)}
+     * Method under test: {@link RoleServiceImpl#update(UUID, Role)}
      */
     @Test
     @DisplayName("Test updating a role")
@@ -306,7 +306,7 @@ class RoleServiceImplTest {
         role.setActive(true);
         role.setDescription("The characteristics of someone or something");
         role.setFeatures(new ArrayList<>());
-        role.setId(roleId.toString());
+        role.setId(roleId);
         role.setName("Name");
         final var roleEntity = new RoleEntity();
         roleEntity.setActive(true);
@@ -318,14 +318,14 @@ class RoleServiceImplTest {
         when(roleMapper.toSource(Mockito.<Role>any())).thenReturn(roleEntity);
         when(roleMapper.toTarget(Mockito.<RoleEntity>any())).thenReturn(role);
         when(roleRepository.save(Mockito.<RoleEntity>any())).thenReturn(roleEntity);
-        ResponseEntity<Role> response = roleServiceImpl.update(roleId.toString(), role);
+        ResponseEntity<Role> response = roleServiceImpl.update(roleId, role);
         assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
         assertTrue(Objects.nonNull(response.getBody()));
         assertEquals("Name", response.getBody().getName());
     }
 
     /**
-     * Method under test: {@link RoleServiceImpl#update(String, Role)}
+     * Method under test: {@link RoleServiceImpl#update(UUID, Role)}
      */
     @Test
     @DisplayName("Test updating a role with features")
@@ -342,9 +342,9 @@ class RoleServiceImplTest {
         role.setActive(true);
         role.setDescription("The characteristics of someone or something");
         role.setFeatures(new ArrayList<>());
-        role.setId(roleId.toString());
+        role.setId(roleId);
         role.setName("Name");
-        feature.setId(featureId.toString());
+        feature.setId(featureId);
         feature.setName("deeply");
         feature.setDescription("Tobacco tub delivery milk increased.");
         feature.setActive(true);
@@ -371,14 +371,14 @@ class RoleServiceImplTest {
         when(roleMapper.toSource(Mockito.<Role>any())).thenReturn(roleEntity);
         when(roleMapper.toTarget(Mockito.<RoleEntity>any())).thenReturn(role);
         when(roleRepository.save(Mockito.<RoleEntity>any())).thenReturn(roleEntity);
-        ResponseEntity<Role> response = roleServiceImpl.update(roleId.toString(), role);
+        ResponseEntity<Role> response = roleServiceImpl.update(roleId, role);
         assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
         assertTrue(Objects.nonNull(response.getBody()));
         assertEquals("Name", response.getBody().getName());
     }
 
     /**
-     * Method under test: {@link RoleServiceImpl#listByUser(String)}
+     * Method under test: {@link RoleServiceImpl#listByUser(UUID)}
      */
     @Test
     @DisplayName("Test listing roles by user ID with features")
@@ -396,10 +396,10 @@ class RoleServiceImplTest {
         role.setActive(true);
         role.setDescription("The characteristics of someone or something");
         role.setFeatures(new ArrayList<>());
-        role.setId(roleId.toString());
+        role.setId(roleId);
         role.setName("Name");
 
-        feature.setId(featureId.toString());
+        feature.setId(featureId);
         feature.setName("deeply");
         feature.setDescription("Tobacco tub delivery milk increased.");
         feature.setActive(true);
@@ -427,20 +427,20 @@ class RoleServiceImplTest {
 
         when(roleRepository.findByUserId(Mockito.<UUID>any())).thenReturn(Optional.of(List.of(roleEntity)));
         when(roleMapper.toTarget(Mockito.<RoleEntity>any())).thenReturn(role);
-        final var response = roleServiceImpl.listByUser(userId.toString());
+        final var response = roleServiceImpl.listByUser(userId);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertTrue(Objects.nonNull(response.getBody()));
         assertEquals("Name", response.getBody().getFirst().getName());
     }
 
     /**
-     * Method under test: {@link RoleServiceImpl#listByUser(String)}
+     * Method under test: {@link RoleServiceImpl#listByUser(UUID)}
      */
     @Test
     @DisplayName("Test listing roles by user ID not found")
     void testListByUser_not_found() {
         when(roleRepository.findByUserId(Mockito.<UUID>any())).thenReturn(Optional.empty());
-        final var response = roleServiceImpl.listByUser("1f057e2e-9392-4418-bcf6-f157f45fcf60");
+        final var response = roleServiceImpl.listByUser(UUID.randomUUID());
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertTrue(Objects.isNull(response.getBody()));
     }
@@ -467,7 +467,7 @@ class RoleServiceImplTest {
     }
 
     /**
-     * Method under test: {@link RoleServiceImpl#listByUser(String)}
+     * Method under test: {@link RoleServiceImpl#listByUser(UUID)}
      */
     @Test
     @DisplayName("Test listing roles")
@@ -485,10 +485,10 @@ class RoleServiceImplTest {
         role.setActive(true);
         role.setDescription("The characteristics of someone or something");
         role.setFeatures(new ArrayList<>());
-        role.setId(roleId.toString());
+        role.setId(roleId);
         role.setName("Name");
 
-        feature.setId(featureId.toString());
+        feature.setId(featureId);
         feature.setName("deeply");
         feature.setDescription("Tobacco tub delivery milk increased.");
         feature.setActive(true);
@@ -533,11 +533,12 @@ class RoleServiceImplTest {
     private @NotNull Role getRole() {
         final var role = new Role();
         final var feature = new Feature();
-        feature.setId("1L");
+        final var uuid = UUID.randomUUID();
+        feature.setId(uuid);
         feature.setActive(true);
         feature.setName("Feature name");
         feature.setDescription("Feature description");
-        role.setId("1L");
+        role.setId(uuid);
         role.setActive(true);
         role.setName("Role name");
         role.setFeatures(new ArrayList<>());
@@ -547,17 +548,9 @@ class RoleServiceImplTest {
     }
 
     @Test
-    @DisplayName("Find role with invalid UUID format")
-    void findRoleWithInvalidUUIDFormat() {
-        String invalidUUID = "invalid-uuid";
-
-        assertThrows(IllegalArgumentException.class, () -> roleServiceImpl.find(invalidUUID));
-    }
-
-    @Test
     @DisplayName("List roles with null IDs")
     void listRolesWithNullIds() {
-        ResponseEntity<List<Role>> response = roleServiceImpl.list((String[]) null);
+        ResponseEntity<List<Role>> response = roleServiceImpl.list((UUID[]) null);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
@@ -567,7 +560,7 @@ class RoleServiceImplTest {
     void listRolesWithNonExistentIds() {
         when(roleRepository.findById(anyList())).thenReturn(Optional.empty());
 
-        ResponseEntity<List<Role>> response = roleServiceImpl.list(UUID.randomUUID().toString());
+        ResponseEntity<List<Role>> response = roleServiceImpl.list(UUID.randomUUID());
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
@@ -606,18 +599,10 @@ class RoleServiceImplTest {
     }
 
     @Test
-    @DisplayName("Update role with invalid UUID format")
-    void updateRoleWithInvalidUUIDFormat() {
-        String invalidUUID = "invalid-uuid";
-
-        assertThrows(IllegalArgumentException.class, () -> roleServiceImpl.update(invalidUUID, getRole()));
-    }
-
-    @Test
     @DisplayName("Update role with non-existent role ID")
     void updateRoleWithNonExistentRoleId() {
-        String roleId = UUID.randomUUID().toString();
-        when(roleRepository.findById(UUID.fromString(roleId))).thenReturn(Optional.empty());
+        var roleId = UUID.randomUUID();
+        when(roleRepository.findById(roleId)).thenReturn(Optional.empty());
 
         ResponseEntity<Role> response = roleServiceImpl.update(roleId, getRole());
 

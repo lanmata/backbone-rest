@@ -20,8 +20,8 @@ import com.prx.backoffice.v1.users.api.to.UserCreateRequest;
 import com.prx.backoffice.v1.users.api.to.UserCreateResponse;
 import com.prx.backoffice.v1.users.api.to.UserTO;
 import com.prx.backoffice.v1.users.mapper.UserMapper;
-import com.prx.commons.pojo.Person;
-import com.prx.commons.pojo.Role;
+import com.prx.commons.general.pojo.Person;
+import com.prx.commons.general.pojo.Role;
 import com.prx.persistence.general.domains.*;
 import com.prx.persistence.general.repositories.ApplicationRoleUserRepository;
 import com.prx.persistence.general.repositories.PersonRepository;
@@ -83,7 +83,7 @@ class UserServiceImplTest {
     private RoleMapper roleMapper;
 
     /**
-     * Method under test: {@link UserServiceImpl#update(String, UserTO)}
+     * Method under test: {@link UserServiceImpl#update(UUID, UserTO)}
      */
     @Test
     @DisplayName("Test update user with valid data")
@@ -93,7 +93,7 @@ class UserServiceImplTest {
         person.setBirthdate(LocalDate.of(1970, 1, 1));
         person.setFirstName("Jane");
         person.setGender("Gender");
-        person.setId(UUID.randomUUID().toString());
+        person.setId(UUID.randomUUID());
         person.setLastName("Doe");
         person.setMiddleName("Middle Name");
 
@@ -106,7 +106,7 @@ class UserServiceImplTest {
         user.setRoles(new HashSet<>());
 
         PersonEntity personEntity = new PersonEntity();
-        personEntity.setId(UUID.fromString(person.getId()));
+        personEntity.setId(person.getId());
         personEntity.setBirthdate(person.getBirthdate());
         personEntity.setGender(person.getGender());
         personEntity.setLastName(person.getLastName());
@@ -126,16 +126,16 @@ class UserServiceImplTest {
         when(userMapper.toSource(user)).thenReturn(userEntity);
         when(userRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.of(userEntity));
         when(personRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.of(personEntity));
-        when(personService.find(Mockito.anyString())).thenReturn(responsePerson);
+        when(personService.find(Mockito.any(UUID.class))).thenReturn(responsePerson);
         when(userMapper.toTarget(Mockito.<UserEntity>any())).thenReturn(user);
         when(userRepository.save(Mockito.<UserEntity>any())).thenReturn(userEntity);
-        final var responseEntity = userServiceImpl.update(userId.toString(), user);
+        final var responseEntity = userServiceImpl.update(userId, user);
         Assertions.assertNotNull(responseEntity);
         Assertions.assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     }
 
     /**
-     * Method under test: {@link UserServiceImpl#update(String, UserTO)}
+     * Method under test: {@link UserServiceImpl#update(UUID, UserTO)}
      */
     @Test
     @DisplayName("Test update user with roles")
@@ -145,7 +145,7 @@ class UserServiceImplTest {
         person.setBirthdate(LocalDate.of(1970, 1, 1));
         person.setFirstName("Jane");
         person.setGender("Gender");
-        person.setId(UUID.randomUUID().toString());
+        person.setId(UUID.randomUUID());
         person.setLastName("Doe");
         person.setMiddleName("Middle Name");
 
@@ -166,7 +166,7 @@ class UserServiceImplTest {
         roleEntity.setRoleFeatures(new HashSet<>());
 
         PersonEntity personEntity = new PersonEntity();
-        personEntity.setId(UUID.fromString(person.getId()));
+        personEntity.setId(person.getId());
         personEntity.setBirthdate(person.getBirthdate());
         personEntity.setGender(person.getGender());
         personEntity.setLastName(person.getLastName());
@@ -196,16 +196,16 @@ class UserServiceImplTest {
         when(userMapper.toSource(user)).thenReturn(userEntity);
         when(userRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.of(userEntity));
         when(personRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.of(personEntity));
-        when(personService.find(Mockito.anyString())).thenReturn(responsePerson);
+        when(personService.find(Mockito.any(UUID.class))).thenReturn(responsePerson);
         when(userMapper.toTarget(Mockito.<UserEntity>any())).thenReturn(user);
         when(userRepository.save(Mockito.<UserEntity>any())).thenReturn(userEntity);
-        final var responseEntity = userServiceImpl.update(userId.toString(), user);
+        final var responseEntity = userServiceImpl.update(userId, user);
         Assertions.assertNotNull(responseEntity);
         Assertions.assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     }
 
     /**
-     * Method under test: {@link UserServiceImpl#update(String, UserTO)}
+     * Method under test: {@link UserServiceImpl#update(UUID, UserTO)}
      */
     @Test
     @DisplayName("Test update user with missing person")
@@ -215,7 +215,7 @@ class UserServiceImplTest {
         person.setBirthdate(LocalDate.of(1970, 1, 1));
         person.setFirstName("Jane");
         person.setGender("Gender");
-        person.setId(UUID.randomUUID().toString());
+        person.setId(UUID.randomUUID());
         person.setLastName("Doe");
         person.setMiddleName("Middle Name");
 
@@ -228,7 +228,7 @@ class UserServiceImplTest {
         user.setRoles(new HashSet<>());
 
         PersonEntity personEntity = new PersonEntity();
-        personEntity.setId(UUID.fromString(person.getId()));
+        personEntity.setId(person.getId());
         personEntity.setBirthdate(person.getBirthdate());
         personEntity.setGender(person.getGender());
         personEntity.setLastName(person.getLastName());
@@ -246,16 +246,16 @@ class UserServiceImplTest {
         when(userMapper.toSource(user)).thenReturn(userEntity);
         when(userRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.of(userEntity));
         when(personRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.empty());
-        when(personService.find(Mockito.anyString())).thenReturn(ResponseEntity.notFound().build());
+        when(personService.find(Mockito.any(UUID.class))).thenReturn(ResponseEntity.notFound().build());
         when(userMapper.toTarget(Mockito.<UserEntity>any())).thenReturn(user);
         when(userRepository.save(Mockito.<UserEntity>any())).thenReturn(userEntity);
-        final var responseEntity = userServiceImpl.update(userId.toString(), user);
+        final var responseEntity = userServiceImpl.update(userId, user);
         Assertions.assertNotNull(responseEntity);
         Assertions.assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
     }
 
     /**
-     * Method under test: {@link UserServiceImpl#update(String, UserTO)}
+     * Method under test: {@link UserServiceImpl#update(UUID, UserTO)}
      */
     @Test
     @DisplayName("Test update user with null ID")
@@ -272,7 +272,7 @@ class UserServiceImplTest {
     }
 
     /**
-     * Method under test: {@link UserServiceImpl#update(String, UserTO)}
+     * Method under test: {@link UserServiceImpl#update(UUID, UserTO)}
      */
     @Test
     @DisplayName("Test update user with empty ID")
@@ -283,13 +283,13 @@ class UserServiceImplTest {
         user.setPassword("iloveyou");
         user.setRoles(new HashSet<>());
 
-        final var responseEntity = userServiceImpl.update("", user);
+        final var responseEntity = userServiceImpl.update(null, user);
         Assertions.assertNotNull(responseEntity);
         Assertions.assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
     }
 
     /**
-     * Method under test: {@link UserServiceImpl#update(String, UserTO)}
+     * Method under test: {@link UserServiceImpl#update(UUID, UserTO)}
      */
     @Test
     @DisplayName("Test update user with non-existent user")
@@ -299,7 +299,7 @@ class UserServiceImplTest {
         person.setBirthdate(LocalDate.of(1970, 1, 1));
         person.setFirstName("Jane");
         person.setGender("Gender");
-        person.setId(UUID.randomUUID().toString());
+        person.setId(UUID.randomUUID());
         person.setLastName("Doe");
         person.setMiddleName("Middle Name");
 
@@ -311,19 +311,19 @@ class UserServiceImplTest {
         user.setRoles(new HashSet<>());
 
         when(userRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.empty());
-        final var responseEntity = userServiceImpl.update(userId.toString(), user);
+        final var responseEntity = userServiceImpl.update(userId, user);
         Assertions.assertNotNull(responseEntity);
         Assertions.assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
     }
 
     /**
-     * Method under test: {@link UserServiceImpl#findAll()}
+     * Method under test: {@link UserServiceImpl#findAll(UUID)}
      */
     @Test
     @DisplayName("Test find all users with empty repository")
     void testFindAll() {
         when(userRepository.findAll()).thenReturn(new ArrayList<>());
-        ResponseEntity<List<UserTO>> actualFindAllResult = userServiceImpl.findAll();
+        ResponseEntity<List<UserTO>> actualFindAllResult = userServiceImpl.findAll(null);
         assertNull(actualFindAllResult.getBody());
         assertEquals(HttpStatus.NOT_FOUND, actualFindAllResult.getStatusCode());
         assertTrue(actualFindAllResult.getHeaders().isEmpty());
@@ -331,18 +331,37 @@ class UserServiceImplTest {
     }
 
     /**
-     * Method under test: {@link UserServiceImpl#findAll()}
+     * Method under test: {@link UserServiceImpl#findAll(UUID)}
+     */
+    @Test
+    @DisplayName("Test find all users byApplicationId with data")
+    void testFindAllByApplication() {
+
+        ArrayList<UserEntity> userEntityList = new ArrayList<>();
+        userEntityList.add(getUserEntity(null, null));
+        when(userRepository.findByApplication(Mockito.any(UUID.class))).thenReturn(userEntityList);
+        when(userMapper.toTarget(Mockito.<UserEntity>any())).thenReturn(getUserTO(null, null));
+
+        ResponseEntity<List<UserTO>> actualFindAllResult = userServiceImpl.findAll(UUID.randomUUID());
+        assertTrue(actualFindAllResult.hasBody());
+        assertEquals(HttpStatus.OK, actualFindAllResult.getStatusCode());
+        assertTrue(actualFindAllResult.getHeaders().isEmpty());
+        verify(userRepository).findByApplication(Mockito.any(UUID.class));
+        verify(userMapper).toTarget(Mockito.<UserEntity>any());
+    }
+
+    /**
+     * Method under test: {@link UserServiceImpl#findAll(UUID)}
      */
     @Test
     @DisplayName("Test find all users with data")
     void testFindAll2() {
-
         ArrayList<UserEntity> userEntityList = new ArrayList<>();
         userEntityList.add(getUserEntity(null, null));
         when(userRepository.findAll()).thenReturn(userEntityList);
         when(userMapper.toTarget(Mockito.<UserEntity>any())).thenReturn(getUserTO(null, null));
 
-        ResponseEntity<List<UserTO>> actualFindAllResult = userServiceImpl.findAll();
+        ResponseEntity<List<UserTO>> actualFindAllResult = userServiceImpl.findAll(null);
         assertTrue(actualFindAllResult.hasBody());
         assertEquals(HttpStatus.OK, actualFindAllResult.getStatusCode());
         assertTrue(actualFindAllResult.getHeaders().isEmpty());
@@ -365,24 +384,22 @@ class UserServiceImplTest {
         user.setId(userId);
 
         doNothing().when(userRepository).deleteById(userId);
-        ResponseEntity<UserTO> responseEntity = userServiceImpl.delete(userId.toString(), user);
+        ResponseEntity<UserTO> responseEntity = userServiceImpl.delete(userId, user);
 
-        Assertions.assertNull(responseEntity);
+        assertEquals(HttpStatus.NOT_IMPLEMENTED, responseEntity.getStatusCode());
     }
 
     @Test
     @DisplayName("Test find user by ID")
     void testFind() {
-        String userId = UUID.randomUUID().toString();
+        var userId = UUID.randomUUID();
         UserEntity userEntity = new UserEntity();
-        userEntity.setId(UUID.fromString(userId));
+        userEntity.setId(userId);
 
-        when(userRepository.findById(UUID.fromString(userId))).thenReturn(Optional.of(userEntity));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(userEntity));
         when(userMapper.toTarget(userEntity)).thenReturn(new UserTO());
 
-        ResponseEntity<UserTO> responseEntity = userServiceImpl.find(userId);
-
-        Assertions.assertNull(responseEntity);
+        assertNull(userServiceImpl.find(userId));
     }
 
     @Test
@@ -396,14 +413,14 @@ class UserServiceImplTest {
 
         ResponseEntity<List<UserTO>> responseEntity = userServiceImpl.list();
 
-        Assertions.assertNull(responseEntity);
+        assertEquals(HttpStatus.NOT_IMPLEMENTED, responseEntity.getStatusCode());
     }
 
     @Test
     @DisplayName("Test unlink user from role")
     void testUnlink() {
-        String userId = UUID.randomUUID().toString();
-        String roleId = UUID.randomUUID().toString();
+        var userId = UUID.randomUUID();
+        var roleId = UUID.randomUUID();
 
         Assertions.assertThrows(UnsupportedOperationException.class, () -> {
             userServiceImpl.unlink(userId, roleId);
@@ -413,19 +430,19 @@ class UserServiceImplTest {
     @Test
     @DisplayName("Test link user to role")
     void testLink() {
-        String userId = UUID.randomUUID().toString();
-        String roleId = UUID.randomUUID().toString();
+        var userId = UUID.randomUUID();
+        var roleId = UUID.randomUUID();
         UserEntity userEntity = new UserEntity();
         RoleEntity roleEntity = new RoleEntity();
         Set<ApplicationRoleUserEntity> userRoleEntities = new HashSet<>();
-        userEntity.setId(UUID.fromString(userId));
+        userEntity.setId(userId);
         roleEntity.setId(UUID.randomUUID());
         ApplicationRoleUserEntity applicationRoleUserEntity = new ApplicationRoleUserEntity();
         applicationRoleUserEntity.setRole(roleEntity);
         userRoleEntities.add(applicationRoleUserEntity);
         userEntity.setApplicationRoleUser(userRoleEntities);
 
-        when(userRepository.findById(UUID.fromString(userId))).thenReturn(Optional.of(userEntity));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(userEntity));
         when(roleService.find(roleId)).thenReturn(ResponseEntity.ok(new Role()));
         when(userMapper.toTarget(userEntity)).thenReturn(new UserTO());
 
@@ -528,7 +545,7 @@ class UserServiceImplTest {
             final String email,
             final UUID roleId,
             final UUID applicationId
-            ) {
+    ) {
         return new UserCreateRequest(
                 null,
                 alias,
@@ -575,7 +592,7 @@ class UserServiceImplTest {
         person.setBirthdate(LocalDate.of(1970, 1, 1));
         person.setFirstName("Jane");
         person.setGender("Gender");
-        person.setId(uuid.toString());
+        person.setId(uuid);
         person.setLastName("Doe");
         person.setMiddleName("Middle Name");
 
@@ -600,6 +617,46 @@ class UserServiceImplTest {
         userEntity.setApplicationRoleUser(new HashSet<>());
 
         return userEntity;
+    }
+
+    @Test
+    @DisplayName("Validate alias is available")
+    void validateAliasAvailable() {
+        var alias = "availableAlias";
+        var applicationId = UUID.randomUUID();
+        when(userRepository.findByAliasAndApplication(alias, applicationId)).thenReturn(Optional.empty());
+        var response = userServiceImpl.validateAlias(alias, applicationId);
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    @DisplayName("Validate alias is not available")
+    void validateAliasNotAvailable() {
+        var alias = "unavailableAlias";
+        var applicationId = UUID.randomUUID();
+        when(userRepository.findByAliasAndApplication(alias, applicationId)).thenReturn(Optional.of(new UserEntity()));
+        var response = userServiceImpl.validateAlias(alias, applicationId);
+        assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
+    }
+
+    @Test
+    @DisplayName("Validate email is available")
+    void validateEmailAvailable() {
+        var email = "available@example.com";
+        var applicationId = UUID.randomUUID();
+        when(userRepository.findByEmailAndApplication(email, applicationId)).thenReturn(Optional.empty());
+        var response = userServiceImpl.validateEmail(email, applicationId);
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    @DisplayName("Validate email is not available")
+    void validateEmailNotAvailable() {
+        var email = "unavailable@example.com";
+        var applicationId = UUID.randomUUID();
+        when(userRepository.findByEmailAndApplication(email, applicationId)).thenReturn(Optional.of(new UserEntity()));
+        var response = userServiceImpl.validateEmail(email, applicationId);
+        assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
     }
 
 }

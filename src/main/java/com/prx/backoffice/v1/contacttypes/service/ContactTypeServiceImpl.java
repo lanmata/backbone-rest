@@ -15,7 +15,7 @@ package com.prx.backoffice.v1.contacttypes.service;
 
 import com.prx.backoffice.v1.contacttypes.mapper.ContactTypeMapper;
 import com.prx.backoffice.v1.contacttypes.to.ContactTypeRequest;
-import com.prx.commons.pojo.ContactType;
+import com.prx.commons.general.pojo.ContactType;
 import com.prx.persistence.general.repositories.ContactTypeRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -67,10 +67,9 @@ public class ContactTypeServiceImpl implements ContactTypeService {
     }
 
     @Override
-    public ResponseEntity<ContactType> update(String contactTypeId, ContactType contactType) {
+    public ResponseEntity<ContactType> update(UUID contactTypeId, ContactType contactType) {
         if(Objects.nonNull(contactTypeId) && Objects.nonNull(contactType)) {
-            var uuid = UUID.fromString(contactTypeId);
-            var contactTypePrevious = this.contactTypeRepository.findById(uuid);
+            var contactTypePrevious = this.contactTypeRepository.findById(contactTypeId);
             if(contactTypePrevious.isPresent()) {
                 var contactTypeEntity = contactTypePrevious.get();
                 contactTypeEntity.setName(contactType.getName());
@@ -85,10 +84,9 @@ public class ContactTypeServiceImpl implements ContactTypeService {
     }
 
     @Override
-    public ResponseEntity<ContactType> findById(String contactTypeId) {
+    public ResponseEntity<ContactType> findById(UUID contactTypeId) {
         if(Objects.nonNull(contactTypeId)) {
-            var uuid = UUID.fromString(contactTypeId);
-            var contactTypeEntity = contactTypeRepository.findById(uuid);
+            var contactTypeEntity = contactTypeRepository.findById(contactTypeId);
             return contactTypeEntity.map(entity -> ResponseEntity.status(HttpStatus.OK)
                             .header(MESSAGE_HEADER_STR, "Contact Type found.")
                             .body(contactTypeMapper.toTarget(contactTypeEntity.get())))

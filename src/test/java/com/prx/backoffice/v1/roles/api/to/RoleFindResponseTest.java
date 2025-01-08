@@ -13,14 +13,15 @@
 
 package com.prx.backoffice.v1.roles.api.to;
 
-import com.prx.commons.pojo.Feature;
-import com.prx.commons.pojo.Role;
+import com.prx.commons.general.pojo.Feature;
+import com.prx.commons.general.pojo.Role;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -36,19 +37,20 @@ public class RoleFindResponseTest {
     @Test
     @DisplayName("Test getters and setters of RoleFindResponse")
     public void testGettersAndSetters(){
+        final var uuid = UUID.randomUUID();
         final var roleFindResponse = new RoleFindResponse();
         final var role = new Role();
         final var feature = new Feature();
-        feature.setId("1L");
+        feature.setId(uuid);
         feature.setActive(true);
-        feature.setName("Nombre de feature");
-        feature.setDescription("Descripcion de feature");
-        role.setId("1L");
+        feature.setName("Feature name");
+        feature.setDescription("Feature description");
+        role.setId(uuid);
         role.setActive(true);
-        role.setName("Nombre de rol");
+        role.setName("Role name");
         role.setFeatures(new ArrayList<>());
         role.getFeatures().add(feature);
-        role.setDescription("Descrptcion de rol");
+        role.setDescription("Role description");
         roleFindResponse.setRol(role);
         roleFindResponse.setMessage("OK");
         roleFindResponse.setCode(200);

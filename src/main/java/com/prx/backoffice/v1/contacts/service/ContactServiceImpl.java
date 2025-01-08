@@ -14,7 +14,7 @@ package com.prx.backoffice.v1.contacts.service;
 
 import com.prx.backoffice.v1.contacts.mapper.ContactMapper;
 import com.prx.backoffice.v1.contacttypes.mapper.ContactTypeMapper;
-import com.prx.commons.pojo.Contact;
+import com.prx.commons.general.pojo.Contact;
 import com.prx.persistence.general.domains.ContactEntity;
 import com.prx.persistence.general.repositories.ContactRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -80,11 +80,11 @@ public class ContactServiceImpl implements ContactService {
     }
 
     @Override
-    public ResponseEntity<Contact> update(Contact contact, String contactId) {
+    public ResponseEntity<Contact> update(UUID contactId, Contact contact) {
         if (null == contactId || null == contact) {
             return ResponseEntity.notFound().build();
         }
-        var contactOptionResult = contactRepository.findById(UUID.fromString(contactId));
+        var contactOptionResult = contactRepository.findById(contactId);
         if (contactOptionResult.isPresent()) {
             var contactEntity = contactOptionResult.get();
             contactEntity.setContent(contact.getContent());
@@ -97,11 +97,11 @@ public class ContactServiceImpl implements ContactService {
     }
 
     @Override
-    public ResponseEntity<Contact> find(String contactId) {
+    public ResponseEntity<Contact> find(UUID contactId) {
         if (null == contactId) {
             return ResponseEntity.badRequest().build();
         }
-        var contactEntityResult = contactRepository.findById(UUID.fromString(contactId));
+        var contactEntityResult = contactRepository.findById(contactId);
         if (contactEntityResult.isPresent()) {
             var contact = contactMapper.toTarget(contactEntityResult.get());
             return ResponseEntity.ok(contact);
@@ -111,8 +111,8 @@ public class ContactServiceImpl implements ContactService {
     }
 
     @Override
-    public ResponseEntity<List<Contact>> listByPersonId(String personId) {
-        var optionalContactList = contactRepository.listByPersonId(UUID.fromString(personId));
+    public ResponseEntity<List<Contact>> listByPersonId(UUID personId) {
+        var optionalContactList = contactRepository.listByPersonId(personId);
         if (optionalContactList.isPresent()) {
             var contactList = new ArrayList<Contact>();
             optionalContactList.get().stream().toList().forEach(contactEntity -> contactList.add(contactMapper.toTarget(contactEntity)));
@@ -123,11 +123,10 @@ public class ContactServiceImpl implements ContactService {
     }
 
     @Override
-    public ResponseEntity<String> deleteById(String contactId) {
-        var contactUUID = UUID.fromString(contactId);
-        var contactItem = contactRepository.findById(contactUUID);
+    public ResponseEntity<String> deleteById(UUID contactId) {
+        var contactItem = contactRepository.findById(contactId);
         if (contactItem.isPresent()) {
-            contactRepository.deleteById(contactUUID);
+            contactRepository.deleteById(contactId);
             return ResponseEntity.accepted().header(MESSAGE_HEADER_STR, "The Contact has been removed.").build();
         }
         return ResponseEntity.notFound().header(MESSAGE_HEADER_STR, "The Contact is NOT present.").build();

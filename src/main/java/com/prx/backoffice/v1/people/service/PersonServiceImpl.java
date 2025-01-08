@@ -15,7 +15,7 @@ package com.prx.backoffice.v1.people.service;
 
 import com.prx.backoffice.util.MessageUtil;
 import com.prx.backoffice.v1.people.mapper.PersonMapper;
-import com.prx.commons.pojo.Person;
+import com.prx.commons.general.pojo.Person;
 import com.prx.persistence.general.domains.PersonEntity;
 import com.prx.persistence.general.repositories.PersonRepository;
 import org.slf4j.Logger;
@@ -56,38 +56,38 @@ public class PersonServiceImpl implements PersonService {
 	}
 
 	@Override
-	public ResponseEntity<Person> update(String personId, Person person) {
+	public ResponseEntity<Person> update(UUID personId, Person person) {
 		if(esNulo(personId)) {
 			return ResponseEntity.badRequest().header(MessageUtil.MESSAGE_HEADER_STR, "PersonId invalid").build();
 		}
 		if(esNulo(person)){
 			return ResponseEntity.badRequest().header(MessageUtil.MESSAGE_HEADER_STR, "Person request invalid").build();
 		}
-		if(personRepository.findById(UUID.fromString(personId)).isEmpty()){
+		if(personRepository.findById(personId).isEmpty()){
 			return ResponseEntity.badRequest().header(MessageUtil.MESSAGE_HEADER_STR, "Person not founded").build();
 		}
 		var newValuePersonEntity = personMapper.toSource(person);
-		newValuePersonEntity.setId(UUID.fromString(personId));
+		newValuePersonEntity.setId(personId);
 		return ResponseEntity.ok(personMapper.toTarget(personRepository.save(newValuePersonEntity)));
 	}
 
 	@Override
-	public ResponseEntity<Person> find(String personId) {
+	public ResponseEntity<Person> find(UUID personId) {
 		if (esNulo(personId)) {
 			return ResponseEntity.unprocessableEntity().build();
 		}
-		var personEntity = personRepository.findById(UUID.fromString(personId));
+		var personEntity = personRepository.findById(personId);
 		return personEntity.map(entity -> ResponseEntity.ok(personMapper.toTarget(entity)))
 				.orElseGet(() -> ResponseEntity.notFound().build());
 	}
 
 	@Override
-	public ResponseEntity<List<Person>> list(String... ids) {
+	public ResponseEntity<List<Person>> list(UUID... ids) {
 		Iterable<PersonEntity> personEntityListResult;
 		List<Person> personList = new ArrayList<>();
 		List<UUID> uuidList = new ArrayList<>();
 		if(Objects.nonNull(ids) && ids.length > 0 && Objects.nonNull(ids[0])){
-			Arrays.stream(ids).toList().forEach(s -> uuidList.add(UUID.fromString(s)));
+            uuidList.addAll(Arrays.stream(ids).toList());
 		}
 		personEntityListResult = uuidList.isEmpty() ? personRepository.findAll():personRepository.findAllById(uuidList);
 		personEntityListResult.forEach(personEntity ->

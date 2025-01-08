@@ -13,11 +13,11 @@
 
 package com.prx.backoffice.v1.roles.mapper;
 
-import com.prx.backoffice.config.jackson.MapperAppConfig;
 import com.prx.backoffice.v1.features.mapper.FeatureMapper;
 import com.prx.backoffice.v1.users.mapper.UserMapper;
-import com.prx.commons.pojo.Feature;
-import com.prx.commons.pojo.Role;
+import com.prx.commons.general.pojo.Feature;
+import com.prx.commons.general.pojo.Role;
+import com.prx.commons.services.config.mapper.MapperAppConfig;
 import com.prx.persistence.general.domains.FeatureEntity;
 import com.prx.persistence.general.domains.RoleEntity;
 import com.prx.persistence.general.domains.RoleFeatureEntity;
@@ -26,7 +26,6 @@ import org.mapstruct.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Objects;
-import java.util.UUID;
 
 /**
  * RoleMapper interface for mapping between Role and RoleEntity objects.
@@ -88,7 +87,7 @@ public interface RoleMapper {
                 var roleFeature = new RoleFeatureEntity();
                 final var featureEntity = new FeatureEntity();
 
-                featureEntity.setId(UUID.fromString(feature.getId()));
+                featureEntity.setId(feature.getId());
                 featureEntity.setName(featureEntity.getName());
                 featureEntity.setDescription(featureEntity.getDescription());
                 featureEntity.setActive(feature.getActive());
@@ -113,7 +112,7 @@ public interface RoleMapper {
             }
             roleEntity.getRoleFeatures().forEach(roleFeatureEntity -> {
                 var feature = new Feature();
-                feature.setId(roleFeatureEntity.getFeature().getId().toString());
+                feature.setId(roleFeatureEntity.getFeature().getId());
                 feature.setName(roleFeatureEntity.getFeature().getName());
                 feature.setDescription(roleFeatureEntity.getFeature().getDescription());
                 feature.setActive(roleFeatureEntity.getFeature().getActive());

@@ -14,7 +14,7 @@
 package com.prx.backoffice.v1.users.api.to;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.prx.commons.pojo.Person;
+import com.prx.commons.general.pojo.Person;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

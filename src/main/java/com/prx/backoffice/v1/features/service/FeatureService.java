@@ -13,13 +13,13 @@
 
 package com.prx.backoffice.v1.features.service;
 
-import com.prx.backoffice.services.CrudService;
-import com.prx.commons.pojo.Feature;
-import com.prx.commons.pojo.MessageActivity;
+import com.prx.commons.services.CrudService;
+import com.prx.commons.general.pojo.Feature;
 import org.apache.commons.lang.NotImplementedException;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * FeatureService.
@@ -27,7 +27,7 @@ import java.util.List;
  * @author <a href='mailto:luis.antonio.mata@gmail.com'>Luis Antonio Mata</a>
  * @version 1.0.0, 14-02-2021
  */
-public interface FeatureService extends CrudService <Feature> {
+public interface FeatureService extends CrudService <UUID, Feature> {
 
     /**
      * Create a feature.
@@ -59,7 +59,7 @@ public interface FeatureService extends CrudService <Feature> {
      * @return {@link ResponseEntity}<{@link Feature}> object type.
      */
     @Override
-    default ResponseEntity<Feature> update(String id, Feature feature) {
+    default ResponseEntity<Feature> update(UUID id, Feature feature) {
         throw new NotImplementedException();
     }
 
@@ -71,7 +71,7 @@ public interface FeatureService extends CrudService <Feature> {
      * @return {@link ResponseEntity}<{@link Feature}> object type.
      */
     @Override
-    default ResponseEntity<Feature> delete(String id, Feature feature) {
+    default ResponseEntity<Feature> delete(UUID id, Feature feature) {
         throw new NotImplementedException();
     }
 
@@ -82,7 +82,7 @@ public interface FeatureService extends CrudService <Feature> {
      * @return {@link ResponseEntity}<{@link List}<{@link Feature}>> object type.
      */
     @Override
-    default ResponseEntity<List<Feature>> list(String... id) {
+    default ResponseEntity<List<Feature>> list(UUID... id) {
         throw new NotImplementedException();
     }
 }

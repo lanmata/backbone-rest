@@ -12,8 +12,8 @@
  */
 package com.prx.backoffice.v1.people.api.to;
 
-import com.prx.commons.pojo.Person;
-import com.prx.commons.to.Request;
+import com.prx.commons.general.pojo.Person;
+import com.prx.commons.general.to.Request;
 
 /**
  * PersonCreateRequest.

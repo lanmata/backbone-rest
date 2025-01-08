@@ -14,7 +14,7 @@
 package com.prx.backoffice.v1.features.api.to;
 
 import com.prx.backoffice.constant.keys.FeatureMessageKey;
-import com.prx.commons.pojo.Feature;
+import com.prx.commons.general.pojo.Feature;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -38,10 +38,10 @@ public class FeatureResponseTest {
     public void gettersAndSetters() {
         final var featureResponse = new FeatureResponse();
         final var feature = new Feature();
-        feature.setId(UUID.randomUUID().toString());
+        feature.setId(UUID.randomUUID());
         feature.setActive(true);
-        feature.setDescription("Descripcion de feature");
-        feature.setName("Nombre de feature");
+        feature.setDescription("Feature description");
+        feature.setName("Feature name");
         featureResponse.setFeature(feature);
         featureResponse.setCode(FeatureMessageKey.FEATURE_OK.getCode());
         featureResponse.setMessage(FeatureMessageKey.FEATURE_OK.getStatus());

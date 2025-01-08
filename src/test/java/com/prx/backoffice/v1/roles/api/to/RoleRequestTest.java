@@ -13,14 +13,15 @@
 
 package com.prx.backoffice.v1.roles.api.to;
 
-import com.prx.commons.pojo.Feature;
-import com.prx.commons.pojo.Role;
+import com.prx.commons.general.pojo.Feature;
+import com.prx.commons.general.pojo.Role;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -36,19 +37,20 @@ public class RoleRequestTest {
     @Test
     @DisplayName("Test getters and setters of RoleRequest")
     public void testGettersAndSetters(){
+        final var uuid = UUID.randomUUID();
         final var rolRequest = new RoleRequest();
         final var rol = new Role();
         final var feature = new Feature();
-        feature.setId("1L");
+        feature.setId(uuid);
         feature.setActive(true);
-        feature.setName("Nombre de feature");
-        feature.setDescription("Descripcion de feature");
-        rol.setId("1L");
+        feature.setName("Feature name");
+        feature.setDescription("Feature description");
+        rol.setId(uuid);
         rol.setActive(true);
         rol.setName("Nombre de rol");
         rol.setFeatures(new ArrayList<>());
         rol.getFeatures().add(feature);
-        rol.setDescription("Descrptcion de rol");
+        rol.setDescription("Role description");
         rolRequest.setRole(rol);
         rolRequest.setAppName("APP-TEST");
         rolRequest.setAppToken("SDFGHJKLKJHGFrty865dfds");

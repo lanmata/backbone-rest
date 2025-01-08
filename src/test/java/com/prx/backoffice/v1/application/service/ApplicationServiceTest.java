@@ -13,10 +13,12 @@
 
 package com.prx.backoffice.v1.application.service;
 
-import com.prx.commons.pojo.Application;
+import com.prx.commons.general.pojo.Application;
 import org.apache.commons.lang.NotImplementedException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -34,7 +36,7 @@ class ApplicationServiceTest {
     @DisplayName("Find application by ID throws NotImplementedException")
     void findApplicationByIdThrowsNotImplementedException() {
         ApplicationService applicationService = new ApplicationService() {};
-        assertThrows(NotImplementedException.class, () -> applicationService.find("1"));
+        assertThrows(NotImplementedException.class, () -> applicationService.find(UUID.randomUUID()));
     }
 
     @Test
@@ -42,7 +44,7 @@ class ApplicationServiceTest {
     void updateApplicationThrowsNotImplementedException() {
         ApplicationService applicationService = new ApplicationService() {};
         Application application = new Application();
-        assertThrows(NotImplementedException.class, () -> applicationService.update("1", application));
+        assertThrows(NotImplementedException.class, () -> applicationService.update(UUID.randomUUID(), application));
     }
 
     @Test
@@ -50,13 +52,13 @@ class ApplicationServiceTest {
     void deleteApplicationThrowsNotImplementedException() {
         ApplicationService applicationService = new ApplicationService() {};
         Application application = new Application();
-        assertThrows(NotImplementedException.class, () -> applicationService.delete("1", application));
+        assertThrows(NotImplementedException.class, () -> applicationService.delete(UUID.randomUUID(), application));
     }
 
     @Test
     @DisplayName("List applications throws NotImplementedException")
     void listApplicationsThrowsNotImplementedException() {
         ApplicationService applicationService = new ApplicationService() {};
-        assertThrows(NotImplementedException.class, () -> applicationService.list("1"));
+        assertThrows(NotImplementedException.class, () -> applicationService.list(UUID.randomUUID()));
     }
 }

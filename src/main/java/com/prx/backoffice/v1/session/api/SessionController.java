@@ -28,7 +28,7 @@ import static com.prx.security.constant.ConstantApp.SESSION_TOKEN_KEY;
  * @version 1.0.0, 12-02-2021
  */
 @RestController
-@RequestMapping("/v1/session")
+@RequestMapping("/api/v1/session")
 public class SessionController {
 
     private final SessionService sessionService;

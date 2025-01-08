@@ -15,7 +15,7 @@ package com.prx.backoffice.v1.contacttypes.service;
 
 import com.prx.backoffice.v1.contacttypes.mapper.ContactTypeMapper;
 import com.prx.backoffice.v1.contacttypes.to.ContactTypeRequest;
-import com.prx.commons.pojo.ContactType;
+import com.prx.commons.general.pojo.ContactType;
 import com.prx.persistence.general.domains.ContactTypeEntity;
 import com.prx.persistence.general.repositories.ContactTypeRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -93,7 +93,7 @@ class ContactTypeServiceImplTest {
     @Test
     @DisplayName("Test creating a contact type with null request - Bad Request")
     void create_null_request_bad_request() {
-        var result = contactTypeServiceImpl.create(null);
+        var result = contactTypeServiceImpl.create((ContactTypeRequest) null);
         assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
     }
 
@@ -110,7 +110,7 @@ class ContactTypeServiceImplTest {
         when(contactTypeMapper.toTarget(Mockito.any(ContactTypeEntity.class))).thenReturn(getContactType());
         when(contactTypeRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.of(contactTypeEntity));
         when(contactTypeRepository.save(Mockito.any(ContactTypeEntity.class))).thenReturn(contactTypeEntity);
-        var result = contactTypeServiceImpl.update(contactTypeUUID.toString(), getContactType());
+        var result = contactTypeServiceImpl.update(contactTypeUUID, getContactType());
         assertNotNull(result);
         assertEquals(HttpStatus.ACCEPTED, result.getStatusCode());
         verify(contactTypeRepository).findById(Mockito.<UUID>any());
@@ -122,7 +122,7 @@ class ContactTypeServiceImplTest {
     void testUpdate_not_found() {
         var contactTypeUUID = UUID.randomUUID();
         when(contactTypeRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.empty());
-        var result = contactTypeServiceImpl.update(contactTypeUUID.toString(), getContactType());
+        var result = contactTypeServiceImpl.update(contactTypeUUID, getContactType());
         assertNotNull(result);
         assertEquals(HttpStatus.NOT_FOUND, result.getStatusCode());
         verify(contactTypeRepository).findById(Mockito.<UUID>any());
@@ -131,7 +131,7 @@ class ContactTypeServiceImplTest {
     @Test
     @DisplayName("Test updating a contact type - Bad Request")
     void testUpdate_bad_request() {
-        var result = contactTypeServiceImpl.update(null, getContactType());
+        var result = contactTypeServiceImpl.update((UUID) null, getContactType());
         assertNotNull(result);
         assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
     }
@@ -139,7 +139,7 @@ class ContactTypeServiceImplTest {
     @Test
     @DisplayName("Test updating a contact type with null contact type - Bad Request")
     void testUpdate_bad_request_contactType_null() {
-        var result = contactTypeServiceImpl.update(UUID.randomUUID().toString(), null);
+        var result = contactTypeServiceImpl.update(UUID.randomUUID(), null);
         assertNotNull(result);
         assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
     }
@@ -158,7 +158,7 @@ class ContactTypeServiceImplTest {
         final var contactType = getContactType();
         final var uuidValue = contactType.getId();
         var contactTypeEntity = new ContactTypeEntity();
-        contactTypeEntity.setId(UUID.fromString(uuidValue));
+        contactTypeEntity.setId(uuidValue);
         contactTypeEntity.setName("Contact type description 001");
         contactTypeEntity.setDescription("Contact type description");
         contactTypeEntity.setActive(true);
@@ -185,7 +185,7 @@ class ContactTypeServiceImplTest {
     @DisplayName("Test finding a contact type by ID - Not Found")
     void testFindById_not_found() {
         when(contactTypeRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.empty());
-        var result = contactTypeServiceImpl.findById("efafc19c-b4a7-4d97-a911-bca3a7436c20");
+        var result = contactTypeServiceImpl.findById(UUID.randomUUID());
         assertNotNull(result);
         assertEquals(HttpStatus.NOT_FOUND, result.getStatusCode());
     }
@@ -195,7 +195,7 @@ class ContactTypeServiceImplTest {
         ContactType contactType = new ContactType();
         contactType.setActive(true);
         contactType.setDescription("The characteristics of someone or something");
-        contactType.setId(contactTypeUUID.toString());
+        contactType.setId(contactTypeUUID);
         contactType.setName("Name");
         return contactType;
     }
