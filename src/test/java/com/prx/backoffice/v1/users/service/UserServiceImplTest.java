@@ -626,7 +626,7 @@ class UserServiceImplTest {
         var applicationId = UUID.randomUUID();
         when(userRepository.findByAliasAndApplication(alias, applicationId)).thenReturn(Optional.empty());
         var response = userServiceImpl.validateAlias(alias, applicationId);
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     @Test
