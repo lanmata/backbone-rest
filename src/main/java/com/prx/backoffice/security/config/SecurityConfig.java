@@ -90,8 +90,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         LOGGER.info("Loading SecurityFilterChain");
         var jwtConverter = new JwtConverter(this.jwtConverterProperties);
-        http.csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(SWAGGER_LIST).permitAll()
                         .requestMatchers(GET, appPath.concat("/**")).hasAnyRole(clientRoleList)
