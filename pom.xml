@@ -69,7 +69,7 @@
         <spring-core.version>6.1.13</spring-core.version>
         <spring-boot.version>3.4.1</spring-boot.version>
         <spring-cloud.version>2024.0.0</spring-cloud.version>
-        <spring-security-aouth2-autoconfigure.version>3.3.2</spring-security-aouth2-autoconfigure.version>
+        <spring-security-aouth2-autoconfigure.version>3.4.1</spring-security-aouth2-autoconfigure.version>
         <spring-cloud-dependencies.version>4.2.0</spring-cloud-dependencies.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
         <!--        JWT Dependencies version-->
@@ -101,6 +101,16 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-config</artifactId>
             <version>${spring-cloud-dependencies.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+            <version>${spring-security-aouth2-autoconfigure.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+            <version>${spring-security-aouth2-autoconfigure.version}</version>
         </dependency>
         <dependency>
             <groupId>org.yaml</groupId>
@@ -198,14 +208,25 @@
             <version>${com.prx.persistence.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.prx</groupId>
-            <artifactId>security-oauth</artifactId>
-            <version>${com.prx.security-oauth.version}</version>
-        </dependency>
-        <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
             <version>2.18.1</version>
+        </dependency>
+        <!--        JWT Dependencies-->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>${jwt.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>${jwt.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>${jwt.version}</version>
         </dependency>
         <!--        TEST-->
         <dependency>

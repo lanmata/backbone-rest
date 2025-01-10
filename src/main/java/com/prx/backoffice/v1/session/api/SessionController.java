@@ -19,7 +19,7 @@ import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import static com.prx.security.constant.ConstantApp.SESSION_TOKEN_KEY;
+import static com.prx.backoffice.v1.session.services.SessionJwtService.SESSION_TOKEN_KEY;
 
 /**
  * REST controller for managing session-related operations.
@@ -30,6 +30,8 @@ import static com.prx.security.constant.ConstantApp.SESSION_TOKEN_KEY;
 @RestController
 @RequestMapping("/api/v1/session")
 public class SessionController {
+
+
 
     private final SessionService sessionService;
 
