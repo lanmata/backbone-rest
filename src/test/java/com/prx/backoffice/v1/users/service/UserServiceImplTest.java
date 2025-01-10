@@ -646,7 +646,7 @@ class UserServiceImplTest {
         var applicationId = UUID.randomUUID();
         when(userRepository.findByEmailAndApplication(email, applicationId)).thenReturn(Optional.empty());
         var response = userServiceImpl.validateEmail(email, applicationId);
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     @Test

@@ -84,7 +84,7 @@ public class UserServiceImpl implements UserService {
         AtomicReference<ResponseEntity<Void>> responseEntity = new AtomicReference<>();
         result.ifPresentOrElse(
                 userEntity -> responseEntity.set(new ResponseEntity<>(HttpStatus.CONFLICT)),
-                () -> responseEntity.set(ResponseEntity.status(HttpStatus.NOT_FOUND).build()));
+                () -> responseEntity.set(ResponseEntity.status(HttpStatus.OK).build()));
         return responseEntity.get();
     }
 

@@ -14,6 +14,7 @@
 package com.prx.backoffice.v1.session.services;
 
 import com.prx.backoffice.constant.keys.AuthKey;
+import com.prx.backoffice.security.jwt.JwtConfigProperties;
 import com.prx.backoffice.util.MessageUtil;
 import com.prx.backoffice.v1.session.mapper.UserAliasMapper;
 import com.prx.backoffice.v1.session.to.SessionRequest;
@@ -23,7 +24,6 @@ import com.prx.backoffice.v1.users.mapper.UserMapper;
 import com.prx.commons.util.ValidatorCommonsUtil;
 import com.prx.persistence.general.domains.UserEntity;
 import com.prx.persistence.general.repositories.UserRepository;
-import com.prx.security.jwt.JwtConfigProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -38,8 +38,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-
-import static com.prx.security.constant.ConstantApp.SESSION_TOKEN_KEY;
 
 /**
  * Service class for handling JWT operations related to sessions.
