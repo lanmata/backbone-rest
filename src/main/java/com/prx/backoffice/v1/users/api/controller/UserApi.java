@@ -95,7 +95,7 @@ public interface UserApi {
     @ApiResponses(value = {
             @ApiResponse(responseCode = MessageUtil.OK, description = "User found.")
     })
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/user/{userId}")
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/user/{userId}")
     default ResponseEntity<UserTO> findUserById(@NotNull @Parameter(description = STR_ID_USER) @PathVariable UUID userId) {
         return getService().findUserById(userId);
     }
