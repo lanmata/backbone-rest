@@ -17,6 +17,7 @@ import com.prx.backoffice.constant.keys.AuthKey;
 import com.prx.backoffice.security.jwt.JwtConfigProperties;
 import com.prx.backoffice.util.MessageUtil;
 import com.prx.backoffice.v1.session.mapper.UserAliasMapper;
+import com.prx.backoffice.v1.session.to.SessionEmailRequest;
 import com.prx.backoffice.v1.session.to.SessionRequest;
 import com.prx.backoffice.v1.session.to.SessionResponse;
 import com.prx.backoffice.v1.session.to.UserAliasTO;
@@ -33,10 +34,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
-import java.util.Date;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -131,6 +129,58 @@ public class SessionServiceImpl implements SessionService {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
+    @Override
+    public ResponseEntity<SessionResponse> loadSession(SessionEmailRequest sessionEmailRequest) {
+        ResponseEntity<SessionResponse> responseEntity;
+        boolean isFieldsInvalid = false;
+        Optional<UserEntity> optionalUserEntity;
+        UserEntity userEntity;
+        String messageError = "";
+
+        // IF User and Service linked
+        if (ValidatorCommonsUtil.esNulo(sessionEmailRequest)) {
+            messageError = messageUtil.getUserSolicitudNulaVacia();
+            isFieldsInvalid = true;
+        } else if (ValidatorCommonsUtil.esVacio(sessionEmailRequest.email())) {
+            messageError = messageUtil.getUserCorreoNoValido();
+            isFieldsInvalid = true;
+        } else if (Objects.isNull(sessionEmailRequest.applicationId())) {
+            messageError = "Invalid application ID";
+            isFieldsInvalid = true;
+        } else if (ValidatorCommonsUtil.esVacio(sessionEmailRequest.password())) {
+            messageError = messageUtil.getUserClaveNulaVacia();
+            isFieldsInvalid = true;
+        }
+
+        if (isFieldsInvalid) {
+            responseEntity = new ResponseEntity<>(new SessionResponse(messageError), HttpStatus.NOT_ACCEPTABLE);
+            return responseEntity;
+        }
+
+        optionalUserEntity = userRepository.findByEmailAndApplication(sessionEmailRequest.email(), sessionEmailRequest.applicationId());
+        if (optionalUserEntity.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        userEntity = optionalUserEntity.get();
+        if (!userEntity.getActive()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        var applicationId = userEntity.getApplicationRoleUser().stream()
+                .filter(applicationRoleUser ->
+                        applicationRoleUser.getApplication().getId().equals(sessionEmailRequest.applicationId())
+                ).map(applicationRoleUser -> applicationRoleUser.getApplication().getId()).findFirst();
+        if (applicationId.isPresent() && applicationId.get().equals(sessionEmailRequest.applicationId())
+                && userEntity.getEmail().equals(sessionEmailRequest.email())
+                && userEntity.getPassword().equals(sessionEmailRequest.password())) {
+
+            // IF User and Password validated
+            return ResponseEntity.ok(new SessionResponse(generateSessionToken(userEntity.getId())));
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
+
     /**
      * Generates a session token with the specified username and parameters.
      *
@@ -206,5 +256,20 @@ public class SessionServiceImpl implements SessionService {
     private UserAliasTO loadUserAlias(UUID userId) {
         final var userInfo = userRepository.findUserInfo(userId);
         return Objects.nonNull(userInfo) ? userAliasMapper.toTarget(userMapper.toTarget(userInfo)) : null;
+    }
+
+    private String generateSessionToken(UUID userId) {
+        Map<String, String> parameters;
+        String sessionId = UUID.randomUUID().toString();
+        var userAlias = loadUserAlias(userId);
+        if (Objects.nonNull(userAlias) && Objects.nonNull(userAlias.getRoles())) {
+            parameters = new ConcurrentHashMap<>();
+            parameters.put(AuthKey.USER_ID.value, userAlias.getUserId().toString());
+            parameters.put(AuthKey.ROLES_ID.value, userAlias.getRoles().toString());
+            parameters.put(AuthKey.FIRSTNAME.value, userAlias.getFirstname());
+            parameters.put(AuthKey.LASTNAME.value, userAlias.getLastname());
+            return generateSessionToken(sessionId, parameters);
+        }
+        return null;
     }
 }
