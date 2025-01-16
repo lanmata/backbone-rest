@@ -15,6 +15,7 @@ package com.prx.backoffice.v1.session.to;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.prx.commons.general.to.Request;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
 /**
@@ -25,10 +26,18 @@ import jakarta.validation.constraints.NotNull;
  */
 @JsonNaming
 public class SessionRequest extends Request {
+    /**
+     * The user alias.
+     */
     @NotNull
+    @NotEmpty
     @JsonProperty("alias")
     private String alias;
+    /**
+     * The user password.
+     */
     @NotNull
+    @NotEmpty
     @JsonProperty("password")
     private String password;
 

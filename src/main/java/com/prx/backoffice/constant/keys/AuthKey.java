@@ -60,7 +60,12 @@ public enum AuthKey {
     /**
      * Key for JWT ID.
      */
-    JTI("jti");
+    JTI("jti"),
+
+    /**
+     * Key for user ID.
+     */
+    USER_ID("uid");
 
     /**
      * The value of the key.
