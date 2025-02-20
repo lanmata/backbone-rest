@@ -77,7 +77,7 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: ${AUTH_SERVER_URI}
-          jwk-set-uri: ${spring.security.oauth2.resourceserver.jwt.issuer-uri}/protocol/openid-connect/certs
+          jwk-set-uri: ${spring.security.oauth2.resourceserver.jwt.issuer-uri}${AUTH_CERT_URI}
   cloud:
     # The Spring Cloud Config specific configurations
     #<><><><><><><><><><><><><><> VAULT <><><><><><><><><><><><><><>
