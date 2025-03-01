@@ -222,6 +222,7 @@ public class UserServiceImpl implements UserService {
             userEntity.setLastUpdate(LocalDateTime.now());
             userEntity.setPerson(personMapper.toSource(personResponse.getBody()));
             userEntity.setApplicationRoleUser(new HashSet<>());
+            userEntity.setActive(Boolean.TRUE);
 
             var userEntityResult = userRepository.save(userEntity); // Save
             // Adding ApplicationRoleUser
