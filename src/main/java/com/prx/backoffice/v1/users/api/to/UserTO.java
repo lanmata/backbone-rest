@@ -17,6 +17,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.prx.commons.general.pojo.Application;
 import com.prx.commons.general.pojo.Person;
 import com.prx.commons.general.pojo.Role;
+import jakarta.validation.constraints.Email;
 
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -31,6 +32,8 @@ public class UserTO {
     private UUID id;
     private String alias;
     private String password;
+    @Email
+    private String email;
     @JsonFormat(
             pattern = "yyyy-MM-dd HH:mm:ss"
     )
@@ -71,6 +74,14 @@ public class UserTO {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public LocalDateTime getCreatedDate() {
@@ -127,6 +138,7 @@ public class UserTO {
                 "id=" + id +
                 ", alias='" + alias + '\'' +
                 ", password='" + password + '\'' +
+                ", email='" + email + '\'' +
                 ", active=" + active +
                 ", person=" + person +
                 ", roles=" + roles +
