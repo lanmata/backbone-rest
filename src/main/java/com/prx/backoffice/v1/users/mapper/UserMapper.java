@@ -44,6 +44,7 @@ public interface UserMapper {
     /// @return the mapped UserTO object
     @Mapping(target = "roles", source = "applicationRoleUser")
     @Mapping(target = "applications", source = "applicationRoleUser")
+    @Mapping(target = "email", source = "email")
     UserTO toTarget(UserEntity userEntity);
 
     /// Maps a UserTO object to a UserEntity object.
