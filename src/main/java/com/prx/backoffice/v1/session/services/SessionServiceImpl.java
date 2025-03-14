@@ -264,6 +264,7 @@ public class SessionServiceImpl implements SessionService {
         var userAlias = loadUserAlias(userId);
         if (Objects.nonNull(userAlias) && Objects.nonNull(userAlias.getRoles())) {
             parameters = new ConcurrentHashMap<>();
+            parameters.put(AuthKey.ALIAS.value, userAlias.getAlias());
             parameters.put(AuthKey.USER_ID.value, userAlias.getUserId().toString());
             parameters.put(AuthKey.ROLES_ID.value, userAlias.getRoles().toString());
             parameters.put(AuthKey.FIRSTNAME.value, userAlias.getFirstname());
