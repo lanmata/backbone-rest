@@ -65,7 +65,12 @@ public enum AuthKey {
     /**
      * Key for user ID.
      */
-    USER_ID("uid");
+    USER_ID("uid"),
+
+    /**
+     * Key for alias.
+     */
+    ALIAS("alias");
 
     /**
      * The value of the key.
