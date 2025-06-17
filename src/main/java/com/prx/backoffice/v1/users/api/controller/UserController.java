@@ -14,10 +14,14 @@ package com.prx.backoffice.v1.users.api.controller;
 
 import com.prx.backoffice.util.MessageUtil;
 import com.prx.backoffice.v1.session.to.UserAliasTO;
+import com.prx.backoffice.v1.users.api.to.PatchUserUpdateRequest;
 import com.prx.backoffice.v1.users.api.to.UserCreateRequest;
 import com.prx.backoffice.v1.users.api.to.UserCreateResponse;
 import com.prx.backoffice.v1.users.api.to.UserTO;
 import com.prx.backoffice.v1.users.service.UserService;
+import com.prx.commons.general.pojo.Contact;
+import com.prx.commons.general.pojo.ContactType;
+import com.prx.commons.general.pojo.Person;
 import com.prx.commons.util.ValidatorCommonsUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -113,6 +117,51 @@ public class UserController implements UserApi {
     @Override
     public ResponseEntity<UserTO> link(UUID userId, UUID roleId) {
         return userService.roleLink(userId, roleId);
+    }
+
+    /// Converts a PutUserUpdateRequest to a UserTO.
+    private UserTO toUserTO(UUID userId, PatchUserUpdateRequest request) {
+        UserTO userTO = new UserTO();
+        userTO.setId(userId);
+        userTO.setPassword(request.password());
+        userTO.setDisplayName(request.displayName());
+        userTO.setActive(request.active());
+        userTO.setNotificationEmail(request.notificationEmail());
+        userTO.setNotificationSms(request.notificationSms());
+        userTO.setPrivacyDataOutActive(request.privacyDataOutActive());
+        // Map person fields
+        var person = new Person();
+        person.setFirstName(request.firstName());
+        person.setMiddleName(request.middleName());
+        person.setLastName(request.lastName());
+        person.setGender(request.gender());
+        person.setBirthdate(request.birthdate());
+        // Map contacts if present
+        if (request.contacts() != null) {
+            var contacts = request.contacts().stream().map(c -> {
+                var contact = new Contact();
+                contact.setId(c.id());
+                contact.setContent(c.content());
+                contact.setActive(c.active());
+                if (c.contactType() != null) {
+                    var contactType = new ContactType();
+                    contactType.setId(c.contactType().id());
+                    contact.setContactType(contactType);
+                }
+                return contact;
+            }).toList();
+            person.setContacts(contacts);
+        }
+        userTO.setPerson(person);
+        return userTO;
+    }
+
+    /// Updates a user using PutUserUpdateRequest by converting to UserTO and calling update.
+    @Override
+    public ResponseEntity<Void> patchUserDetail(UUID userId, PatchUserUpdateRequest request) {
+        return userService.update(userId, toUserTO(userId, request)).getStatusCode().is2xxSuccessful() ?
+                ResponseEntity.status(HttpStatus.ACCEPTED).build() :
+                ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build();
     }
 
 }

@@ -24,50 +24,68 @@ import java.util.UUID;
 /// UserCreateRequest is a record that represents the request payload for creating a new user.
 /// It contains user details such as alias, password, active status, personal information, roles, and service ID.
 ///
-/// @param id The unique identifier for the user.
-/// @param alias The unique alias for the user.
-/// @param password The password for the user.
-/// @param active Indicates if the user is active.
-/// @param person The person identifier for the user.
-/// @param roleId The roles assigned to the user.
+/// @param id            The unique identifier for the user.
+/// @param alias         The unique alias for the user.
+/// @param password      The password for the user.
+/// @param active        Indicates if the user is active.
+/// @param person        The person identifier for the user.
+/// @param roleId        The roles assigned to the user.
 /// @param applicationId The application identifier for the user.
 @JsonPropertyOrder({
         "id",
         "alias",
+        "displayName",
         "password",
-        "active",
+        "email",
+        "notificationEmail",
+        "notificationSms",
+        "privacyDataOutActive",
         "person",
         "roleId",
-        "applicationId"
+        "applicationId",
+        "active"
 })
-public record UserCreateRequest (
-     /// The unique identifier for the user.
-    UUID id,
+public record UserCreateRequest(
+        /// The unique identifier for the user.
+        UUID id,
 
-     /// The unique alias for the user.
-    @NotNull @NotBlank
-    String alias,
+        /// The unique alias for the user.
+        @NotNull @NotBlank
+        String alias,
 
-     /// The password for the user.
-    @NotNull @NotBlank
-    String password,
+        ///  Name to display
+        @NotNull @NotBlank
+        String displayName,
 
-     /// The email for the user.
-     @NotNull @NotBlank @Email
-     String email,
+        /// The password for the user.
+        @NotNull @NotBlank
+        String password,
 
-     /// Indicates if the user is active.
-    boolean active,
+        /// The email for the user.
+        @NotNull @NotBlank @Email
+        String email,
 
-     /// The person identifier for the user.
-    @NotNull
-    Person person,
+        /// Indicates if the notification email is enabled
+        boolean notificationEmail,
 
-    /// The roles assigned to the user.
-    @NotNull
-    UUID roleId,
+        /// Indicates if the notification sms is enabled
+        boolean notificationSms,
 
-     /// The application identifier for the user.
-    @NotNull
-    UUID applicationId) {
+        /// Indicates if the share data is enabled
+        boolean privacyDataOutActive,
+
+        /// Indicates if the user is active.
+        boolean active,
+
+        /// The person identifier for the user.
+        @NotNull
+        Person person,
+
+        /// The roles assigned to the user.
+        @NotNull
+        UUID roleId,
+
+        /// The application identifier for the user.
+        @NotNull
+        UUID applicationId) {
 }

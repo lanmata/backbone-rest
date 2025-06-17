@@ -55,8 +55,13 @@ public interface UserMapper {
     ///
     /// @param user the UserTO object to map from
     /// @return the mapped UserEntity object
+    @Mapping(target = "applicationRoleUser", expression = "java(ApplicationRoleUserMapper.getApplicationRoleUser(user))")
     @Mapping(target = "id", source = "id")
     @Mapping(target = "alias", source = "alias")
+    @Mapping(target = "displayName", source = "displayName")
+    @Mapping(target = "notificationEmail", source= "notificationEmail")
+    @Mapping(target = "notificationSms", source= "notificationSms")
+    @Mapping(target = "privacyDataOutActive", source= "privacyDataOutActive")
     @Mapping(target = "person", source = "person")
     UserEntity toSource(UserTO user);
 

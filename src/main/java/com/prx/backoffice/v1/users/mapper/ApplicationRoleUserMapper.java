@@ -14,16 +14,26 @@
 package com.prx.backoffice.v1.users.mapper;
 
 import com.prx.backoffice.v1.features.mapper.FeatureMapper;
+import com.prx.backoffice.v1.users.api.to.UserTO;
+import com.prx.commons.constants.types.MessageType;
+import com.prx.commons.exception.StandardException;
 import com.prx.commons.general.pojo.Application;
 import com.prx.commons.general.pojo.Role;
 import com.prx.commons.general.pojo.User;
 import com.prx.commons.services.config.mapper.MapperAppConfig;
+import com.prx.persistence.general.domains.ApplicationEntity;
 import com.prx.persistence.general.domains.ApplicationRoleUserEntity;
+import com.prx.persistence.general.domains.RoleEntity;
+import com.prx.persistence.general.domains.UserEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+
 /// Mapper interface for converting between ApplicationRoleUserEntity and various target objects.
-/// Utilizes MapStruct for automatic mapping.
+/// Uses MapStruct for automatic mapping.
 @Mapper(
         // Specifies the configuration class to use for this mapper.
         config = MapperAppConfig.class,
@@ -61,4 +71,43 @@ public interface ApplicationRoleUserMapper {
     @Mapping(target="active", source = "application.active")
     @Mapping(target="serviceTypeId", source = "application.serviceTypeId")
     Application toApplicationTarget(ApplicationRoleUserEntity applicationRoleUserEntity);
+
+    /// Maps a UserTO to a list of ApplicationRoleUserEntity objects.
+    ///
+    /// @param userTO the UserTO to map from
+    /// @return the set of ApplicationRoleUserEntity objects
+    static Set<ApplicationRoleUserEntity> getApplicationRoleUser(UserTO userTO) {
+        if (userTO == null || userTO.getRoles() == null) {
+            return java.util.Collections.emptySet();
+        }
+        Set<ApplicationRoleUserEntity> entities = new HashSet<>();
+        var applicationId = userTO.getApplications().stream().findFirst().orElseThrow(() -> new StandardException(MessageType.DEFAULT_MESSAGE)).getId();
+        //PENDING - I have to get only the application and roles linked for the current user
+        for (Role role : userTO.getRoles()) {
+            final var entity = getApplicationRoleUserEntity(userTO, role, applicationId);
+            entities.add(entity);
+        }
+        return entities;
+    }
+
+    private static ApplicationRoleUserEntity getApplicationRoleUserEntity(UserTO userTO, Role role, UUID applicationId) {
+        ApplicationRoleUserEntity entity = new ApplicationRoleUserEntity();
+        ApplicationEntity applicationEntity =  new ApplicationEntity();
+        applicationEntity.setId(applicationId);
+        entity.setApplication(applicationEntity);
+        entity.setActive(role.getActive());
+        // Set Role
+        RoleEntity roleEntity = new RoleEntity();
+        roleEntity.setId(role.getId());
+        roleEntity.setName(role.getName());
+        roleEntity.setDescription(role.getDescription());
+        roleEntity.setActive(role.getActive());
+        entity.setRole(roleEntity);
+        // Set User
+        UserEntity userEntity = new UserEntity();
+        userEntity.setId(userTO.getId());
+        entity.setUser(userEntity);
+
+        return entity;
+    }
 }

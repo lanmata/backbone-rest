@@ -97,13 +97,19 @@ class UserServiceImplTest {
         person.setLastName("Doe");
         person.setMiddleName("Middle Name");
 
+        Role role = new Role();
+        role.setActive(true);
+        role.setDescription("Description");
+        role.setId(UUID.randomUUID());
+        role.setName("Role");
+
         UserTO user = new UserTO();
         user.setActive(true);
         user.setAlias("Alias");
         user.setId(userId);
         user.setPassword("iloveyou");
         user.setPerson(person);
-        user.setRoles(new HashSet<>());
+        user.setRoles(Set.of(role));
 
         PersonEntity personEntity = new PersonEntity();
         personEntity.setId(person.getId());
@@ -113,13 +119,24 @@ class UserServiceImplTest {
         personEntity.setName(person.getFirstName());
         personEntity.setMiddleName(person.getMiddleName());
 
+        RoleEntity roleEntity = new RoleEntity();
+        role.setActive(true);
+        role.setDescription("Description");
+        role.setId(UUID.randomUUID());
+        role.setName("Role");
+
         UserEntity userEntity = new UserEntity();
         userEntity.setId(userId);
         userEntity.setAlias(user.getAlias());
         userEntity.setActive(user.isActive());
         userEntity.setPassword(user.getPassword());
         userEntity.setPerson(personEntity);
-        userEntity.setApplicationRoleUser(new HashSet<>());
+
+        ApplicationRoleUserEntity applicationRoleUserEntity = new ApplicationRoleUserEntity();
+        applicationRoleUserEntity.setRole(roleEntity);
+        applicationRoleUserEntity.setUser(userEntity);
+
+        userEntity.setApplicationRoleUser(Set.of(applicationRoleUserEntity));
 
         final var responsePerson = ResponseEntity.ok(person);
 
@@ -529,7 +546,7 @@ class UserServiceImplTest {
         when(userRepository.findByAlias(Mockito.anyString())).thenReturn(null);
         when(userMapper.toUserCreateResponse(Mockito.any(UserEntity.class))).thenReturn(getUserCreateResponse(userCreateRequest));
         when(applicationRoleUserRepository.save(Mockito.any(ApplicationRoleUserEntity.class))).thenReturn(applicationRoleUserEntity);
-        when(personService.create(Mockito.any(Person.class))).thenReturn(ResponseEntity.status(HttpStatus.CREATED).body(getPerson()));
+        when(personService.create(Mockito.any(Person.class))).thenReturn(ResponseEntity.status(HttpStatus.CREATED).body(createIfNonExist()));
         when(userMapper.toSource(userCreateRequest)).thenReturn(userEntity);
         when(userRepository.save(any(UserEntity.class))).thenReturn(userEntity);
         when(userMapper.toUserCreateResponse(any(UserEntity.class))).thenReturn(getUserCreateResponse(userCreateRequest));
@@ -549,8 +566,12 @@ class UserServiceImplTest {
         return new UserCreateRequest(
                 null,
                 alias,
+                "display name",
                 password,
                 email,
+                true,
+                true,
+                true,
                 true,
                 new Person(),
                 roleId,
@@ -562,9 +583,13 @@ class UserServiceImplTest {
         return new UserCreateResponse(
                 UUID.randomUUID(),
                 userCreateRequest.alias(),
+                userCreateRequest.displayName(),
                 userCreateRequest.email(),
                 LocalDateTime.now(),
                 LocalDateTime.now(),
+                userCreateRequest.notificationEmail(),
+                userCreateRequest.notificationEmail(),
+                userCreateRequest.privacyDataOutActive(),
                 userCreateRequest.active(),
                 UUID.randomUUID(),
                 UUID.randomUUID(),
@@ -580,13 +605,13 @@ class UserServiceImplTest {
         userTO.setAlias(alias);
         userTO.setId(uuid);
         userTO.setPassword(password);
-        userTO.setPerson(getPerson());
+        userTO.setPerson(createIfNonExist());
         userTO.setRoles(new HashSet<>());
 
         return userTO;
     }
 
-    private static Person getPerson() {
+    private static Person createIfNonExist() {
         Person person = new Person();
         var uuid = UUID.randomUUID();
         person.setBirthdate(LocalDate.of(1970, 1, 1));

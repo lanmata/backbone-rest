@@ -31,11 +31,23 @@ public record UserCreateResponse(
         /// The email of the user.
         String email,
 
+        /// The display name of the user.
+        String displayName,
+
         /// The date and time when the user was created.
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime createdDate,
 
         /// The date and time when the user was last updated.
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime lastUpdate,
+
+        /// Indicates if the user has opted to receive email notifications.
+        Boolean notificationEmail,
+
+        /// Indicates if the user has opted to receive SMS notifications.
+        Boolean notificationSms,
+
+        /// Indicates if the user has activated privacy data output.
+        Boolean privacyDataOutActive,
 
         /// The active status of the user.
         boolean active,
