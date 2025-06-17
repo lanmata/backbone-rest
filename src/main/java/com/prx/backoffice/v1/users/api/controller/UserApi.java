@@ -15,6 +15,7 @@ package com.prx.backoffice.v1.users.api.controller;
 
 import com.prx.backoffice.util.MessageUtil;
 import com.prx.backoffice.v1.session.to.UserAliasTO;
+import com.prx.backoffice.v1.users.api.to.PatchUserUpdateRequest;
 import com.prx.backoffice.v1.users.api.to.UserCreateRequest;
 import com.prx.backoffice.v1.users.api.to.UserCreateResponse;
 import com.prx.backoffice.v1.users.api.to.UserTO;
@@ -152,7 +153,7 @@ public interface UserApi {
             @ApiResponse(responseCode = "400", description = "The user requested doesn't have a person associated."),
             @ApiResponse(responseCode = "400", description = "Invalid user")
     })
-    @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/{userId}")
+    @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/{userId}/full-detail")
     default ResponseEntity<UserTO> update(@Parameter(description = STR_ID_USER) @PathVariable(name = "userId") UUID userId,
                                           @Parameter(description = "UserTO content") @RequestBody @Valid @NotNull UserTO user) {
         return getService().update(userId, user);
@@ -186,5 +187,22 @@ public interface UserApi {
     default ResponseEntity<UserTO> link(@Parameter(description = STR_ID_USER) @PathVariable @NotBlank UUID userId,
                                         @Parameter(description = "Role ID") @PathVariable @NotBlank UUID roleId) {
         return getService().roleLink(userId, roleId);
+    }
+
+    /// Updates a user using PutUserUpdateRequest.
+    ///
+    /// @param userId the user ID
+    /// @param request the PatchUserUpdateRequest body
+    /// @return the response entity with the update status
+    @Operation(description = "patchUserDetail(partial update) a user with PatchUserUpdateRequest")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = MessageUtil.ACCEPTED, description = "User updated and accepted"),
+            @ApiResponse(responseCode = MessageUtil.NOT_ACCEPTABLE, description = "User update rejected")
+    })
+    @PatchMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/{userId}")
+    default ResponseEntity<Void> patchUserDetail(@Parameter(description = STR_ID_USER) @PathVariable(name = "userId") UUID userId,
+                                                 @Parameter(description = "PatchUserUpdateRequest content") @RequestBody @Valid @NotNull PatchUserUpdateRequest request) {
+        // Call controller's conversion and update logic
+        return ((UserController)this).patchUserDetail(userId, request);
     }
 }
