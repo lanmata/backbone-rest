@@ -34,6 +34,7 @@ public class UserTO {
     private String password;
     @Email
     private String email;
+    private String displayName;
     @JsonFormat(
             pattern = "yyyy-MM-dd HH:mm:ss"
     )
@@ -43,6 +44,9 @@ public class UserTO {
     )
     private LocalDateTime lastUpdate;
     private boolean active;
+    private Boolean notificationEmail;
+    private Boolean notificationSms;
+    private Boolean privacyDataOutActive;
     private Person person;
     private Set<Role> roles;
     private Set<Application> applications;
@@ -78,6 +82,10 @@ public class UserTO {
 
     public String getEmail() {
         return email;
+    }
+
+    public String getDisplayName() {
+        return displayName;
     }
 
     public void setEmail(String email) {
@@ -132,6 +140,34 @@ public class UserTO {
         this.applications = applications;
     }
 
+    public Boolean getNotificationEmail() {
+        return notificationEmail;
+    }
+
+    public void setNotificationEmail(Boolean notificationEmail) {
+        this.notificationEmail = notificationEmail;
+    }
+
+    public Boolean getNotificationSms() {
+        return notificationSms;
+    }
+
+    public void setNotificationSms(Boolean notificationSms) {
+        this.notificationSms = notificationSms;
+    }
+
+    public Boolean getPrivacyDataOutActive() {
+        return privacyDataOutActive;
+    }
+
+    public void setPrivacyDataOutActive(Boolean privacyDataOutActive) {
+        this.privacyDataOutActive = privacyDataOutActive;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+    }
+
     @Override
     public String toString() {
         return "UserTO{" +
@@ -139,9 +175,13 @@ public class UserTO {
                 ", alias='" + alias + '\'' +
                 ", password='" + password + '\'' +
                 ", email='" + email + '\'' +
+                ", displayName='" + displayName + '\'' +
                 ", active=" + active +
                 ", person=" + person +
                 ", roles=" + roles +
+                "notificationEmail=" + notificationEmail +
+                ", notificationSms=" + notificationSms +
+                ", privacyDataOutActive=" + privacyDataOutActive +
                 ", applications=" + applications +
                 '}';
     }

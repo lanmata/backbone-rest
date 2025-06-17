@@ -153,7 +153,7 @@ public interface UserApi {
             @ApiResponse(responseCode = "400", description = "Invalid user")
     })
     @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/{userId}")
-    default ResponseEntity<UserTO> update(@Parameter(description = STR_ID_USER) @PathVariable @NotBlank UUID userId,
+    default ResponseEntity<UserTO> update(@Parameter(description = STR_ID_USER) @PathVariable(name = "userId") UUID userId,
                                           @Parameter(description = "UserTO content") @RequestBody @Valid @NotNull UserTO user) {
         return getService().update(userId, user);
     }

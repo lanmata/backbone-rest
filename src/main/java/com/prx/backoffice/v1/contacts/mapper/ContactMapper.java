@@ -13,11 +13,10 @@
 package com.prx.backoffice.v1.contacts.mapper;
 
 import com.prx.backoffice.v1.contacttypes.mapper.ContactTypeMapper;
-import com.prx.backoffice.v1.people.mapper.PersonMapper;
 import com.prx.commons.general.pojo.Contact;
 import com.prx.persistence.general.domains.ContactEntity;
-import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 /**
  * ContactMapper.
@@ -25,11 +24,11 @@ import org.mapstruct.Mapper;
  * @author Luis Antonio Mata
  * @version 1.0.0, 20-10-2020
  */
-@Mapper(componentModel = "spring", uses = {ContactTypeMapper.class, PersonMapper.class})
+@Mapper(componentModel = "spring", uses = {ContactTypeMapper.class})
 public interface ContactMapper {
 
+    @Mapping(target = "person", ignore = true)
     Contact toTarget(ContactEntity contactEntity);
 
-    @InheritInverseConfiguration
     ContactEntity toSource(Contact contact);
 }
