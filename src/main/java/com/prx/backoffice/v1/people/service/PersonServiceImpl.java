@@ -47,12 +47,19 @@ public class PersonServiceImpl implements PersonService {
 
 	/** {@inheritDoc} */
 	public ResponseEntity<Person> create(Person person) {
-		ResponseEntity<PersonEntity> responseEntity = esNulo(person) ?
-				ResponseEntity.notFound().build(): new ResponseEntity<>(personRepository
-				.save(personMapper.toSource(person)), HttpStatus.CREATED);
-		LOGGER.info(responseEntity.getStatusCode().toString());
-		return new ResponseEntity<>(
-				personMapper.toTarget(responseEntity.getBody()), responseEntity.getStatusCode());
+		if (esNulo(person)) {
+			return ResponseEntity.notFound().build();
+		}
+		PersonEntity personEntity = personMapper.toSource(person);
+		// Fix: Set person reference in each contact entity
+		if (personEntity.getContacts() != null) {
+			for (var contact : personEntity.getContacts()) {
+				contact.setPerson(personEntity);
+			}
+		}
+		PersonEntity savedEntity = personRepository.save(personEntity);
+		LOGGER.info(HttpStatus.CREATED.toString());
+		return new ResponseEntity<>(personMapper.toTarget(savedEntity), HttpStatus.CREATED);
 	}
 
 	@Override
