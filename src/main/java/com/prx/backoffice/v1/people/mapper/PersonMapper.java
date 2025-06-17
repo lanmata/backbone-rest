@@ -12,6 +12,7 @@
  */
 package com.prx.backoffice.v1.people.mapper;
 
+import com.prx.backoffice.v1.contacts.mapper.ContactMapper;
 import com.prx.commons.general.pojo.Person;
 import com.prx.commons.services.config.mapper.MapperAppConfig;
 import com.prx.persistence.general.domains.PersonEntity;
@@ -28,7 +29,8 @@ import org.mapstruct.Mapping;
  */
 @Mapper(
         // Specifies the configuration class to use for this mapper.
-        config = MapperAppConfig.class
+        config = MapperAppConfig.class,
+        uses = {ContactMapper.class}
 )
 public interface PersonMapper {
 

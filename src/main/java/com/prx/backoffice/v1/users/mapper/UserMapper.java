@@ -45,6 +45,9 @@ public interface UserMapper {
     @Mapping(target = "roles", source = "applicationRoleUser")
     @Mapping(target = "applications", source = "applicationRoleUser")
     @Mapping(target = "email", source = "email")
+    @Mapping(target = "notificationEmail", source="notificationEmail")
+    @Mapping(target = "notificationSms", source = "notificationSms")
+    @Mapping(target = "privacyDataOutActive", source = "privacyDataOutActive")
     UserTO toTarget(UserEntity userEntity);
 
     /// Maps a UserTO object to a UserEntity object.
