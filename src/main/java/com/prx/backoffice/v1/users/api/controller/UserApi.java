@@ -15,7 +15,7 @@ package com.prx.backoffice.v1.users.api.controller;
 
 import com.prx.backoffice.util.MessageUtil;
 import com.prx.backoffice.v1.session.to.UserAliasTO;
-import com.prx.backoffice.v1.users.api.to.PatchUserUpdateRequest;
+import com.prx.backoffice.v1.users.api.to.PutUserUpdateRequest;
 import com.prx.backoffice.v1.users.api.to.UserCreateRequest;
 import com.prx.backoffice.v1.users.api.to.UserCreateResponse;
 import com.prx.backoffice.v1.users.api.to.UserTO;
@@ -194,15 +194,15 @@ public interface UserApi {
     /// @param userId the user ID
     /// @param request the PatchUserUpdateRequest body
     /// @return the response entity with the update status
-    @Operation(description = "patchUserDetail(partial update) a user with PatchUserUpdateRequest")
+    @Operation(description = "putUserDetail(partial update) a user with PutUserUpdateRequest")
     @ApiResponses(value = {
             @ApiResponse(responseCode = MessageUtil.ACCEPTED, description = "User updated and accepted"),
             @ApiResponse(responseCode = MessageUtil.NOT_ACCEPTABLE, description = "User update rejected")
     })
-    @PatchMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/{userId}")
-    default ResponseEntity<Void> patchUserDetail(@Parameter(description = STR_ID_USER) @PathVariable(name = "userId") UUID userId,
-                                                 @Parameter(description = "PatchUserUpdateRequest content") @RequestBody @Valid @NotNull PatchUserUpdateRequest request) {
+    @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE, path = "/{userId}")
+    default ResponseEntity<Void> putUserDetail(@Parameter(description = STR_ID_USER) @PathVariable @NotNull UUID userId,
+                                               @Parameter(description = "PatchUserUpdateRequest content") @Valid @NotNull @RequestBody PutUserUpdateRequest request) {
         // Call controller's conversion and update logic
-        return ((UserController)this).patchUserDetail(userId, request);
+        return ((UserController)this).putUserDetail(userId, request);
     }
 }
