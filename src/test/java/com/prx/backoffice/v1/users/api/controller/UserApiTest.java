@@ -1,6 +1,6 @@
 package com.prx.backoffice.v1.users.api.controller;
 
-import com.prx.backoffice.v1.users.api.to.PatchUserUpdateRequest;
+import com.prx.backoffice.v1.users.api.to.PutUserUpdateRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -19,12 +19,12 @@ class UserApiTest {
 
     @Test
     @DisplayName("Should return ACCEPTED when patchUserDetail is successful")
-    void patchUserDetailAccepted() {
+    void putUserDetailAccepted() {
         UserController controller = mock(UserController.class);
-        Mockito.when(controller.patchUserDetail(any(UUID.class), any(PatchUserUpdateRequest.class)))
+        Mockito.when(controller.putUserDetail(any(UUID.class), any(PutUserUpdateRequest.class)))
                 .thenReturn(ResponseEntity.status(HttpStatus.ACCEPTED).build());
         UserApi api = (UserApi) controller;
-        ResponseEntity<Void> response = api.patchUserDetail(UUID.randomUUID(), new PatchUserUpdateRequest(
+        ResponseEntity<Void> response = api.putUserDetail(UUID.randomUUID(), new PutUserUpdateRequest(
                 "12345678",
                 "ltnt",
                 true,
@@ -36,19 +36,19 @@ class UserApiTest {
                 "Bolson",
                 "M",
                 LocalDate.of(1300, 01, 01),
-                List.of(new PatchUserUpdateRequest.Contact(UUID.randomUUID(), "4165895269", new PatchUserUpdateRequest.ContactType(UUID.randomUUID()), true))
+                List.of(new PutUserUpdateRequest.Contact(UUID.randomUUID(), "4165895269", new PutUserUpdateRequest.ContactType(UUID.randomUUID()), true))
         ));
         assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
     }
 
     @Test
     @DisplayName("Should return NOT_ACCEPTABLE when patchUserDetail is rejected")
-    void patchUserDetailRejected() {
+    void putUserDetailRejected() {
         UserController controller = mock(UserController.class);
-        Mockito.when(controller.patchUserDetail(any(UUID.class), any(PatchUserUpdateRequest.class)))
+        Mockito.when(controller.putUserDetail(any(UUID.class), any(PutUserUpdateRequest.class)))
                 .thenReturn(ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build());
         UserApi api = (UserApi) controller;
-        ResponseEntity<Void> response = api.patchUserDetail(UUID.randomUUID(), new PatchUserUpdateRequest(
+        ResponseEntity<Void> response = api.putUserDetail(UUID.randomUUID(), new PutUserUpdateRequest(
                 "12345678",
                 "ltnt",
                 true,

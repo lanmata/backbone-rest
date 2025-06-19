@@ -10,7 +10,7 @@ import java.util.UUID;
  * Record representing a request to update a user with all necessary fields.
  * </p>
  */
-public record PatchUserUpdateRequest(
+public record PutUserUpdateRequest(
         String password,
         String displayName,
         boolean active,

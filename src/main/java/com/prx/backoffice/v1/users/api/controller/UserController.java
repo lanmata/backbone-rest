@@ -14,7 +14,7 @@ package com.prx.backoffice.v1.users.api.controller;
 
 import com.prx.backoffice.util.MessageUtil;
 import com.prx.backoffice.v1.session.to.UserAliasTO;
-import com.prx.backoffice.v1.users.api.to.PatchUserUpdateRequest;
+import com.prx.backoffice.v1.users.api.to.PutUserUpdateRequest;
 import com.prx.backoffice.v1.users.api.to.UserCreateRequest;
 import com.prx.backoffice.v1.users.api.to.UserCreateResponse;
 import com.prx.backoffice.v1.users.api.to.UserTO;
@@ -120,7 +120,7 @@ public class UserController implements UserApi {
     }
 
     /// Converts a PutUserUpdateRequest to a UserTO.
-    private UserTO toUserTO(UUID userId, PatchUserUpdateRequest request) {
+    private UserTO toUserTO(UUID userId, PutUserUpdateRequest request) {
         UserTO userTO = new UserTO();
         userTO.setId(userId);
         userTO.setPassword(request.password());
@@ -158,7 +158,7 @@ public class UserController implements UserApi {
 
     /// Updates a user using PutUserUpdateRequest by converting to UserTO and calling update.
     @Override
-    public ResponseEntity<Void> patchUserDetail(UUID userId, PatchUserUpdateRequest request) {
+    public ResponseEntity<Void> putUserDetail(UUID userId, PutUserUpdateRequest request) {
         return userService.update(userId, toUserTO(userId, request)).getStatusCode().is2xxSuccessful() ?
                 ResponseEntity.status(HttpStatus.ACCEPTED).build() :
                 ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build();

@@ -11,17 +11,17 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Unit tests for PutUserUpdateRequest record.
  */
-class PatchUserUpdateRequestTest {
+class PutUserUpdateRequestTest {
 
     @Test
     @DisplayName("Should create record and validate all getters")
     void testRecordCreationAndGetters() {
         UUID contactId = UUID.randomUUID();
         UUID contactTypeId = UUID.randomUUID();
-        PatchUserUpdateRequest.ContactType contactType = new PatchUserUpdateRequest.ContactType(contactTypeId);
-        PatchUserUpdateRequest.Contact contact = new PatchUserUpdateRequest.Contact(contactId, "(+1) 4167483988", contactType, true);
+        PutUserUpdateRequest.ContactType contactType = new PutUserUpdateRequest.ContactType(contactTypeId);
+        PutUserUpdateRequest.Contact contact = new PutUserUpdateRequest.Contact(contactId, "(+1) 4167483988", contactType, true);
         LocalDate birthdate = LocalDate.of(1998, 2, 12);
-        PatchUserUpdateRequest request = new PatchUserUpdateRequest(
+        PutUserUpdateRequest request = new PutUserUpdateRequest(
                 "ABCGTDhj23445676",
                 "Mati",
                 true,
@@ -56,8 +56,8 @@ class PatchUserUpdateRequestTest {
     void testContactToString() {
         UUID contactId = UUID.randomUUID();
         UUID contactTypeId = UUID.randomUUID();
-        PatchUserUpdateRequest.ContactType contactType = new PatchUserUpdateRequest.ContactType(contactTypeId);
-        PatchUserUpdateRequest.Contact contact = new PatchUserUpdateRequest.Contact(contactId, "(+1) 4167483988", contactType, true);
+        PutUserUpdateRequest.ContactType contactType = new PutUserUpdateRequest.ContactType(contactTypeId);
+        PutUserUpdateRequest.Contact contact = new PutUserUpdateRequest.Contact(contactId, "(+1) 4167483988", contactType, true);
         String str = contact.toString();
         assertTrue(str.contains("Contact{"));
         assertTrue(str.contains(contactId.toString()));
@@ -68,7 +68,7 @@ class PatchUserUpdateRequestTest {
     @DisplayName("Should return correct string representation for ContactType")
     void testContactTypeToString() {
         UUID contactTypeId = UUID.randomUUID();
-        PatchUserUpdateRequest.ContactType contactType = new PatchUserUpdateRequest.ContactType(contactTypeId);
+        PutUserUpdateRequest.ContactType contactType = new PutUserUpdateRequest.ContactType(contactTypeId);
         String str = contactType.toString();
         assertTrue(str.contains("ContactType{"));
         assertTrue(str.contains(contactTypeId.toString()));
@@ -79,10 +79,10 @@ class PatchUserUpdateRequestTest {
     void testToString() {
         UUID contactId = UUID.randomUUID();
         UUID contactTypeId = UUID.randomUUID();
-        PatchUserUpdateRequest.ContactType contactType = new PatchUserUpdateRequest.ContactType(contactTypeId);
-        PatchUserUpdateRequest.Contact contact = new PatchUserUpdateRequest.Contact(contactId, "(+1) 4167483988", contactType, true);
+        PutUserUpdateRequest.ContactType contactType = new PutUserUpdateRequest.ContactType(contactTypeId);
+        PutUserUpdateRequest.Contact contact = new PutUserUpdateRequest.Contact(contactId, "(+1) 4167483988", contactType, true);
         LocalDate birthdate = LocalDate.of(1998, 2, 12);
-        PatchUserUpdateRequest request = new PatchUserUpdateRequest(
+        PutUserUpdateRequest request = new PutUserUpdateRequest(
                 "ABCGTDhj23445676",
                 "Mati",
                 true,
@@ -109,7 +109,7 @@ class PatchUserUpdateRequestTest {
     @Test
     @DisplayName("Should handle null contacts list")
     void testNullContacts() {
-        PatchUserUpdateRequest request = new PatchUserUpdateRequest(
+        PutUserUpdateRequest request = new PutUserUpdateRequest(
                 "pass",
                 "disp",
                 false,
