@@ -135,6 +135,7 @@ public class UserServiceImpl implements UserService {
                     previousUser.setPassword(user.getPassword());
                 }
 
+                previousUser.setPerson(previousPerson);
                 previousUser.setNotificationEmail(user.getNotificationEmail());
                 previousUser.setNotificationSms(user.getNotificationSms());
                 previousUser.setPrivacyDataOutActive(user.getPrivacyDataOutActive());
