@@ -113,21 +113,33 @@ public class UserServiceImpl implements UserService {
             if (HttpStatus.OK.equals(userResponseEntity.getStatusCode()) && Objects.nonNull(userResponseEntity.getBody())) {
                 var previousUser = userResponseEntity.getBody();
                 var previousPerson = previousUser.getPerson();
-                previousPerson.setBirthdate(user.getPerson().getBirthdate());
-                previousPerson.setGender(user.getPerson().getGender());
-                previousPerson.setFirstName(user.getPerson().getFirstName());
-                previousPerson.setLastName(user.getPerson().getLastName());
-                previousPerson.setContacts(user.getPerson().getContacts());
+                if (Objects.nonNull(user.getPerson().getGender()) && !user.getPerson().getGender().isEmpty()) {
+                    previousPerson.setGender(user.getPerson().getGender());
+                }
+                if (Objects.nonNull(user.getPerson().getBirthdate())) {
+                    previousPerson.setBirthdate(user.getPerson().getBirthdate());
+                }
+                if (Objects.nonNull(user.getPerson().getFirstName()) && !user.getPerson().getFirstName().isEmpty()) {
+                    previousPerson.setFirstName(user.getPerson().getFirstName());
+                }
+                if (Objects.nonNull(user.getPerson().getLastName()) && !user.getPerson().getLastName().isEmpty()) {
+                    previousPerson.setLastName(user.getPerson().getLastName());
+                }
+                if (Objects.nonNull(user.getPerson().getContacts())) {
+                    previousPerson.setContacts(user.getPerson().getContacts());
+                }
+                if (Objects.nonNull(user.getDisplayName()) && !user.getDisplayName().isEmpty()) {
+                    previousUser.setDisplayName(user.getDisplayName());
+                }
+                if (Objects.nonNull(user.getPassword()) && !user.getPassword().isEmpty() && !previousUser.getPassword().equals(user.getPassword())) {
+                    previousUser.setPassword(user.getPassword());
+                }
 
                 previousUser.setNotificationEmail(user.getNotificationEmail());
                 previousUser.setNotificationSms(user.getNotificationSms());
                 previousUser.setPrivacyDataOutActive(user.getPrivacyDataOutActive());
                 previousUser.setActive(user.isActive());
                 previousUser.setLastUpdate(LocalDateTime.now());
-                previousUser.setDisplayName(user.getDisplayName());
-                if(!previousUser.getPassword().equals(user.getPassword())) {
-                    previousUser.setPassword(user.getPassword());
-                }
 
                 final var userEntity = userMapper.toSource(previousUser);
                 userEntity.setId(userId);
