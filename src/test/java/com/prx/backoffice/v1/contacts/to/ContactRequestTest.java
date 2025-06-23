@@ -43,7 +43,6 @@ class ContactRequestTest {
         person.setId(UUID.randomUUID());
         person.setLastName("Perez");
         person.setMiddleName("Peter");
-        contact.setPerson(person);
         contactType.setId(UUID.randomUUID());
         contactType.setActive(true);
         contactType.setName("Contact TST 001");
@@ -61,7 +60,6 @@ class ContactRequestTest {
         assertAll(() -> assertNotNull(contactRequest),
                 () -> assertNotNull(contactRequest.getContact()),
                 () -> assertEquals(uuid, contactRequest.getContact().getId()),
-                () -> assertNotNull(contactRequest.getContact().getPerson()),
                 () -> assertNotNull(contactRequest.getContact().getContactType()),
                 () -> assertNotNull(contactRequest.getContact().getActive()),
                 () -> assertNotNull(contactRequest.getContact().getContent()),

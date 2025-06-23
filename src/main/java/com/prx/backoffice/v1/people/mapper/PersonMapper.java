@@ -12,13 +12,17 @@
  */
 package com.prx.backoffice.v1.people.mapper;
 
-import com.prx.backoffice.v1.contacts.mapper.ContactMapper;
+import com.prx.commons.general.pojo.Contact;
+import com.prx.commons.general.pojo.ContactType;
 import com.prx.commons.general.pojo.Person;
 import com.prx.commons.services.config.mapper.MapperAppConfig;
+import com.prx.persistence.general.domains.ContactEntity;
+import com.prx.persistence.general.domains.ContactTypeEntity;
 import com.prx.persistence.general.domains.PersonEntity;
-import org.mapstruct.InheritInverseConfiguration;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import org.mapstruct.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Mapper interface for converting between Person and PersonEntity objects.
@@ -29,8 +33,7 @@ import org.mapstruct.Mapping;
  */
 @Mapper(
         // Specifies the configuration class to use for this mapper.
-        config = MapperAppConfig.class,
-        uses = {ContactMapper.class}
+        config = MapperAppConfig.class
 )
 public interface PersonMapper {
 
@@ -52,4 +55,54 @@ public interface PersonMapper {
      */
     @InheritInverseConfiguration
     PersonEntity toSource(Person person);
+
+
+
+    default List<Contact> getContactList(PersonEntity personEntity) {
+        List<Contact> contactList = new ArrayList<>();
+        personEntity.getContacts().forEach(contactEntity -> {
+            ContactType contactType = new ContactType();
+            contactType.setId(contactEntity.getContactType().getId());
+            contactType.setActive(contactEntity.getActive());
+            contactType.setName(contactEntity.getContactType().getName());
+            contactType.setDescription(contactEntity.getContactType().getDescription());
+            Contact contact = new Contact();
+            contact.setId(contactEntity.getId());
+            contact.setContent(contactEntity.getContent());
+            contact.setActive(contactEntity.getActive());
+            contact.setContactType(contactType);
+            contactList.add(contact);
+        });
+        return contactList;
+    }
+
+    default List<ContactEntity> getContactEntityList(Person person) {
+        List<ContactEntity> contactEntityList = new ArrayList<>();
+        if (person != null && person.getContacts() != null) {
+            for (Contact contact : person.getContacts()) {
+                ContactEntity contactEntity = new ContactEntity();
+                if (contact.getContactType() != null) {
+                    contactEntity.setContactType(new ContactTypeEntity());
+                    contactEntity.getContactType().setId(contact.getContactType().getId());
+                    contactEntity.getContactType().setName(contact.getContactType().getName());
+                    contactEntity.getContactType().setDescription(contact.getContactType().getDescription());
+                    contactEntity.getContactType().setActive(contact.getContactType().getActive());
+                }
+                contactEntity.setId(contact.getId());
+                contactEntity.setContent(contact.getContent());
+                contactEntity.setActive(contact.getActive());
+                contactEntityList.add(contactEntity);
+            }
+        }
+        return contactEntityList;
+    }
+
+    @AfterMapping
+    default void linkContacts(@MappingTarget PersonEntity personEntity) {
+        if (personEntity.getContacts() != null) {
+            for (ContactEntity contact : personEntity.getContacts()) {
+                contact.setPerson(personEntity);
+            }
+        }
+    }
 }

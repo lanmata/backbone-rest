@@ -39,7 +39,7 @@ class ContactServiceTest {
     @Test
     @DisplayName("Test create method")
     void create() {
-        assertThrows(NotImplementedException.class, () -> contactService.create(new Contact()));
+        assertThrows(NotImplementedException.class, () -> contactService.create(UUID.randomUUID(), new Contact()));
     }
 
     @Test

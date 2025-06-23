@@ -192,7 +192,7 @@ public interface UserApi {
     /// Updates a user using PutUserUpdateRequest.
     ///
     /// @param userId the user ID
-    /// @param request the PatchUserUpdateRequest body
+    /// @param request the PutUserUpdateRequest body
     /// @return the response entity with the update status
     @Operation(description = "putUserDetail(partial update) a user with PutUserUpdateRequest")
     @ApiResponses(value = {
@@ -201,7 +201,7 @@ public interface UserApi {
     })
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE, path = "/{userId}")
     default ResponseEntity<Void> putUserDetail(@Parameter(description = STR_ID_USER) @PathVariable @NotNull UUID userId,
-                                               @Parameter(description = "PatchUserUpdateRequest content") @Valid @NotNull @RequestBody PutUserUpdateRequest request) {
+                                               @Parameter(description = "PutUserUpdateRequest content") @Valid @NotNull @RequestBody PutUserUpdateRequest request) {
         // Call controller's conversion and update logic
         return ((UserController)this).putUserDetail(userId, request);
     }

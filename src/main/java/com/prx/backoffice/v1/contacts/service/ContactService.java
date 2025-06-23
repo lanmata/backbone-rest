@@ -45,7 +45,7 @@ public interface ContactService extends CrudService<UUID, Contact> {
      * @param contact {@link Contact} object type.
      * @return {@link ResponseEntity} object type with a {@link Contact} object type.
      */
-    default ResponseEntity<Contact> create(Contact contact) {
+    default ResponseEntity<Contact> create(UUID personId, Contact contact) {
         throw new NotImplementedException();
     }
 

@@ -204,7 +204,6 @@ class UserServiceImplTest {
         ApplicationRoleUserEntityId userRolePK = new ApplicationRoleUserEntityId();
         userRolePK.setUserId(userEntity.getId());
         userRolePK.setRoleId(roleEntity.getId());
-//        applicationRoleUserEntity.setUserRolePK(userRolePK);
         userEntity.setApplicationRoleUser(Set.of(applicationRoleUserEntity));
 
         userEntity.setApplicationRoleUser(Set.of(applicationRoleUserEntity));
@@ -502,21 +501,20 @@ class UserServiceImplTest {
         assertEquals("Role is required", response.getHeaders().getFirst(HttpHeaders.WARNING));
     }
 
-//    @Test
-//    @DisplayName("Test create user with existing alias")
-//    void testCreateUserWithExistingAlias() {
-//        String alias = "alias";
-//        String password = "password";
-//        var userTO = getUserTO(alias, password);
-//        userTO.getRoles().add(new Role());
-//
-//        when(userRepository.findByAlias(Mockito.anyString())).thenReturn(getUserEntity(alias, password));
-//        when(userMapper.toTarget(Mockito.any(UserEntity.class))).thenReturn(userTO);
-//
-//        ResponseEntity<UserTO> response = userServiceImpl.create(userTO);
-//        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-//        assertEquals("User previously exist.", response.getHeaders().getFirst(HttpHeaders.WARNING));
-//    }
+    @Test
+    @DisplayName("Test create user with existing alias")
+    void testCreateUserWithExistingAlias() {
+        String alias = "alias";
+        String password = "password";
+        var userTO = getUserTO(alias, password);
+        userTO.getRoles().add(new Role());
+
+        when(userRepository.findByAlias(Mockito.anyString())).thenReturn(getUserEntity(alias, password));
+        when(userMapper.toTarget(Mockito.any(UserEntity.class))).thenReturn(userTO);
+
+        ResponseEntity<UserTO> response = userServiceImpl.create(userTO);
+        assertEquals(HttpStatus.NOT_IMPLEMENTED, response.getStatusCode());
+    }
 
     @Test
     @DisplayName("Test create user successfully")
