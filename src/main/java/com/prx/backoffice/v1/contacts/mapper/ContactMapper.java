@@ -27,7 +27,6 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring", uses = {ContactTypeMapper.class})
 public interface ContactMapper {
 
-    @Mapping(target = "person", ignore = true)
     Contact toTarget(ContactEntity contactEntity);
 
     ContactEntity toSource(Contact contact);

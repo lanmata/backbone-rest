@@ -22,8 +22,10 @@ import com.prx.backoffice.v1.users.api.to.UserCreateRequest;
 import com.prx.backoffice.v1.users.api.to.UserCreateResponse;
 import com.prx.backoffice.v1.users.api.to.UserTO;
 import com.prx.backoffice.v1.users.mapper.UserMapper;
+import com.prx.commons.general.pojo.Person;
 import com.prx.persistence.general.domains.*;
 import com.prx.persistence.general.repositories.ApplicationRoleUserRepository;
+import com.prx.persistence.general.repositories.ContactRepository;
 import com.prx.persistence.general.repositories.UserRepository;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
@@ -36,6 +38,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiFunction;
 
 /// Implementation of the UserService interface for managing users.
 /// Provides methods for creating, updating, deleting, and finding users.
@@ -50,6 +53,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final ApplicationRoleUserRepository applicationRoleUserRepository;
+    private final ContactRepository contactRepository;
     private final PersonService personService;
     private final RoleService roleService;
     private final UserMapper userMapper;
@@ -65,10 +69,11 @@ public class UserServiceImpl implements UserService {
     /// @param userMapper                    the user mapper
     /// @param roleMapper                    the role mapper
     /// @param personMapper                  the person mapper
-    public UserServiceImpl(UserRepository userRepository, ApplicationRoleUserRepository applicationRoleUserRepository,
+    public UserServiceImpl(UserRepository userRepository, ApplicationRoleUserRepository applicationRoleUserRepository, ContactRepository contactRepository,
                            PersonService personService, RoleService roleService, UserMapper userMapper, RoleMapper roleMapper, PersonMapper personMapper) {
         this.userRepository = userRepository;
         this.applicationRoleUserRepository = applicationRoleUserRepository;
+        this.contactRepository = contactRepository;
         this.personService = personService;
         this.roleService = roleService;
         this.userMapper = userMapper;
@@ -102,8 +107,10 @@ public class UserServiceImpl implements UserService {
     /// @param userId the user ID
     /// @param user   the user data
     /// @return the response entity containing the updated user data
+    @Transactional
     @Override
     public ResponseEntity<UserTO> update(UUID userId, UserTO user) {
+        LOGGER.info("Starting user update {}", user);
         ResponseEntity<UserTO> responseEntity;
         if (Objects.isNull(userId)) {
             return ResponseEntity.badRequest().header(HttpHeaders.WARNING, "User ID empty or null").build();
@@ -112,22 +119,8 @@ public class UserServiceImpl implements UserService {
         try {
             if (HttpStatus.OK.equals(userResponseEntity.getStatusCode()) && Objects.nonNull(userResponseEntity.getBody())) {
                 var previousUser = userResponseEntity.getBody();
-                var previousPerson = previousUser.getPerson();
-                if (Objects.nonNull(user.getPerson().getGender()) && !user.getPerson().getGender().isEmpty()) {
-                    previousPerson.setGender(user.getPerson().getGender());
-                }
-                if (Objects.nonNull(user.getPerson().getBirthdate())) {
-                    previousPerson.setBirthdate(user.getPerson().getBirthdate());
-                }
-                if (Objects.nonNull(user.getPerson().getFirstName()) && !user.getPerson().getFirstName().isEmpty()) {
-                    previousPerson.setFirstName(user.getPerson().getFirstName());
-                }
-                if (Objects.nonNull(user.getPerson().getLastName()) && !user.getPerson().getLastName().isEmpty()) {
-                    previousPerson.setLastName(user.getPerson().getLastName());
-                }
-                if (Objects.nonNull(user.getPerson().getContacts())) {
-                    previousPerson.setContacts(user.getPerson().getContacts());
-                }
+
+                previousUser.setPerson(getPerson(user, previousUser));
                 if (Objects.nonNull(user.getDisplayName()) && !user.getDisplayName().isEmpty()) {
                     previousUser.setDisplayName(user.getDisplayName());
                 }
@@ -135,7 +128,6 @@ public class UserServiceImpl implements UserService {
                     previousUser.setPassword(user.getPassword());
                 }
 
-                previousUser.setPerson(previousPerson);
                 previousUser.setNotificationEmail(user.getNotificationEmail());
                 previousUser.setNotificationSms(user.getNotificationSms());
                 previousUser.setPrivacyDataOutActive(user.getPrivacyDataOutActive());
@@ -145,6 +137,7 @@ public class UserServiceImpl implements UserService {
                 final var userEntity = userMapper.toSource(previousUser);
                 userEntity.setId(userId);
                 if (Objects.isNull(userEntity.getApplicationRoleUser()) || userEntity.getApplicationRoleUser().isEmpty()) {
+                    LOGGER.info("Application role is not present {}", userEntity);
                     responseEntity = ResponseEntity.badRequest()
                             .header(HttpHeaders.WARNING, "The user requested doesn't have a person associated.")
                             .build();
@@ -153,8 +146,10 @@ public class UserServiceImpl implements UserService {
                         applicationRoleUserEntity.setUser(userEntity);
                         applicationRoleUserEntity.setActive(Boolean.TRUE);
                     });
+                    LOGGER.info("Before to save {}", userEntity);
                     var result = userRepository.save(userEntity);
                     responseEntity = new ResponseEntity<>(userMapper.toTarget(result), HttpStatus.OK);
+                    LOGGER.info("User updated.");
                 }
             } else {
                 responseEntity = ResponseEntity.badRequest().header(HttpHeaders.WARNING, "Invalid user").build();
@@ -355,5 +350,40 @@ public class UserServiceImpl implements UserService {
         userEntity = userEntityOptional.orElse(null);
 
         return Objects.nonNull(userEntity) ? userMapper.toTarget(userEntity) : null;
+    }
+
+    private Person getPerson(UserTO user, UserTO previousUser) {
+        var previousPerson = previousUser.getPerson();
+        BiFunction<String, String, Boolean> validateString = (String previousValue, String newValue) ->
+                Objects.nonNull(newValue) && !newValue.isEmpty() && !newValue.equalsIgnoreCase(previousValue);
+
+        if (validateString.apply(previousPerson.getGender(), user.getPerson().getGender())) {
+            previousPerson.setGender(user.getPerson().getGender());
+        }
+
+        if (Objects.nonNull(user.getPerson().getBirthdate()) && !user.getPerson().getBirthdate().isEqual(previousPerson.getBirthdate())) {
+            previousPerson.setBirthdate(user.getPerson().getBirthdate());
+        }
+        if (validateString.apply(previousPerson.getFirstName(), user.getPerson().getFirstName())) {
+            previousPerson.setFirstName(user.getPerson().getFirstName());
+        }
+        if (validateString.apply(previousPerson.getLastName(), user.getPerson().getLastName())) {
+            previousPerson.setLastName(user.getPerson().getLastName());
+        }
+        if (Objects.nonNull(user.getPerson().getContacts()) && !user.getPerson().getContacts().isEmpty()) {
+            for (var c : user.getPerson().getContacts()) {
+                previousPerson.getContacts().stream()
+                        .filter(contact -> c.getId().toString().equals(contact.getId().toString()) && !c.getContent().equals(contact.getContent()))
+                        .findFirst()
+                        .ifPresent(contact ->
+                                {
+//                                    contact.setPerson(previousPerson);
+                                    contact.setContent(c.getContent());
+                                }
+                        );
+            }
+        }
+
+        return previousPerson;
     }
 }

@@ -19,7 +19,6 @@ import com.prx.backoffice.v1.contacttypes.mapper.ContactTypeMapper;
 import com.prx.backoffice.v1.contacttypes.mapper.ContactTypeMapperImpl;
 import com.prx.commons.general.pojo.Contact;
 import com.prx.commons.general.pojo.ContactType;
-import com.prx.commons.general.pojo.Person;
 import com.prx.persistence.general.domains.ContactEntity;
 import com.prx.persistence.general.domains.ContactTypeEntity;
 import com.prx.persistence.general.domains.PersonEntity;
@@ -108,20 +107,11 @@ class ContactServiceImplTest {
         contactType2.setId(uuid);
         contactType2.setName("Name");
 
-        Person person2 = new Person();
-        person2.setBirthdate(LocalDate.of(1970, 1, 1));
-        person2.setFirstName("Jane");
-        person2.setGender("Gender");
-        person2.setId(uuid);
-        person2.setLastName("Doe");
-        person2.setMiddleName("Middle Name");
-
         Contact contact = new Contact();
         contact.setActive(true);
         contact.setContactType(contactType2);
         contact.setContent("Not all who wander are lost");
         contact.setId(uuid);
-        contact.setPerson(person2);
 
         ContactTypeEntity contactType3 = new ContactTypeEntity();
         contactType3.setActive(true);
@@ -152,20 +142,11 @@ class ContactServiceImplTest {
         contactType4.setId(uuid);
         contactType4.setName("Name");
 
-        Person person4 = new Person();
-        person4.setBirthdate(LocalDate.of(1970, 1, 1));
-        person4.setFirstName("Jane");
-        person4.setGender("Gender");
-        person4.setId(uuid);
-        person4.setLastName("Doe");
-        person4.setMiddleName("Middle Name");
-
         Contact contact2 = new Contact();
         contact2.setActive(true);
         contact2.setContactType(contactType4);
         contact2.setContent("Not all who wander are lost");
         contact2.setId(uuid);
-        contact2.setPerson(person4);
 
         ArrayList<Contact> contacts = new ArrayList<>();
         contacts.add(contact2);
@@ -210,20 +191,11 @@ class ContactServiceImplTest {
         contactType2.setId(uuid);
         contactType2.setName("Name");
 
-        Person person2 = new Person();
-        person2.setBirthdate(LocalDate.of(1970, 1, 1));
-        person2.setFirstName("Jane");
-        person2.setGender("Gender");
-        person2.setId(uuid);
-        person2.setLastName("Doe");
-        person2.setMiddleName("Middle Name");
-
         Contact contact = new Contact();
         contact.setActive(true);
         contact.setContactType(contactType2);
         contact.setContent("Not all who wander are lost");
         contact.setId(uuid);
-        contact.setPerson(person2);
 
         ContactTypeEntity contactType3 = new ContactTypeEntity();
         contactType3.setActive(true);
@@ -254,20 +226,11 @@ class ContactServiceImplTest {
         contactType4.setId(uuid);
         contactType4.setName("Name");
 
-        Person person4 = new Person();
-        person4.setBirthdate(LocalDate.of(1970, 1, 1));
-        person4.setFirstName("Jane");
-        person4.setGender("Gender");
-        person4.setId(uuid);
-        person4.setLastName("Doe");
-        person4.setMiddleName("Middle Name");
-
         Contact contact2 = new Contact();
         contact2.setActive(true);
         contact2.setContactType(contactType4);
         contact2.setContent("Not all who wander are lost");
         contact2.setId(uuid);
-        contact2.setPerson(person4);
 
         ContactType contactType5 = new ContactType();
         contactType5.setActive(false);
@@ -275,20 +238,11 @@ class ContactServiceImplTest {
         contactType5.setId(uuid);
         contactType5.setName("Name");
 
-        Person person5 = new Person();
-        person5.setBirthdate(LocalDate.of(1970, 1, 1));
-        person5.setFirstName("John");
-        person5.setGender("M");
-        person5.setId(uuid);
-        person5.setLastName("Smith");
-        person5.setMiddleName("Jane");
-
         Contact contact3 = new Contact();
         contact3.setActive(false);
         contact3.setContactType(contactType5);
         contact3.setContent("Content");
         contact3.setId(uuid);
-        contact3.setPerson(person5);
 
         ArrayList<Contact> contacts = new ArrayList<>();
         contacts.add(contact3);
@@ -300,7 +254,7 @@ class ContactServiceImplTest {
     }
 
     /**
-     * Method under test: {@link ContactServiceImpl#create(Contact)}
+     * Method under test: {@link ContactServiceImpl#create(UUID, Contact)}
      */
     @Test
     @DisplayName("Test creating a contact with valid data")
@@ -340,20 +294,11 @@ class ContactServiceImplTest {
         contactType1.setId(contactTypeUUID1);
         contactType1.setName("Name");
 
-        Person person1 = new Person();
-        person1.setBirthdate(LocalDate.of(1970, 1, 1));
-        person1.setFirstName("Jane");
-        person1.setGender("Gender");
-        person1.setId(personUUID1);
-        person1.setLastName("Doe");
-        person1.setMiddleName("Middle Name");
-
         Contact contact = new Contact();
         contact.setActive(true);
         contact.setContactType(contactType1);
         contact.setContent("Not all who wander are lost");
         contact.setId(contactUUID1);
-        contact.setPerson(person1);
 
         ContactTypeEntity contactTypeEntity2 = new ContactTypeEntity();
         contactTypeEntity2.setActive(true);
@@ -387,20 +332,11 @@ class ContactServiceImplTest {
         contactType2.setId(contactTypeUUID2);
         contactType2.setName("Name");
 
-        Person person2 = new Person();
-        person2.setBirthdate(LocalDate.of(1970, 1, 1));
-        person2.setFirstName("Jane");
-        person2.setGender("Gender");
-        person2.setId(personUUID2);
-        person2.setLastName("Doe");
-        person2.setMiddleName("Middle Name");
-
         Contact contact2 = new Contact();
         contact2.setActive(true);
         contact2.setContactType(contactType2);
         contact2.setContent("Not all who wander are lost");
         contact2.setId(contactUUID2);
-        contact2.setPerson(person2);
 
         when(contactRepository.listByPersonId(any(UUID.class))).thenReturn(Optional.of(List.of(contactEntity1, contactEntity2)));
         when(contactMapper.toSource(any(Contact.class))).thenReturn(contactEntity1);
@@ -409,17 +345,13 @@ class ContactServiceImplTest {
 
         ResponseEntity<Contact> actualCreateResult = contactServiceImpl.create(contact2);
 
-        assertTrue(actualCreateResult.hasBody());
-        assertFalse(actualCreateResult.getHeaders().isEmpty());
-        assertEquals(HttpStatus.CREATED, actualCreateResult.getStatusCode());
-        verify(contactRepository).listByPersonId(Mockito.<UUID>any());
-        verify(contactMapper, times(3)).toTarget(Mockito.<ContactEntity>any());
-        verify(contactRepository).save(Mockito.<ContactEntity>any());
-        verify(contactMapper).toSource(Mockito.<Contact>any());
+        assertFalse(actualCreateResult.hasBody());
+        assertTrue(actualCreateResult.getHeaders().isEmpty());
+        assertEquals(HttpStatus.NOT_IMPLEMENTED, actualCreateResult.getStatusCode());
     }
 
     /**
-     * Method under test: {@link ContactServiceImpl#create(Contact)}
+     * Method under test: {@link ContactServiceImpl#create(UUID, Contact)}
      */
     @Test
     @DisplayName("Test creating a contact with null data")
@@ -427,7 +359,7 @@ class ContactServiceImplTest {
         ResponseEntity<Contact> actualCreateResult = contactServiceImpl.create(null);
         assertTrue(actualCreateResult.getHeaders().isEmpty());
         assertFalse(actualCreateResult.hasBody());
-        assertEquals(HttpStatus.NOT_FOUND, actualCreateResult.getStatusCode());
+        assertEquals(HttpStatus.NOT_IMPLEMENTED, actualCreateResult.getStatusCode());
     }
 
     /**
@@ -486,7 +418,6 @@ class ContactServiceImplTest {
         var contactTypeEntity = new ContactTypeEntity();
         var contactType = new ContactType();
         var personEntity = new PersonEntity();
-        var person = new Person();
         var contact = new Contact();
         personEntity.setId(personId);
         personEntity.setBirthdate(LocalDate.now());
@@ -505,17 +436,9 @@ class ContactServiceImplTest {
         contactEntity.setId(contactId);
         contactEntity.setContactType(contactTypeEntity);
 
-        person.setId(personId);
-        person.setBirthdate(LocalDate.now());
-        person.setGender("M");
-        person.setFirstName("Pepe");
-        person.setMiddleName("Chavo");
-        person.setLastName("Guardia");
-
         contact.setActive(true);
         contact.setContactType(contactType);
         contact.setContent("Content description");
-        contact.setPerson(person);
         contact.setId(contactId);
 
         contactType.setActive(true);

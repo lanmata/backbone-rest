@@ -62,11 +62,11 @@ public class ContactServiceImpl implements ContactService {
     }
 
     @Override
-    public ResponseEntity<Contact> create(Contact contact) {
+    public ResponseEntity<Contact> create(UUID personId, Contact contact) {
         if (null == contact) {
             return ResponseEntity.notFound().build();
         }
-        var contactList = listByPersonId(contact.getPerson().getId());
+        var contactList = listByPersonId(personId);
         if (contactList.getStatusCode().equals(HttpStatus.OK) && contactList.hasBody() && Objects.nonNull(contactList.getBody())) {
             if (contactList.getBody().size() < contactLimit) {
                 var contactEntity = contactMapper.toSource(contact);
