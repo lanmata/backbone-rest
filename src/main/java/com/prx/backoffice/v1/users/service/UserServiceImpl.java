@@ -235,23 +235,20 @@ public class UserServiceImpl implements UserService {
         } else if (findUserByAlias(userCreateRequest.alias(), userCreateRequest.applicationId()).getStatusCode().equals(HttpStatus.OK)) {
             return ResponseEntity.badRequest().header(HttpHeaders.WARNING, "User previously exist.").build();
         }
-        var personResponse = personService.create(userCreateRequest.person());
-        if (personResponse.getStatusCode().equals(HttpStatus.CREATED)) {
-            var userEntity = userMapper.toSource(userCreateRequest);
-            userEntity.setCreatedDate(LocalDateTime.now());
-            userEntity.setLastUpdate(LocalDateTime.now());
-            userEntity.setPerson(personMapper.toSource(personResponse.getBody()));
-            userEntity.setApplicationRoleUser(new HashSet<>());
-            userEntity.setActive(Boolean.TRUE);
 
-            var userEntityResult = userRepository.save(userEntity); // Save
-            // Adding ApplicationRoleUser
-            userEntityResult.getApplicationRoleUser().add(applicationLink(userEntityResult, userCreateRequest.roleId(), userCreateRequest.applicationId()));
-            var userResult = userMapper.toUserCreateResponse(userEntityResult);
+        var userEntity = userMapper.toSource(userCreateRequest);
+        userEntity.setCreatedDate(LocalDateTime.now());
+        userEntity.setLastUpdate(LocalDateTime.now());
 
-            return ResponseEntity.status(HttpStatus.CREATED).body(userResult);
-        }
-        return ResponseEntity.badRequest().build();
+        userEntity.setApplicationRoleUser(new HashSet<>());
+        userEntity.setActive(Boolean.TRUE);
+
+        var userEntityResult = userRepository.save(userEntity); // Save
+        // Adding ApplicationRoleUser
+        userEntityResult.getApplicationRoleUser().add(applicationLink(userEntityResult, userCreateRequest.roleId(), userCreateRequest.applicationId()));
+        var userResult = userMapper.toUserCreateResponse(userEntityResult);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(userResult);
     }
 
     /// Unlinks a role from a user with the given user ID and role ID.
