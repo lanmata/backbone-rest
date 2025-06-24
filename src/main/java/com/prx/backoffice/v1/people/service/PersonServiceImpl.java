@@ -50,13 +50,26 @@ public class PersonServiceImpl implements PersonService {
 		if (esNulo(person)) {
 			return ResponseEntity.notFound().build();
 		}
-		PersonEntity personEntity = personMapper.toSource(person);
+
+		// Check if the person already exists in the database
+		Optional<PersonEntity> existingEntity =Objects.nonNull(person.getId())? personRepository.findById(person.getId()): Optional.empty();
+		PersonEntity personEntity;
+
+		if (existingEntity.isPresent()) {
+			// Use the existing entity to avoid detached entity issues
+			personEntity = existingEntity.get();
+		} else {
+			// Map to a new entity if it does not exist
+			personEntity = personMapper.toSource(person);
+		}
+
 		// Fix: Set person reference in each contact entity
 		if (personEntity.getContacts() != null) {
 			for (var contact : personEntity.getContacts()) {
 				contact.setPerson(personEntity);
 			}
 		}
+
 		PersonEntity savedEntity = personRepository.save(personEntity);
 		LOGGER.info(HttpStatus.CREATED.toString());
 		return new ResponseEntity<>(personMapper.toTarget(savedEntity), HttpStatus.CREATED);
