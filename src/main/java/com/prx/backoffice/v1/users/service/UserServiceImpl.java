@@ -14,18 +14,17 @@ package com.prx.backoffice.v1.users.service;
 
 import com.prx.backoffice.constant.keys.RoleMessageKey;
 import com.prx.backoffice.constant.keys.UserMessageKey;
-import com.prx.backoffice.v1.people.mapper.PersonMapper;
-import com.prx.backoffice.v1.people.service.PersonService;
 import com.prx.backoffice.v1.roles.mapper.RoleMapper;
 import com.prx.backoffice.v1.roles.service.RoleService;
 import com.prx.backoffice.v1.users.api.to.UserCreateRequest;
 import com.prx.backoffice.v1.users.api.to.UserCreateResponse;
 import com.prx.backoffice.v1.users.api.to.UserTO;
 import com.prx.backoffice.v1.users.mapper.UserMapper;
+import com.prx.commons.general.pojo.Application;
 import com.prx.commons.general.pojo.Person;
+import com.prx.commons.general.pojo.Role;
 import com.prx.persistence.general.domains.*;
 import com.prx.persistence.general.repositories.ApplicationRoleUserRepository;
-import com.prx.persistence.general.repositories.ContactRepository;
 import com.prx.persistence.general.repositories.UserRepository;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
@@ -53,32 +52,24 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final ApplicationRoleUserRepository applicationRoleUserRepository;
-    private final ContactRepository contactRepository;
-    private final PersonService personService;
     private final RoleService roleService;
     private final UserMapper userMapper;
     private final RoleMapper roleMapper;
-    private final PersonMapper personMapper;
 
     /// Constructor for UserServiceImpl.
     ///
     /// @param userRepository                the user repository
     /// @param applicationRoleUserRepository the application role user repository
-    /// @param personService                 the person service
     /// @param roleService                   the role service
     /// @param userMapper                    the user mapper
     /// @param roleMapper                    the role mapper
-    /// @param personMapper                  the person mapper
-    public UserServiceImpl(UserRepository userRepository, ApplicationRoleUserRepository applicationRoleUserRepository, ContactRepository contactRepository,
-                           PersonService personService, RoleService roleService, UserMapper userMapper, RoleMapper roleMapper, PersonMapper personMapper) {
+    public UserServiceImpl(UserRepository userRepository, ApplicationRoleUserRepository applicationRoleUserRepository,
+                           RoleService roleService, UserMapper userMapper, RoleMapper roleMapper) {
         this.userRepository = userRepository;
         this.applicationRoleUserRepository = applicationRoleUserRepository;
-        this.contactRepository = contactRepository;
-        this.personService = personService;
         this.roleService = roleService;
         this.userMapper = userMapper;
         this.roleMapper = roleMapper;
-        this.personMapper = personMapper;
     }
 
 
@@ -134,20 +125,37 @@ public class UserServiceImpl implements UserService {
                 previousUser.setActive(user.isActive());
                 previousUser.setLastUpdate(LocalDateTime.now());
 
+                if (Objects.nonNull(user.getRoles()) && !user.getRoles().isEmpty()) {
+                    UUID[] roleIds = user.getRoles().stream().map(Role::getId).toArray(UUID[]::new);
+                    var roleResult = roleService.list(roleIds);
+                    if (Objects.nonNull(roleResult) && Objects.nonNull(roleResult.getBody())) {
+                        LOGGER.info("Updating roles from {} to {}", roleResult.getBody(), user.getLastUpdate());
+                        Set<Role> roles = new HashSet<>(roleResult.getBody());
+                        previousUser.setRoles(roles);
+                    }
+                }
+
                 final var userEntity = userMapper.toSource(previousUser);
                 userEntity.setId(userId);
-                if (Objects.isNull(userEntity.getApplicationRoleUser()) || userEntity.getApplicationRoleUser().isEmpty()) {
+
+                var applicationRoleUser = userEntity.getApplicationRoleUser();
+                userEntity.setApplicationRoleUser(null);
+
+                if (Objects.isNull(applicationRoleUser) || applicationRoleUser.isEmpty()) {
                     LOGGER.info("Application role is not present {}", userEntity);
                     responseEntity = ResponseEntity.badRequest()
                             .header(HttpHeaders.WARNING, "The user requested doesn't have a person associated.")
                             .build();
                 } else {
-                    userEntity.getApplicationRoleUser().forEach(applicationRoleUserEntity -> {
+                    applicationRoleUser.forEach(applicationRoleUserEntity -> {
                         applicationRoleUserEntity.setUser(userEntity);
                         applicationRoleUserEntity.setActive(Boolean.TRUE);
                     });
                     LOGGER.info("Before to save {}", userEntity);
+                    var applicationId = user.getApplications().toArray(new Application[0])[0].getId();
+                    applicationRoleUserRepository.deleteByUserIdAndApplicationId(userEntity.getId(), applicationId);
                     var result = userRepository.save(userEntity);
+                    applicationRoleUserRepository.saveAll(applicationRoleUser);
                     responseEntity = new ResponseEntity<>(userMapper.toTarget(result), HttpStatus.OK);
                     LOGGER.info("User updated.");
                 }

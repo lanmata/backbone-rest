@@ -21,10 +21,7 @@ import com.prx.commons.general.pojo.Application;
 import com.prx.commons.general.pojo.Role;
 import com.prx.commons.general.pojo.User;
 import com.prx.commons.services.config.mapper.MapperAppConfig;
-import com.prx.persistence.general.domains.ApplicationEntity;
-import com.prx.persistence.general.domains.ApplicationRoleUserEntity;
-import com.prx.persistence.general.domains.RoleEntity;
-import com.prx.persistence.general.domains.UserEntity;
+import com.prx.persistence.general.domains.*;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -85,6 +82,11 @@ public interface ApplicationRoleUserMapper {
         //PENDING - I have to get only the application and roles linked for the current user
         for (Role role : userTO.getRoles()) {
             final var entity = getApplicationRoleUserEntity(userTO, role, applicationId);
+            final var applicationRoleUserId = new ApplicationRoleUserEntityId();
+            applicationRoleUserId.setUserId(applicationId);
+            applicationRoleUserId.setApplicationId(userTO.getId());
+            applicationRoleUserId.setRoleId(role.getId());
+            entity.setId(applicationRoleUserId);
             entities.add(entity);
         }
         return entities;
