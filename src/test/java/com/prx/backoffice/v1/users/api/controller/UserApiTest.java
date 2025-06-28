@@ -25,6 +25,7 @@ class UserApiTest {
                 .thenReturn(ResponseEntity.status(HttpStatus.ACCEPTED).build());
         UserApi api = (UserApi) controller;
         ResponseEntity<Void> response = api.putUserDetail(UUID.randomUUID(), new PutUserUpdateRequest(
+                UUID.randomUUID(),
                 "12345678",
                 "ltnt",
                 true,
@@ -36,7 +37,8 @@ class UserApiTest {
                 "Bolson",
                 "M",
                 LocalDate.of(1300, 01, 01),
-                List.of(new PutUserUpdateRequest.Contact(UUID.randomUUID(), "4165895269", new PutUserUpdateRequest.ContactType(UUID.randomUUID()), true))
+                List.of(new PutUserUpdateRequest.Contact(UUID.randomUUID(), "4165895269", new PutUserUpdateRequest.ContactType(UUID.randomUUID()), true)),
+                List.of(UUID.randomUUID())
         ));
         assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
     }
@@ -49,6 +51,7 @@ class UserApiTest {
                 .thenReturn(ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build());
         UserApi api = (UserApi) controller;
         ResponseEntity<Void> response = api.putUserDetail(UUID.randomUUID(), new PutUserUpdateRequest(
+                UUID.randomUUID(),
                 "12345678",
                 "ltnt",
                 true,
@@ -60,7 +63,8 @@ class UserApiTest {
                 "Bolson",
                 "M",
                 null,
-                null
+                null,
+                List.of(UUID.randomUUID())
         ));
         assertEquals(HttpStatus.NOT_ACCEPTABLE, response.getStatusCode());
     }

@@ -2,6 +2,7 @@ package com.prx.backoffice.v1.users.api.to;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -20,8 +21,10 @@ class PutUserUpdateRequestTest {
         UUID contactTypeId = UUID.randomUUID();
         PutUserUpdateRequest.ContactType contactType = new PutUserUpdateRequest.ContactType(contactTypeId);
         PutUserUpdateRequest.Contact contact = new PutUserUpdateRequest.Contact(contactId, "(+1) 4167483988", contactType, true);
+        List<UUID> roleIds =List.of(UUID.randomUUID());
         LocalDate birthdate = LocalDate.of(1998, 2, 12);
         PutUserUpdateRequest request = new PutUserUpdateRequest(
+                UUID.randomUUID(),
                 "ABCGTDhj23445676",
                 "Mati",
                 true,
@@ -33,7 +36,8 @@ class PutUserUpdateRequestTest {
                 "Mata",
                 "M",
                 birthdate,
-                List.of(contact)
+                List.of(contact),
+                roleIds
         );
         assertEquals("ABCGTDhj23445676", request.password());
         assertEquals("Mati", request.displayName());
@@ -83,6 +87,7 @@ class PutUserUpdateRequestTest {
         PutUserUpdateRequest.Contact contact = new PutUserUpdateRequest.Contact(contactId, "(+1) 4167483988", contactType, true);
         LocalDate birthdate = LocalDate.of(1998, 2, 12);
         PutUserUpdateRequest request = new PutUserUpdateRequest(
+                UUID.randomUUID(),
                 "ABCGTDhj23445676",
                 "Mati",
                 true,
@@ -94,7 +99,8 @@ class PutUserUpdateRequestTest {
                 "Mata",
                 "M",
                 birthdate,
-                List.of(contact)
+                List.of(contact),
+                List.of(UUID.randomUUID())
         );
         String str = request.toString();
         assertTrue(str.contains("PutUserUpdateRequest{"));
@@ -110,6 +116,7 @@ class PutUserUpdateRequestTest {
     @DisplayName("Should handle null contacts list")
     void testNullContacts() {
         PutUserUpdateRequest request = new PutUserUpdateRequest(
+                UUID.randomUUID(),
                 "pass",
                 "disp",
                 false,
@@ -121,7 +128,8 @@ class PutUserUpdateRequestTest {
                 "last",
                 "F",
                 LocalDate.now(),
-                null
+                null,
+                List.of(UUID.randomUUID())
         );
         assertNull(request.contacts());
     }
