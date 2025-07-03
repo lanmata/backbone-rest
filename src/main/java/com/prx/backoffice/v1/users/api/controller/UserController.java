@@ -151,15 +151,15 @@ public class UserController implements UserApi {
                 }
                 return contact;
             }).toList();
-            if(Objects.nonNull(request.roleIds())) {
-                var roles = request.roleIds().stream().map(uuid -> {
-                    var role = new Role();
-                    role.setId(uuid);
-                    return role;
-                }).toList();
-                userTO.setRoles(Set.of(roles.toArray(new Role[0])));
-            }
             person.setContacts(contacts);
+        }
+        if (Objects.nonNull(request.roleIds())) {
+            var roles = request.roleIds().stream().map(uuid -> {
+                var role = new Role();
+                role.setId(uuid);
+                return role;
+            }).toList();
+            userTO.setRoles(Set.of(roles.toArray(new Role[0])));
         }
         userTO.setPerson(person);
         return userTO;
