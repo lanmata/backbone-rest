@@ -19,9 +19,7 @@ import com.prx.backoffice.v1.users.api.to.UserCreateRequest;
 import com.prx.backoffice.v1.users.api.to.UserCreateResponse;
 import com.prx.backoffice.v1.users.api.to.UserTO;
 import com.prx.backoffice.v1.users.service.UserService;
-import com.prx.commons.general.pojo.Contact;
-import com.prx.commons.general.pojo.ContactType;
-import com.prx.commons.general.pojo.Person;
+import com.prx.commons.general.pojo.*;
 import com.prx.commons.util.ValidatorCommonsUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,9 +29,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 /// REST controller for managing users.
 /// Provides endpoints for user operations such as create, update, and find.
@@ -122,7 +118,10 @@ public class UserController implements UserApi {
 
     /// Converts a PutUserUpdateRequest to a UserTO.
     private UserTO toUserTO(UUID userId, PutUserUpdateRequest request) {
+        Application application = new Application();
+        application.setId(request.application());
         UserTO userTO = new UserTO();
+        userTO.setApplications(new HashSet<>());
         userTO.setId(userId);
         userTO.setPassword(request.password());
         userTO.setDisplayName(request.displayName());
@@ -130,6 +129,7 @@ public class UserController implements UserApi {
         userTO.setNotificationEmail(request.notificationEmail());
         userTO.setNotificationSms(request.notificationSms());
         userTO.setPrivacyDataOutActive(request.privacyDataOutActive());
+        userTO.getApplications().add(application);
         // Map person fields
         var person = new Person();
         person.setFirstName(request.firstName());
@@ -138,7 +138,7 @@ public class UserController implements UserApi {
         person.setGender(request.gender());
         person.setBirthdate(request.birthdate());
         // Map contacts if present
-        if (request.contacts() != null) {
+        if (Objects.nonNull(request.contacts())) {
             var contacts = request.contacts().stream().map(c -> {
                 var contact = new Contact();
                 contact.setId(c.id());
@@ -152,6 +152,14 @@ public class UserController implements UserApi {
                 return contact;
             }).toList();
             person.setContacts(contacts);
+        }
+        if (Objects.nonNull(request.roleIds())) {
+            var roles = request.roleIds().stream().map(uuid -> {
+                var role = new Role();
+                role.setId(uuid);
+                return role;
+            }).toList();
+            userTO.setRoles(Set.of(roles.toArray(new Role[0])));
         }
         userTO.setPerson(person);
         return userTO;

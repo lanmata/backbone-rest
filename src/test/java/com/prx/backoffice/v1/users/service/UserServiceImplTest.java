@@ -20,6 +20,7 @@ import com.prx.backoffice.v1.users.api.to.UserCreateRequest;
 import com.prx.backoffice.v1.users.api.to.UserCreateResponse;
 import com.prx.backoffice.v1.users.api.to.UserTO;
 import com.prx.backoffice.v1.users.mapper.UserMapper;
+import com.prx.commons.general.pojo.Application;
 import com.prx.commons.general.pojo.Person;
 import com.prx.commons.general.pojo.Role;
 import com.prx.persistence.general.domains.*;
@@ -89,6 +90,7 @@ class UserServiceImplTest {
     @DisplayName("Test update user with valid data")
     void testUpdate() {
         final var userId = UUID.randomUUID();
+        final var applicationId = UUID.randomUUID();
         Person person = new Person();
         person.setBirthdate(LocalDate.of(1970, 1, 1));
         person.setFirstName("Jane");
@@ -96,6 +98,12 @@ class UserServiceImplTest {
         person.setId(UUID.randomUUID());
         person.setLastName("Doe");
         person.setMiddleName("Middle Name");
+
+        Application application = new Application();
+        application.setActive(true);
+        application.setDescription("Description");
+        application.setId(applicationId);
+        application.setName("Application");
 
         Role role = new Role();
         role.setActive(true);
@@ -110,6 +118,7 @@ class UserServiceImplTest {
         user.setPassword("iloveyou");
         user.setPerson(person);
         user.setRoles(Set.of(role));
+        user.setApplications(Set.of(application));
 
         PersonEntity personEntity = new PersonEntity();
         personEntity.setId(person.getId());
@@ -125,6 +134,12 @@ class UserServiceImplTest {
         role.setId(UUID.randomUUID());
         role.setName("Role");
 
+        ApplicationEntity applicationEntity = new ApplicationEntity();
+        applicationEntity.setActive(true);
+        applicationEntity.setDescription("Description");
+        applicationEntity.setId(applicationId);
+        applicationEntity.setName("Application");
+
         UserEntity userEntity = new UserEntity();
         userEntity.setId(userId);
         userEntity.setAlias(user.getAlias());
@@ -133,6 +148,7 @@ class UserServiceImplTest {
         userEntity.setPerson(personEntity);
 
         ApplicationRoleUserEntity applicationRoleUserEntity = new ApplicationRoleUserEntity();
+        applicationRoleUserEntity.setApplication(applicationEntity);
         applicationRoleUserEntity.setRole(roleEntity);
         applicationRoleUserEntity.setUser(userEntity);
 
@@ -158,6 +174,7 @@ class UserServiceImplTest {
     @DisplayName("Test update user with roles")
     void testUpdate1() {
         final var userId = UUID.randomUUID();
+        final var applicationId = UUID.randomUUID();
         Person person = new Person();
         person.setBirthdate(LocalDate.of(1970, 1, 1));
         person.setFirstName("Jane");
@@ -165,6 +182,11 @@ class UserServiceImplTest {
         person.setId(UUID.randomUUID());
         person.setLastName("Doe");
         person.setMiddleName("Middle Name");
+        Application application = new Application();
+        application.setActive(true);
+        application.setDescription("Description");
+        application.setId(applicationId);
+        application.setName("Application");
 
         UserTO user = new UserTO();
         user.setActive(true);
@@ -173,6 +195,7 @@ class UserServiceImplTest {
         user.setPassword("iloveyou");
         user.setPerson(person);
         user.setRoles(new HashSet<>());
+        user.setApplications(Set.of(application));
 
         RoleEntity roleEntity = new RoleEntity();
         roleEntity.setDescription("Coast deaths jumping matthew line. ");
@@ -181,6 +204,12 @@ class UserServiceImplTest {
         roleEntity.setName("Aftan Langley");
         roleEntity.setApplicationRoleUser(new HashSet<>());
         roleEntity.setRoleFeatures(new HashSet<>());
+
+        ApplicationEntity applicationEntity = new ApplicationEntity();
+        applicationEntity.setActive(true);
+        applicationEntity.setDescription("Description");
+        applicationEntity.setId(applicationId);
+        applicationEntity.setName("Application");
 
         PersonEntity personEntity = new PersonEntity();
         personEntity.setId(person.getId());
@@ -198,6 +227,7 @@ class UserServiceImplTest {
         userEntity.setPerson(personEntity);
 
         ApplicationRoleUserEntity applicationRoleUserEntity = new ApplicationRoleUserEntity();
+        applicationRoleUserEntity.setApplication(applicationEntity);
         applicationRoleUserEntity.setUser(userEntity);
         applicationRoleUserEntity.setRole(roleEntity);
         applicationRoleUserEntity.setActive(true);

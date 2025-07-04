@@ -1,5 +1,7 @@
 package com.prx.backoffice.v1.users.api.to;
 
+import jakarta.validation.constraints.NotNull;
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -11,18 +13,25 @@ import java.util.UUID;
  * </p>
  */
 public record PutUserUpdateRequest(
+        @NotNull
+        UUID application,
         String password,
         String displayName,
-        boolean active,
-        boolean notificationEmail,
-        boolean notificationSms,
-        boolean privacyDataOutActive,
+        @NotNull
+        Boolean active,
+        @NotNull
+        Boolean notificationEmail,
+        @NotNull
+        Boolean notificationSms,
+        @NotNull
+        Boolean privacyDataOutActive,
         String firstName,
         String middleName,
         String lastName,
         String gender,
         LocalDate birthdate,
-        List<Contact> contacts
+        List<Contact> contacts,
+        List<UUID> roleIds
 ) {
     /**
      * Contact.
@@ -79,6 +88,7 @@ public record PutUserUpdateRequest(
                 ", gender='" + gender + '\'' +
                 ", birthdate=" + birthdate +
                 ", contacts=" + contacts +
+                ", roleIds=" + roleIds +
                 '}';
     }
 }

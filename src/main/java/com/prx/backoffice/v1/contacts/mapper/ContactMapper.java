@@ -29,5 +29,6 @@ public interface ContactMapper {
 
     Contact toTarget(ContactEntity contactEntity);
 
+    @Mapping(target = "person", ignore = true)
     ContactEntity toSource(Contact contact);
 }
