@@ -46,4 +46,14 @@ public interface SessionService extends SessionJwtService {
     default ResponseEntity<SessionResponse> loadSession(SessionEmailRequest sessionEmailRequest) {
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
+
+    /**
+     * Renews a session token by validating the current token and generating a new one.
+     *
+     * @param currentToken the current session token to be renewed
+     * @return a ResponseEntity containing the session response with the new token
+     */
+    default ResponseEntity<SessionResponse> renewToken(String currentToken) {
+        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+    }
 }

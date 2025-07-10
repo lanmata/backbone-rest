@@ -43,7 +43,8 @@ public class ApplicationServiceImpl implements ApplicationService {
     /** {@inheritDoc} */
     @Override
     public ResponseEntity<Application> find(UUID id) {
-        return ApplicationService.super.find(id);
+        var applicationEntity = applicationRepository.findById(id);
+        return ResponseEntity.ok(applicationMapper.toTarget(applicationEntity.get()));
     }
 
     /** {@inheritDoc} */

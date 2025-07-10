@@ -56,8 +56,12 @@ public class MessageUtil {
     public static final String NOT_FOUND = "404";
     public static final String NOT_FOUND_VALUE = "NOT_FOUND";
     public static final String NOT_ACCEPTABLE = "408";
-    public static final String BAD_REQUEST = "408";
+    public static final String BAD_REQUEST = "400";
     public static final String UNPROCESSABLE_ENTITY = "408";
+    public static final String UNAUTHORIZED = "401";
+    public static final String FORBIDDEN = "403";
+    public static final String INTERNAL_SERVER_ERROR = "500";
+
 
     public static final String LOG_PATH_SEPARATOR = "|";
     public static final String LOG_END_MSG = "Termina llamado al método ";

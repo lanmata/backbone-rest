@@ -273,4 +273,78 @@ public class SessionServiceImpl implements SessionService {
         }
         return null;
     }
+
+    /**
+     * Renews a session token by validating the current token and generating a new one.
+     *
+     * @param currentToken the current session token to be renewed
+     * @return a ResponseEntity containing the session response with the new token
+     */
+    @Override
+    public ResponseEntity<SessionResponse> renewToken(String currentToken) {
+        try {
+            // Validate the current token
+            if (ValidatorCommonsUtil.esVacio(currentToken)) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(new SessionResponse(""));
+            }
+
+            // Check if token is valid and not expired
+            if (!isValid(currentToken)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(new SessionResponse(messageUtil.getUserClaveNoPermitida()));
+            }
+
+            // Extract user information from the current token
+            Claims claims = getTokenClaims(currentToken);
+            String username = claims.getSubject();
+
+            // Get user details to generate new token
+            String userIdStr = (String) claims.get(AuthKey.USER_ID.value);
+            if (ValidatorCommonsUtil.esVacio(userIdStr)) {
+                // If USER_ID is not in claims, try to find user by username (subject)
+                UserEntity userEntity = userRepository.findByAlias(username);
+                if (Objects.isNull(userEntity)) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body(new SessionResponse(messageUtil.getUserCorreoNoExiste()));
+                }
+
+                if (!userEntity.getActive()) {
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                            .body(new SessionResponse(messageUtil.getUserInvalido()));
+                }
+
+                String newToken = generateSessionToken(userEntity.getId());
+                if (Objects.nonNull(newToken)) {
+                    return ResponseEntity.ok(new SessionResponse(newToken));
+                }
+            } else {
+                // Use USER_ID from claims
+                UUID userId = UUID.fromString(userIdStr);
+                Optional<UserEntity> userEntity = userRepository.findById(userId);
+
+                if (userEntity.isEmpty()) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body(new SessionResponse(messageUtil.getSinDatos()));
+                }
+
+                if (!userEntity.get().getActive()) {
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                            .body(new SessionResponse(messageUtil.getUserInvalido()));
+                }
+
+                String newToken = generateSessionToken(userId);
+                if (Objects.nonNull(newToken)) {
+                    return ResponseEntity.ok(new SessionResponse(newToken));
+                }
+            }
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new SessionResponse());
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new SessionResponse(messageUtil.getUserInvalido()));
+        }
+    }
 }
