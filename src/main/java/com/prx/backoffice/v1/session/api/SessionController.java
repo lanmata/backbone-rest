@@ -17,6 +17,9 @@ import com.prx.backoffice.v1.session.to.SessionEmailRequest;
 import com.prx.backoffice.v1.session.to.SessionRequest;
 import com.prx.backoffice.v1.session.to.SessionResponse;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -64,4 +67,8 @@ public class SessionController implements SessionApi {
         return ResponseEntity.ok(isValid);
     }
 
+    @Override
+    public ResponseEntity<SessionResponse> renewSessionToken(@RequestHeader(SESSION_TOKEN_KEY) String sessionToken) {
+        return sessionService.renewToken(sessionToken);
+    }
 }

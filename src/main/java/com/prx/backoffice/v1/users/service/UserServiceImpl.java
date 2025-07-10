@@ -12,19 +12,17 @@
  */
 package com.prx.backoffice.v1.users.service;
 
-import com.prx.backoffice.constant.keys.RoleMessageKey;
+import com.prx.backoffice.constant.keys.ApplicationMessageKey;
 import com.prx.backoffice.constant.keys.UserMessageKey;
-import com.prx.backoffice.v1.roles.mapper.RoleMapper;
-import com.prx.backoffice.v1.roles.service.RoleService;
 import com.prx.backoffice.v1.users.api.to.UserCreateRequest;
 import com.prx.backoffice.v1.users.api.to.UserCreateResponse;
 import com.prx.backoffice.v1.users.api.to.UserTO;
 import com.prx.backoffice.v1.users.mapper.UserMapper;
-import com.prx.commons.general.pojo.Application;
-import com.prx.commons.general.pojo.Person;
-import com.prx.commons.general.pojo.Role;
+import com.prx.commons.exception.StandardException;
 import com.prx.persistence.general.domains.*;
+import com.prx.persistence.general.repositories.ApplicationRepository;
 import com.prx.persistence.general.repositories.ApplicationRoleUserRepository;
+import com.prx.persistence.general.repositories.RoleRepository;
 import com.prx.persistence.general.repositories.UserRepository;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
@@ -37,7 +35,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.BiFunction;
 
 /// Implementation of the UserService interface for managing users.
 /// Provides methods for creating, updating, deleting, and finding users.
@@ -50,26 +47,26 @@ public class UserServiceImpl implements UserService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UserServiceImpl.class);
 
+    private final RoleRepository roleRepository;
     private final UserRepository userRepository;
+    private final ApplicationRepository applicationRepository;
     private final ApplicationRoleUserRepository applicationRoleUserRepository;
-    private final RoleService roleService;
     private final UserMapper userMapper;
-    private final RoleMapper roleMapper;
 
-    /// Constructor for UserServiceImpl.
+    /// Constructs a new UserServiceImpl with the provided dependencies.
     ///
-    /// @param userRepository                the user repository
-    /// @param applicationRoleUserRepository the application role user repository
-    /// @param roleService                   the role service
-    /// @param userMapper                    the user mapper
-    /// @param roleMapper                    the role mapper
+    /// @param userRepository the repository to manage user data
+    /// @param applicationRoleUserRepository the repository to manage application role-user mappings
+    /// @param roleRepository the repository to manage role data
+    /// @param applicationRepository the repository to manage application data
+    /// @param userMapper the mapper to convert between user entities and DTOs
     public UserServiceImpl(UserRepository userRepository, ApplicationRoleUserRepository applicationRoleUserRepository,
-                           RoleService roleService, UserMapper userMapper, RoleMapper roleMapper) {
+                           RoleRepository roleRepository, ApplicationRepository applicationRepository, UserMapper userMapper) {
         this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
+        this.applicationRepository = applicationRepository;
         this.applicationRoleUserRepository = applicationRoleUserRepository;
-        this.roleService = roleService;
         this.userMapper = userMapper;
-        this.roleMapper = roleMapper;
     }
 
 
@@ -106,59 +103,27 @@ public class UserServiceImpl implements UserService {
         if (Objects.isNull(userId)) {
             return ResponseEntity.badRequest().header(HttpHeaders.WARNING, "User ID empty or null").build();
         }
-        final var userResponseEntity = findUserById(userId);
+        final var userResponseEntity = findById(userId);
         try {
-            if (HttpStatus.OK.equals(userResponseEntity.getStatusCode()) && Objects.nonNull(userResponseEntity.getBody())) {
-                var previousUser = userResponseEntity.getBody();
-
-                previousUser.setPerson(getPerson(user, previousUser));
+            if (Objects.nonNull(userResponseEntity)) {
                 if (Objects.nonNull(user.getDisplayName()) && !user.getDisplayName().isEmpty()) {
-                    previousUser.setDisplayName(user.getDisplayName());
+                    userResponseEntity.setDisplayName(user.getDisplayName());
                 }
-                if (Objects.nonNull(user.getPassword()) && !user.getPassword().isEmpty() && !previousUser.getPassword().equals(user.getPassword())) {
-                    previousUser.setPassword(user.getPassword());
-                }
-
-                previousUser.setNotificationEmail(user.getNotificationEmail());
-                previousUser.setNotificationSms(user.getNotificationSms());
-                previousUser.setPrivacyDataOutActive(user.getPrivacyDataOutActive());
-                previousUser.setActive(user.isActive());
-                previousUser.setLastUpdate(LocalDateTime.now());
-
-                if (Objects.nonNull(user.getRoles()) && !user.getRoles().isEmpty()) {
-                    UUID[] roleIds = user.getRoles().stream().map(Role::getId).toArray(UUID[]::new);
-                    var roleResult = roleService.list(roleIds);
-                    if (Objects.nonNull(roleResult) && Objects.nonNull(roleResult.getBody())) {
-                        LOGGER.info("Updating roles from {} to {}", roleResult.getBody(), user.getLastUpdate());
-                        Set<Role> roles = new HashSet<>(roleResult.getBody());
-                        previousUser.setRoles(roles);
-                    }
+                if (Objects.nonNull(user.getPassword()) && !user.getPassword().isEmpty() && !userResponseEntity.getPassword().equals(user.getPassword())) {
+                    userResponseEntity.setPassword(user.getPassword());
                 }
 
-                final var userEntity = userMapper.toSource(previousUser);
-                userEntity.setId(userId);
+                userResponseEntity.setNotificationEmail(user.getNotificationEmail());
+                userResponseEntity.setNotificationSms(user.getNotificationSms());
+                userResponseEntity.setPrivacyDataOutActive(user.getPrivacyDataOutActive());
+                userResponseEntity.setActive(user.isActive());
+                userResponseEntity.setLastUpdate(LocalDateTime.now());
 
-                var applicationRoleUser = userEntity.getApplicationRoleUser();
-                userEntity.setApplicationRoleUser(null);
-
-                if (Objects.isNull(applicationRoleUser) || applicationRoleUser.isEmpty()) {
-                    LOGGER.info("Application role is not present {}", userEntity);
-                    responseEntity = ResponseEntity.badRequest()
-                            .header(HttpHeaders.WARNING, "The user requested doesn't have a person associated.")
-                            .build();
-                } else {
-                    applicationRoleUser.forEach(applicationRoleUserEntity -> {
-                        applicationRoleUserEntity.setUser(userEntity);
-                        applicationRoleUserEntity.setActive(Boolean.TRUE);
-                    });
-                    LOGGER.info("Before to save {}", userEntity);
-                    var applicationId = user.getApplications().toArray(new Application[0])[0].getId();
-                    applicationRoleUserRepository.deleteByUserIdAndApplicationId(userEntity.getId(), applicationId);
-                    var result = userRepository.save(userEntity);
-                    applicationRoleUserRepository.saveAll(applicationRoleUser);
-                    responseEntity = new ResponseEntity<>(userMapper.toTarget(result), HttpStatus.OK);
-                    LOGGER.info("User updated.");
-                }
+                refreshRoleByApplication(userResponseEntity, user);
+                LOGGER.info("Before to save {}", userResponseEntity);
+                var result = userRepository.save(userResponseEntity);
+                responseEntity = new ResponseEntity<>(userMapper.toTarget(result), HttpStatus.OK);
+                LOGGER.info("User updated.");
             } else {
                 responseEntity = ResponseEntity.badRequest().header(HttpHeaders.WARNING, "Invalid user").build();
             }
@@ -167,6 +132,47 @@ public class UserServiceImpl implements UserService {
             responseEntity = ResponseEntity.unprocessableEntity().build();
         }
         return responseEntity;
+    }
+
+    private void refreshRoleByApplication(UserEntity userPrevious, UserTO userCurrent) {
+        if (Objects.nonNull(userCurrent.getApplications()) && !userCurrent.getApplications().isEmpty() && Objects.nonNull(userCurrent.getRoles()) && !userCurrent.getRoles().isEmpty()) {
+            Optional<ApplicationEntity> applicationEntityOptional;
+            Optional<RoleEntity> roleEntityOptional;
+            var optApplication = userCurrent.getApplications().stream().findFirst();
+            var optRole = userCurrent.getRoles().stream().findFirst();
+            if (optApplication.isPresent() && optRole.isPresent()) {
+                applicationEntityOptional = applicationRepository.findById(optApplication.get().getId());
+                roleEntityOptional = roleRepository.findById(optRole.get().getId());
+                var applicationEntity = applicationEntityOptional.orElseThrow(() -> new StandardException(ApplicationMessageKey.APPLICATION_NOT_FOUND));
+                var roleEntity = roleEntityOptional.orElseThrow(() -> new StandardException(ApplicationMessageKey.APPLICATION_NOT_FOUND));
+
+                var applicationRoleUserPrevious = userPrevious.getApplicationRoleUser().stream().filter(aru ->
+                        aru.getId().getApplicationId().equals(applicationEntity.getId())
+                                && aru.getId().getUserId().equals(userCurrent.getId())
+                                && !aru.getId().getRoleId().equals(roleEntity.getId())
+                ).findFirst();
+
+                if (applicationRoleUserPrevious.isPresent() && Objects.nonNull(applicationRoleUserPrevious.get().getId())) {
+                    applicationRoleUserRepository.deleteByUserIdAndApplicationId(userCurrent.getId(), applicationEntity.getId());
+                }
+
+                LOGGER.info("Updating roles from {} to {}", roleEntity.getName(), userCurrent.getLastUpdate());
+                Set<ApplicationRoleUserEntity> applicationRoleUser = new HashSet<>();
+                var applicationRoleUserEntity = new ApplicationRoleUserEntity();
+                var applicationRoleUserId = new ApplicationRoleUserEntityId();
+                applicationRoleUserId.setUserId(userCurrent.getId());
+                applicationRoleUserId.setRoleId(roleEntity.getId());
+                applicationRoleUserId.setApplicationId(applicationEntity.getId());
+                applicationRoleUserEntity.setId(applicationRoleUserId);
+                applicationRoleUserEntity.setApplication(applicationEntity);
+                applicationRoleUserEntity.setUser(userPrevious);
+                applicationRoleUserEntity.setRole(roleEntity);
+                applicationRoleUserEntity.setActive(true);
+                applicationRoleUser.add(applicationRoleUserEntity);
+
+                userPrevious.setApplicationRoleUser(applicationRoleUser);
+            }
+        }
     }
 
     /// Finds a user with the given ID.
@@ -191,6 +197,10 @@ public class UserServiceImpl implements UserService {
                 ResponseEntity.notFound().build());
         LOGGER.info("{}| userId:{}", responseEntity.getStatusCode().value(), userId);
         return responseEntity;
+    }
+
+    private UserEntity findById(UUID userId) {
+        return userRepository.findById(userId).orElseThrow(() -> new StandardException(UserMessageKey.USER_NOT_FOUND));
     }
 
     /// Finds a user by the given alias.
@@ -251,9 +261,19 @@ public class UserServiceImpl implements UserService {
         userEntity.setApplicationRoleUser(new HashSet<>());
         userEntity.setActive(Boolean.TRUE);
 
+        var applicationEntity = applicationRepository.findById(userCreateRequest.applicationId());
+        var roleEntity = roleRepository.findById(userCreateRequest.roleId());
+        var applicationRoleUserEntity = new ApplicationRoleUserEntity();
+        var applicationRoleUserEntityId = new ApplicationRoleUserEntityId();
+        applicationRoleUserEntity.setRole(roleEntity.get());
+        applicationRoleUserEntity.setApplication(applicationEntity.get());
+        applicationRoleUserEntity.setId(applicationRoleUserEntityId);
+        applicationRoleUserEntity.setUser(userEntity);
+
+        userEntity.getApplicationRoleUser().add(applicationRoleUserEntity);
+
         var userEntityResult = userRepository.save(userEntity); // Save
         // Adding ApplicationRoleUser
-        userEntityResult.getApplicationRoleUser().add(applicationLink(userEntityResult, userCreateRequest.roleId(), userCreateRequest.applicationId()));
         var userResult = userMapper.toUserCreateResponse(userEntityResult);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(userResult);
@@ -267,76 +287,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public ResponseEntity<UserTO> unlink(UUID userId, UUID roleId) {
         throw new UnsupportedOperationException();
-    }
-
-    /// Links a role to a user with the given user ID and role ID.
-    ///
-    /// @param userId the user ID
-    /// @param roleId the role ID
-    /// @return the response entity containing the updated user data
-    @Override
-    public ResponseEntity<UserTO> roleLink(UUID userId, UUID roleId) {
-        ResponseEntity<UserTO> responseEntity = null;
-        final var optionalUserEntity = userRepository.findById(userId);
-        if (optionalUserEntity.isPresent()) {
-            final var userEntity = optionalUserEntity.get();
-            for (ApplicationRoleUserEntity userRolEntity : userEntity.getApplicationRoleUser()) {
-                if (userRolEntity.getRole().getId().equals(roleId)) {
-                    responseEntity = new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
-                    return responseEntity;
-                }
-            }
-            final var messageActivityRole = roleService.find(roleId);
-            if (RoleMessageKey.ROL_OK.getCode() == messageActivityRole.getStatusCode().value()) {
-                if (null != userEntity.getApplicationRoleUser()) {
-                    final var applicationRoleUserEntity = new ApplicationRoleUserEntity();
-                    final var roleEntity = roleMapper.toSource(messageActivityRole.getBody());
-                    applicationRoleUserEntity.setUser(userEntity);
-                    applicationRoleUserEntity.setRole(roleEntity);
-                    applicationRoleUserEntity.setActive(Boolean.TRUE);
-                    userEntity.getApplicationRoleUser().add(applicationRoleUserEntity);
-                    userRepository.save(userEntity);
-                    responseEntity = new ResponseEntity<>(userMapper.toTarget(userEntity), HttpStatus.ACCEPTED);
-                }
-            } else {
-                // Role not found
-                responseEntity = ResponseEntity.notFound().build();
-            }
-        } else {
-            // User not found
-            responseEntity = ResponseEntity.notFound().build();
-        }
-        return responseEntity;
-    }
-
-    /// Creates an ApplicationRoleUserEntity link between a user and a role in an application.
-    ///
-    /// @param userEntity    the user entity
-    /// @param roleId        the role ID
-    /// @param applicationId the application ID
-    /// @return the created ApplicationRoleUserEntity
-    private ApplicationRoleUserEntity applicationLink(UserEntity userEntity, UUID roleId, UUID applicationId) {
-        final var applicationRoleUserEntities = new HashSet<ApplicationRoleUserEntity>();
-        final var applicationRoleUserEntity = new ApplicationRoleUserEntity();
-        final var applicationRoleUserEntityId = new ApplicationRoleUserEntityId();
-        final var roleEntity = new RoleEntity();
-        roleEntity.setId(roleId);
-
-        ApplicationEntity applicationEntity = new ApplicationEntity();
-        applicationEntity.setId(applicationId);
-        applicationRoleUserEntityId.setApplicationId(applicationEntity.getId());
-        applicationRoleUserEntityId.setUserId(userEntity.getId());
-        applicationRoleUserEntityId.setRoleId(roleEntity.getId());
-        applicationRoleUserEntity.setActive(true);
-        applicationRoleUserEntity.setId(applicationRoleUserEntityId);
-
-        applicationRoleUserEntity.setApplication(applicationEntity);
-        applicationRoleUserEntity.setRole(roleEntity);
-        applicationRoleUserEntity.setUser(userEntity);
-        applicationRoleUserEntities.add(applicationRoleUserEntity);
-        userEntity.setApplicationRoleUser(applicationRoleUserEntities);
-
-        return applicationRoleUserRepository.save(applicationRoleUserEntity);
     }
 
     /// Finds a user by the given alias.
@@ -355,40 +305,5 @@ public class UserServiceImpl implements UserService {
         userEntity = userEntityOptional.orElse(null);
 
         return Objects.nonNull(userEntity) ? userMapper.toTarget(userEntity) : null;
-    }
-
-    private Person getPerson(UserTO user, UserTO previousUser) {
-        var previousPerson = previousUser.getPerson();
-        BiFunction<String, String, Boolean> validateString = (String previousValue, String newValue) ->
-                Objects.nonNull(newValue) && !newValue.isEmpty() && !newValue.equalsIgnoreCase(previousValue);
-
-        if (validateString.apply(previousPerson.getGender(), user.getPerson().getGender())) {
-            previousPerson.setGender(user.getPerson().getGender());
-        }
-
-        if (Objects.nonNull(user.getPerson().getBirthdate()) && !user.getPerson().getBirthdate().isEqual(previousPerson.getBirthdate())) {
-            previousPerson.setBirthdate(user.getPerson().getBirthdate());
-        }
-        if (validateString.apply(previousPerson.getFirstName(), user.getPerson().getFirstName())) {
-            previousPerson.setFirstName(user.getPerson().getFirstName());
-        }
-        if (validateString.apply(previousPerson.getLastName(), user.getPerson().getLastName())) {
-            previousPerson.setLastName(user.getPerson().getLastName());
-        }
-        if (Objects.nonNull(user.getPerson().getContacts()) && !user.getPerson().getContacts().isEmpty()) {
-            for (var c : user.getPerson().getContacts()) {
-                previousPerson.getContacts().stream()
-                        .filter(contact -> c.getId().toString().equals(contact.getId().toString()) && !c.getContent().equals(contact.getContent()))
-                        .findFirst()
-                        .ifPresent(contact ->
-                                {
-//                                    contact.setPerson(previousPerson);
-                                    contact.setContent(c.getContent());
-                                }
-                        );
-            }
-        }
-
-        return previousPerson;
     }
 }
