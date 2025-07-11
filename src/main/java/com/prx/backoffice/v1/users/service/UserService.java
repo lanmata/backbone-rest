@@ -13,11 +13,11 @@
 
 package com.prx.backoffice.v1.users.service;
 
-import com.prx.commons.services.CrudService;
 import com.prx.backoffice.v1.session.to.UserAliasTO;
 import com.prx.backoffice.v1.users.api.to.UserCreateRequest;
 import com.prx.backoffice.v1.users.api.to.UserCreateResponse;
 import com.prx.backoffice.v1.users.api.to.UserTO;
+import com.prx.commons.services.CrudService;
 import org.apache.commons.lang.NotImplementedException;
 import org.springframework.http.ResponseEntity;
 
@@ -40,7 +40,7 @@ public interface UserService extends CrudService<UUID, UserTO> {
 
     /// Find a user by alias.
     ///
-    /// @param alias the user alias to find the user
+    /// @param alias         the user alias to find the user
     /// @param applicationId the application ID to find the user
     /// @return the user wrapped in a ResponseEntity
     default ResponseEntity<UserTO> findUserByAlias(String alias, UUID applicationId) {
@@ -57,7 +57,7 @@ public interface UserService extends CrudService<UUID, UserTO> {
 
     /// Find a user by email.
     ///
-    /// @param alias the user email to find the user
+    /// @param alias    the user email to find the user
     /// @param password the user password to find the user
     /// @return the user wrapped in a ResponseEntity
     default ResponseEntity<UserTO> access(String alias, String password) {
@@ -83,7 +83,7 @@ public interface UserService extends CrudService<UUID, UserTO> {
     /// Realiza la desvinculaci&oacute;n de un rol a un usuario especifico.
     ///
     /// @param userId [UUID] the user ID to unlink the role from
-    /// @param roleId  [UUID] the role ID to unlink from the user
+    /// @param roleId [UUID] the role ID to unlink from the user
     /// @return Object type [ResponseEntity] with the user
     default ResponseEntity<UserTO> unlink(UUID userId, UUID roleId) {
         throw new NotImplementedException();
@@ -92,7 +92,7 @@ public interface UserService extends CrudService<UUID, UserTO> {
     /// Realiza la vinculaci&oacute;n de un rol a un usuario especifico.
     ///
     /// @param userId [UUID] the user ID to link the role to
-    /// @param roleId  [UUID] the role ID to link to the user
+    /// @param roleId [UUID] the role ID to link to the user
     /// @return Object type [ResponseEntity] with the user
     default ResponseEntity<UserTO> roleLink(UUID userId, UUID roleId) {
         throw new NotImplementedException();
@@ -100,7 +100,7 @@ public interface UserService extends CrudService<UUID, UserTO> {
 
     /// Validate the user alias is available.
     ///
-    /// @param alias [String] Object type.
+    /// @param alias         [String] Object type.
     /// @param applicationId [UUID] Object type.
     /// @return [String] Object type.
     default ResponseEntity<Void> validateAlias(String alias, UUID applicationId) {
@@ -109,10 +109,21 @@ public interface UserService extends CrudService<UUID, UserTO> {
 
     /// Validate the user email is available.
     ///
-    /// @param email [String] Object type.
+    /// @param email         [String] Object type.
     /// @param applicationId [UUID] Object type.
     /// @return [String] Object type.
     default ResponseEntity<Void> validateEmail(String email, UUID applicationId) {
+        throw new NotImplementedException();
+    }
+
+    /// Deletes a user by applicationId and userId.
+    ///
+    /// @param applicationId the application ID
+    /// @param userId        the user ID
+    /// @return ResponseEntity<Void> with appropriate status
+    default ResponseEntity<Void> deleteUserByApplicationAndUserId(
+            UUID applicationId,
+            UUID userId) {
         throw new NotImplementedException();
     }
 }

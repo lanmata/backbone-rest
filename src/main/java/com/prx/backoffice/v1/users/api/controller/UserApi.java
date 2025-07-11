@@ -205,4 +205,11 @@ public interface UserApi {
         // Call controller's conversion and update logic
         return ((UserController)this).putUserDetail(userId, request);
     }
+
+    @DeleteMapping(path = "/application/{applicationId}/user/{userId}")
+    default ResponseEntity<Void> deleteUserByApplicationAndUserId(
+            @PathVariable("applicationId") UUID applicationId,
+            @PathVariable("userId") UUID userId) {
+        return getService().deleteUserByApplicationAndUserId(applicationId, userId);
+    }
 }
