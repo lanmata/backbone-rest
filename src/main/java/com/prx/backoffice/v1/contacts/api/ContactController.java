@@ -13,16 +13,13 @@
 
 package com.prx.backoffice.v1.contacts.api;
 
-import com.prx.backoffice.util.MessageUtil;
 import com.prx.backoffice.v1.contacts.service.ContactService;
 import com.prx.commons.general.pojo.Contact;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.UUID;
@@ -37,7 +34,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*")
 @RequestMapping("/api/v1/contacts")
-public class ContactController {
+public class ContactController implements ContactApi {
 
     private final ContactService contactService;
 
@@ -45,66 +42,38 @@ public class ContactController {
         this.contactService = contactService;
     }
 
-    @Operation(description = "Create a contact.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK, description = "OK")
-    })
-    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/")
-    public ResponseEntity<Contact> create(@RequestBody final Contact contact) {
+    @Override
+    public ResponseEntity<Contact> create(final Contact contact) {
         return contactService.create(contact);
     }
 
-    @Operation(description = "Update a contact.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK, description = "OK")
-    })
-    @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/{contactId}")
-    public ResponseEntity<Contact> update(@PathVariable final UUID contactId, @RequestBody Contact contact) {
+    @Override
+    public ResponseEntity<Contact> update(final UUID contactId, Contact contact) {
         return contactService.update(contactId, contact);
     }
 
-    @Operation(description = "Find a contact list.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK, description = "OK")
-    })
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/{contactId}")
-    public ResponseEntity<Contact> find(@PathVariable(value = "contactId") final UUID contactId) {
+    @Override
+    public ResponseEntity<Contact> find(final UUID contactId) {
         return contactService.find(contactId);
     }
 
-    @Operation(description = "Find a contact list by ids.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK, description = "OK")
-    })
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/list/{contactIds}")
-    public ResponseEntity<List<Contact>> list(@PathVariable List<UUID> contactIds){
+    @Override
+    public ResponseEntity<List<Contact>> list(List<UUID> contactIds) {
         return contactService.list(contactIds);
     }
 
-    @Operation(description = "List contacts by person Id.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK, description = "OK")
-    })
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/person/{personId}")
-    public ResponseEntity<List<Contact>> list(@PathVariable UUID personId){
+    @Override
+    public ResponseEntity<List<Contact>> list(UUID personId) {
         return contactService.listByPersonId(personId);
     }
 
-    @Operation(description = "Get a contact list.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK, description = "OK")
-    })
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/list")
-    public ResponseEntity<List<Contact>> list(){
+    @Override
+    public ResponseEntity<List<Contact>> list() {
         return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
     }
 
-    @Operation(description = "Delete a contact.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK, description = "OK")
-    })
-    @DeleteMapping(path = "/{contactId}")
-    public ResponseEntity<String> delete(@PathVariable final UUID contactId) {
+    @Override
+    public ResponseEntity<String> delete(final UUID contactId) {
         return contactService.deleteById(contactId);
     }
 

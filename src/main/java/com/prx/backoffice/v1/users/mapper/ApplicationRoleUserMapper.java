@@ -15,7 +15,7 @@ package com.prx.backoffice.v1.users.mapper;
 
 import com.prx.backoffice.v1.features.mapper.FeatureMapper;
 import com.prx.backoffice.v1.users.api.to.UserTO;
-import com.prx.commons.constants.types.MessageType;
+import com.prx.commons.constants.httpstatus.type.MessageType;
 import com.prx.commons.exception.StandardException;
 import com.prx.commons.general.pojo.Application;
 import com.prx.commons.general.pojo.Role;

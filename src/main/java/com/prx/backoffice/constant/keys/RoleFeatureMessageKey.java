@@ -13,7 +13,7 @@
 package com.prx.backoffice.constant.keys;
 
 
-import com.prx.commons.constants.types.MessageType;
+import com.prx.commons.constants.httpstatus.type.MessageType;
 
 /**
  * Enum representing various role-feature message keys used in the application.
@@ -75,6 +75,11 @@ public enum RoleFeatureMessageKey implements MessageType {
     @Override
     public int getCode() {
         return code;
+    }
+
+    @Override
+    public String getCodeToString() {
+        return String.valueOf(code);
     }
 
     /**

@@ -13,7 +13,7 @@
 
 package com.prx.backoffice.v1.contacttypes.service;
 
-import com.prx.backoffice.v1.contacttypes.to.ContactTypeRequest;
+import com.prx.backoffice.v1.contacttypes.api.to.ContactTypeRequest;
 import com.prx.commons.general.pojo.ContactType;
 import org.apache.commons.lang.NotImplementedException;
 import org.junit.jupiter.api.DisplayName;

@@ -11,7 +11,7 @@
  *  verbatim with this file.
  */
 
-package com.prx.backoffice.v1.contacttypes.to;
+package com.prx.backoffice.v1.contacttypes.api.to;
 
 import com.prx.commons.general.pojo.ContactType;
 import com.prx.commons.general.to.Request;
