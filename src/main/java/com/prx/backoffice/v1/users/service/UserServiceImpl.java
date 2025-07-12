@@ -306,4 +306,34 @@ public class UserServiceImpl implements UserService {
 
         return Objects.nonNull(userEntity) ? userMapper.toTarget(userEntity) : null;
     }
+
+    @Override
+    public ResponseEntity<Void> deleteUserByApplicationAndUserId(UUID applicationId, UUID userId) {
+        if (applicationId == null || userId == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        var applicationOpt = applicationRepository.findById(applicationId);
+        if (applicationOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        var userOpt = userRepository.findById(userId);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        // Permission check placeholder (implement as needed)
+        boolean hasPermission = true; // Replace with actual permission logic
+        if (!hasPermission) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        // Check if user belongs to application
+        boolean userInApp = userOpt.get().getApplicationRoleUser().stream()
+                .anyMatch(aru -> aru.getId().getApplicationId().equals(applicationId));
+        if (!userInApp) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        // Delete user from application (remove ApplicationRoleUserEntity)
+        applicationRoleUserRepository.deleteByUserIdAndApplicationId(userId, applicationId);
+
+        return ResponseEntity.noContent().build();
+    }
 }
