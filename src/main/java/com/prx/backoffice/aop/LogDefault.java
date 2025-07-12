@@ -15,7 +15,7 @@ package com.prx.backoffice.aop;
 
 import com.prx.backoffice.constant.keys.LogActionKey;
 import com.prx.backoffice.constant.keys.UserMessageKey;
-import com.prx.commons.constants.types.MessageType;
+import com.prx.commons.constants.httpstatus.type.MessageType;
 
 import java.lang.annotation.*;
 

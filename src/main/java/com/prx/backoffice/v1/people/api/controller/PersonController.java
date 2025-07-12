@@ -12,18 +12,13 @@
  */
 package com.prx.backoffice.v1.people.api.controller;
 
-import com.prx.backoffice.util.MessageUtil;
 import com.prx.backoffice.v1.people.api.to.PersonRequest;
 import com.prx.backoffice.v1.people.service.PersonService;
 import com.prx.commons.general.pojo.Person;
-import com.prx.commons.general.to.Response;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.UUID;
@@ -37,58 +32,37 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*")
 @RequestMapping("/api/v1/people")
-public class PersonController {
-    /** personService */
+public class PersonController implements PersonApi {
+    /**
+     * personService
+     */
     private final PersonService personService;
 
     public PersonController(PersonService personService) {
         this.personService = personService;
     }
 
-    /**
-     *
-     * @param personRequest {@link PersonRequest}
-     * @return Objeto de tipo {@link Response}
-     */
-    @Operation(summary = "Create a person", description = "Create and return the person.")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = MessageUtil.OK, description = "Person created")
-    })
-    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/")
-    public ResponseEntity<Person> create(@Parameter(description = "Request to create a person", required = true)
-    @RequestBody final PersonRequest personRequest) {
+    @Override
+    public PersonService getService() {
+        return this.personService;
+    }
+
+    @Override
+    public ResponseEntity<Person> create(final PersonRequest personRequest) {
         return personService.create(personRequest.getPerson());
     }
 
-    @Operation(summary = "Fetch person by ID", description = "Return a person.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK, description = "OK"),
-            @ApiResponse(responseCode = MessageUtil.NOT_FOUND, description = "Person not found"),
-            @ApiResponse(responseCode = MessageUtil.UNPROCESSABLE_ENTITY, description = "Person not found")
-    })
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/{personId}")
-    public ResponseEntity<Person> find(@PathVariable final UUID personId) {
+    @Override
+    public ResponseEntity<Person> find(final UUID personId) {
         return personService.find(personId);
     }
 
-    @Operation(summary = "Update a person", description = "Update and return the person.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK, description = "Person updated"),
-            @ApiResponse(responseCode = MessageUtil.BAD_REQUEST, description = "PersonId invalid"),
-            @ApiResponse(responseCode = MessageUtil.BAD_REQUEST, description = "Person request invalid"),
-            @ApiResponse(responseCode = MessageUtil.BAD_REQUEST, description = "Person not founded")
-    })
-    @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/{personId}")
-    public ResponseEntity<Person> update(@PathVariable final UUID personId, @RequestBody final PersonRequest personRequest) {
+    @Override
+    public ResponseEntity<Person> update(final UUID personId, final PersonRequest personRequest) {
         return personService.update(personId, personRequest.getPerson());
     }
 
-    @Operation(summary = "Fetch all people", description = "Return all people.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK, description = "OK"),
-            @ApiResponse(responseCode = MessageUtil.NOT_FOUND, description = "Person not found")
-    })
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/")
+    @Override
     public ResponseEntity<List<Person>> list() {
         return personService.list((UUID) null);
     }

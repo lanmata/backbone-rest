@@ -13,16 +13,16 @@
 
 package com.prx.backoffice.v1.session.api;
 
-import com.prx.backoffice.util.MessageUtil;
 import com.prx.backoffice.v1.session.services.SessionService;
 import com.prx.backoffice.v1.session.to.SessionEmailRequest;
 import com.prx.backoffice.v1.session.to.SessionRequest;
 import com.prx.backoffice.v1.session.to.SessionResponse;
+import com.prx.commons.constants.httpstatus.key.ServerErrorKey;
+import com.prx.commons.util.HttpStatusUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -42,12 +42,12 @@ public interface SessionApi {
 
             @Override
             public String generateSessionToken(String username, Map<String, String> parameters) {
-                return HttpStatus.NOT_IMPLEMENTED.name();
+                return ServerErrorKey.NOT_IMPLEMENTED.toString();
             }
 
             @Override
             public String getUsernameFromToken(String token) {
-                return HttpStatus.NOT_IMPLEMENTED.name();
+                return ServerErrorKey.NOT_IMPLEMENTED.toString();
             }
         };
     }
@@ -58,9 +58,9 @@ public interface SessionApi {
     /// @return a ResponseEntity containing the session response with the generated token
     @Operation(summary = "Generate session token", description = "Generates a session token based on user credentials")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK, description = "Session token generated successfully"),
-            @ApiResponse(responseCode = MessageUtil.NOT_FOUND, description = "Invalid request payload"),
-            @ApiResponse(responseCode = MessageUtil.UNAUTHORIZED, description = "Invalid credentials")
+            @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "Session token generated successfully"),
+            @ApiResponse(responseCode = HttpStatusUtil.NOT_FOUND_STR, description = "Invalid request payload"),
+            @ApiResponse(responseCode = HttpStatusUtil.UNAUTHORIZED_STR, description = "Invalid credentials")
     })
     @PostMapping
     default ResponseEntity<SessionResponse> generateSessionToken(@RequestBody SessionRequest sessionRequest) {
@@ -73,9 +73,9 @@ public interface SessionApi {
     /// @return a ResponseEntity containing the session response with the generated token
     @Operation(summary = "Generate session token with email", description = "Generates a session token based on user email credentials")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK, description = "Session token generated successfully"),
-            @ApiResponse(responseCode = MessageUtil.NOT_FOUND, description = "Invalid request payload"),
-            @ApiResponse(responseCode = MessageUtil.UNAUTHORIZED, description = "Invalid credentials")
+            @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "Session token generated successfully"),
+            @ApiResponse(responseCode = HttpStatusUtil.NOT_FOUND_STR, description = "Invalid request payload"),
+            @ApiResponse(responseCode = HttpStatusUtil.UNAUTHORIZED_STR, description = "Invalid credentials")
     })
     @PostMapping("/token")
     default ResponseEntity<SessionResponse> generateSessionToken(@RequestBody SessionEmailRequest sessionEmailRequest) {
@@ -88,12 +88,12 @@ public interface SessionApi {
     /// @return a ResponseEntity containing a boolean indicating whether the token is valid
     @Operation(summary = "Validate session token", description = "Validates the provided session token")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK, description = "Session token is valid"),
-            @ApiResponse(responseCode = MessageUtil.UNAUTHORIZED, description = "Invalid session token")
+            @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "Session token is valid"),
+            @ApiResponse(responseCode = HttpStatusUtil.UNAUTHORIZED_STR, description = "Invalid session token")
     })
     @GetMapping("/validate")
     default ResponseEntity<Boolean> validateSessionToken(@RequestHeader(SESSION_TOKEN_KEY) String sessionToken) {
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(Boolean.FALSE);
+        return ResponseEntity.status(HttpStatusUtil.NOT_IMPLEMENTED).body(Boolean.FALSE);
     }
 
     /// Endpoint to renew a session token.
@@ -102,15 +102,15 @@ public interface SessionApi {
     /// @return a ResponseEntity containing the session response with the new token
     @Operation(summary = "Renew session token", description = "Renews the provided session token by validating it and generating a new one")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK, description = "Session token renewed successfully"),
-            @ApiResponse(responseCode = MessageUtil.BAD_REQUEST, description = "Invalid request - token is required"),
-            @ApiResponse(responseCode = MessageUtil.UNAUTHORIZED, description = "Invalid or expired session token"),
-            @ApiResponse(responseCode = MessageUtil.NOT_FOUND, description = "User not found"),
-            @ApiResponse(responseCode = MessageUtil.INTERNAL_SERVER_ERROR, description = "Token generation failed")
+            @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "Session token renewed successfully"),
+            @ApiResponse(responseCode = HttpStatusUtil.BAD_REQUEST_STR, description = "Invalid request - token is required"),
+            @ApiResponse(responseCode = HttpStatusUtil.UNAUTHORIZED_STR, description = "Invalid or expired session token"),
+            @ApiResponse(responseCode = HttpStatusUtil.NOT_FOUND_STR, description = "User not found"),
+            @ApiResponse(responseCode = HttpStatusUtil.INTERNAL_SERVER_ERROR_STR, description = "Token generation failed")
     })
     @GetMapping(value = "/renew", produces = {MediaType.APPLICATION_JSON_VALUE})
     default ResponseEntity<SessionResponse> renewSessionToken(@RequestHeader(SESSION_TOKEN_KEY) String sessionToken) {
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(new SessionResponse());
+        return ResponseEntity.status(HttpStatusUtil.NOT_IMPLEMENTED).body(new SessionResponse());
     }
 
 }

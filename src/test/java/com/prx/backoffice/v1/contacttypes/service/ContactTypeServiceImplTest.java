@@ -14,7 +14,7 @@
 package com.prx.backoffice.v1.contacttypes.service;
 
 import com.prx.backoffice.v1.contacttypes.mapper.ContactTypeMapper;
-import com.prx.backoffice.v1.contacttypes.to.ContactTypeRequest;
+import com.prx.backoffice.v1.contacttypes.api.to.ContactTypeRequest;
 import com.prx.commons.general.pojo.ContactType;
 import com.prx.persistence.general.domains.ContactTypeEntity;
 import com.prx.persistence.general.repositories.ContactTypeRepository;

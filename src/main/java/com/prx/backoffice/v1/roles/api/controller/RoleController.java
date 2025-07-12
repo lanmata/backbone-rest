@@ -12,20 +12,13 @@
  */
 package com.prx.backoffice.v1.roles.api.controller;
 
-import com.prx.backoffice.util.MessageUtil;
-import com.prx.backoffice.v1.roles.api.to.RoleCollectionResponse;
-import com.prx.backoffice.v1.roles.api.to.RoleFindResponse;
 import com.prx.backoffice.v1.roles.api.to.RoleRequest;
 import com.prx.backoffice.v1.roles.service.RoleService;
 import com.prx.commons.general.pojo.Role;
-import com.prx.commons.general.to.Response;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.UUID;
@@ -39,7 +32,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*")
 @RequestMapping("/api/v1/roles")
-class RoleController {
+class RoleController implements RoleApi {
 
     private final RoleService roleService;
 
@@ -47,115 +40,43 @@ class RoleController {
         this.roleService = roleService;
     }
 
-    /**
-     *
-     * @param roleId {@link RoleRequest}
-     * @return Objeto de tipo {@link RoleFindResponse}
-     */
-    @Operation          (description = "Look for a roles")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK, description = MessageUtil.OK_VALUE),
-            @ApiResponse(responseCode = MessageUtil.NOT_FOUND, description = MessageUtil.NOT_FOUND)
-    })
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/find/{roleId}")
-    public ResponseEntity<Role> find(@Parameter(description = "Request to find a role", required = true)
-                                     @PathVariable final UUID roleId){
+    @Override
+    public RoleService getService() {
+        return this.roleService;
+    }
+
+    @Override
+    public ResponseEntity<Role> find(UUID roleId) {
         return roleService.find(roleId);
     }
 
-    /**
-     *
-     * @param includeInactive {@link boolean}
-     * @return {@link RoleCollectionResponse}
-     */
-    @Operation(description = "List Roles by status and role id.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK, description = MessageUtil.OK_VALUE),
-            @ApiResponse(responseCode = MessageUtil.NOT_FOUND, description = MessageUtil.NOT_FOUND)
-    })
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/{includeInactive}/{roleIds}")
-    public ResponseEntity<List<Role>> list(@Parameter(description = "Include/exclude inactive roles.")
-                                               @PathVariable boolean includeInactive,
-                                           @Parameter(description = "Role list requested.")
-                                           @PathVariable List<UUID> roleIds) {
+    @Override
+    public ResponseEntity<List<Role>> list(boolean includeInactive, List<UUID> roleIds) {
         return roleService.list(includeInactive, roleIds);
     }
 
-    /**
-     *
-     * @param includeInactive {@link boolean}
-     * @return {@link RoleCollectionResponse}
-     */
-    @Operation(description = "List Roles by status and role id.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK, description = MessageUtil.OK_VALUE),
-            @ApiResponse(responseCode = MessageUtil.NOT_FOUND, description = MessageUtil.NOT_FOUND)
-    })
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/{includeInactive}")
-    public ResponseEntity<List<Role>> list(@Parameter(description = "Include/exclude inactive roles.")
-                                           @PathVariable boolean includeInactive) {
+    @Override
+    public ResponseEntity<List<Role>> list(boolean includeInactive) {
         return roleService.list(includeInactive, null);
     }
 
-    /**
-     *
-     * @return {@link RoleCollectionResponse}
-     */
-    @Operation(description = "List Roles by status and role id.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK, description = MessageUtil.OK_VALUE),
-            @ApiResponse(responseCode = MessageUtil.NOT_FOUND, description = MessageUtil.NOT_FOUND)
-    })
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    @Override
     public ResponseEntity<List<Role>> list() {
         return roleService.list();
     }
 
-    /**
-     *
-     * @param roleCreateRequest {@link RoleRequest}
-     * @return {@link Response}
-     */
-    @Operation(description = "Create a role")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK, description = MessageUtil.OK_VALUE),
-            @ApiResponse(responseCode = MessageUtil.BAD_REQUEST, description = "Role null."),
-            @ApiResponse(responseCode = MessageUtil.UNPROCESSABLE_ENTITY, description = "Role with content bad.")
-    })
-    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/")
-    public ResponseEntity<Role> create(@Parameter(description = "Role properties", required = true)
-                                       @RequestBody final RoleRequest roleCreateRequest){
+    @Override
+    public ResponseEntity<Role> create(RoleRequest roleCreateRequest) {
         return roleService.create(roleCreateRequest.getRole());
     }
 
-    /**
-     *
-     * @param roleRequest {@link RoleRequest}
-     * @return {@link Response}
-     */
-    @Operation(description = "Update a role")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK, description = MessageUtil.OK_VALUE),
-            @ApiResponse(responseCode = MessageUtil.NOT_FOUND, description = MessageUtil.NOT_FOUND)
-    })
-    @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/{roleId}")
-    public ResponseEntity<Role> update(@PathVariable(value = "roleId") UUID roleId, @RequestBody final RoleRequest roleRequest){
+    @Override
+    public ResponseEntity<Role> update(UUID roleId, RoleRequest roleRequest) {
         return roleService.update(roleId, roleRequest.getRole());
     }
 
-    /**
-     * Obtiene una lista de rol en base al id de un usuario determinado.
-     * @param userId {@link int}
-     * @return Objeto de tipo {@link RoleCollectionResponse}
-     */
-    @Operation(description = "List Roles by Id")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = MessageUtil.OK, description = MessageUtil.OK_VALUE),
-            @ApiResponse(responseCode = MessageUtil.NOT_FOUND, description = MessageUtil.NOT_FOUND)
-    })
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/user/{userId}")
-    public ResponseEntity<List<Role>> list(@PathVariable UUID userId) {
+    @Override
+    public ResponseEntity<List<Role>> listByUser(UUID userId) {
         return roleService.listByUser(userId);
     }
-
 }
