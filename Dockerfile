@@ -3,6 +3,8 @@ LABEL version="0.0.3"
 LABEL description="PRX Backbone REST"
 LABEL mantainer="Luis Mata luis.antonio.mata@gmail.com"
 
+ARG LATINHUB_DIR=/opt/images/LTHB
+ARG IMG_DIR=/opt/images
 ARG TARGET_FILE=target/
 ARG KEYSTORE_FILE=keystore
 ARG CNFS_CRT_NAME=prx-qa.config-server
@@ -27,6 +29,14 @@ RUN keytool -import -alias ${APP_CRT_NAME} -keystore /usr/lib/jvm/default-jvm/jr
     keytool -import -alias ${SRMN_CRT_FILE_NAME} -keystore /usr/lib/jvm/default-jvm/jre/lib/security/cacerts -file ${SRMN_CRT_FILE_NAME}.crt -storepass changeit -noprompt && \
     keytool -import -alias ${CNFS_CRT_NAME} -keystore /usr/lib/jvm/default-jvm/jre/lib/security/cacerts -file ${CNFS_CRT_NAME}.crt -storepass changeit -noprompt && \
     rm *.crt
+
+# Crear el directorio y asignar permisos y usuario
+RUN mkdir ${IMG_DIR} && \
+        chown jvapps:appmng ${IMG_DIR} && \
+        chmod 740 ${IMG_DIR} && \
+    mkdir ${LATINHUB_DIR} && \
+    chown jvapps:appmng ${LATINHUB_DIR} && \
+    chmod 740 ${LATINHUB_DIR}
 
 USER jvapps:appmng
 
