@@ -18,6 +18,7 @@ import com.prx.backoffice.v1.profileimage.to.PostProfileImageResponse;
 import com.prx.commons.util.DateUtil;
 import com.prx.commons.util.HttpStatusUtil;
 import com.prx.persistence.general.repositories.ApplicationRoleUserRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -35,6 +36,8 @@ import java.util.UUID;
 @Service
 public class ProfileImageServiceImpl implements ProfileImageService {
     private final ApplicationRoleUserRepository applicationRoleUserRepository;
+    @Value("${prx.backbone.bucket-img}")
+    private String bucketImg;
 
     public ProfileImageServiceImpl(ApplicationRoleUserRepository applicationRoleUserRepository) {
         this.applicationRoleUserRepository = applicationRoleUserRepository;
@@ -56,7 +59,7 @@ public class ProfileImageServiceImpl implements ProfileImageService {
             // 3. Define a storage path (adjust as needed)
 
             String applicationRelativePath = result.getApplication().getCodeName();
-            Path dirPath = Paths.get("/temp/" + applicationRelativePath);
+            Path dirPath = Paths.get(bucketImg + applicationRelativePath);
             Files.createDirectories(dirPath);
             Path filePath = dirPath.resolve(filename);
 
