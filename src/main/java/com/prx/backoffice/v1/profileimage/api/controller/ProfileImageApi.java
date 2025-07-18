@@ -52,7 +52,7 @@ public interface ProfileImageApi {
         @ApiResponse(responseCode = HttpStatusUtil.BAD_REQUEST_STR, description = "Invalid input data"),
         @ApiResponse(responseCode = HttpStatusUtil.INTERNAL_SERVER_ERROR_STR, description = "Server error")
     })
-    @PostMapping(value = "/application/{applicationId}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @PostMapping(value = "/application/{applicationId}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE}, produces = {MediaType.APPLICATION_JSON_VALUE})
     default ResponseEntity<PostProfileImageResponse> uploadProfileImage(
             @Parameter(description = "Token session", required = true) @RequestHeader(SESSION_TOKEN_KEY) String token,
             @Parameter(description = "Application Id", required = true) @PathVariable("applicationId") UUID applicationId,
