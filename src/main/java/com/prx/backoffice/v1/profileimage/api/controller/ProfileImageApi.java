@@ -14,6 +14,7 @@
 package com.prx.backoffice.v1.profileimage.api.controller;
 
 import com.prx.backoffice.v1.profileimage.service.ProfileImageService;
+import com.prx.backoffice.v1.profileimage.to.GetProfileImageReferenceResponse;
 import com.prx.backoffice.v1.profileimage.to.PostProfileImageResponse;
 import com.prx.commons.util.HttpStatusUtil;
 import io.swagger.v3.oas.annotations.Operation;
@@ -79,5 +80,27 @@ public interface ProfileImageApi {
     ) throws Exception {
         return ResponseEntity.status(HttpStatusUtil.NOT_IMPLEMENTED).body(new byte[0]);
     }
-}
 
+    /**
+     * Retrieves the profile image reference for a user.
+     *
+     * @param token the session token of the user
+     * @param applicationId the ID of the application
+     * @return ResponseEntity with the profile image reference
+     * @throws Exception if retrieval fails
+     */
+    @Operation(summary = "Get profile image reference", description = "Retrieves the profile image reference for a user.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "Profile image reference retrieved successfully"),
+        @ApiResponse(responseCode = HttpStatusUtil.NOT_FOUND_STR, description = "Profile image reference not found"),
+        @ApiResponse(responseCode = HttpStatusUtil.UNAUTHORIZED_STR, description = "Unauthorized access"),
+        @ApiResponse(responseCode = HttpStatusUtil.INTERNAL_SERVER_ERROR_STR, description = "Server error")
+    })
+    @GetMapping(value = "/application/{applicationId}/reference", produces = {MediaType.APPLICATION_JSON_VALUE})
+    default ResponseEntity<GetProfileImageReferenceResponse> getProfileImageReference(
+            @Parameter(description = "Token session", required = true) @RequestHeader(SESSION_TOKEN_KEY) String token,
+            @Parameter(description = "Application Id", required = true) @PathVariable("applicationId") UUID applicationId
+    ) throws Exception {
+        return ResponseEntity.status(HttpStatusUtil.NOT_IMPLEMENTED).body(null);
+    }
+}

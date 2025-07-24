@@ -14,6 +14,7 @@
 package com.prx.backoffice.v1.profileimage.api.controller;
 
 import com.prx.backoffice.v1.profileimage.service.ProfileImageService;
+import com.prx.backoffice.v1.profileimage.to.GetProfileImageReferenceResponse;
 import com.prx.backoffice.v1.profileimage.to.PostProfileImageResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -53,5 +54,12 @@ public class ProfileImageController implements ProfileImageApi {
         // Implementation logic goes here
         return ResponseEntity.ok(new byte[0]);
     }
-}
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ResponseEntity<GetProfileImageReferenceResponse> getProfileImageReference(String token, UUID applicationId) throws Exception {
+        return profileImageService.getProfileImageReference(token, applicationId);
+    }
+}

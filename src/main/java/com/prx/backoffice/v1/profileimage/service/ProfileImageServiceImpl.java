@@ -14,6 +14,7 @@
 package com.prx.backoffice.v1.profileimage.service;
 
 import com.prx.backoffice.util.JwtUtil;
+import com.prx.backoffice.v1.profileimage.to.GetProfileImageReferenceResponse;
 import com.prx.backoffice.v1.profileimage.to.PostProfileImageResponse;
 import com.prx.commons.util.DateUtil;
 import com.prx.commons.util.HttpStatusUtil;
@@ -74,4 +75,17 @@ public class ProfileImageServiceImpl implements ProfileImageService {
         return ResponseEntity.status(HttpStatusUtil.NOT_FOUND).body(new PostProfileImageResponse(""));
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ResponseEntity<GetProfileImageReferenceResponse> getProfileImageReference(String token, UUID applicationId) throws Exception {
+        UUID userId = JwtUtil.getUidFromToken(token);
+
+        var result = applicationRoleUserRepository.findByUserAndApplication(userId, applicationId);
+        if (Objects.nonNull(result) && result.getProfileImageRef() != null) {
+            return ResponseEntity.ok(new GetProfileImageReferenceResponse(result.getProfileImageRef()));
+        }
+        return ResponseEntity.status(HttpStatusUtil.NOT_FOUND).body(null);
+    }
 }
