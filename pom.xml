@@ -13,22 +13,26 @@
   -->
 
 <!--suppress XmlHighlighting -->
-<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.5.8</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+
     <groupId>com.prx.backbone</groupId>
     <artifactId>backbone-rest</artifactId>
     <version>0.0.2</version>
     <name>PRX Backbone REST</name>
     <description>Management service to system entities</description>
 
-    <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.1</version>
-        <relativePath/> <!-- lookup parent from repository -->
-    </parent>
-
+    <url/>
+    <licenses>
+        <license/>
+    </licenses>
     <developers>
         <developer>
             <id>lmata</id>
@@ -39,55 +43,75 @@
             <organizationUrl>www.prx.com</organizationUrl>
         </developer>
     </developers>
-
+    <scm>
+        <connection/>
+        <developerConnection/>
+        <tag/>
+        <url/>
+    </scm>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>21</java.version>
-        <postgresql.version>42.7.4</postgresql.version>
-        <google.gson.version>2.10.1</google.gson.version>
+        <!-- Use a dedicated jacoco argLine property to avoid conflicts with CI/global agent injection -->
+        <jacoco.argLine/>
         <!--        PRX Commons-->
-        <com.prx.commons.version>0.0.4</com.prx.commons.version>
-        <com.prx.persistence.version>0.0.3</com.prx.persistence.version>
-        <com.prx.security-oauth.version>0.0.1</com.prx.security-oauth.version>
+        <com.prx.commons.version>0.0.1</com.prx.commons.version>
         <com.prx.commons-services.version>0.0.1</com.prx.commons-services.version>
+        <com.prx.security-oauth.version>0.0.1</com.prx.security-oauth.version>
+        <com.prx.persistence.version>0.0.3</com.prx.persistence.version>
         <!--        MAVEN-->
+        <maven.compiler.release>${java.version}</maven.compiler.release>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
-        <maven.compiler.plugin.version>3.13.0</maven.compiler.plugin.version>
+        <maven.compiler.plugin.version>3.14.1</maven.compiler.plugin.version>
         <maven.resource.plugin.version>3.3.1</maven.resource.plugin.version>
         <maven.plugin.javadoc.version>3.6.3</maven.plugin.javadoc.version>
-        <maven.plugin.jacoco.version>0.8.12</maven.plugin.jacoco.version>
-        <maven.plugin.pmd.version>3.23.0</maven.plugin.pmd.version>
+        <maven.plugin.jacoco.version>0.8.14</maven.plugin.jacoco.version>
+        <maven.plugin.pmd.version>3.28.0</maven.plugin.pmd.version>
         <maven.plugin.jxr.version>3.0.0</maven.plugin.jxr.version>
-        <maven.surefire.version>3.2.5</maven.surefire.version>
-        <!--        REPOSITORY-->
-        <!--suppress UnresolvedMavenProperty -->
-        <repsy.account.user>${env.REPSY_ACCOUNT_USER}</repsy.account.user>
-        <!--suppress UnresolvedMavenProperty -->
-        <repsy.account.password>${env.REPSY_ACCOUNT_PASSWORD}</repsy.account.password>
+        <maven.surefire.version>3.5.2</maven.surefire.version>
+        <!--        OPEN API -->
+        <springdoc.version>2.6.0</springdoc.version>
         <!--        SPRING -->
-        <spring-core.version>6.1.13</spring-core.version>
-        <spring-boot.version>3.4.1</spring-boot.version>
-        <spring-cloud.version>2024.0.0</spring-cloud.version>
-        <spring-security-aouth2-autoconfigure.version>3.4.1</spring-security-aouth2-autoconfigure.version>
-        <spring-cloud-dependencies.version>4.2.0</spring-cloud-dependencies.version>
-        <mapstruct.version>1.5.5.Final</mapstruct.version>
-        <!--        JWT Dependencies version-->
+        <spring-boot.version>3.5.8</spring-boot.version>
+        <spring-cloud.version>2025.0.1</spring-cloud.version>
+
+        <!-- Centralized versions for previously hardcoded dependency/plugin versions -->
+        <postgresql.version>42.7.7</postgresql.version>
+        <aws.sdk.version>2.21.0</aws.sdk.version>
+        <google.gson.version>2.13.2</google.gson.version>
+        <mapstruct.version>1.6.3</mapstruct.version>
         <jwt.version>0.12.3</jwt.version>
+        <snakeyaml.version>2.5</snakeyaml.version>
+        <org.json.version>20250517</org.json.version>
+        <plexus.utils.version>4.0.2</plexus.utils.version>
+        <rewrite.plugin.version>5.42.0</rewrite.plugin.version>
+        <rewrite.recipe.version>5.21.0</rewrite.recipe.version>
+        <asm.version>9.7</asm.version>
+        <commons-lang3.version>3.18.0</commons-lang3.version>
+
         <!--        Test Dependencies-->
         <!--        JUnit 5.x-->
-        <junit.jupiter.version>5.10.5</junit.jupiter.version>
-        <junit.jupiter.core.version>5.9.3</junit.jupiter.core.version>
+        <junit.jupiter.version>5.14.1</junit.jupiter.version>
         <!--        Mockito-->
+        <mockito.version>5.21.0</mockito.version>
         <mockserver.junit.jupiter.version>5.15.0</mockserver.junit.jupiter.version>
-        <mockito.junit.jupiter.version>4.8.0</mockito.junit.jupiter.version> <!-- PENDING to remove-->
-        <mockito.version>5.14.2</mockito.version>
+
         <!--        Coverage and Sonar-->
-        <sonar.organization>prx-open</sonar.organization>
+        <sonar.organization>umdevc</sonar.organization>
+        <sonar.projectKey>umdc-directory-backend</sonar.projectKey>
+        <sonar.projectName>umdc-directory-backend</sonar.projectName>
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+        <!-- Include only production Java sources for Sonar analysis (exclude tests and resources). Adjust glob if your sources live elsewhere) -->
+        <sonar.inclusions>src/main/java/**/*.java</sonar.inclusions>
+        <sonar.coverage.inclusions>${sonar.inclusions}</sonar.coverage.inclusions>
+        <!-- Do not exclude all Java files — previous config removed all Java from Sonar analysis. Keep resource/config exclusions only. -->
         <sonar.exclusions>
-            **/*.xml,**/PrxBackofficeRestApplication.*,**/config/*,**/config/jwt/*,**/config/jackson/*,**/config/security/*,**/loggers/*,**/loggers/interceptor/*,
-            **/exceptions/*,**/mapper/*,**/mapper/decorator/*,**/converter/*, **/*Test*, **/session/*
+            **/*.xml,**/*Application.*,**/exceptions/*, **/util/*, **/config/*,**/config/**/*,
+            **/mapper/*, **/*Test.*, **/cache/*, **/cache/domain/*, **/security/*, **/producer/*,**/interceptor/*
         </sonar.exclusions>
+        <sonar.coverage.exclusions>${sonar.exclusions}</sonar.coverage.exclusions>
+        <sonar.coverage.jacoco.xmlReportPaths>/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
         <project.ruleset>${project.basedir}/ruleset.xml</project.ruleset>
     </properties>
 
@@ -95,47 +119,48 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-            <version>${spring-boot.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-config</artifactId>
-            <version>${spring-cloud-dependencies.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
-            <version>${spring-security-aouth2-autoconfigure.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
-            <version>${spring-security-aouth2-autoconfigure.version}</version>
         </dependency>
         <dependency>
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
-            <version>2.3</version>
+            <version>${snakeyaml.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-jersey</artifactId>
-            <version>${spring-boot.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-vault-config</artifactId>
-            <version>${spring-cloud-dependencies.version}</version>
+            <artifactId>spring-cloud-starter-bootstrap</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-            <version>${spring-cloud-dependencies.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.netflix.eureka</groupId>
-            <artifactId>eureka-client-jersey3</artifactId>
-            <version>2.0.3</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.woodstox</groupId>
@@ -143,42 +168,24 @@
             <version>7.0.0</version>
         </dependency>
         <dependency>
-            <groupId>com.thoughtworks.xstream</groupId>
-            <artifactId>xstream</artifactId>
-            <version>1.4.21</version>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
+            <version>${aws.sdk.version}</version>
         </dependency>
+
         <dependency>
             <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-openfeign</artifactId>
-            <version>${spring-cloud-dependencies.version}</version>
+            <artifactId>spring-cloud-starter-vault-config</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>commons-fileupload</groupId>
             <artifactId>commons-fileupload</artifactId>
             <version>1.5</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-bootstrap</artifactId>
-            <version>${spring-cloud-dependencies.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-actuator</artifactId>
-            <version>${spring-boot.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-devtools</artifactId>
-            <version>${spring-boot.version}</version>
-            <scope>runtime</scope>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-configuration-processor</artifactId>
-            <scope>provided</scope>
-            <version>${spring-boot.version}</version>
         </dependency>
         <!--        Converter-->
         <dependency>
@@ -201,22 +208,68 @@
             <groupId>com.prx</groupId>
             <artifactId>commons-services</artifactId>
             <version>${com.prx.commons-services.version}</version>
+            <exclusions>
+                <!-- Exclude older springdoc artifacts that pull in javax.servlet (1.8.x) -->
+                <exclusion>
+                    <groupId>org.springdoc</groupId>
+                    <artifactId>springdoc-openapi-ui</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springdoc</groupId>
+                    <artifactId>springdoc-openapi-webmvc-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springdoc</groupId>
+                    <artifactId>springdoc-openapi-common</artifactId>
+                </exclusion>
+                <!-- Exclude javax.servlet if brought in -->
+                <exclusion>
+                    <groupId>javax.servlet</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+                <!-- Exclude javax.annotation if brought in -->
+                <exclusion>
+                    <groupId>javax.annotation</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.prx</groupId>
             <artifactId>persistence</artifactId>
             <version>${com.prx.persistence.version}</version>
+            <exclusions>
+                <!-- Exclude javax.servlet if brought in -->
+                <exclusion>
+                    <groupId>javax.servlet</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+                <!-- Exclude javax.annotation if brought in -->
+                <exclusion>
+                    <groupId>javax.annotation</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
-            <version>2.18.1</version>
         </dependency>
         <!--        JWT Dependencies-->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
             <version>${jwt.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.annotation</groupId>
+                    <artifactId>javax.annotation-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
@@ -231,19 +284,29 @@
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
-            <version>20240303</version>
+        </dependency>
+        <!--        SpringDoc OpenAPI-->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>${springdoc.version}</version>
+            <exclusions>
+                <!-- Exclude any transitive javax.servlet dependencies -->
+                <exclusion>
+                    <groupId>javax.servlet</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <!--        TEST-->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-contract-verifier</artifactId>
-            <version>${spring-cloud-dependencies.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-contract-stub-runner</artifactId>
-            <version>${spring-cloud-dependencies.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -312,18 +375,11 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
-            <version>${spring-boot.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-test-autoconfigure</artifactId>
-            <version>${spring-boot.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>commons-lang</groupId>
-            <artifactId>commons-lang</artifactId>
-            <version>2.6</version>
         </dependency>
         <dependency>
             <groupId>org.junit.vintage</groupId>
@@ -350,6 +406,50 @@
                 <scope>import</scope>
             </dependency>
             <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${commons-lang3.version}</version>
+            </dependency>
+            <!-- Centralized versions for selected dependencies -->
+            <dependency>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct</artifactId>
+                <version>${mapstruct.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct-processor</artifactId>
+                <version>${mapstruct.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.json</groupId>
+                <artifactId>json</artifactId>
+                <version>${org.json.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+                <version>${springdoc.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>${mockito.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-junit-jupiter</artifactId>
+                <version>${mockito.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter</artifactId>
+                <version>${junit.jupiter.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
                 <groupId>org.junit</groupId>
                 <artifactId>junit-bom</artifactId>
                 <version>${junit.jupiter.version}</version>
@@ -357,9 +457,10 @@
                 <type>pom</type>
             </dependency>
             <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-lang3</artifactId>
-                <version>${commons-lang3.version}</version>
+                <groupId>org.postgresql</groupId>
+                <artifactId>postgresql</artifactId>
+                <version>${postgresql.version}</version>
+                <scope>runtime</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -367,6 +468,25 @@
     <build>
         <finalName>${project.artifactId}</finalName>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.14.1</version>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.mapstruct</groupId>
+                            <artifactId>mapstruct-processor</artifactId>
+                            <version>${mapstruct.version}</version>
+                        </path>
+                        <path>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-configuration-processor</artifactId>
+                            <version>${spring-boot.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -479,6 +599,29 @@
                         <goals>
                             <goal>generate</goal>
                         </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>fix-spring-configuration-metadata</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <replaceregexp
+                                    file="${project.build.outputDirectory}/META-INF/spring-configuration-metadata.json"
+                                    match=',[\s\n]*"ignored"[\s\n]*:[\s\n]*\{[\s\S]*?\}[\s\n]*\}'
+                                    replace='}'
+                                    byline="false"/>
+                            </target>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
