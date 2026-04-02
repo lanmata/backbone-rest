@@ -2,7 +2,12 @@
 # It uses the YAML format for easier readability and nested configuration.
 
 # Application specific configurations
+log:
+  debug: ${LOGGING_TRACE_ENABLED}
 prx:
+  logging:
+    trace:
+      enabled: ${LOGGING_TRACE_ENABLED}
   jwt:
     secret: ${APP_TOKEN_SECRET}
     expirationMs: ${APP_TOKEN_EXPIRATION}
@@ -32,6 +37,7 @@ server:
       enabled: true
       mime-types: text/html,text/xml,text/plain,text/css,application/json
       min-response-size: 1024
+
 spring:
   ssl:
     bundle:
@@ -82,8 +88,9 @@ spring:
     # The Spring Cloud Config specific configurations
     #<><><><><><><><><><><><><><> VAULT <><><><><><><><><><><><><><>
     vault:
+      enabled: ${VAULT_ENABLED}
       token: ${VAULT_TOKEN}
-      uri: ${VAULT_SERVER_URL}
+      uri: ${VAULT_SERVER_URI}
       kv:
         backend: PRX
         default-context: ${app.name}
@@ -108,6 +115,9 @@ spring:
       hibernate:
         boot:
           allow_jdbc_metadata_access: true
+        jdbc:
+          lob:
+            non_contextual_creation: true
     # Defers the initialization of the datasource
     defer-datasource-initialization: true
 
