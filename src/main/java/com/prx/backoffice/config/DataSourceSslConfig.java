@@ -153,6 +153,18 @@ public class DataSourceSslConfig {
     private long initFailTimeout;
 
     /**
+     * Holds the path to the database certificate used for enabling SSL connections.
+     * This property is configurable via an external configuration source, typically
+     * provided using the `prx.database-cert` key. If the value is not specified,
+     * it defaults to "na".
+     *
+     * The value can represent a file system path or other supported locations
+     * depending on the specific requirements of the database driver.
+     */
+    @Value("${prx.database-cert:na}")
+    private String databaseCert;
+
+    /**
      * Create and configure a {@link HikariDataSource} bean.
      *
      * <p>The returned DataSource is configured with the provided JDBC URL,
@@ -193,7 +205,7 @@ public class DataSourceSslConfig {
                         if (in == null) {
                             throw new IllegalArgumentException("Root certificate was not found SSL in the classpath: " + resourcePath);
                         }
-                        Path tempFile = Files.createTempFile("db-root-cert", ".crt");
+                        Path tempFile = Files.createTempFile(databaseCert, ".crt");
                         tempFile.toFile().deleteOnExit();
                         try (FileOutputStream out = new FileOutputStream(tempFile.toFile())) {
                             in.transferTo(out);
