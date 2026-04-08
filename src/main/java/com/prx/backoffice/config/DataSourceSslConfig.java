@@ -18,6 +18,9 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
+import java.util.EnumSet;
 
 import static com.prx.backoffice.constant.BackboneAppConstants.ENTITY_PACKAGE;
 import static com.prx.backoffice.constant.BackboneAppConstants.REPOSITORY_PACKAGE;
@@ -205,7 +208,8 @@ public class DataSourceSslConfig {
                         if (in == null) {
                             throw new IllegalArgumentException("Root certificate was not found SSL in the classpath: " + resourcePath);
                         }
-                        Path tempFile = Files.createTempFile(databaseCert, ".crt");
+                        var perms = EnumSet.of(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE);
+                        Path tempFile = Files.createTempFile(databaseCert, ".crt", PosixFilePermissions.asFileAttribute(perms));
                         tempFile.toFile().deleteOnExit();
                         try (FileOutputStream out = new FileOutputStream(tempFile.toFile())) {
                             in.transferTo(out);
