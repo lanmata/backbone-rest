@@ -189,11 +189,13 @@ public interface UserApi {
     }
 
     /// Updates a user using PutUserUpdateRequest.
+    /// Supports partial updates - only the fields provided in the request will be updated.
+    /// Supported fields: firstName, lastName, middleName, displayName, gender, birthdate, contacts (phone numbers).
     ///
     /// @param userId the user ID
     /// @param request the PutUserUpdateRequest body
     /// @return the response entity with the update status
-    @Operation(description = "putUserDetail(partial update) a user with PutUserUpdateRequest")
+    @Operation(description = "Partial update of user details including firstName, lastName, middleName, displayName, gender, birthdate, and phone numbers (contacts). Only provided fields will be updated.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = HttpStatusUtil.ACCEPTED_STR, description = "User updated and accepted"),
             @ApiResponse(responseCode = HttpStatusUtil.NOT_ACCEPTABLE_STR, description = "User update rejected")

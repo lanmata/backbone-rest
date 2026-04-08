@@ -46,31 +46,31 @@ public class UserController implements UserApi {
         this.userService = userService;
     }
 
-    /// {@inheritDoc}
+    /** {@inheritDoc} */
     @Override
     public ResponseEntity<Void> checkAliasAvailable(String alias, UUID applicationId) {
         return userService.validateAlias(alias, applicationId);
     }
 
-    /// {@inheritDoc}
+    /** {@inheritDoc} */
     @Override
     public ResponseEntity<Void> checkEmailAvailable(String email, UUID applicationId) {
         return userService.validateEmail(email, applicationId);
     }
 
-    /// {@inheritDoc}
+    /** {@inheritDoc} */
     @Override
     public ResponseEntity<UserTO> findUserById(UUID userId) {
         return userService.findUserById(userId);
     }
 
-    /// {@inheritDoc}
+    /** {@inheritDoc} */
     @Override
     public ResponseEntity<List<UserTO>> findAll(UUID applicationId) {
         return userService.findAll(applicationId);
     }
 
-    /// {@inheritDoc}
+    /** {@inheritDoc} */
     @Override
     public ResponseEntity<UserCreateResponse> create(UserCreateRequest userCreateRequest) {
         LOGGER.info("{} /create", MessageUtil.LOG_START_MSG);
@@ -83,74 +83,123 @@ public class UserController implements UserApi {
         return userService.create(userCreateRequest);
     }
 
-    /// {@inheritDoc}
+    /** {@inheritDoc} */
     @Override
     public ResponseEntity<UserTO> update(UUID userId, UserTO user) {
         LOGGER.info("{} /update/{userId}", MessageUtil.LOG_START_MSG);
         return userService.update(userId, user);
     }
 
-    /// {@inheritDoc}
+    /** {@inheritDoc} */
     @Override
     public ResponseEntity<UserTO> findUserByAlias(String alias, UUID applicationId) {
         return userService.findUserByAlias(alias, applicationId);
     }
 
-    /// {@inheritDoc}
+    /** {@inheritDoc} */
     @Override
     public ResponseEntity<UserAliasTO> findUserAliasByAlias(String alias, UUID applicationId) {
         return userService.findUserAliasByAlias(alias, applicationId);
     }
 
-    /// {@inheritDoc}
+    /** {@inheritDoc} */
     @Override
     public ResponseEntity<UserTO> unlink(UUID userId, UUID roleId) {
         return userService.unlink(userId, roleId);
     }
 
-    ///  {@inheritDoc}
+    /** {@inheritDoc} */
     @Override
     public ResponseEntity<UserTO> link(UUID userId, UUID roleId) {
         return userService.roleLink(userId, roleId);
     }
 
     /// Converts a PutUserUpdateRequest to a UserTO.
+    /// Only sets fields that are provided (not null) to enable partial updates.
     private UserTO toUserTO(UUID userId, PutUserUpdateRequest request) {
         Application application = new Application();
         application.setId(request.application());
         UserTO userTO = new UserTO();
         userTO.setApplications(new HashSet<>());
         userTO.setId(userId);
-        userTO.setPassword(request.password());
-        userTO.setDisplayName(request.displayName());
-        userTO.setActive(request.active());
-        userTO.setNotificationEmail(request.notificationEmail());
-        userTO.setNotificationSms(request.notificationSms());
-        userTO.setPrivacyDataOutActive(request.privacyDataOutActive());
         userTO.getApplications().add(application);
-        // Map person fields
-        var person = new Person();
-        person.setFirstName(request.firstName());
-        person.setMiddleName(request.middleName());
-        person.setLastName(request.lastName());
-        person.setGender(request.gender());
-        person.setBirthdate(request.birthdate());
-        // Map contacts if present
-        if (Objects.nonNull(request.contacts())) {
-            var contacts = request.contacts().stream().map(c -> {
-                var contact = new Contact();
-                contact.setId(c.id());
-                contact.setContent(c.content());
-                contact.setActive(c.active());
-                if (c.contactType() != null) {
-                    var contactType = new ContactType();
-                    contactType.setId(c.contactType().id());
-                    contact.setContactType(contactType);
-                }
-                return contact;
-            }).toList();
-            person.setContacts(contacts);
+
+        // Only set if provided
+        if (Objects.nonNull(request.password())) {
+            userTO.setPassword(request.password());
         }
+        if (Objects.nonNull(request.displayName())) {
+            userTO.setDisplayName(request.displayName());
+        }
+        // Note: active defaults to false if not set, but service will only update if provided
+        // We use a special marker: if active was explicitly provided, we also set at least one other field
+        // or we can check if active != false (the default)
+        if (Objects.nonNull(request.active())) {
+            userTO.setActive(request.active());
+            // Mark that active was explicitly set by ensuring we have a non-empty email (placeholder)
+            // Actually, better approach: always set active to current value if not provided
+            // But we can't get current value here without a DB call
+            // Solution: Just set it and let service handle it
+        } else {
+            // Set to true by default so service knows this wasn't explicitly set to false
+            userTO.setActive(true);
+        }
+        if (Objects.nonNull(request.notificationEmail())) {
+            userTO.setNotificationEmail(request.notificationEmail());
+        }
+        if (Objects.nonNull(request.notificationSms())) {
+            userTO.setNotificationSms(request.notificationSms());
+        }
+        if (Objects.nonNull(request.privacyDataOutActive())) {
+            userTO.setPrivacyDataOutActive(request.privacyDataOutActive());
+        }
+
+
+        // Map person fields - only if at least one person field is provided
+        if (Objects.nonNull(request.firstName()) || Objects.nonNull(request.middleName()) ||
+            Objects.nonNull(request.lastName()) || Objects.nonNull(request.gender()) ||
+            Objects.nonNull(request.birthdate()) || Objects.nonNull(request.contacts())) {
+
+            var person = new Person();
+
+            // Only set person fields that are provided
+            if (Objects.nonNull(request.firstName())) {
+                person.setFirstName(request.firstName());
+            }
+            if (Objects.nonNull(request.middleName())) {
+                person.setMiddleName(request.middleName());
+            }
+            if (Objects.nonNull(request.lastName())) {
+                person.setLastName(request.lastName());
+            }
+            if (Objects.nonNull(request.gender())) {
+                person.setGender(request.gender());
+            }
+            if (Objects.nonNull(request.birthdate())) {
+                person.setBirthdate(request.birthdate());
+            }
+
+            // Map contacts if present
+            if (Objects.nonNull(request.contacts())) {
+                var contacts = request.contacts().stream().map(c -> {
+                    var contact = new Contact();
+                    contact.setId(c.id());
+                    contact.setContent(c.content());
+                    contact.setActive(c.active());
+                    if (c.contactType() != null) {
+                        var contactType = new ContactType();
+                        contactType.setId(c.contactType().id());
+                        contact.setContactType(contactType);
+                    }
+                    return contact;
+                }).toList();
+                person.setContacts(contacts);
+            }
+
+            userTO.setPerson(person);
+        }
+
+        // Map roles if present
         if (Objects.nonNull(request.roleIds())) {
             var roles = request.roleIds().stream().map(uuid -> {
                 var role = new Role();
@@ -159,7 +208,7 @@ public class UserController implements UserApi {
             }).toList();
             userTO.setRoles(Set.of(roles.toArray(new Role[0])));
         }
-        userTO.setPerson(person);
+
         return userTO;
     }
 

@@ -1,13 +1,14 @@
 package com.prx.backoffice.v1.users.service;
 
+import com.prx.backoffice.v1.application.service.ApplicationService;
+import com.prx.backoffice.v1.people.mapper.PersonMapper;
 import com.prx.backoffice.v1.users.api.to.UserCreateRequest;
 import com.prx.backoffice.v1.users.api.to.UserCreateResponse;
 import com.prx.backoffice.v1.users.api.to.UserTO;
 import com.prx.backoffice.v1.users.mapper.UserMapper;
+import com.prx.commons.general.pojo.Application;
 import com.prx.persistence.general.domains.UserEntity;
-import com.prx.persistence.general.repositories.ApplicationRepository;
 import com.prx.persistence.general.repositories.ApplicationRoleUserRepository;
-import com.prx.persistence.general.repositories.RoleRepository;
 import com.prx.persistence.general.repositories.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,16 +32,19 @@ class UserServiceImplTest {
     UserRepository userRepository;
 
     @Mock
-    ApplicationRepository applicationRepository;
-
-    @Mock
     ApplicationRoleUserRepository applicationRoleUserRepository;
 
     @Mock
-    RoleRepository roleRepository;
+    ApplicationService applicationService;
+
+    @Mock
+    UserApplicationRoleService userApplicationRoleService;
 
     @Mock
     UserMapper userMapper;
+
+    @Mock
+    PersonMapper personMapper;
 
     @InjectMocks
     UserServiceImpl userService;
@@ -277,7 +281,7 @@ class UserServiceImplTest {
     void testDeleteUserByApplicationAndUserId_ApplicationNotFound() {
         UUID appId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
-        when(applicationRepository.findById(appId)).thenReturn(Optional.empty());
+        when(applicationService.find(appId)).thenReturn(ResponseEntity.notFound().build());
         ResponseEntity<Void> response = userService.deleteUserByApplicationAndUserId(appId, userId);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
@@ -286,8 +290,9 @@ class UserServiceImplTest {
     void testDeleteUserByApplicationAndUserId_UserNotFound() {
         UUID appId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
-        var appEntity = mock(com.prx.persistence.general.domains.ApplicationEntity.class);
-        when(applicationRepository.findById(appId)).thenReturn(Optional.of(appEntity));
+        Application application = new Application();
+        application.setId(appId);
+        when(applicationService.find(appId)).thenReturn(ResponseEntity.ok(application));
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
         ResponseEntity<Void> response = userService.deleteUserByApplicationAndUserId(appId, userId);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
@@ -297,9 +302,10 @@ class UserServiceImplTest {
     void testDeleteUserByApplicationAndUserId_UserNotInApplication() {
         UUID appId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
-        var appEntity = mock(com.prx.persistence.general.domains.ApplicationEntity.class);
+        Application application = new Application();
+        application.setId(appId);
         var userEntity = mock(UserEntity.class);
-        when(applicationRepository.findById(appId)).thenReturn(Optional.of(appEntity));
+        when(applicationService.find(appId)).thenReturn(ResponseEntity.ok(application));
         when(userRepository.findById(userId)).thenReturn(Optional.of(userEntity));
         when(userEntity.getApplicationRoleUser()).thenReturn(java.util.Set.of());
         ResponseEntity<Void> response = userService.deleteUserByApplicationAndUserId(appId, userId);
