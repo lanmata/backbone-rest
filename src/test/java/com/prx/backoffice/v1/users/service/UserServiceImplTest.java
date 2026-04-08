@@ -1,13 +1,16 @@
 package com.prx.backoffice.v1.users.service;
 
+import com.prx.backoffice.v1.application.service.ApplicationService;
+import com.prx.backoffice.v1.contacts.mapper.ContactMapper;
+import com.prx.backoffice.v1.contacttypes.mapper.ContactTypeMapper;
+import com.prx.backoffice.v1.people.mapper.PersonMapper;
 import com.prx.backoffice.v1.users.api.to.UserCreateRequest;
 import com.prx.backoffice.v1.users.api.to.UserCreateResponse;
 import com.prx.backoffice.v1.users.api.to.UserTO;
 import com.prx.backoffice.v1.users.mapper.UserMapper;
-import com.prx.persistence.general.domains.UserEntity;
-import com.prx.persistence.general.repositories.ApplicationRepository;
+import com.prx.commons.general.pojo.Application;
+import com.prx.persistence.general.domains.*;
 import com.prx.persistence.general.repositories.ApplicationRoleUserRepository;
-import com.prx.persistence.general.repositories.RoleRepository;
 import com.prx.persistence.general.repositories.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,10 +20,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -31,16 +31,25 @@ class UserServiceImplTest {
     UserRepository userRepository;
 
     @Mock
-    ApplicationRepository applicationRepository;
-
-    @Mock
     ApplicationRoleUserRepository applicationRoleUserRepository;
 
     @Mock
-    RoleRepository roleRepository;
+    ApplicationService applicationService;
+
+    @Mock
+    UserApplicationRoleService userApplicationRoleService;
 
     @Mock
     UserMapper userMapper;
+
+    @Mock
+    PersonMapper personMapper;
+
+    @Mock
+    ContactMapper contactMapper;
+
+    @Mock
+    ContactTypeMapper contactTypeMapper;
 
     @InjectMocks
     UserServiceImpl userService;
@@ -277,7 +286,7 @@ class UserServiceImplTest {
     void testDeleteUserByApplicationAndUserId_ApplicationNotFound() {
         UUID appId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
-        when(applicationRepository.findById(appId)).thenReturn(Optional.empty());
+        when(applicationService.find(appId)).thenReturn(ResponseEntity.notFound().build());
         ResponseEntity<Void> response = userService.deleteUserByApplicationAndUserId(appId, userId);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
@@ -286,8 +295,9 @@ class UserServiceImplTest {
     void testDeleteUserByApplicationAndUserId_UserNotFound() {
         UUID appId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
-        var appEntity = mock(com.prx.persistence.general.domains.ApplicationEntity.class);
-        when(applicationRepository.findById(appId)).thenReturn(Optional.of(appEntity));
+        Application application = new Application();
+        application.setId(appId);
+        when(applicationService.find(appId)).thenReturn(ResponseEntity.ok(application));
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
         ResponseEntity<Void> response = userService.deleteUserByApplicationAndUserId(appId, userId);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
@@ -297,9 +307,10 @@ class UserServiceImplTest {
     void testDeleteUserByApplicationAndUserId_UserNotInApplication() {
         UUID appId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
-        var appEntity = mock(com.prx.persistence.general.domains.ApplicationEntity.class);
+        Application application = new Application();
+        application.setId(appId);
         var userEntity = mock(UserEntity.class);
-        when(applicationRepository.findById(appId)).thenReturn(Optional.of(appEntity));
+        when(applicationService.find(appId)).thenReturn(ResponseEntity.ok(application));
         when(userRepository.findById(userId)).thenReturn(Optional.of(userEntity));
         when(userEntity.getApplicationRoleUser()).thenReturn(java.util.Set.of());
         ResponseEntity<Void> response = userService.deleteUserByApplicationAndUserId(appId, userId);
@@ -309,6 +320,642 @@ class UserServiceImplTest {
     @Test
     void testDeleteUserByApplicationAndUserId_InvalidIds() {
         ResponseEntity<Void> response = userService.deleteUserByApplicationAndUserId(null, null);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    void testCreate_Success() {
+        UUID appId = UUID.randomUUID();
+        UUID roleId = UUID.randomUUID();
+
+        UserCreateRequest request = mock(UserCreateRequest.class);
+        when(request.alias()).thenReturn("newuser");
+        when(request.password()).thenReturn("password123");
+        when(request.roleId()).thenReturn(roleId);
+        when(request.applicationId()).thenReturn(appId);
+
+        UserEntity userEntity = new UserEntity();
+        userEntity.setId(UUID.randomUUID());
+        userEntity.setAlias("newuser");
+
+        when(userRepository.findByAliasAndApplication("newuser", appId)).thenReturn(Optional.empty());
+        when(userMapper.toSource(request)).thenReturn(userEntity);
+        when(userRepository.save(any(UserEntity.class))).thenReturn(userEntity);
+        when(userMapper.toUserCreateResponse(userEntity)).thenReturn(mock(UserCreateResponse.class));
+
+        ResponseEntity<UserCreateResponse> response = userService.create(request);
+
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        verify(userRepository, times(1)).save(any(UserEntity.class));
+    }
+
+    @Test
+    void testCreate_UserAlreadyExists() {
+        UUID appId = UUID.randomUUID();
+        UUID roleId = UUID.randomUUID();
+
+        UserCreateRequest request = mock(UserCreateRequest.class);
+        when(request.alias()).thenReturn("existinguser");
+        when(request.password()).thenReturn("password123");
+        when(request.roleId()).thenReturn(roleId);
+        when(request.applicationId()).thenReturn(appId);
+
+        UserEntity existingUser = new UserEntity();
+        when(userRepository.findByAliasAndApplication("existinguser", appId)).thenReturn(Optional.of(existingUser));
+        when(userMapper.toTarget(existingUser)).thenReturn(new UserTO());
+
+        ResponseEntity<UserCreateResponse> response = userService.create(request);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        verify(userRepository, never()).save(any(UserEntity.class));
+    }
+
+    @Test
+    void testUpdate_Success() {
+        UUID userId = UUID.randomUUID();
+        UserEntity existingUser = new UserEntity();
+        existingUser.setId(userId);
+        existingUser.setAlias("testuser");
+        existingUser.setPassword("oldpassword");
+
+        UserTO updateData = new UserTO();
+        updateData.setDisplayName("Updated Name");
+        updateData.setPassword("newpassword");
+        updateData.setNotificationEmail(true);
+        updateData.setNotificationSms(false);
+        updateData.setPrivacyDataOutActive(true);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userRepository.save(any(UserEntity.class))).thenReturn(existingUser);
+        when(userMapper.toTarget(existingUser)).thenReturn(updateData);
+
+        ResponseEntity<UserTO> response = userService.update(userId, updateData);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        verify(userRepository, times(1)).save(any(UserEntity.class));
+    }
+
+    @Test
+    void testUpdate_UserNotFound() {
+        UUID userId = UUID.randomUUID();
+        UserTO updateData = new UserTO();
+
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        ResponseEntity<UserTO> response = userService.update(userId, updateData);
+
+        assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, response.getStatusCode());
+        verify(userRepository, never()).save(any(UserEntity.class));
+    }
+
+    @Test
+    void testUpdate_WithPersonData() {
+        UUID userId = UUID.randomUUID();
+        UserEntity existingUser = new UserEntity();
+        existingUser.setId(userId);
+
+        PersonEntity personEntity = new PersonEntity();
+        existingUser.setPerson(personEntity);
+
+        UserTO updateData = new UserTO();
+        var person = new com.prx.commons.general.pojo.Person();
+        person.setFirstName("John");
+        person.setMiddleName("M");
+        person.setLastName("Doe");
+        person.setGender("M");
+        person.setBirthdate(java.time.LocalDate.now());
+        updateData.setPerson(person);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userRepository.save(any(UserEntity.class))).thenReturn(existingUser);
+        when(userMapper.toTarget(existingUser)).thenReturn(updateData);
+
+        ResponseEntity<UserTO> response = userService.update(userId, updateData);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        verify(userRepository, times(1)).save(any(UserEntity.class));
+    }
+
+    @Test
+    void testUpdate_WithNewPersonEntity() {
+        UUID userId = UUID.randomUUID();
+        UserEntity existingUser = new UserEntity();
+        existingUser.setId(userId);
+        existingUser.setPerson(null); // No existing person
+
+        UserTO updateData = new UserTO();
+        var person = new com.prx.commons.general.pojo.Person();
+        person.setFirstName("Jane");
+        person.setLastName("Smith");
+        updateData.setPerson(person);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userRepository.save(any(UserEntity.class))).thenReturn(existingUser);
+        when(userMapper.toTarget(existingUser)).thenReturn(updateData);
+
+        ResponseEntity<UserTO> response = userService.update(userId, updateData);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(existingUser.getPerson());
+    }
+
+    @Test
+    void testUpdate_WithContacts() {
+        UUID userId = UUID.randomUUID();
+        UserEntity existingUser = new UserEntity();
+        existingUser.setId(userId);
+
+        PersonEntity personEntity = new PersonEntity();
+        existingUser.setPerson(personEntity);
+
+        UserTO updateData = new UserTO();
+        var person = new com.prx.commons.general.pojo.Person();
+
+        var contact = new com.prx.commons.general.pojo.Contact();
+        contact.setId(UUID.randomUUID());
+        contact.setContent("test@example.com");
+
+        var contactType = new com.prx.commons.general.pojo.ContactType();
+        contactType.setId(UUID.randomUUID());
+        contactType.setName("Email");
+        contactType.setDescription("Email Address");
+        contactType.setActive(true);
+        contact.setContactType(contactType);
+
+        person.setContacts(List.of(contact));
+        updateData.setPerson(person);
+
+        ContactEntity contactEntity = new ContactEntity();
+        ContactTypeEntity contactTypeEntity = new ContactTypeEntity();
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(contactMapper.toSource(any())).thenReturn(contactEntity);
+        when(contactTypeMapper.toSource(any())).thenReturn(contactTypeEntity);
+        when(userRepository.save(any(UserEntity.class))).thenReturn(existingUser);
+        when(userMapper.toTarget(existingUser)).thenReturn(updateData);
+
+        ResponseEntity<UserTO> response = userService.update(userId, updateData);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    void testDeleteUserByApplicationAndUserId_Success() {
+        UUID appId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+
+        var application = new com.prx.commons.general.pojo.Application();
+        application.setId(appId);
+
+        ApplicationEntity appEntity = new ApplicationEntity();
+        appEntity.setId(appId);
+
+        ApplicationRoleUserEntity aru = new ApplicationRoleUserEntity();
+        ApplicationRoleUserEntityId aruId = new ApplicationRoleUserEntityId();
+        aruId.setApplicationId(appId);
+        aru.setId(aruId);
+        aru.setApplication(appEntity);
+
+        UserEntity userEntity = new UserEntity();
+        userEntity.setId(userId);
+        userEntity.setApplicationRoleUser(Set.of(aru));
+
+        when(applicationService.find(appId)).thenReturn(ResponseEntity.ok(application));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(userEntity));
+        doNothing().when(applicationRoleUserRepository).deleteByUserIdAndApplicationId(userId, appId);
+
+        ResponseEntity<Void> response = userService.deleteUserByApplicationAndUserId(appId, userId);
+
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        verify(applicationRoleUserRepository, times(1)).deleteByUserIdAndApplicationId(userId, appId);
+    }
+
+    @Test
+    void testUnlink_ThrowsUnsupportedOperation() {
+        UUID userId = UUID.randomUUID();
+        UUID roleId = UUID.randomUUID();
+
+        assertThrows(UnsupportedOperationException.class, () -> {
+            userService.unlink(userId, roleId);
+        });
+    }
+
+    @Test
+    void testFind_ReturnsNull() {
+        UUID userId = UUID.randomUUID();
+        ResponseEntity<UserTO> response = userService.find(userId);
+        assertNull(response);
+    }
+
+    @Test
+    void testFindAll_WithNullApplicationId_ReturnsUsers() {
+        UserEntity user1 = new UserEntity();
+        UserEntity user2 = new UserEntity();
+        List<UserEntity> users = Arrays.asList(user1, user2);
+
+        when(userRepository.findAll()).thenReturn(users);
+        when(userMapper.toTarget(user1)).thenReturn(new UserTO());
+        when(userMapper.toTarget(user2)).thenReturn(new UserTO());
+
+        ResponseEntity<List<UserTO>> response = userService.findAll(null);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(2, response.getBody().size());
+    }
+
+    @Test
+    void testCreate_WithApplicationError() {
+        UUID appId = UUID.randomUUID();
+        UUID roleId = UUID.randomUUID();
+
+        UserCreateRequest request = mock(UserCreateRequest.class);
+        when(request.alias()).thenReturn("newuser");
+        when(request.password()).thenReturn("password123");
+        when(request.roleId()).thenReturn(roleId);
+        when(request.applicationId()).thenReturn(appId);
+
+        UserEntity userEntity = new UserEntity();
+        userEntity.setId(UUID.randomUUID());
+
+        when(userRepository.findByAliasAndApplication("newuser", appId)).thenReturn(Optional.empty());
+        when(userMapper.toSource(request)).thenReturn(userEntity);
+        doThrow(new com.prx.commons.exception.StandardException(com.prx.backoffice.constant.keys.UserMessageKey.USER_NOT_FOUND))
+                .when(userApplicationRoleService).refreshRoleByApplication(any(), any());
+
+        ResponseEntity<UserCreateResponse> response = userService.create(request);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    void testUpdate_WithEmptyPersonData() {
+        UUID userId = UUID.randomUUID();
+        UserEntity existingUser = new UserEntity();
+        existingUser.setId(userId);
+
+        UserTO updateData = new UserTO();
+        updateData.setPerson(null); // No person data
+        updateData.setDisplayName("Test User");
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userRepository.save(any(UserEntity.class))).thenReturn(existingUser);
+        when(userMapper.toTarget(existingUser)).thenReturn(updateData);
+
+        ResponseEntity<UserTO> response = userService.update(userId, updateData);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    void testUpdate_WithPartialPersonData() {
+        UUID userId = UUID.randomUUID();
+        UserEntity existingUser = new UserEntity();
+        existingUser.setId(userId);
+
+        PersonEntity personEntity = new PersonEntity();
+        personEntity.setName("OldName");
+        existingUser.setPerson(personEntity);
+
+        UserTO updateData = new UserTO();
+        var person = new com.prx.commons.general.pojo.Person();
+        person.setFirstName(""); // Empty string should not update
+        person.setLastName("NewLastName");
+        updateData.setPerson(person);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userRepository.save(any(UserEntity.class))).thenReturn(existingUser);
+        when(userMapper.toTarget(existingUser)).thenReturn(updateData);
+
+        ResponseEntity<UserTO> response = userService.update(userId, updateData);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("OldName", personEntity.getName()); // Should not be updated
+        assertEquals("NewLastName", personEntity.getLastName());
+    }
+
+    @Test
+    void testUpdate_PasswordNotChangedIfSame() {
+        UUID userId = UUID.randomUUID();
+        UserEntity existingUser = new UserEntity();
+        existingUser.setId(userId);
+        existingUser.setPassword("samepassword");
+
+        UserTO updateData = new UserTO();
+        updateData.setPassword("samepassword");
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userRepository.save(any(UserEntity.class))).thenReturn(existingUser);
+        when(userMapper.toTarget(existingUser)).thenReturn(updateData);
+
+        ResponseEntity<UserTO> response = userService.update(userId, updateData);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("samepassword", existingUser.getPassword());
+    }
+
+    @Test
+    void testUpdate_WithNullDisplayName() {
+        UUID userId = UUID.randomUUID();
+        UserEntity existingUser = new UserEntity();
+        existingUser.setId(userId);
+        existingUser.setDisplayName("OldDisplayName");
+
+        UserTO updateData = new UserTO();
+        updateData.setDisplayName(null); // Null should not update
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userRepository.save(any(UserEntity.class))).thenReturn(existingUser);
+        when(userMapper.toTarget(existingUser)).thenReturn(updateData);
+
+        ResponseEntity<UserTO> response = userService.update(userId, updateData);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("OldDisplayName", existingUser.getDisplayName());
+    }
+
+    @Test
+    void testUpdate_WithEmptyContacts() {
+        UUID userId = UUID.randomUUID();
+        UserEntity existingUser = new UserEntity();
+        existingUser.setId(userId);
+
+        PersonEntity personEntity = new PersonEntity();
+        existingUser.setPerson(personEntity);
+
+        UserTO updateData = new UserTO();
+        var person = new com.prx.commons.general.pojo.Person();
+        person.setContacts(Collections.emptyList());
+        updateData.setPerson(person);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userRepository.save(any(UserEntity.class))).thenReturn(existingUser);
+        when(userMapper.toTarget(existingUser)).thenReturn(updateData);
+
+        ResponseEntity<UserTO> response = userService.update(userId, updateData);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    void testUpdate_WithContactTypeMinimalData() {
+        UUID userId = UUID.randomUUID();
+        UserEntity existingUser = new UserEntity();
+        existingUser.setId(userId);
+
+        PersonEntity personEntity = new PersonEntity();
+        existingUser.setPerson(personEntity);
+
+        UserTO updateData = new UserTO();
+        var person = new com.prx.commons.general.pojo.Person();
+
+        var contact = new com.prx.commons.general.pojo.Contact();
+        contact.setContent("555-1234");
+
+        var contactType = new com.prx.commons.general.pojo.ContactType();
+        contactType.setId(UUID.randomUUID());
+        // Only ID set, no other fields
+        contact.setContactType(contactType);
+
+        person.setContacts(List.of(contact));
+        updateData.setPerson(person);
+
+        ContactEntity contactEntity = new ContactEntity();
+        ContactTypeEntity contactTypeEntity = new ContactTypeEntity();
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(contactMapper.toSource(any())).thenReturn(contactEntity);
+        when(contactTypeMapper.toSource(any())).thenReturn(contactTypeEntity);
+        when(userRepository.save(any(UserEntity.class))).thenReturn(existingUser);
+        when(userMapper.toTarget(existingUser)).thenReturn(updateData);
+
+        ResponseEntity<UserTO> response = userService.update(userId, updateData);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    void testUpdate_WithAllPersonFields() {
+        UUID userId = UUID.randomUUID();
+        UserEntity existingUser = new UserEntity();
+        existingUser.setId(userId);
+
+        PersonEntity personEntity = new PersonEntity();
+        existingUser.setPerson(personEntity);
+
+        UserTO updateData = new UserTO();
+        var person = new com.prx.commons.general.pojo.Person();
+        person.setFirstName("UpdatedFirst");
+        person.setMiddleName("UpdatedMiddle");
+        person.setLastName("UpdatedLast");
+        person.setGender("F");
+        person.setBirthdate(java.time.LocalDate.of(1990, 1, 1));
+        updateData.setPerson(person);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userRepository.save(any(UserEntity.class))).thenReturn(existingUser);
+        when(userMapper.toTarget(existingUser)).thenReturn(updateData);
+
+        ResponseEntity<UserTO> response = userService.update(userId, updateData);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("UpdatedFirst", personEntity.getName());
+        assertEquals("UpdatedMiddle", personEntity.getMiddleName());
+        assertEquals("UpdatedLast", personEntity.getLastName());
+        assertEquals("F", personEntity.getGender());
+    }
+
+    @Test
+    void testUpdate_WithException() {
+        UUID userId = UUID.randomUUID();
+        UserEntity existingUser = new UserEntity();
+        existingUser.setId(userId);
+
+        UserTO updateData = new UserTO();
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userRepository.save(any(UserEntity.class))).thenThrow(new RuntimeException("Database error"));
+
+        ResponseEntity<UserTO> response = userService.update(userId, updateData);
+
+        assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, response.getStatusCode());
+    }
+
+    @Test
+    void testFindByAliasWithNull_ApplicationId() {
+        String alias = "testAlias";
+        UserEntity userEntity = new UserEntity();
+        userEntity.setAlias(alias);
+
+        when(userRepository.findByAlias(alias)).thenReturn(userEntity);
+        when(userMapper.toTarget(userEntity)).thenReturn(new UserTO());
+
+        ResponseEntity<UserTO> result = userService.findUserByAlias(alias, null);
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertNotNull(result.getBody());
+    }
+
+    @Test
+    void testCreate_WithBlankAliasAfterTrim() {
+        UserCreateRequest req = mock(UserCreateRequest.class);
+        when(req.alias()).thenReturn("   ");
+        when(req.password()).thenReturn("password");
+
+        ResponseEntity<UserCreateResponse> response = userService.create(req);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    void testCreate_WithBlankPasswordAfterTrim() {
+        UserCreateRequest req = mock(UserCreateRequest.class);
+        when(req.alias()).thenReturn("validalias");
+        when(req.password()).thenReturn("   ");
+
+        ResponseEntity<UserCreateResponse> response = userService.create(req);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    void testUpdate_WithAllNotificationFlags() {
+        UUID userId = UUID.randomUUID();
+        UserEntity existingUser = new UserEntity();
+        existingUser.setId(userId);
+        existingUser.setNotificationEmail(false);
+        existingUser.setNotificationSms(false);
+        existingUser.setPrivacyDataOutActive(false);
+
+        UserTO updateData = new UserTO();
+        updateData.setNotificationEmail(true);
+        updateData.setNotificationSms(true);
+        updateData.setPrivacyDataOutActive(true);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userRepository.save(any(UserEntity.class))).thenReturn(existingUser);
+        when(userMapper.toTarget(existingUser)).thenReturn(updateData);
+
+        ResponseEntity<UserTO> response = userService.update(userId, updateData);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(existingUser.getNotificationEmail());
+        assertTrue(existingUser.getNotificationSms());
+        assertTrue(existingUser.getPrivacyDataOutActive());
+    }
+
+    @Test
+    void testUpdate_WithNullNotificationFlags() {
+        UUID userId = UUID.randomUUID();
+        UserEntity existingUser = new UserEntity();
+        existingUser.setId(userId);
+        existingUser.setNotificationEmail(true);
+        existingUser.setNotificationSms(true);
+        existingUser.setPrivacyDataOutActive(true);
+
+        UserTO updateData = new UserTO();
+        updateData.setNotificationEmail(null);
+        updateData.setNotificationSms(null);
+        updateData.setPrivacyDataOutActive(null);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userRepository.save(any(UserEntity.class))).thenReturn(existingUser);
+        when(userMapper.toTarget(existingUser)).thenReturn(updateData);
+
+        ResponseEntity<UserTO> response = userService.update(userId, updateData);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        // Should not change existing values
+        assertTrue(existingUser.getNotificationEmail());
+        assertTrue(existingUser.getNotificationSms());
+        assertTrue(existingUser.getPrivacyDataOutActive());
+    }
+
+    @Test
+    void testUpdate_WithMultipleContacts() {
+        UUID userId = UUID.randomUUID();
+        UserEntity existingUser = new UserEntity();
+        existingUser.setId(userId);
+
+        PersonEntity personEntity = new PersonEntity();
+        existingUser.setPerson(personEntity);
+
+        UserTO updateData = new UserTO();
+        var person = new com.prx.commons.general.pojo.Person();
+
+        var contact1 = new com.prx.commons.general.pojo.Contact();
+        contact1.setContent("email@test.com");
+        var contactType1 = new com.prx.commons.general.pojo.ContactType();
+        contactType1.setId(UUID.randomUUID());
+        contact1.setContactType(contactType1);
+
+        var contact2 = new com.prx.commons.general.pojo.Contact();
+        contact2.setContent("555-1234");
+        var contactType2 = new com.prx.commons.general.pojo.ContactType();
+        contactType2.setId(UUID.randomUUID());
+        contact2.setContactType(contactType2);
+
+        person.setContacts(List.of(contact1, contact2));
+        updateData.setPerson(person);
+
+        ContactEntity contactEntity = new ContactEntity();
+        ContactTypeEntity contactTypeEntity = new ContactTypeEntity();
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(contactMapper.toSource(any())).thenReturn(contactEntity);
+        when(contactTypeMapper.toSource(any())).thenReturn(contactTypeEntity);
+        when(userRepository.save(any(UserEntity.class))).thenReturn(existingUser);
+        when(userMapper.toTarget(existingUser)).thenReturn(updateData);
+
+        ResponseEntity<UserTO> response = userService.update(userId, updateData);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        verify(contactMapper, times(2)).toSource(any());
+    }
+
+    @Test
+    void testUpdate_WithContactNoContactType() {
+        UUID userId = UUID.randomUUID();
+        UserEntity existingUser = new UserEntity();
+        existingUser.setId(userId);
+
+        PersonEntity personEntity = new PersonEntity();
+        existingUser.setPerson(personEntity);
+
+        UserTO updateData = new UserTO();
+        var person = new com.prx.commons.general.pojo.Person();
+
+        var contact = new com.prx.commons.general.pojo.Contact();
+        contact.setContent("test@example.com");
+        contact.setContactType(null); // No contact type
+
+        person.setContacts(List.of(contact));
+        updateData.setPerson(person);
+
+        ContactEntity contactEntity = new ContactEntity();
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(contactMapper.toSource(any())).thenReturn(contactEntity);
+        when(userRepository.save(any(UserEntity.class))).thenReturn(existingUser);
+        when(userMapper.toTarget(existingUser)).thenReturn(updateData);
+
+        ResponseEntity<UserTO> response = userService.update(userId, updateData);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    void testDeleteUserByApplicationAndUserId_NullApplicationId() {
+        UUID userId = UUID.randomUUID();
+        ResponseEntity<Void> response = userService.deleteUserByApplicationAndUserId(null, userId);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    void testDeleteUserByApplicationAndUserId_NullUserId() {
+        UUID appId = UUID.randomUUID();
+        ResponseEntity<Void> response = userService.deleteUserByApplicationAndUserId(appId, null);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 

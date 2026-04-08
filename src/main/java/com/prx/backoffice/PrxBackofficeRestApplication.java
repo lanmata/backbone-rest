@@ -15,9 +15,6 @@ package com.prx.backoffice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 /**
  * MessageUtilTest.
@@ -25,10 +22,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
  * @author Luis Antonio Mata
  * @version 1.0.1.20200904-01, 26-10-2020
  */
-@FeignClient
 @SpringBootApplication(scanBasePackages = {"com.prx.backoffice", "com.prx.commons.services"})
-@EntityScan(basePackages = {"com.prx.persistence"})
-@EnableJpaRepositories(basePackages = {"com.prx.persistence"})
 public class PrxBackofficeRestApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(PrxBackofficeRestApplication.class, args);

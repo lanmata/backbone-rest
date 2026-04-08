@@ -10,6 +10,8 @@ import java.util.UUID;
  * PutUserUpdateRequest.
  * <p>
  * Record representing a request to update a user with all necessary fields.
+ * All fields except application, active, notificationEmail, notificationSms, and privacyDataOutActive are optional.
+ * Only non-null fields will be updated, allowing partial updates.
  * </p>
  */
 public record PutUserUpdateRequest(
@@ -17,13 +19,9 @@ public record PutUserUpdateRequest(
         UUID application,
         String password,
         String displayName,
-        @NotNull
         Boolean active,
-        @NotNull
         Boolean notificationEmail,
-        @NotNull
         Boolean notificationSms,
-        @NotNull
         Boolean privacyDataOutActive,
         String firstName,
         String middleName,

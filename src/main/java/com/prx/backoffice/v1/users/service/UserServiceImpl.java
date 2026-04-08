@@ -12,17 +12,18 @@
  */
 package com.prx.backoffice.v1.users.service;
 
-import com.prx.backoffice.constant.keys.ApplicationMessageKey;
 import com.prx.backoffice.constant.keys.UserMessageKey;
+import com.prx.backoffice.v1.application.service.ApplicationService;
+import com.prx.backoffice.v1.contacts.mapper.ContactMapper;
+import com.prx.backoffice.v1.contacttypes.mapper.ContactTypeMapper;
 import com.prx.backoffice.v1.users.api.to.UserCreateRequest;
 import com.prx.backoffice.v1.users.api.to.UserCreateResponse;
 import com.prx.backoffice.v1.users.api.to.UserTO;
 import com.prx.backoffice.v1.users.mapper.UserMapper;
 import com.prx.commons.exception.StandardException;
+import com.prx.commons.general.pojo.Contact;
 import com.prx.persistence.general.domains.*;
-import com.prx.persistence.general.repositories.ApplicationRepository;
 import com.prx.persistence.general.repositories.ApplicationRoleUserRepository;
-import com.prx.persistence.general.repositories.RoleRepository;
 import com.prx.persistence.general.repositories.UserRepository;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
@@ -43,30 +44,38 @@ import java.util.concurrent.atomic.AtomicReference;
 /// @author <a href="mailto:luis.antonio.mata@gmail.com">Luis Antonio Mata</a>
 /// @version 1.0.1.20200904-01, 2019-10-14
 @Service
+@SuppressWarnings("PMD.GodClass") // Class has many responsibilities; decomposed some logic but further refactor is recommended
 public class UserServiceImpl implements UserService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UserServiceImpl.class);
 
-    private final RoleRepository roleRepository;
     private final UserRepository userRepository;
-    private final ApplicationRepository applicationRepository;
     private final ApplicationRoleUserRepository applicationRoleUserRepository;
+    private final ApplicationService applicationService;
     private final UserMapper userMapper;
+    private final ContactMapper contactMapper;
+    private final ContactTypeMapper contactTypeMapper;
+    private final UserApplicationRoleService userApplicationRoleService;
 
     /// Constructs a new UserServiceImpl with the provided dependencies.
     ///
     /// @param userRepository the repository to manage user data
     /// @param applicationRoleUserRepository the repository to manage application role-user mappings
-    /// @param roleRepository the repository to manage role data
-    /// @param applicationRepository the repository to manage application data
+    /// @param applicationService the service to manage application operations
     /// @param userMapper the mapper to convert between user entities and DTOs
-    public UserServiceImpl(UserRepository userRepository, ApplicationRoleUserRepository applicationRoleUserRepository,
-                           RoleRepository roleRepository, ApplicationRepository applicationRepository, UserMapper userMapper) {
+    /// @param userApplicationRoleService the service to manage user-application-role relationships
+    public UserServiceImpl(UserRepository userRepository,
+                           ApplicationRoleUserRepository applicationRoleUserRepository,
+                           ApplicationService applicationService,
+                           UserMapper userMapper, ContactMapper contactMapper, ContactTypeMapper contactTypeMapper,
+                           UserApplicationRoleService userApplicationRoleService) {
         this.userRepository = userRepository;
-        this.roleRepository = roleRepository;
-        this.applicationRepository = applicationRepository;
         this.applicationRoleUserRepository = applicationRoleUserRepository;
+        this.applicationService = applicationService;
         this.userMapper = userMapper;
+        this.contactMapper = contactMapper;
+        this.contactTypeMapper = contactTypeMapper;
+        this.userApplicationRoleService = userApplicationRoleService;
     }
 
 
@@ -91,6 +100,7 @@ public class UserServiceImpl implements UserService {
     }
 
     /// Updates a user with the given user ID and user data.
+    /// Supports partial updates - only non-null fields will be updated.
     ///
     /// @param userId the user ID
     /// @param user   the user data
@@ -99,81 +109,129 @@ public class UserServiceImpl implements UserService {
     @Override
     public ResponseEntity<UserTO> update(UUID userId, UserTO user) {
         LOGGER.info("Starting user update {}", user);
-        ResponseEntity<UserTO> responseEntity;
         if (Objects.isNull(userId)) {
             return ResponseEntity.badRequest().header(HttpHeaders.WARNING, "User ID empty or null").build();
         }
-        final var userResponseEntity = findById(userId);
         try {
-            if (Objects.nonNull(userResponseEntity)) {
-                if (Objects.nonNull(user.getDisplayName()) && !user.getDisplayName().isEmpty()) {
-                    userResponseEntity.setDisplayName(user.getDisplayName());
-                }
-                if (Objects.nonNull(user.getPassword()) && !user.getPassword().isEmpty() && !userResponseEntity.getPassword().equals(user.getPassword())) {
-                    userResponseEntity.setPassword(user.getPassword());
-                }
+            // findById will throw StandardException if not found; keep logic simple
+            final var userEntity = findById(userId);
+            // Update fields
+            updateUserFields(userEntity, user);
+            // Delegate person update - helper checks for null/emptiness
+            updatePersonFields(userEntity, user);
+            // Delegate role refresh to dedicated service
+            userApplicationRoleService.refreshRoleByApplication(userEntity, user);
 
-                userResponseEntity.setNotificationEmail(user.getNotificationEmail());
-                userResponseEntity.setNotificationSms(user.getNotificationSms());
-                userResponseEntity.setPrivacyDataOutActive(user.getPrivacyDataOutActive());
-                userResponseEntity.setActive(user.isActive());
-                userResponseEntity.setLastUpdate(LocalDateTime.now());
-
-                refreshRoleByApplication(userResponseEntity, user);
-                LOGGER.info("Before to save {}", userResponseEntity);
-                var result = userRepository.save(userResponseEntity);
-                responseEntity = new ResponseEntity<>(userMapper.toTarget(result), HttpStatus.OK);
-                LOGGER.info("User updated.");
-            } else {
-                responseEntity = ResponseEntity.badRequest().header(HttpHeaders.WARNING, "Invalid user").build();
-            }
+            LOGGER.info("Before to save {}", userEntity);
+            var result = userRepository.save(userEntity);
+            LOGGER.info("User updated.");
+            return new ResponseEntity<>(userMapper.toTarget(result), HttpStatus.OK);
         } catch (Exception ex) {
             LOGGER.error("{}| {}", UserMessageKey.USER_ERROR_CREATED.getStatus(), user, ex);
-            responseEntity = ResponseEntity.unprocessableEntity().build();
+            return ResponseEntity.unprocessableEntity().build();
         }
-        return responseEntity;
     }
 
-    private void refreshRoleByApplication(UserEntity userPrevious, UserTO userCurrent) {
-        if (Objects.nonNull(userCurrent.getApplications()) && !userCurrent.getApplications().isEmpty() && Objects.nonNull(userCurrent.getRoles()) && !userCurrent.getRoles().isEmpty()) {
-            Optional<ApplicationEntity> applicationEntityOptional;
-            Optional<RoleEntity> roleEntityOptional;
-            var optApplication = userCurrent.getApplications().stream().findFirst();
-            var optRole = userCurrent.getRoles().stream().findFirst();
-            if (optApplication.isPresent() && optRole.isPresent()) {
-                applicationEntityOptional = applicationRepository.findById(optApplication.get().getId());
-                roleEntityOptional = roleRepository.findById(optRole.get().getId());
-                var applicationEntity = applicationEntityOptional.orElseThrow(() -> new StandardException(ApplicationMessageKey.APPLICATION_NOT_FOUND));
-                var roleEntity = roleEntityOptional.orElseThrow(() -> new StandardException(ApplicationMessageKey.APPLICATION_NOT_FOUND));
+    // New helper: update simple user fields
+    private void updateUserFields(UserEntity target, UserTO source) {
+        if (isNonEmpty(source.getDisplayName())) {
+            target.setDisplayName(source.getDisplayName());
+        }
+        if (isNonEmpty(source.getPassword()) && !Objects.equals(target.getPassword(), source.getPassword())) {
+            target.setPassword(source.getPassword());
+        }
+        if (Objects.nonNull(source.getNotificationEmail())) {
+            target.setNotificationEmail(source.getNotificationEmail());
+        }
+        if (Objects.nonNull(source.getNotificationSms())) {
+            target.setNotificationSms(source.getNotificationSms());
+        }
+        if (Objects.nonNull(source.getPrivacyDataOutActive())) {
+            target.setPrivacyDataOutActive(source.getPrivacyDataOutActive());
+        }
+        target.setLastUpdate(LocalDateTime.now());
+    }
 
-                var applicationRoleUserPrevious = userPrevious.getApplicationRoleUser().stream().filter(aru ->
-                        aru.getId().getApplicationId().equals(applicationEntity.getId())
-                                && aru.getId().getUserId().equals(userCurrent.getId())
-                                && !aru.getId().getRoleId().equals(roleEntity.getId())
-                ).findFirst();
+    // New helper: update person and contacts
+    private void updatePersonFields(UserEntity target, UserTO source) {
+        if (Objects.isNull(source) || Objects.isNull(source.getPerson())) {
+            return; // nothing to update
+        }
+        var personSource = source.getPerson();
+        var personTarget = target.getPerson();
+        if (personTarget == null) {
+            // If no person entity exists, create one to keep behavior predictable
+            personTarget = new PersonEntity();
+            target.setPerson(personTarget);
+        }
 
-                if (applicationRoleUserPrevious.isPresent() && Objects.nonNull(applicationRoleUserPrevious.get().getId())) {
-                    applicationRoleUserRepository.deleteByUserIdAndApplicationId(userCurrent.getId(), applicationEntity.getId());
-                }
+        if (isNonEmpty(personSource.getFirstName())) {
+            personTarget.setName(personSource.getFirstName());
+        }
+        if (isNonEmpty(personSource.getMiddleName())) {
+            personTarget.setMiddleName(personSource.getMiddleName());
+        }
+        if (isNonEmpty(personSource.getLastName())) {
+            personTarget.setLastName(personSource.getLastName());
+        }
+        if (isNonEmpty(personSource.getGender())) {
+            personTarget.setGender(personSource.getGender());
+        }
+        if (Objects.nonNull(personSource.getBirthdate())) {
+            personTarget.setBirthdate(personSource.getBirthdate());
+        }
 
-                LOGGER.info("Updating roles from {} to {}", roleEntity.getName(), userCurrent.getLastUpdate());
-                Set<ApplicationRoleUserEntity> applicationRoleUser = new HashSet<>();
-                var applicationRoleUserEntity = new ApplicationRoleUserEntity();
-                var applicationRoleUserId = new ApplicationRoleUserEntityId();
-                applicationRoleUserId.setUserId(userCurrent.getId());
-                applicationRoleUserId.setRoleId(roleEntity.getId());
-                applicationRoleUserId.setApplicationId(applicationEntity.getId());
-                applicationRoleUserEntity.setId(applicationRoleUserId);
-                applicationRoleUserEntity.setApplication(applicationEntity);
-                applicationRoleUserEntity.setUser(userPrevious);
-                applicationRoleUserEntity.setRole(roleEntity);
-                applicationRoleUserEntity.setActive(true);
-                applicationRoleUser.add(applicationRoleUserEntity);
+        // Update contacts if provided - convert POJOs to entities
+        if (Objects.nonNull(personSource.getContacts()) && !personSource.getContacts().isEmpty()) {
+            var contactEntities = convertContacts(personSource.getContacts(), personTarget);
+            personTarget.setContacts(contactEntities);
+        }
+    }
 
-                userPrevious.setApplicationRoleUser(applicationRoleUser);
+    private boolean isNonEmpty(String s) {
+        return Objects.nonNull(s) && !s.isEmpty();
+    }
+
+    /// Converts Contact POJOs to ContactEntity objects.
+    /// Handles cases where only ContactType ID is provided (common in updates).
+    ///
+    /// @param contacts the list of Contact POJOs
+    /// @param personEntity the person entity to link contacts to
+    /// @return the list of ContactEntity objects
+    private List<ContactEntity> convertContacts(List<Contact> contacts, PersonEntity personEntity) {
+        if (contacts == null || contacts.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<ContactEntity> contactEntities = new ArrayList<>(contacts.size());
+        for (var contact : contacts) {
+            ContactEntity contactEntity = contactMapper.toSource(contact);
+            contactEntity.setPerson(personEntity);
+            extracted(contact, contactEntity);
+
+            contactEntities.add(contactEntity);
+        }
+        return contactEntities;
+    }
+
+    private void extracted(Contact contact, ContactEntity contactEntity) {
+        // Handle contact type - only ID is required for JPA relationship
+        if (contact.getContactType() != null && contact.getContactType().getId() != null) {
+            ContactTypeEntity contactTypeEntity = contactTypeMapper.toSource(contact.getContactType());
+
+            // Only set other fields if they are provided (not null)
+            if (isNonEmpty(contact.getContactType().getName())) {
+                contactTypeEntity.setName(contact.getContactType().getName());
             }
+            if (isNonEmpty(contact.getContactType().getDescription())) {
+                contactTypeEntity.setDescription(contact.getContactType().getDescription());
+            }
+            if (Objects.nonNull(contact.getContactType().getActive())) {
+                contactTypeEntity.setActive(contact.getContactType().getActive());
+            }
+            contactEntity.setContactType(contactTypeEntity);
         }
     }
+
 
     /// Finds a user with the given ID.
     ///
@@ -261,16 +319,27 @@ public class UserServiceImpl implements UserService {
         userEntity.setApplicationRoleUser(new HashSet<>());
         userEntity.setActive(Boolean.TRUE);
 
-        var applicationEntity = applicationRepository.findById(userCreateRequest.applicationId());
-        var roleEntity = roleRepository.findById(userCreateRequest.roleId());
-        var applicationRoleUserEntity = new ApplicationRoleUserEntity();
-        var applicationRoleUserEntityId = new ApplicationRoleUserEntityId();
-        applicationRoleUserEntity.setRole(roleEntity.get());
-        applicationRoleUserEntity.setApplication(applicationEntity.get());
-        applicationRoleUserEntity.setId(applicationRoleUserEntityId);
-        applicationRoleUserEntity.setUser(userEntity);
+        // Delegate to UserApplicationRoleService to create and link application-role-user
+        try {
+            var userTO = new UserTO();
+            userTO.setId(userEntity.getId());
 
-        userEntity.getApplicationRoleUser().add(applicationRoleUserEntity);
+            // Set application
+            var application = new com.prx.commons.general.pojo.Application();
+            application.setId(userCreateRequest.applicationId());
+            userTO.setApplications(Set.of(application));
+
+            // Set role
+            var role = new com.prx.commons.general.pojo.Role();
+            role.setId(userCreateRequest.roleId());
+            userTO.setRoles(Set.of(role));
+
+            // Refresh role/application linkage
+            userApplicationRoleService.refreshRoleByApplication(userEntity, userTO);
+        } catch (StandardException ex) {
+            LOGGER.error("Error linking application and role to user", ex);
+            return ResponseEntity.badRequest().header(HttpHeaders.WARNING, "Application or Role not found").build();
+        }
 
         var userEntityResult = userRepository.save(userEntity); // Save
         // Adding ApplicationRoleUser
@@ -312,10 +381,13 @@ public class UserServiceImpl implements UserService {
         if (applicationId == null || userId == null) {
             return ResponseEntity.badRequest().build();
         }
-        var applicationOpt = applicationRepository.findById(applicationId);
-        if (applicationOpt.isEmpty()) {
+
+        // Use applicationService instead of repository
+        var applicationResponse = applicationService.find(applicationId);
+        if (applicationResponse.getStatusCode().isError() || applicationResponse.getBody() == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
+
         var userOpt = userRepository.findById(userId);
         if (userOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
