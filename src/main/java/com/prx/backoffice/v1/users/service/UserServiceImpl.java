@@ -21,7 +21,9 @@ import com.prx.backoffice.v1.users.api.to.UserCreateResponse;
 import com.prx.backoffice.v1.users.api.to.UserTO;
 import com.prx.backoffice.v1.users.mapper.UserMapper;
 import com.prx.commons.exception.StandardException;
+import com.prx.commons.general.pojo.Application;
 import com.prx.commons.general.pojo.Contact;
+import com.prx.commons.general.pojo.Role;
 import com.prx.persistence.general.domains.*;
 import com.prx.persistence.general.repositories.ApplicationRoleUserRepository;
 import com.prx.persistence.general.repositories.UserRepository;
@@ -119,6 +121,19 @@ public class UserServiceImpl implements UserService {
             updateUserFields(userEntity, user);
             // Delegate person update - helper checks for null/emptiness
             updatePersonFields(userEntity, user);
+            // If roles are provided but application is not, use the existing application
+            if (Objects.nonNull(user.getRoles()) && !user.getRoles().isEmpty() &&
+                (Objects.isNull(user.getApplications()) || user.getApplications().isEmpty())) {
+                var existingApp = userEntity.getApplicationRoleUser().stream()
+                        .findFirst()
+                        .map(ApplicationRoleUserEntity::getApplication)
+                        .map(appEntity -> {
+                            var app = new Application();
+                            app.setId(appEntity.getId());
+                            return app;
+                        });
+                existingApp.ifPresent(application -> user.setApplications(Set.of(application)));
+            }
             // Delegate role refresh to dedicated service
             userApplicationRoleService.refreshRoleByApplication(userEntity, user);
 
@@ -127,7 +142,7 @@ public class UserServiceImpl implements UserService {
             LOGGER.info("User updated.");
             return new ResponseEntity<>(userMapper.toTarget(result), HttpStatus.OK);
         } catch (Exception ex) {
-            LOGGER.error("{}| {}", UserMessageKey.USER_ERROR_CREATED.getStatus(), user, ex);
+            LOGGER.error("{}| {}", UserMessageKey.USER_ERROR_UPDATED.getStatus(), user, ex);
             return ResponseEntity.unprocessableEntity().build();
         }
     }
@@ -325,12 +340,12 @@ public class UserServiceImpl implements UserService {
             userTO.setId(userEntity.getId());
 
             // Set application
-            var application = new com.prx.commons.general.pojo.Application();
+            var application = new Application();
             application.setId(userCreateRequest.applicationId());
             userTO.setApplications(Set.of(application));
 
             // Set role
-            var role = new com.prx.commons.general.pojo.Role();
+            var role = new Role();
             role.setId(userCreateRequest.roleId());
             userTO.setRoles(Set.of(role));
 

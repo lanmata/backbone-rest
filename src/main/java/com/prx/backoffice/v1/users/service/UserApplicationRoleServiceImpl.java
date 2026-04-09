@@ -26,7 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -83,14 +83,17 @@ public class UserApplicationRoleServiceImpl implements UserApplicationRoleServic
         }
         var roleEntity = roleMapper.toSource(roleResponse.getBody());
 
-        // Check if role change is needed
+        // Get the existing application-role-user to preserve profile image reference
         var applicationRoleUserPrevious = userEntity.getApplicationRoleUser().stream()
                 .filter(aru -> aru.getId().getApplicationId().equals(applicationEntity.getId())
-                        && aru.getId().getUserId().equals(userTO.getId())
-                        && !aru.getId().getRoleId().equals(roleEntity.getId()))
+                        && aru.getId().getUserId().equals(userTO.getId()))
                 .findFirst();
 
-        if (applicationRoleUserPrevious.isPresent() && applicationRoleUserPrevious.get().getId() != null) {
+        // Check if role actually changed
+        boolean roleChanged = !applicationRoleUserPrevious.isPresent() ||
+                !applicationRoleUserPrevious.get().getId().getRoleId().equals(roleEntity.getId());
+
+        if (roleChanged && applicationRoleUserPrevious.isPresent()) {
             var application = new Application();
             application.setId(applicationEntity.getId());
             applicationService.delete(userTO.getId(), application);
@@ -98,7 +101,15 @@ public class UserApplicationRoleServiceImpl implements UserApplicationRoleServic
 
         LOGGER.info("Updating roles from {} to {}", roleEntity.getName(), userTO.getLastUpdate());
         var applicationRoleUserEntity = buildApplicationRoleUser(userTO.getId(), userEntity, applicationEntity, roleEntity);
-        userEntity.setApplicationRoleUser(Collections.singleton(applicationRoleUserEntity));
+
+        // Preserve profile image reference from the previous application role user
+        if (applicationRoleUserPrevious.isPresent() && applicationRoleUserPrevious.get().getProfileImageRef() != null) {
+            applicationRoleUserEntity.setProfileImageRef(applicationRoleUserPrevious.get().getProfileImageRef());
+        }
+
+        var roleSet = new HashSet<ApplicationRoleUserEntity>();
+        roleSet.add(applicationRoleUserEntity);
+        userEntity.setApplicationRoleUser(roleSet);
     }
 
     @Override
