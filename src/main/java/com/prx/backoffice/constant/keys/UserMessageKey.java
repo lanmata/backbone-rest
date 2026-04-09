@@ -66,7 +66,11 @@ public enum UserMessageKey implements MessageType {
     /**
      * Username already exists.
      */
-    USER_PREVIOUS_EXIST(409,"Nombre de usuario ya se encuentra ocupado, ingrese un nombre de usuario diferente");
+    USER_PREVIOUS_EXIST(409,"Nombre de usuario ya se encuentra ocupado, ingrese un nombre de usuario diferente"),
+    /**
+     * Error during user update.
+     */
+    USER_ERROR_UPDATED(404,"Error durante la actualización de usuario");
 
     private final int code;
     private final String status;
