@@ -9,11 +9,14 @@ tools:
   - file_search
   - run_in_terminal
   - create_file
+tool-docs:
+  - '.github/tools/maven-build.tool.md'
 skills:
   - jpa-persistence
   - sql-optimization
   - schema-design
   - spring-data-jpa
+skill-definition: '.github/skills/database-architect/SKILL.md'
 ---
 
 # Database Architect Subagent

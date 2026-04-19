@@ -4,7 +4,11 @@ description: Automated test authoring agent for unit and integration tests
 user-invocable: true
 subagent-only: false
 tools: ['run_in_terminal', 'read_file', 'insert_edit_into_file', 'replace_string_in_file', 'create_file', 'grep_search', 'file_search', 'get_errors']
+tool-docs:
+  - '.github/tools/maven-build.tool.md'
+  - '.github/tools/pmd-check.tool.md'
 skills: ['junit5-testing', 'mockito-mocking', 'spring-boot-testing', 'jacoco-coverage', 'test-design-patterns']
+skill-definition: '.github/skills/test-writer/SKILL.md'
 ---
 
 # QA / Test Writer Agent

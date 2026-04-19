@@ -4,15 +4,20 @@ description: Automated code review agent for Java/Spring Boot projects
 user-invocable: false
 subagent-only: true
 tools:
+  - run_in_terminal
   - read_file
   - grep_search
   - file_search
   - get_errors
+tool-docs:
+  - '.github/tools/pmd-check.tool.md'
+  - '.github/tools/maven-build.tool.md'
 skills:
   - java-code-quality
   - spring-boot-best-practices
   - clean-code
   - pmd-analysis
+skill-definition: '.github/skills/code-reviewer/SKILL.md'
 ---
 
 # Code Reviewer Subagent

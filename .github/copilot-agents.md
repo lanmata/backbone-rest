@@ -52,6 +52,35 @@ for the **backbone-rest** Spring Boot 3.4.1 backoffice REST service.
 | OpenAPI Validator | `tools/openapi-validator.tool.md` | Terminal |
 | Sonar Analysis | `tools/sonar-analysis.tool.md` | Terminal |
 
+## Prompts
+
+Reusable prompt templates for repetitive agent tasks — see `.github/prompts/prompts.md` for full catalog.
+
+| File | Agent | Trigger |
+|------|-------|---------|
+| `prompts/add-endpoint.prompt.md` | developer | New REST endpoint |
+| `prompts/fix-bug.prompt.md` | developer | Bug report |
+| `prompts/fix-pmd-violations.prompt.md` | developer / code-reviewer | PMD failure |
+| `prompts/write-service-tests.prompt.md` | test-writer | New service / missing tests |
+| `prompts/improve-coverage.prompt.md` | test-writer | Low JaCoCo coverage |
+| `prompts/review-api-contract.prompt.md` | api-reviewer | API change / PR |
+| `prompts/review-pull-request.prompt.md` | code-reviewer | PR review |
+| `prompts/security-audit.prompt.md` | security-reviewer | Pre-release / dependency change |
+| `prompts/prepare-release.prompt.md` | devops-engineer | Release tag |
+| `prompts/define-story.prompt.md` | product-owner | New feature request |
+| `prompts/full-feature-delivery.prompt.md` | orchestrator | Complex multi-agent feature |
+
+## Hooks
+
+Event-driven hooks that automatically trigger agent tasks — see `.github/hooks/hooks.md` for full catalog.
+
+| File | Trigger | Blocking | Agents |
+|------|---------|---------|--------|
+| `hooks/pre-pull-request.hook.md` | Before PR to `main`/`develop` | Yes | code-reviewer, api-reviewer |
+| `hooks/post-merge-security.hook.md` | After merge to `develop` | No | security-reviewer |
+| `hooks/pre-release-gate.hook.md` | Before `git tag v*` | Yes | all review agents + devops |
+| `hooks/post-implementation-review.hook.md` | Push to `feature/*` / `fix/*` | No | test-writer, api-reviewer, code-reviewer |
+
 ## Workflows
 
 | Workflow | File | Trigger | Agents Involved |

@@ -4,8 +4,11 @@ description: Repo Requirements Analyst agent
 provider: Anthropic
 model: claude-sonnet-4.6
 tools: ['run_subagent', 'codebase_search', 'insert_edit_into_file', 'replace_string_in_file', 'create_file', 'open_file', 'read_file']
+tool-docs:
+  - '.github/tools/maven-build.tool.md'
 user-invocable: true
 subagent-only: false
+skill-definition: '.github/skills/repo-requirements-analyst/SKILL.md'
 ---
 # repo-requirements-analyst instructions
 

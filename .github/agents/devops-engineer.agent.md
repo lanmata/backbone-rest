@@ -10,11 +10,20 @@ tools:
   - file_search
   - create_file
   - insert_edit_into_file
+  - replace_string_in_file
+tool-docs:
+  - '.github/tools/maven-build.tool.md'
+  - '.github/tools/docker-build.tool.md'
+  - '.github/tools/github-cli.tool.md'
+  - '.github/tools/sonar-analysis.tool.md'
+  - '.github/tools/keytool.tool.md'
+  - '.github/tools/git.tool.md'
 skills:
   - ci-cd-orchestration
   - docker-containerization
   - github-actions
   - maven-build
+skill-definition: '.github/skills/devops-engineer/SKILL.md'
 ---
 
 # DevOps Engineer Subagent

@@ -28,6 +28,7 @@ RUN keytool -import -alias ${APP_CRT_NAME} -keystore /usr/lib/jvm/default-jvm/jr
     keytool -import -alias ${AUTH_CRT_NAME}.tst -keystore /usr/lib/jvm/default-jvm/jre/lib/security/cacerts -file ${AUTH_CRT_NAME}.crt -storepass changeit -noprompt && \
     keytool -import -alias ${SRMN_CRT_FILE_NAME} -keystore /usr/lib/jvm/default-jvm/jre/lib/security/cacerts -file ${SRMN_CRT_FILE_NAME}.crt -storepass changeit -noprompt && \
     keytool -import -alias ${CNFS_CRT_NAME} -keystore /usr/lib/jvm/default-jvm/jre/lib/security/cacerts -file ${CNFS_CRT_NAME}.crt -storepass changeit -noprompt && \
+    keytool -import -alias ${WILDCARD_CRT_NAME}-tst -keystore /usr/lib/jvm/default-jvm/jre/lib/security/cacerts -file ${WILDCARD_CRT_NAME}.tst.crt -storepass changeit -noprompt && \
     rm *.crt
 
 # Crear el directorio y asignar permisos y usuario

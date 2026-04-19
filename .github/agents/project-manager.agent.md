@@ -4,7 +4,13 @@ description: Project Manager / Delivery lead agent
 user-invocable: true
 subagent-only: false
 tools: ['run_in_terminal', 'read_file', 'grep_search', 'file_search', 'create_file']
+tool-docs:
+  - '.github/tools/maven-build.tool.md'
+  - '.github/tools/github-cli.tool.md'
+  - '.github/tools/sonar-analysis.tool.md'
+  - '.github/tools/git.tool.md'
 skills: ['release-management', 'risk-assessment', 'quality-gates', 'sprint-planning']
+skill-definition: '.github/skills/project-manager/SKILL.md'
 ---
 
 # Project Manager Agent
