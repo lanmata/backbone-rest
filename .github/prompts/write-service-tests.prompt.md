@@ -11,7 +11,7 @@ Write complete unit tests for a **backbone-rest** service implementation.
 ## Target
 
 - Service class: ${serviceClass}
-  _(e.g., `com.prx.backoffice.v1.users.service.UserServiceImpl`)_
+  _(e.g., `com.umdc.backoffice.service.users.v1.backoffice.UserServiceImpl`)_
 
 ## Steps
 

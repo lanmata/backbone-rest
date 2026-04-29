@@ -1,0 +1,53 @@
+/*
+ *  @(#)ContactTypeRequest.java
+ *
+ *  Copyright (c) Luis Antonio Mata Mata. All rights reserved.
+ *
+ *   All rights to this product are owned by Luis Antonio Mata Mata and may only
+ *  be used under the terms of its associated license document. You may NOT
+ *  copy, modify, sublicense, or distribute this source file or portions of
+ *  it unless previously authorized in writing by Luis Antonio Mata Mata.
+ *  In any event, this notice and the above copyright must always be included
+ *  verbatim with this file.
+ */
+
+package com.umdc.backoffice.v1.contacttypes.api.to;
+
+import com.prx.commons.general.pojo.ContactType;
+import com.prx.commons.general.to.Request;
+
+import java.io.Serializable;
+
+/**
+ * ContactTypeRequest.
+ *
+ * @author <a href="mailto:luis.antonio.mata@gmail.com">Luis Antonio Mata</a>
+ * @version 1.0.0, 10-04-2022
+ * @since 11
+ */
+public class ContactTypeRequest extends Request implements Serializable {
+    private ContactType contactType;
+
+    /**
+     * Default Constructor
+     */
+    public ContactTypeRequest() {
+        super();
+        // Default Constructor
+    }
+
+    public ContactType getContactType() {
+        return contactType;
+    }
+
+    public void setContactType(ContactType contactType) {
+        this.contactType = contactType;
+    }
+
+    @Override
+    public String toString() {
+        return "ContactTypeRequest{" +
+                "contactType=" + contactType +
+                '}';
+    }
+}

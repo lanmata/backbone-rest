@@ -23,10 +23,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
-    <groupId>com.prx.backbone</groupId>
+    <groupId>com.umdc.backbone</groupId>
     <artifactId>backbone-rest</artifactId>
     <version>0.0.2</version>
-    <name>PRX Backbone REST</name>
+    <name>UMDC Backbone REST</name>
     <description>Management service to system entities</description>
 
     <url/>
@@ -38,9 +38,9 @@
             <id>lmata</id>
             <name>Luis Antonio Mata</name>
             <email>luis.antonio.mata@gmail.com</email>
-            <url>www.prx-dev.com</url>
-            <organization>PRX Dev Innova</organization>
-            <organizationUrl>www.prx.com</organizationUrl>
+            <url>www.umdc-dev.com</url>
+            <organization>UM DevCreative</organization>
+            <organizationUrl>www.umdc.com</organizationUrl>
         </developer>
     </developers>
     <scm>
@@ -150,9 +150,24 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
+        <!-- eureka-client-jersey3 provides TransportClientFactories<?> required by EurekaClient
+             auto-configuration in Spring Cloud 4.x / 2025.0.x. spring-boot-starter-jersey was
+             removed because no JAX-RS code exists in this project and it conflicted with Eureka's
+             Jersey3 transport auto-configuration. -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-jersey</artifactId>
+            <groupId>com.netflix.eureka</groupId>
+            <artifactId>eureka-client-jersey3</artifactId>
+        </dependency>
+        <!-- Jersey 3 client runtime — required by eureka-client-jersey3 for
+             Jersey3TransportClientFactories to be class-loadable so that
+             EurekaClientAutoConfiguration @ConditionalOnClass succeeds -->
+        <dependency>
+            <groupId>org.glassfish.jersey.core</groupId>
+            <artifactId>jersey-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.inject</groupId>
+            <artifactId>jersey-hk2</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
@@ -297,6 +312,13 @@
                     <artifactId>*</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+
+        <!-- Apache HttpClient 5 — used by HttpClientConfig for SSLContextBuilder-based
+             inter-service RestTemplate with PRX Internal CA trust store -->
+        <dependency>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5</artifactId>
         </dependency>
         <!--        TEST-->
         <dependency>
