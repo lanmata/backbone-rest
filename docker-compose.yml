@@ -25,7 +25,7 @@ services:
       SPRING_CLOUD_CONFIG_LABEL: Develop
       VAULT_ENABLED: true
       VAULT_SERVER_URI: https://prx-qa.vault.tst
-      VAULT_TOKEN: [SECRET_VALUE]
+      VAULT_TOKEN: ''
       SSL_JKS_BACKBONE_REST_KEYSTORE_LOCATION: backbone.jks
       SSL_JKS_BACKBONE_REST_KEYSTORE_PASSWORD: changeit
       SSL_JKS_BACKBONE_REST_KEY_ALIAS: backbone-rest
