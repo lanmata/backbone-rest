@@ -1,5 +1,5 @@
 FROM amazoncorretto:21-alpine3.20
-LABEL version="0.0.3"
+LABEL version="0.0.4"
 LABEL description="PRX Backbone REST"
 LABEL mantainer="Luis Mata luis.antonio.mata@gmail.com"
 

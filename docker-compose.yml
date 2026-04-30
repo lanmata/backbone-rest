@@ -1,0 +1,54 @@
+services:
+  backbone-rest:
+    container_name: backbone-rest
+    image: lamata/backbone-rest:0.0.4
+    hostname: prx-qa
+    domainname: backbone.tst                   # FQDN → backbone-rest.prx.tst
+    dns_search:
+      - tst
+    extra_hosts:
+      # These map PRX service FQDNs to pinned IPs on prx-net (172.29.0.0/16).
+      # config-server and vault must run on prx-net with these IPs (see NETWORK_SETUP.md).
+      - "prx-qa.config-server.tst:172.18.0.8"
+      - "prx-qa.vault.tst:172.18.0.6"
+    networks:
+      prx-net:
+        ipv4_address: 172.18.0.9
+    ports:
+      - "8084:8084"
+    environment:
+      APP_PORT: 8084
+      CNFS_PORT: 443
+      CNFS_URI: https://prx-qa.config-server.tst
+      SPRING_BOOT_CLOUD_BOOTSTRAP_ENABLED: true
+      SPRING_BOOT_PROFILE_ACTIVE: remote-supabase
+      SPRING_CLOUD_CONFIG_LABEL: Develop
+      VAULT_ENABLED: true
+      VAULT_SERVER_URI: https://prx-qa.vault.tst
+      VAULT_TOKEN: hvs.CAESIHgLnHJ79_slOqWJ6pON-OFQ3Xc01M9tExTtGpdLy8QxGh4KHGh2cy55RktOVVYwcnhKandkekI1NDVreFJweXE
+      SSL_JKS_BACKBONE_REST_KEYSTORE_LOCATION: backbone.jks
+      SSL_JKS_BACKBONE_REST_KEYSTORE_PASSWORD: changeit
+      SSL_JKS_BACKBONE_REST_KEY_ALIAS: backbone-rest
+      SSL_JKS_BACKBONE_REST_TRUSTSTORE_LOCATION: prx-truststore.jks
+      SSL_JKS_BACKBONE_REST_TRUSTSTORE_PASSWORD: changeit
+      SSL_JKS_BACKBONE_REST_KEYSTORE_TYPE: PKCS12
+      SSL_JKS_SD_KEYSTORE_ALIAS: servicemonitor
+      SSL_JKS_SD_KEYSTORE_LOCATION: backbone.jks
+      SSL_JKS_SD_KEYSTORE_PASSWORD: changeit
+      SSL_JKS_SD_KEY_PASSWORD: changeit
+      SSL_JKS_SD_KEYSTORE_TYPE: PKCS12
+      SSL_JKS_SD_TRUSTSTORE_LOCATION: prx-truststore.jks
+      SSL_JKS_SD_TRUSTSTORE_PASSWORD: changeit
+      SSL_JKS_SD_TRUSTSTORE_TYPE: PKCS12
+      SD_INSTANCE_HOST_NAME: prx-qa.services-monitor.tst
+      SD_PORT: 443
+      SD_REGISTER_ENABLED: true
+      SD_URL: https://prx-qa.services-monitor.tst
+
+# Run ONCE on the Docker host before starting any PRX containers:
+# docker network create --driver bridge --subnet 172.29.0.0/16 --gateway 172.29.0.1 prx-net
+# Or use the helper script: ./scripts/bootstrap-network.sh
+networks:
+  prx-net:
+    external: true
+    name: prx-net
