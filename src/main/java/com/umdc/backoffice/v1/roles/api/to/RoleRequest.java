@@ -14,8 +14,8 @@
 package com.umdc.backoffice.v1.roles.api.to;
 
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import com.prx.commons.general.pojo.Role;
-import com.prx.commons.general.to.Request;
+import com.umdc.commons.general.pojo.Role;
+import com.umdc.commons.general.to.Request;
 
 /**
  * RolFindRequest.

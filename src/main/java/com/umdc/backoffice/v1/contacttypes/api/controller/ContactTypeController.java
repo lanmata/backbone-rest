@@ -14,7 +14,7 @@ package com.umdc.backoffice.v1.contacttypes.api.controller;
 
 import com.umdc.backoffice.v1.contacttypes.service.ContactTypeService;
 import com.umdc.backoffice.v1.contacttypes.api.to.ContactTypeRequest;
-import com.prx.commons.general.pojo.ContactType;
+import com.umdc.commons.general.pojo.ContactType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,22 +39,22 @@ public class ContactTypeController implements ContactTypeApi {
     }
 
     @Override
-    public ResponseEntity<ContactType> create(@RequestBody final ContactTypeRequest contactTypeRequest) {
+    public ResponseEntity<ContactType> create(final ContactTypeRequest contactTypeRequest) {
         return contactTypeService.create(contactTypeRequest);
     }
 
     @Override
-    public ResponseEntity<ContactType> find(@PathVariable final UUID contactTypeId) {
+    public ResponseEntity<ContactType> find(final UUID contactTypeId) {
         return contactTypeService.findById(contactTypeId);
     }
 
     @Override
-    public ResponseEntity<ContactType> update(@PathVariable final UUID contactTypeId, @RequestBody ContactType contactType) {
+    public ResponseEntity<ContactType> update(final UUID contactTypeId, @RequestBody ContactType contactType) {
         return contactTypeService.update(contactTypeId, contactType);
     }
 
     @Override
-    public ResponseEntity<List<ContactType>> list(@PathVariable final List<UUID> contactTypeIds){
+    public ResponseEntity<List<ContactType>> list(final List<UUID> contactTypeIds){
         return contactTypeService.listById(contactTypeIds);
     }
 
@@ -64,7 +64,7 @@ public class ContactTypeController implements ContactTypeApi {
     }
 
     @Override
-    public ResponseEntity<ContactType> delete(@PathVariable final UUID contactTypeId) {
+    public ResponseEntity<ContactType> delete(final UUID contactTypeId) {
         return contactTypeService.delete(contactTypeId);
     }
 }

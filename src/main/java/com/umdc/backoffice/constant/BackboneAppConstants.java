@@ -4,8 +4,8 @@ public final class BackboneAppConstants {
 
     public static final String APPLICATION_NAME = "Backbone REST";
 
-    public static final String ENTITY_PACKAGE = "com.prx.persistence.general.domains";
-    public static final String REPOSITORY_PACKAGE = "com.prx.persistence.general.repositories";
+    public static final String ENTITY_PACKAGE = "com.umdc.persistence.general.domains";
+    public static final String REPOSITORY_PACKAGE = "com.umdc.persistence.general.repositories";
 
     public static final String IMAGE_JPEG = "image/jpeg";
     public static final String IMAGE_PNG = "image/png";

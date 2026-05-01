@@ -12,8 +12,8 @@
  */
 package com.umdc.backoffice.v1.people.api.to;
 
-import com.prx.commons.general.pojo.Person;
-import com.prx.commons.general.to.Request;
+import com.umdc.commons.general.pojo.Person;
+import com.umdc.commons.general.to.Request;
 
 /**
  * PersonCreateRequest.

@@ -22,7 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.boot.restclient.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -52,13 +52,13 @@ public class SecurityConfig {
             "/swagger-resources"
     };
 
-    @Value("${app.clientRoles}")
+    @Value("${umdc.management.clientRoles}")
     private String[] clientRoleList;
 
     @Value("${spring.security.oauth2.resourceserver.jwt.jwk-set-uri}")
     private String jwkSetUri;
 
-    @Value("${app.api.endpoint}")
+    @Value("${umdc.api.endpoint}")
     private String appPath;
 
     private final SecurityProperties securityProperties;

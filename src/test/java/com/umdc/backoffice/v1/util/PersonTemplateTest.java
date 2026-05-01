@@ -13,8 +13,8 @@
 
 package com.umdc.backoffice.v1.util;
 
-import com.prx.commons.general.pojo.Person;
-import com.prx.persistence.general.domains.PersonEntity;
+import com.umdc.commons.general.pojo.Person;
+import com.umdc.persistence.general.domains.PersonEntity;
 
 import java.time.LocalDate;
 import java.util.UUID;

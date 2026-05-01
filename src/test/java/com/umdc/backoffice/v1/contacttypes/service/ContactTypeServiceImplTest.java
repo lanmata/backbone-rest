@@ -15,17 +15,17 @@ package com.umdc.backoffice.v1.contacttypes.service;
 
 import com.umdc.backoffice.v1.contacttypes.mapper.ContactTypeMapper;
 import com.umdc.backoffice.v1.contacttypes.api.to.ContactTypeRequest;
-import com.prx.commons.general.pojo.ContactType;
-import com.prx.persistence.general.domains.ContactTypeEntity;
-import com.prx.persistence.general.repositories.ContactTypeRepository;
+import com.umdc.commons.general.pojo.ContactType;
+import com.umdc.persistence.general.domains.ContactTypeEntity;
+import com.umdc.persistence.general.repositories.ContactTypeRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -38,7 +38,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(SpringExtension.class)
 class ContactTypeServiceImplTest {
 
     @InjectMocks
@@ -49,6 +48,11 @@ class ContactTypeServiceImplTest {
 
     @Mock
     private ContactTypeRepository contactTypeRepository;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+    }
 
     @Test
     @DisplayName("Test listing all contact types - Not Found")

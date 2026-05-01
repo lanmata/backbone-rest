@@ -14,9 +14,9 @@
 package com.umdc.backoffice.v1.application.service;
 
 import com.umdc.backoffice.v1.application.mapper.ApplicationMapper;
-import com.prx.commons.general.pojo.Application;
-import com.prx.persistence.general.domains.ApplicationEntity;
-import com.prx.persistence.general.repositories.ApplicationRepository;
+import com.umdc.commons.general.pojo.Application;
+import com.umdc.persistence.general.domains.ApplicationEntity;
+import com.umdc.persistence.general.repositories.ApplicationRepository;
 import org.apache.commons.lang.NotImplementedException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

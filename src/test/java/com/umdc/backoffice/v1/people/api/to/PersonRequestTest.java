@@ -13,7 +13,7 @@
 
 package com.umdc.backoffice.v1.people.api.to;
 
-import com.prx.commons.general.pojo.Person;
+import com.umdc.commons.general.pojo.Person;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

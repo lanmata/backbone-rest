@@ -13,8 +13,8 @@
 
 package com.umdc.backoffice.v1.application.service;
 
-import com.prx.commons.general.pojo.Application;
-import com.prx.commons.services.CrudService;
+import com.umdc.commons.general.pojo.Application;
+import com.umdc.commons.services.CrudService;
 import org.apache.commons.lang.NotImplementedException;
 import org.springframework.http.ResponseEntity;
 
@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.UUID;
 
 /// Interface for application operations.
-/// Extends the CrudService interface to provide CRUD operations for [com.prx.persistence.general.domains.ApplicationEntity].
+/// Extends the CrudService interface to provide CRUD operations for [com.umdc.persistence.general.domains.ApplicationEntity].
 ///
 /// @version 1.0.0, 20-10-2020
 public interface ApplicationService extends CrudService<UUID, Application> {

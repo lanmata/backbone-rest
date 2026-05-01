@@ -13,7 +13,7 @@
 package com.umdc.backoffice.constant.keys;
 
 
-import com.prx.commons.constants.httpstatus.type.MessageType;
+import com.umdc.commons.constants.httpstatus.type.MessageType;
 
 /**
  * Enum representing various person message keys used in the application.

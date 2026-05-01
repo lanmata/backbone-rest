@@ -36,7 +36,7 @@ adherence to project conventions, and potential issues.
 - Services return `ResponseEntity<?>` directly — not raw domain objects.
 - DTOs live in `com.prx.backoffice.v1.<domain>.api.to` (may be records or regular classes).
 - User-facing messages use `MessageUtil` (keys from `*MessageKey` enums) — avoid new string literals.
-- MapStruct mappers declare `config = MapperAppConfig.class` (from `com.prx.commons.services`).
+- MapStruct mappers declare `config = MapperAppConfig.class` (from `com.umdc.commons.services`).
 - Logging uses `LoggerFactory.getLogger` (SLF4J) with `MessageUtil.LOG_START_MSG` / `LOG_END_MSG` conventions.
 - Docs use `///` triple-slash JavaDoc style in many files — preserve existing style.
 

@@ -13,8 +13,8 @@
 
 package com.umdc.backoffice.v1.features.mapper;
 
-import com.prx.commons.general.pojo.Feature;
-import com.prx.persistence.general.domains.FeatureEntity;
+import com.umdc.commons.general.pojo.Feature;
+import com.umdc.persistence.general.domains.FeatureEntity;
 import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
 

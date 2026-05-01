@@ -15,8 +15,8 @@ package com.umdc.backoffice.v1.application.api.controller;
 
 import com.umdc.backoffice.v1.application.api.to.ApplicationCreateRequest;
 import com.umdc.backoffice.v1.application.service.ApplicationService;
-import com.prx.commons.general.pojo.Application;
-import com.prx.commons.util.HttpStatusUtil;
+import com.umdc.commons.general.pojo.Application;
+import com.umdc.commons.util.HttpStatusUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;

@@ -130,7 +130,7 @@ public interface UserMapper {
 }
 ```
 
-Always use `config = MapperAppConfig.class` (from `com.prx.commons.services`).
+Always use `config = MapperAppConfig.class` (from `com.umdc.commons.services`).
 
 ---
 

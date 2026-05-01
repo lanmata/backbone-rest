@@ -13,7 +13,7 @@
 
 package com.umdc.backoffice.v1.contacts.service;
 
-import com.prx.commons.general.pojo.Contact;
+import com.umdc.commons.general.pojo.Contact;
 import org.apache.commons.lang.NotImplementedException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,42 +33,51 @@ class ContactServiceTest {
     @Test
     @DisplayName("Test saveAll method")
     void saveAll() {
-        assertThrows(NotImplementedException.class, () -> contactService.saveAll(List.of(new Contact())));
+        List<Contact> contactList = List.of(new Contact());
+        assertThrows(NotImplementedException.class, () -> contactService.saveAll(contactList));
     }
 
     @Test
     @DisplayName("Test create method")
     void create() {
-        assertThrows(NotImplementedException.class, () -> contactService.create(UUID.randomUUID(), new Contact()));
+        UUID id = UUID.randomUUID();
+        Contact contact = new Contact();
+        assertThrows(NotImplementedException.class, () -> contactService.create(id, contact));
     }
 
     @Test
     @DisplayName("Test update method")
     void update() {
-        assertThrows(NotImplementedException.class, () -> contactService.update(UUID.randomUUID(), new Contact()));
+        UUID id = UUID.randomUUID();
+        Contact contact = new Contact();
+        assertThrows(NotImplementedException.class, () -> contactService.update(id, contact));
     }
 
     @Test
     @DisplayName("Test find method")
     void find() {
-        assertThrows(NotImplementedException.class, () -> contactService.find(UUID.randomUUID()));
+        UUID id = UUID.randomUUID();
+        assertThrows(NotImplementedException.class, () -> contactService.find(id));
     }
 
     @Test
     @DisplayName("Test listByPersonId method")
     void listByPersonId() {
-        assertThrows(NotImplementedException.class, () -> contactService.listByPersonId(UUID.randomUUID()));
+        UUID id = UUID.randomUUID();
+        assertThrows(NotImplementedException.class, () -> contactService.listByPersonId(id));
     }
 
     @Test
     @DisplayName("Test list method")
     void list() {
-        assertThrows(NotImplementedException.class, () -> contactService.list(List.of(UUID.randomUUID())));
+        var uuidList = List.of(UUID.randomUUID());
+        assertThrows(NotImplementedException.class, () -> contactService.list(uuidList));
     }
 
     @Test
     @DisplayName("Test deleteById method")
     void deleteById() {
-        assertThrows(NotImplementedException.class, () -> contactService.deleteById(UUID.randomUUID()));
+        UUID id = UUID.randomUUID();
+        assertThrows(NotImplementedException.class, () -> contactService.deleteById(id));
     }
 }

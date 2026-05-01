@@ -14,7 +14,7 @@ package com.umdc.backoffice.v1.people.api.controller;
 
 import com.umdc.backoffice.v1.people.api.to.PersonRequest;
 import com.umdc.backoffice.v1.people.service.PersonService;
-import com.prx.commons.general.pojo.Person;
+import com.umdc.commons.general.pojo.Person;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;

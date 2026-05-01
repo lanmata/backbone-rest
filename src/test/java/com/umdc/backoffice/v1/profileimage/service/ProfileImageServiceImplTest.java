@@ -1,11 +1,11 @@
 package com.umdc.backoffice.v1.profileimage.service;
 
 import com.umdc.backoffice.util.JwtUtil;
-import com.umdc.backoffice.v1.profileimage.client.CloudflareR2StorageClient;
 import com.umdc.backoffice.v1.profileimage.to.GetProfileImageReferenceResponse;
 import com.umdc.backoffice.v1.profileimage.to.PostProfileImageResponse;
-import com.prx.persistence.general.domains.*;
-import com.prx.persistence.general.repositories.ApplicationRoleUserRepository;
+import com.umdc.commons.services.cloudflare.r2.client.CloudflareR2StorageClient;
+import com.umdc.persistence.general.domains.*;
+import com.umdc.persistence.general.repositories.ApplicationRoleUserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;

@@ -14,7 +14,7 @@
 package com.umdc.backoffice.v1.features.api.to;
 
 import com.umdc.backoffice.constant.keys.FeatureMessageKey;
-import com.prx.commons.general.pojo.Feature;
+import com.umdc.commons.general.pojo.Feature;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,11 +30,11 @@ import java.util.UUID;
  * @version 1.0.0, 26-03-2021
  */
 
-public class FeatureListResponseTest {
+class FeatureListResponseTest {
 
     @Test
     @DisplayName("Test getters and setters of FeatureListResponse")
-    public void gettersAndSetters() {
+    void gettersAndSetters() {
         final var uuid = UUID.randomUUID();
         final var featureListResponse = new FeatureListResponse();
         var feature = new Feature();

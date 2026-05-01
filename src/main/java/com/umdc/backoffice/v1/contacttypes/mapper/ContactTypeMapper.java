@@ -14,8 +14,8 @@
 package com.umdc.backoffice.v1.contacttypes.mapper;
 
 import com.umdc.backoffice.v1.contacts.mapper.ContactMapper;
-import com.prx.commons.general.pojo.ContactType;
-import com.prx.persistence.general.domains.ContactTypeEntity;
+import com.umdc.commons.general.pojo.ContactType;
+import com.umdc.persistence.general.domains.ContactTypeEntity;
 import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
 

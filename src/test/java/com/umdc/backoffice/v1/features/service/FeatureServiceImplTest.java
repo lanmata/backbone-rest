@@ -14,18 +14,18 @@
 package com.umdc.backoffice.v1.features.service;
 
 import com.umdc.backoffice.v1.features.mapper.FeatureMapper;
-import com.prx.commons.general.pojo.Feature;
-import com.prx.persistence.general.domains.FeatureEntity;
-import com.prx.persistence.general.repositories.FeatureRepository;
+import com.umdc.commons.general.pojo.Feature;
+import com.umdc.persistence.general.domains.FeatureEntity;
+import com.umdc.persistence.general.repositories.FeatureRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.*;
 
@@ -36,7 +36,6 @@ import static org.mockito.Mockito.*;
 /**
  * @author Luis Mata
  */
-@ExtendWith(SpringExtension.class)
 class FeatureServiceImplTest {
     @InjectMocks
     private FeatureServiceImpl featureServiceImpl;
@@ -46,6 +45,11 @@ class FeatureServiceImplTest {
 
     @Mock
     private FeatureRepository featureRepository;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+    }
 
     @Test
     @DisplayName("Create feature when feature already exists")

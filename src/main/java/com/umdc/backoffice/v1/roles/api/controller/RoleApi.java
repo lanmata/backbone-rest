@@ -15,8 +15,8 @@ package com.umdc.backoffice.v1.roles.api.controller;
 
 import com.umdc.backoffice.v1.roles.api.to.RoleRequest;
 import com.umdc.backoffice.v1.roles.service.RoleService;
-import com.prx.commons.general.pojo.Role;
-import com.prx.commons.util.HttpStatusUtil;
+import com.umdc.commons.general.pojo.Role;
+import com.umdc.commons.util.HttpStatusUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;

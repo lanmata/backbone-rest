@@ -15,8 +15,8 @@ package com.umdc.backoffice.v1.contacttypes.service;
 
 import com.umdc.backoffice.v1.contacttypes.mapper.ContactTypeMapper;
 import com.umdc.backoffice.v1.contacttypes.api.to.ContactTypeRequest;
-import com.prx.commons.general.pojo.ContactType;
-import com.prx.persistence.general.repositories.ContactTypeRepository;
+import com.umdc.commons.general.pojo.ContactType;
+import com.umdc.persistence.general.repositories.ContactTypeRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;

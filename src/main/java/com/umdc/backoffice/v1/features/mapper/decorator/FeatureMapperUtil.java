@@ -14,12 +14,12 @@
 package com.umdc.backoffice.v1.features.mapper.decorator;
 
 import com.umdc.backoffice.v1.features.mapper.FeatureMapper;
-import com.prx.commons.general.pojo.Feature;
-import com.prx.commons.general.pojo.Role;
-import com.prx.commons.util.ValidatorCommonsUtil;
-import com.prx.persistence.general.domains.FeatureEntity;
-import com.prx.persistence.general.domains.RoleEntity;
-import com.prx.persistence.general.domains.RoleFeatureEntity;
+import com.umdc.commons.general.pojo.Feature;
+import com.umdc.commons.general.pojo.Role;
+import com.umdc.commons.util.ValidatorCommonsUtil;
+import com.umdc.persistence.general.domains.FeatureEntity;
+import com.umdc.persistence.general.domains.RoleEntity;
+import com.umdc.persistence.general.domains.RoleFeatureEntity;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;

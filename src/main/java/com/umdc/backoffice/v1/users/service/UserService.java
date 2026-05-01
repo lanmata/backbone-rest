@@ -17,7 +17,7 @@ import com.umdc.backoffice.v1.session.to.UserAliasTO;
 import com.umdc.backoffice.v1.users.api.to.UserCreateRequest;
 import com.umdc.backoffice.v1.users.api.to.UserCreateResponse;
 import com.umdc.backoffice.v1.users.api.to.UserTO;
-import com.prx.commons.services.CrudService;
+import com.umdc.commons.services.CrudService;
 import org.apache.commons.lang.NotImplementedException;
 import org.springframework.http.ResponseEntity;
 

@@ -14,12 +14,12 @@
 package com.umdc.backoffice.v1.profileimage.service;
 
 import com.umdc.backoffice.util.JwtUtil;
-import com.umdc.backoffice.v1.profileimage.client.CloudflareR2StorageClient;
 import com.umdc.backoffice.v1.profileimage.to.GetProfileImageReferenceResponse;
 import com.umdc.backoffice.v1.profileimage.to.PostProfileImageResponse;
-import com.prx.commons.util.DateUtil;
-import com.prx.commons.util.HttpStatusUtil;
-import com.prx.persistence.general.repositories.ApplicationRoleUserRepository;
+import com.umdc.commons.services.cloudflare.r2.client.CloudflareR2StorageClient;
+import com.umdc.commons.util.DateUtil;
+import com.umdc.commons.util.HttpStatusUtil;
+import com.umdc.persistence.general.repositories.ApplicationRoleUserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;

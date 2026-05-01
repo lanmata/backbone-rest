@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
  * This class holds the configuration properties for the JWT converter, including resource ID and principal claim name.
  */
 @Component
-@ConfigurationProperties(prefix = "prx.auth.converter")
+@ConfigurationProperties(prefix = "umdc.auth.converter")
 public class JwtConverterProperties {
 
     /**

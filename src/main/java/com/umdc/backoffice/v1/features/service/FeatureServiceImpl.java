@@ -14,9 +14,9 @@ package com.umdc.backoffice.v1.features.service;
 
 import com.umdc.backoffice.util.MessageUtil;
 import com.umdc.backoffice.v1.features.mapper.FeatureMapper;
-import com.prx.commons.general.pojo.Feature;
-import com.prx.persistence.general.domains.FeatureEntity;
-import com.prx.persistence.general.repositories.FeatureRepository;
+import com.umdc.commons.general.pojo.Feature;
+import com.umdc.persistence.general.domains.FeatureEntity;
+import com.umdc.persistence.general.repositories.FeatureRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -26,7 +26,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
-import static com.prx.commons.util.ValidatorCommonsUtil.esNulo;
+import static com.umdc.commons.util.ValidatorCommonsUtil.esNulo;
 
 /**
  * FeatureServiceImpl.

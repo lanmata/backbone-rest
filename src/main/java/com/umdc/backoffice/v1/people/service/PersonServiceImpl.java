@@ -15,9 +15,9 @@ package com.umdc.backoffice.v1.people.service;
 
 import com.umdc.backoffice.util.MessageUtil;
 import com.umdc.backoffice.v1.people.mapper.PersonMapper;
-import com.prx.commons.general.pojo.Person;
-import com.prx.persistence.general.domains.PersonEntity;
-import com.prx.persistence.general.repositories.PersonRepository;
+import com.umdc.commons.general.pojo.Person;
+import com.umdc.persistence.general.domains.PersonEntity;
+import com.umdc.persistence.general.repositories.PersonRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -26,7 +26,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
-import static com.prx.commons.util.ValidatorCommonsUtil.esNulo;
+import static com.umdc.commons.util.ValidatorCommonsUtil.esNulo;
 
 /**
  * Modelo para la gesti&oacute;n de persona.
@@ -46,6 +46,7 @@ public class PersonServiceImpl implements PersonService {
 	}
 
 	/** {@inheritDoc} */
+	@Override
 	public ResponseEntity<Person> create(Person person) {
 		if (esNulo(person)) {
 			return ResponseEntity.notFound().build();

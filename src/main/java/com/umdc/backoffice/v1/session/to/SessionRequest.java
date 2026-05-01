@@ -14,7 +14,7 @@ package com.umdc.backoffice.v1.session.to;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import com.prx.commons.general.to.Request;
+import com.umdc.commons.general.to.Request;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 

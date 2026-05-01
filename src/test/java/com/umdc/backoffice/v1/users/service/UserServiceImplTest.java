@@ -9,10 +9,10 @@ import com.umdc.backoffice.v1.users.api.to.UserCreateRequest;
 import com.umdc.backoffice.v1.users.api.to.UserCreateResponse;
 import com.umdc.backoffice.v1.users.api.to.UserTO;
 import com.umdc.backoffice.v1.users.mapper.UserMapper;
-import com.prx.commons.general.pojo.Application;
-import com.prx.persistence.general.domains.*;
-import com.prx.persistence.general.repositories.ApplicationRoleUserRepository;
-import com.prx.persistence.general.repositories.UserRepository;
+import com.umdc.commons.general.pojo.Application;
+import com.umdc.persistence.general.domains.*;
+import com.umdc.persistence.general.repositories.ApplicationRoleUserRepository;
+import com.umdc.persistence.general.repositories.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -420,7 +420,7 @@ class UserServiceImplTest {
         existingUser.setPerson(personEntity);
 
         UserTO updateData = new UserTO();
-        var person = new com.prx.commons.general.pojo.Person();
+        var person = new com.umdc.commons.general.pojo.Person();
         person.setFirstName("John");
         person.setMiddleName("M");
         person.setLastName("Doe");
@@ -446,7 +446,7 @@ class UserServiceImplTest {
         existingUser.setPerson(null); // No existing person
 
         UserTO updateData = new UserTO();
-        var person = new com.prx.commons.general.pojo.Person();
+        var person = new com.umdc.commons.general.pojo.Person();
         person.setFirstName("Jane");
         person.setLastName("Smith");
         updateData.setPerson(person);
@@ -471,13 +471,13 @@ class UserServiceImplTest {
         existingUser.setPerson(personEntity);
 
         UserTO updateData = new UserTO();
-        var person = new com.prx.commons.general.pojo.Person();
+        var person = new com.umdc.commons.general.pojo.Person();
 
-        var contact = new com.prx.commons.general.pojo.Contact();
+        var contact = new com.umdc.commons.general.pojo.Contact();
         contact.setId(UUID.randomUUID());
         contact.setContent("test@example.com");
 
-        var contactType = new com.prx.commons.general.pojo.ContactType();
+        var contactType = new com.umdc.commons.general.pojo.ContactType();
         contactType.setId(UUID.randomUUID());
         contactType.setName("Email");
         contactType.setDescription("Email Address");
@@ -506,7 +506,7 @@ class UserServiceImplTest {
         UUID appId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
 
-        var application = new com.prx.commons.general.pojo.Application();
+        var application = new com.umdc.commons.general.pojo.Application();
         application.setId(appId);
 
         ApplicationEntity appEntity = new ApplicationEntity();
@@ -582,7 +582,7 @@ class UserServiceImplTest {
 
         when(userRepository.findByAliasAndApplication("newuser", appId)).thenReturn(Optional.empty());
         when(userMapper.toSource(request)).thenReturn(userEntity);
-        doThrow(new com.prx.commons.exception.StandardException(UserMessageKey.USER_NOT_FOUND))
+        doThrow(new com.umdc.commons.exception.StandardException(UserMessageKey.USER_NOT_FOUND))
                 .when(userApplicationRoleService).refreshRoleByApplication(any(), any());
 
         ResponseEntity<UserCreateResponse> response = userService.create(request);
@@ -620,7 +620,7 @@ class UserServiceImplTest {
         existingUser.setPerson(personEntity);
 
         UserTO updateData = new UserTO();
-        var person = new com.prx.commons.general.pojo.Person();
+        var person = new com.umdc.commons.general.pojo.Person();
         person.setFirstName(""); // Empty string should not update
         person.setLastName("NewLastName");
         updateData.setPerson(person);
@@ -686,7 +686,7 @@ class UserServiceImplTest {
         existingUser.setPerson(personEntity);
 
         UserTO updateData = new UserTO();
-        var person = new com.prx.commons.general.pojo.Person();
+        var person = new com.umdc.commons.general.pojo.Person();
         person.setContacts(Collections.emptyList());
         updateData.setPerson(person);
 
@@ -709,12 +709,12 @@ class UserServiceImplTest {
         existingUser.setPerson(personEntity);
 
         UserTO updateData = new UserTO();
-        var person = new com.prx.commons.general.pojo.Person();
+        var person = new com.umdc.commons.general.pojo.Person();
 
-        var contact = new com.prx.commons.general.pojo.Contact();
+        var contact = new com.umdc.commons.general.pojo.Contact();
         contact.setContent("555-1234");
 
-        var contactType = new com.prx.commons.general.pojo.ContactType();
+        var contactType = new com.umdc.commons.general.pojo.ContactType();
         contactType.setId(UUID.randomUUID());
         // Only ID set, no other fields
         contact.setContactType(contactType);
@@ -746,7 +746,7 @@ class UserServiceImplTest {
         existingUser.setPerson(personEntity);
 
         UserTO updateData = new UserTO();
-        var person = new com.prx.commons.general.pojo.Person();
+        var person = new com.umdc.commons.general.pojo.Person();
         person.setFirstName("UpdatedFirst");
         person.setMiddleName("UpdatedMiddle");
         person.setLastName("UpdatedLast");
@@ -883,17 +883,17 @@ class UserServiceImplTest {
         existingUser.setPerson(personEntity);
 
         UserTO updateData = new UserTO();
-        var person = new com.prx.commons.general.pojo.Person();
+        var person = new com.umdc.commons.general.pojo.Person();
 
-        var contact1 = new com.prx.commons.general.pojo.Contact();
+        var contact1 = new com.umdc.commons.general.pojo.Contact();
         contact1.setContent("email@test.com");
-        var contactType1 = new com.prx.commons.general.pojo.ContactType();
+        var contactType1 = new com.umdc.commons.general.pojo.ContactType();
         contactType1.setId(UUID.randomUUID());
         contact1.setContactType(contactType1);
 
-        var contact2 = new com.prx.commons.general.pojo.Contact();
+        var contact2 = new com.umdc.commons.general.pojo.Contact();
         contact2.setContent("555-1234");
-        var contactType2 = new com.prx.commons.general.pojo.ContactType();
+        var contactType2 = new com.umdc.commons.general.pojo.ContactType();
         contactType2.setId(UUID.randomUUID());
         contact2.setContactType(contactType2);
 
@@ -925,9 +925,9 @@ class UserServiceImplTest {
         existingUser.setPerson(personEntity);
 
         UserTO updateData = new UserTO();
-        var person = new com.prx.commons.general.pojo.Person();
+        var person = new com.umdc.commons.general.pojo.Person();
 
-        var contact = new com.prx.commons.general.pojo.Contact();
+        var contact = new com.umdc.commons.general.pojo.Contact();
         contact.setContent("test@example.com");
         contact.setContactType(null); // No contact type
 

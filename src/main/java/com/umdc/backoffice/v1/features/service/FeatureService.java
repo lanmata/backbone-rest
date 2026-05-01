@@ -13,8 +13,8 @@
 
 package com.umdc.backoffice.v1.features.service;
 
-import com.prx.commons.services.CrudService;
-import com.prx.commons.general.pojo.Feature;
+import com.umdc.commons.services.CrudService;
+import com.umdc.commons.general.pojo.Feature;
 import org.apache.commons.lang.NotImplementedException;
 import org.springframework.http.ResponseEntity;
 

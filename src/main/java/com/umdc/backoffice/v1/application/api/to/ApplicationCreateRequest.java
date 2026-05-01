@@ -14,8 +14,8 @@
 package com.umdc.backoffice.v1.application.api.to;
 
 
-import com.prx.commons.general.pojo.Application;
-import com.prx.commons.general.to.Request;
+import com.umdc.commons.general.pojo.Application;
+import com.umdc.commons.general.to.Request;
 
 /// Data transfer object for creating an application.
 /// Extends the base Request class.

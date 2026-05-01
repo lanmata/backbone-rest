@@ -19,7 +19,7 @@ import com.umdc.backoffice.v1.users.api.to.UserCreateRequest;
 import com.umdc.backoffice.v1.users.api.to.UserCreateResponse;
 import com.umdc.backoffice.v1.users.api.to.UserTO;
 import com.umdc.backoffice.v1.users.service.UserService;
-import com.prx.commons.util.HttpStatusUtil;
+import com.umdc.commons.util.HttpStatusUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

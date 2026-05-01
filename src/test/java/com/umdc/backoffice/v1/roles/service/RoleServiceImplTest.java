@@ -16,26 +16,26 @@ import com.umdc.backoffice.v1.features.mapper.FeatureMapper;
 import com.umdc.backoffice.v1.features.mapper.decorator.FeatureMapperUtil;
 import com.umdc.backoffice.v1.features.service.FeatureService;
 import com.umdc.backoffice.v1.roles.mapper.RoleMapper;
-import com.prx.commons.general.pojo.Feature;
-import com.prx.commons.general.pojo.Role;
-import com.prx.persistence.general.domains.FeatureEntity;
-import com.prx.persistence.general.domains.RoleEntity;
-import com.prx.persistence.general.domains.RoleFeatureEntity;
-import com.prx.persistence.general.domains.RoleFeaturePK;
-import com.prx.persistence.general.repositories.RoleFeatureRepository;
-import com.prx.persistence.general.repositories.RoleRepository;
+import com.umdc.commons.general.pojo.Feature;
+import com.umdc.commons.general.pojo.Role;
+import com.umdc.persistence.general.domains.FeatureEntity;
+import com.umdc.persistence.general.domains.RoleEntity;
+import com.umdc.persistence.general.domains.RoleFeatureEntity;
+import com.umdc.persistence.general.domains.RoleFeaturePK;
+import com.umdc.persistence.general.repositories.RoleFeatureRepository;
+import com.umdc.persistence.general.repositories.RoleRepository;
 import jakarta.validation.constraints.NotNull;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.*;
 
@@ -49,7 +49,6 @@ import static org.mockito.Mockito.*;
  * @version 1.0.0, 17-12-2021
  * @since 11
  */
-@ExtendWith(SpringExtension.class)
 class RoleServiceImplTest {
 
     @InjectMocks
@@ -72,6 +71,11 @@ class RoleServiceImplTest {
 
     @Mock
     private FeatureMapperUtil featureMapperUtil;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+    }
 
     @Test
     @DisplayName("Test finding a role by ID")
@@ -446,18 +450,6 @@ class RoleServiceImplTest {
     }
 
     @Test
-    void link() {
-    }
-
-    @Test
-    void update() {
-    }
-
-    @Test
-    void delete() {
-    }
-
-    @Test
     @DisplayName("Test listing roles not found")
     void testList_not_found() {
         when(roleRepository.findAll()).thenReturn(null);
@@ -474,7 +466,6 @@ class RoleServiceImplTest {
     void testList() {
         final var roleId = UUID.randomUUID();
         final var featureId = UUID.randomUUID();
-        final var userId = UUID.randomUUID();
         Role role = new Role();
         Feature feature = new Feature();
         RoleEntity roleEntity = new RoleEntity();
@@ -520,14 +511,6 @@ class RoleServiceImplTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertTrue(Objects.nonNull(response.getBody()));
         assertEquals("Name", response.getBody().getFirst().getName());
-    }
-
-    @Test
-    void unlink() {
-    }
-
-    @Test
-    void testList1() {
     }
 
     private @NotNull Role getRole() {

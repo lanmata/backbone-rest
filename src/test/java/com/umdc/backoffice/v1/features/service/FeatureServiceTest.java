@@ -13,7 +13,7 @@
 
 package com.umdc.backoffice.v1.features.service;
 
-import com.prx.commons.general.pojo.Feature;
+import com.umdc.commons.general.pojo.Feature;
 import org.apache.commons.lang.NotImplementedException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,31 +31,39 @@ class FeatureServiceTest {
     @Test
     @DisplayName("Test creating a feature")
     void create() {
-        assertThrows(NotImplementedException.class, () -> featureService.create(new Feature()));
+        Feature feature = new Feature();
+        assertThrows(NotImplementedException.class, () -> featureService.create(feature));
     }
 
     @Test
     @DisplayName("Test listing features with UUIDs")
     void list() {
-        assertThrows(NotImplementedException.class, () -> featureService
-                .list(List.of(UUID.randomUUID().toString(), UUID.randomUUID().toString()), true));
+        List<String> ids = List.of(UUID.randomUUID().toString(), UUID.randomUUID().toString());
+        assertThrows(NotImplementedException.class, () -> featureService.list(ids, true));
     }
 
     @Test
     @DisplayName("Test updating a feature")
     void update() {
-        assertThrows(NotImplementedException.class, () -> featureService.update(UUID.randomUUID(), new Feature()));
+        UUID id = UUID.randomUUID();
+        Feature feature = new Feature();
+        assertThrows(NotImplementedException.class, () -> featureService.update(id, feature));
     }
 
     @Test
     @DisplayName("Test deleting a feature")
     void delete() {
-        assertThrows(NotImplementedException.class, () -> featureService.delete(UUID.randomUUID(), new Feature()));
+        UUID id = UUID.randomUUID();
+        Feature feature = new Feature();
+        assertThrows(NotImplementedException.class, () -> featureService.delete(id, feature));
     }
 
     @Test
     @DisplayName("Test listing features with IDs")
     void testList() {
-        assertThrows(NotImplementedException.class, () -> featureService.list(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID()));
+        UUID appId = UUID.randomUUID();
+        UUID roleId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        assertThrows(NotImplementedException.class, () -> featureService.list(appId, roleId, userId));
     }
 }

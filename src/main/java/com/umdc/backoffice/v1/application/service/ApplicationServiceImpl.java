@@ -14,15 +14,16 @@
 package com.umdc.backoffice.v1.application.service;
 
 import com.umdc.backoffice.v1.application.mapper.ApplicationMapper;
-import com.prx.commons.general.pojo.Application;
-import com.prx.persistence.general.repositories.ApplicationRepository;
+import com.umdc.commons.general.pojo.Application;
+import com.umdc.persistence.general.repositories.ApplicationRepository;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-@org.springframework.stereotype.Service
+@Service
 public class ApplicationServiceImpl implements ApplicationService {
 
     private final ApplicationRepository applicationRepository;

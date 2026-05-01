@@ -13,9 +13,9 @@
 
 package com.umdc.backoffice.v1.application.mapper;
 
-import com.prx.commons.general.pojo.Application;
-import com.prx.commons.services.config.mapper.MapperAppConfig;
-import com.prx.persistence.general.domains.ApplicationEntity;
+import com.umdc.commons.general.pojo.Application;
+import com.umdc.commons.services.config.mapper.MapperAppConfig;
+import com.umdc.persistence.general.domains.ApplicationEntity;
 import org.mapstruct.*;
 
 /// Mapper interface for converting between Service and ServiceEntity objects.

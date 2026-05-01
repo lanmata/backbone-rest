@@ -14,9 +14,9 @@
 package com.umdc.backoffice.v1.contacts.to;
 
 import com.umdc.backoffice.v1.contacts.api.to.ContactRequest;
-import com.prx.commons.general.pojo.Contact;
-import com.prx.commons.general.pojo.ContactType;
-import com.prx.commons.general.pojo.Person;
+import com.umdc.commons.general.pojo.Contact;
+import com.umdc.commons.general.pojo.ContactType;
+import com.umdc.commons.general.pojo.Person;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

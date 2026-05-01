@@ -14,7 +14,7 @@ package com.umdc.backoffice.v1.features.api.controller;
 
 import com.umdc.backoffice.v1.features.api.to.FeatureRequest;
 import com.umdc.backoffice.v1.features.service.FeatureService;
-import com.prx.commons.general.pojo.Feature;
+import com.umdc.commons.general.pojo.Feature;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;

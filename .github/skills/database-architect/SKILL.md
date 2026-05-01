@@ -13,7 +13,7 @@ applies-to:
 - **Test DB**: H2 in-memory (`src/test/resources/application-test.yml`)
 - **ORM**: Spring Data JPA / Hibernate
 - **Entities and repositories are in the external module** `com.prx:persistence:0.0.3`
-  — packages: `com.prx.persistence.general.domains` and `com.prx.persistence.general.repositories`
+  — packages: `com.umdc.persistence.general.domains` and `com.umdc.persistence.general.repositories`
 - **DDL**: `none` — schema managed externally; **never use** `create`, `update`, or `create-drop` in production.
 
 ---

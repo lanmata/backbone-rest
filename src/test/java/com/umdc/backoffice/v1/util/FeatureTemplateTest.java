@@ -13,8 +13,8 @@
 
 package com.umdc.backoffice.v1.util;
 
-import com.prx.commons.general.pojo.Feature;
-import com.prx.persistence.general.domains.FeatureEntity;
+import com.umdc.commons.general.pojo.Feature;
+import com.umdc.persistence.general.domains.FeatureEntity;
 import org.apache.commons.lang.NotImplementedException;
 
 import java.util.UUID;

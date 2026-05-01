@@ -13,8 +13,8 @@
 
 package com.umdc.backoffice.v1.roles.api.to;
 
-import com.prx.commons.general.pojo.Feature;
-import com.prx.commons.general.pojo.Role;
+import com.umdc.commons.general.pojo.Feature;
+import com.umdc.commons.general.pojo.Role;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -32,11 +32,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * @author <a href='mailto:luis.antonio.mata@gmail.com'>Luis Antonio Mata</a>
  * @version 1.0.0, 18-02-2021
  */
-public class RoleRequestTest {
+class RoleRequestTest {
 
     @Test
     @DisplayName("Test getters and setters of RoleRequest")
-    public void testGettersAndSetters(){
+    void testGettersAndSetters(){
         final var uuid = UUID.randomUUID();
         final var rolRequest = new RoleRequest();
         final var rol = new Role();

@@ -13,7 +13,7 @@
 
 package com.umdc.backoffice.v1.roles.service;
 
-import com.prx.commons.general.pojo.Role;
+import com.umdc.commons.general.pojo.Role;
 import org.apache.commons.lang.NotImplementedException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,25 +30,30 @@ class RoleServiceTest {
     @Test
     @DisplayName("Test finding a role")
     void find() {
-        assertThrows(NotImplementedException.class, () -> roleService.find(UUID.randomUUID()));
+        UUID id = UUID.randomUUID();
+        assertThrows(NotImplementedException.class, () -> roleService.find(id));
     }
 
     @Test
     @DisplayName("Test creating a role")
     void create() {
-        assertThrows(NotImplementedException.class, () -> roleService.create(new Role()));
+        Role role = new Role();
+        assertThrows(NotImplementedException.class, () -> roleService.create(role));
     }
 
     @Test
     @DisplayName("Test updating a role")
     void update() {
-        assertThrows(NotImplementedException.class, () -> roleService.update(UUID.randomUUID(), new Role()));
+        UUID id = UUID.randomUUID();
+        Role role = new Role();
+        assertThrows(NotImplementedException.class, () -> roleService.update(id, role));
     }
 
     @Test
     @DisplayName("Test listing roles by user")
     void listByUser() {
-        assertThrows(NotImplementedException.class, () -> roleService.listByUser(UUID.randomUUID()));
+        UUID userId = UUID.randomUUID();
+        assertThrows(NotImplementedException.class, () -> roleService.listByUser(userId));
     }
 
     @Test
@@ -58,14 +63,10 @@ class RoleServiceTest {
     }
 
     @Test
-    @DisplayName("Test listing roles by user (duplicate)")
-    void testList() {
-        assertThrows(NotImplementedException.class, () -> roleService.listByUser(UUID.randomUUID()));
-    }
-
-    @Test
     @DisplayName("Test deleting a role")
     void delete() {
-        assertThrows(NotImplementedException.class, () -> roleService.delete(UUID.randomUUID(), new Role()));
+        UUID id = UUID.randomUUID();
+        Role role = new Role();
+        assertThrows(NotImplementedException.class, () -> roleService.delete(id, role));
     }
 }

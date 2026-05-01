@@ -12,8 +12,8 @@
  */
 package com.umdc.backoffice.v1.roles.service;
 
-import com.prx.commons.services.CrudService;
-import com.prx.commons.general.pojo.Role;
+import com.umdc.commons.services.CrudService;
+import com.umdc.commons.general.pojo.Role;
 import org.apache.commons.lang.NotImplementedException;
 import org.springframework.http.ResponseEntity;
 
@@ -35,6 +35,7 @@ public interface RoleService extends CrudService<UUID, Role> {
      * @param roleId {@link String}
      * @return Objeto de tipo {@link ResponseEntity}
      */
+    @Override
     default ResponseEntity<Role> find(UUID roleId) {
         throw new NotImplementedException();
     }

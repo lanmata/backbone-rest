@@ -15,13 +15,13 @@ package com.umdc.backoffice.v1.users.mapper;
 
 import com.umdc.backoffice.v1.features.mapper.FeatureMapper;
 import com.umdc.backoffice.v1.users.api.to.UserTO;
-import com.prx.commons.constants.httpstatus.type.MessageType;
-import com.prx.commons.exception.StandardException;
-import com.prx.commons.general.pojo.Application;
-import com.prx.commons.general.pojo.Role;
-import com.prx.commons.general.pojo.User;
-import com.prx.commons.services.config.mapper.MapperAppConfig;
-import com.prx.persistence.general.domains.*;
+import com.umdc.commons.constants.httpstatus.type.MessageType;
+import com.umdc.commons.exception.StandardException;
+import com.umdc.commons.general.pojo.Application;
+import com.umdc.commons.general.pojo.Role;
+import com.umdc.commons.general.pojo.User;
+import com.umdc.commons.services.config.mapper.MapperAppConfig;
+import com.umdc.persistence.general.domains.*;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

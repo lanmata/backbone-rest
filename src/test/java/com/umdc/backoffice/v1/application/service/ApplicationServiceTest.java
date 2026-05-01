@@ -13,7 +13,7 @@
 
 package com.umdc.backoffice.v1.application.service;
 
-import com.prx.commons.general.pojo.Application;
+import com.umdc.commons.general.pojo.Application;
 import org.apache.commons.lang.NotImplementedException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,7 +36,8 @@ class ApplicationServiceTest {
     @DisplayName("Find application by ID throws NotImplementedException")
     void findApplicationByIdThrowsNotImplementedException() {
         ApplicationService applicationService = new ApplicationService() {};
-        assertThrows(NotImplementedException.class, () -> applicationService.find(UUID.randomUUID()));
+        UUID id = UUID.randomUUID();
+        assertThrows(NotImplementedException.class, () -> applicationService.find(id));
     }
 
     @Test
@@ -44,7 +45,8 @@ class ApplicationServiceTest {
     void updateApplicationThrowsNotImplementedException() {
         ApplicationService applicationService = new ApplicationService() {};
         Application application = new Application();
-        assertThrows(NotImplementedException.class, () -> applicationService.update(UUID.randomUUID(), application));
+        UUID id = UUID.randomUUID();
+        assertThrows(NotImplementedException.class, () -> applicationService.update(id, application));
     }
 
     @Test
@@ -52,13 +54,15 @@ class ApplicationServiceTest {
     void deleteApplicationThrowsNotImplementedException() {
         ApplicationService applicationService = new ApplicationService() {};
         Application application = new Application();
-        assertThrows(NotImplementedException.class, () -> applicationService.delete(UUID.randomUUID(), application));
+        UUID id = UUID.randomUUID();
+        assertThrows(NotImplementedException.class, () -> applicationService.delete(id, application));
     }
 
     @Test
     @DisplayName("List applications throws NotImplementedException")
     void listApplicationsThrowsNotImplementedException() {
         ApplicationService applicationService = new ApplicationService() {};
-        assertThrows(NotImplementedException.class, () -> applicationService.list(UUID.randomUUID()));
+        UUID id = UUID.randomUUID();
+        assertThrows(NotImplementedException.class, () -> applicationService.list(id));
     }
 }

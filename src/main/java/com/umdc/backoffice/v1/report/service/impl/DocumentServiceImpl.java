@@ -14,7 +14,7 @@
 package com.umdc.backoffice.v1.report.service.impl;
 
 import com.umdc.backoffice.v1.report.service.DocumentService;
-import com.prx.commons.util.DateUtil;
+import com.umdc.commons.util.DateUtil;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFRun;
@@ -146,9 +146,7 @@ public class DocumentServiceImpl implements DocumentService {
 
     private void replace(XWPFParagraph xwpfParagraph, Map<String, String> placeholders) {
         var runs = xwpfParagraph.getRuns();
-        runs.forEach(xwpfRun -> {
-            replace(xwpfRun, placeholders);
-        });
+        runs.forEach(xwpfRun -> replace(xwpfRun, placeholders));
     }
 
     private List<String> find(XWPFParagraph xwpfParagraph) {

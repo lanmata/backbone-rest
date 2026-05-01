@@ -4,7 +4,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConfigurationProperties(prefix = "prx.jwt")
+@ConfigurationProperties(prefix = "umdc.security.jwt")
 public class JwtConfigProperties {
     private String secret;
     private long expirationMs;

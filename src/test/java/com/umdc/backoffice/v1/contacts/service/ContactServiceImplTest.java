@@ -14,25 +14,23 @@
 package com.umdc.backoffice.v1.contacts.service;
 
 import com.umdc.backoffice.v1.contacts.mapper.ContactMapper;
-import com.umdc.backoffice.v1.contacts.mapper.ContactMapperImpl;
 import com.umdc.backoffice.v1.contacttypes.mapper.ContactTypeMapper;
-import com.prx.commons.general.pojo.Contact;
-import com.prx.commons.general.pojo.ContactType;
-import com.prx.persistence.general.domains.ContactEntity;
-import com.prx.persistence.general.domains.ContactTypeEntity;
-import com.prx.persistence.general.domains.PersonEntity;
-import com.prx.persistence.general.repositories.ContactRepository;
+import com.umdc.commons.general.pojo.Contact;
+import com.umdc.commons.general.pojo.ContactType;
+import com.umdc.persistence.general.domains.ContactEntity;
+import com.umdc.persistence.general.domains.ContactTypeEntity;
+import com.umdc.persistence.general.domains.PersonEntity;
+import com.umdc.persistence.general.repositories.ContactRepository;
 import com.umdc.backoffice.v1.contacttypes.mapper.ContactTypeMapperImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDate;
@@ -44,7 +42,6 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(SpringExtension.class)
 class ContactServiceImplTest {
     @InjectMocks
     private ContactServiceImpl contactServiceImpl;
@@ -59,7 +56,8 @@ class ContactServiceImplTest {
     private ContactTypeMapper contactTypeMapper;
 
     @BeforeEach
-    public void setup() {
+    void setup() {
+        MockitoAnnotations.openMocks(this);
         ReflectionTestUtils.setField(contactServiceImpl, "contactLimit", 10);
     }
 
@@ -266,7 +264,6 @@ class ContactServiceImplTest {
         final var contactUUID2 = UUID.randomUUID();
         final var personUUID1 = UUID.randomUUID();
         final var personUUID2 = UUID.randomUUID();
-        final var personUUID3 = UUID.randomUUID();
         ContactTypeEntity contactTypeEntity1 = new ContactTypeEntity();
         contactTypeEntity1.setActive(true);
         contactTypeEntity1.setDescription("The characteristics of someone or something");
@@ -348,6 +345,7 @@ class ContactServiceImplTest {
         assertFalse(actualCreateResult.hasBody());
         assertTrue(actualCreateResult.getHeaders().isEmpty());
         assertEquals(HttpStatus.NOT_IMPLEMENTED, actualCreateResult.getStatusCode());
+        assertNotNull(responseContact);
     }
 
     /**
@@ -368,8 +366,6 @@ class ContactServiceImplTest {
     @Test
     @DisplayName("Test updating a contact with null data")
     void testUpdate() {
-        ContactRepository contactRepository = mock(ContactRepository.class);
-        ContactMapperImpl contactMapper = new ContactMapperImpl();
         ResponseEntity<Contact> actualUpdateResult = (new ContactServiceImpl(contactRepository, contactMapper,
                 new ContactTypeMapperImpl())).update((UUID) null, null);
         assertNull(actualUpdateResult.getBody());
@@ -383,8 +379,6 @@ class ContactServiceImplTest {
     @Test
     @DisplayName("Test updating a contact with null contact and valid contactId")
     void testUpdate2() {
-        ContactRepository contactRepository = mock(ContactRepository.class);
-        ContactMapperImpl contactMapper = new ContactMapperImpl();
         ResponseEntity<Contact> actualUpdateResult = (new ContactServiceImpl(contactRepository, contactMapper,
                 new ContactTypeMapperImpl())).update(UUID.randomUUID(), null);
         assertNull(actualUpdateResult.getBody());
@@ -398,7 +392,6 @@ class ContactServiceImplTest {
     @Test
     @DisplayName("Test finding a contact with null contactId")
     void testFind() {
-        ContactMapperImpl contactMapper = new ContactMapperImpl();
         ResponseEntity<Contact> actualFindResult = (new ContactServiceImpl(contactRepository, contactMapper,
                 new ContactTypeMapperImpl())).find(null);
         assertNull(actualFindResult.getBody());
@@ -450,7 +443,6 @@ class ContactServiceImplTest {
         when(contactTypeMapper.toTarget(Mockito.any(ContactTypeEntity.class))).thenReturn(contactType);
         when(contactMapper.toTarget(Mockito.any(ContactEntity.class))).thenReturn(contact);
 
-        ContactMapperImpl contactMapper = new ContactMapperImpl();
         ResponseEntity<List<Contact>> actualFindResult = contactServiceImpl.listByPersonId(personId);
         assertTrue(actualFindResult.hasBody());
         assertEquals(HttpStatus.OK, actualFindResult.getStatusCode());
@@ -466,7 +458,6 @@ class ContactServiceImplTest {
         UUID personId = UUID.randomUUID();
         Optional<List<ContactEntity>> optionalContactEntityList = Optional.empty();
         when(contactRepository.listByPersonId(Mockito.any(UUID.class))).thenReturn(optionalContactEntityList);
-        ContactMapperImpl contactMapper = new ContactMapperImpl();
         ResponseEntity<List<Contact>> actualFindResult = contactServiceImpl.listByPersonId(personId);
         assertFalse(actualFindResult.hasBody());
         assertEquals(HttpStatus.NOT_FOUND, actualFindResult.getStatusCode());
@@ -482,7 +473,6 @@ class ContactServiceImplTest {
         UUID contactId = UUID.randomUUID();
         var contactEntity = new ContactEntity();
         var contactTypeEntity = new ContactTypeEntity();
-        var contactType = new ContactType();
         var personEntity = new PersonEntity();
         personEntity.setId(personId);
         personEntity.setBirthdate(LocalDate.now());

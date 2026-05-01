@@ -1,7 +1,8 @@
 #IMPORTANT: This is the latest version
-app:
-  name: prx-backbone-rest
-  version: 1.0.1.20200713-01
+umdc:
+  app:
+    name: umdc-backbone-rest
+    version: 1.0.1.20200713-01
 #<><><><><><><><><><><><><><> HTTPS <><><><><><><><><><><><><><>
 server:
   port: 8084
@@ -9,7 +10,7 @@ server:
     enabled: true
   ssl:
     enabled: true
-    key-store: prx_backbone_rest.jks
+    key-store: backbone.jks
     key-store-password: prx-backbone-rest
     key-store-type: JKS
     key-alias: prx-backbone-rest
@@ -18,7 +19,7 @@ spring:
     allow-bean-definition-overriding: true
     banner-mode: console
   application:
-    name: ${app.name}
+    name: ${umdc.app.name}
     description: Servicio de integracion
   cloud:
     inetutils:
@@ -38,27 +39,19 @@ spring:
       base-path: /api
   #<><><><><><><><><><><><><><> BASE DE DATOS <><><><><><><><><><><><><><>
   datasource:
-    driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://${postgres.service.url}:5432/${postgres.service.database}
-    username: ${postgres.service.username}
-    password: ${postgres.service.password}
-    #<><><><><><><><><><><><><><> POOL DE CONEXIONES A BASE DE DATOS <><><><><><><><><><><><><><>
-    hikari:
-      minimumIdle: 1
-      maximumPoolSize: 1
-      idleTimeout: 15000
-      poolName: SpringBootJPAHikariCPbackbone
-      maxLifetime: 1800000
-      connectionTimeout: 30000
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL
+    username: sa
+    password:
   #<><><><><><><><><><><><><><> PERSISTENCIA <><><><><><><><><><><><><><>
   jpa:
-    hibernate.ddl-auto: none
+    hibernate.ddl-auto: create-drop
     show-sql: false
-    database: POSTGRESQL
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    database: H2
+    database-platform: org.hibernate.dialect.H2Dialect
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+        dialect: org.hibernate.dialect.H2Dialect
         jdbc:
           lob.non_contextual_creation: true
     log-level: error

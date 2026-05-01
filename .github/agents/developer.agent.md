@@ -28,7 +28,7 @@ You are a senior backend developer with deep, practical expertise working on the
 | Framework         | Spring Boot 3.4.1, Spring Cloud 2024.0.0                            |
 | API               | REST + OpenAPI 3.1 (springdoc, OpenAPI YAML at `META-INF/backbone_rest-openapi.yaml`) |
 | Persistence       | Spring Data JPA / Hibernate, PostgreSQL 42.7.4 (external `com.prx:persistence:0.0.3`) |
-| Mapping           | MapStruct 1.5.5.Final (`MapperAppConfig` from `com.prx.commons.services`) |
+| Mapping           | MapStruct 1.5.5.Final (`MapperAppConfig` from `com.umdc.commons.services`) |
 | Service Discovery | Eureka Client                                                        |
 | Config            | Spring Cloud Config Server + HashiCorp Vault (`bootstrap.yml`)      |
 | Auth              | OAuth2 Resource Server (Keycloak JWT) + app-specific session JWT (JJWT 0.12.3) |
@@ -41,7 +41,7 @@ You are a senior backend developer with deep, practical expertise working on the
 
 ### Request Flow
 ```
-*Api.java (interface: mappings + OpenAPI) → *Controller.java (implements *Api, delegates to service) → *ServiceImpl.java (ResponseEntity logic) → repositories (com.prx.persistence)
+*Api.java (interface: mappings + OpenAPI) → *Controller.java (implements *Api, delegates to service) → *ServiceImpl.java (ResponseEntity logic) → repositories (com.umdc.persistence)
 ```
 
 ### Package Map
@@ -55,8 +55,8 @@ You are a senior backend developer with deep, practical expertise working on the
 | `com.prx.backoffice.security`                        | `SecurityConfig`, `JwtConverter`, JWT properties |
 | `com.prx.backoffice.util`                            | `MessageUtil`, `JwtUtil`, `KeystoreUtil`         |
 | `com.prx.backoffice.constant.keys`                   | `*MessageKey` enums for status/message codes     |
-| `com.prx.persistence.general.domains`                | JPA entities (external module)                  |
-| `com.prx.persistence.general.repositories`           | Spring Data repositories (external module)       |
+| `com.umdc.persistence.general.domains`                | JPA entities (external module)                  |
+| `com.umdc.persistence.general.repositories`           | Spring Data repositories (external module)       |
 
 ### Domain Modules (`v1/`)
 `application`, `contacts`, `contacttypes`, `features`, `people`, `profileimage`, `report`, `roles`, `session`, `users`
@@ -84,7 +84,7 @@ You are a senior backend developer with deep, practical expertise working on the
    - Use `MessageUtil` for user-facing messages (keys defined in `*MessageKey` enums).
    - Cast `this` to the controller type in `*Api` default methods only when controller-specific logic is needed (see `UserApi.putUserDetail`).
    - Docs use `///` triple-slash JavaDoc style in many files — preserve it.
-   - Use `MapperAppConfig` (from `com.prx.commons.services`) as the MapStruct `config =` entry.
+   - Use `MapperAppConfig` (from `com.umdc.commons.services`) as the MapStruct `config =` entry.
 4. **Update OpenAPI annotations** (`*Api.java`) and `src/main/resources/META-INF/backbone_rest-openapi.yaml` when contracts change.
 5. **Include structured logging** with `LoggerFactory.getLogger` (SLF4J) at appropriate levels.
 

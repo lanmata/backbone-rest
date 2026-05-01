@@ -14,19 +14,19 @@
 package com.umdc.backoffice.v1.people.service;
 
 import com.umdc.backoffice.v1.people.mapper.PersonMapper;
-import com.prx.commons.exception.StandardException;
-import com.prx.commons.general.pojo.Person;
-import com.prx.persistence.general.domains.PersonEntity;
-import com.prx.persistence.general.repositories.PersonRepository;
+import com.umdc.commons.exception.StandardException;
+import com.umdc.commons.general.pojo.Person;
+import com.umdc.persistence.general.domains.PersonEntity;
+import com.umdc.persistence.general.repositories.PersonRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -36,7 +36,6 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(SpringExtension.class)
 class PersonServiceImplTest {
 
     @InjectMocks
@@ -47,6 +46,11 @@ class PersonServiceImplTest {
 
     @Mock
     private PersonRepository personRepository;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+    }
 
     /**
      * Method under test: {@link PersonServiceImpl#update(UUID, Person)}
@@ -344,4 +348,3 @@ class PersonServiceImplTest {
         return personEntity;
     }
 }
-

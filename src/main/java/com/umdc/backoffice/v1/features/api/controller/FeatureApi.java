@@ -15,8 +15,8 @@ package com.umdc.backoffice.v1.features.api.controller;
 
 import com.umdc.backoffice.v1.features.service.FeatureService;
 import com.umdc.backoffice.v1.features.api.to.FeatureRequest;
-import com.prx.commons.general.pojo.Feature;
-import com.prx.commons.util.HttpStatusUtil;
+import com.umdc.commons.general.pojo.Feature;
+import com.umdc.commons.util.HttpStatusUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

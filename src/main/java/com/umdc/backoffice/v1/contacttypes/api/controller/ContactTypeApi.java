@@ -15,8 +15,8 @@ package com.umdc.backoffice.v1.contacttypes.api.controller;
 
 import com.umdc.backoffice.v1.contacttypes.service.ContactTypeService;
 import com.umdc.backoffice.v1.contacttypes.api.to.ContactTypeRequest;
-import com.prx.commons.general.pojo.ContactType;
-import com.prx.commons.util.HttpStatusUtil;
+import com.umdc.commons.general.pojo.ContactType;
+import com.umdc.commons.util.HttpStatusUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;

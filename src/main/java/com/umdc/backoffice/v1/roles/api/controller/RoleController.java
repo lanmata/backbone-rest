@@ -14,7 +14,7 @@ package com.umdc.backoffice.v1.roles.api.controller;
 
 import com.umdc.backoffice.v1.roles.api.to.RoleRequest;
 import com.umdc.backoffice.v1.roles.service.RoleService;
-import com.prx.commons.general.pojo.Role;
+import com.umdc.commons.general.pojo.Role;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;

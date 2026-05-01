@@ -38,7 +38,7 @@
 - Do **not** skip JaCoCo coverage gates — coverage thresholds are enforced per `pom.xml`.
 - Do **not** add `mvnw` or Gradle wrapper files — the project uses plain `mvn`.
 - Do **not** alter `bootstrap.yml` structure without updating all referencing env-var keys.
-- Do **not** call external PRX entity/repo classes that belong to `com.prx.persistence` directly — respect the module boundary.
+- Do **not** call external PRX entity/repo classes that belong to `com.umdc.persistence` directly — respect the module boundary.
 - Do **not** commit `.env` files with real secrets to version control.
 
 ---

@@ -13,8 +13,8 @@
 
 package com.umdc.backoffice.v1.contacts.service;
 
-import com.prx.commons.general.pojo.Contact;
-import com.prx.commons.services.CrudService;
+import com.umdc.commons.general.pojo.Contact;
+import com.umdc.commons.services.CrudService;
 import org.apache.commons.lang.NotImplementedException;
 import org.springframework.http.ResponseEntity;
 
@@ -55,6 +55,7 @@ public interface ContactService extends CrudService<UUID, Contact> {
      * @param contact {@link Contact} object type.
      * @return {@link ResponseEntity} object type with a {@link Contact} object type.
      */
+    @Override
     default ResponseEntity<Contact> update(UUID contactId, Contact contact){
         throw new NotImplementedException();
     }
@@ -65,6 +66,7 @@ public interface ContactService extends CrudService<UUID, Contact> {
      * @param id {@link UUID} object type.
      * @return {@link ResponseEntity} object type with a {@link Contact} object type.
      */
+    @Override
     default ResponseEntity<Contact> find(UUID id) {
         throw new NotImplementedException();
     }

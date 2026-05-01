@@ -1,6 +1,6 @@
 package com.umdc.backoffice.constant.keys;
 
-import com.prx.commons.constants.httpstatus.type.MessageType;
+import com.umdc.commons.constants.httpstatus.type.MessageType;
 
 public enum BackboneMessage implements MessageType {
 

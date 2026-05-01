@@ -14,8 +14,8 @@
 package com.umdc.backoffice.v1.contacts.api.to;
 
 
-import com.prx.commons.general.pojo.Contact;
-import com.prx.commons.general.to.Request;
+import com.umdc.commons.general.pojo.Contact;
+import com.umdc.commons.general.to.Request;
 
 import java.io.Serializable;
 

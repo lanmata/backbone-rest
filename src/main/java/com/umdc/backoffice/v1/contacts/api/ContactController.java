@@ -14,7 +14,7 @@
 package com.umdc.backoffice.v1.contacts.api;
 
 import com.umdc.backoffice.v1.contacts.service.ContactService;
-import com.prx.commons.general.pojo.Contact;
+import com.umdc.commons.general.pojo.Contact;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;

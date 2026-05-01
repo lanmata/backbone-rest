@@ -101,7 +101,7 @@ Domains to test under `src/test/java/com/prx/backoffice/v1/<domain>/`:
 | `users`       | `UserServiceImpl`             | `UserRepository`, `ApplicationRepository`, `RoleRepository`, `ApplicationRoleUserRepository` |
 | `session`     | `SessionServiceImpl`          | `UserRepository`                                                 |
 | `roles`       | `RoleServiceImpl`             | `RoleRepository`                                                 |
-| `contacts`    | `ContactServiceImpl`          | Contact repos (from `com.prx.persistence`)                       |
+| `contacts`    | `ContactServiceImpl`          | Contact repos (from `com.umdc.persistence`)                       |
 | `contacttypes`| `ContactTypeServiceImpl`      | ContactType repos                                                |
 | `features`    | `FeatureServiceImpl`          | Feature repos                                                    |
 | `people`      | `PersonServiceImpl`           | Person repos                                                     |

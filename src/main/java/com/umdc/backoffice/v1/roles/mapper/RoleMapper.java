@@ -15,12 +15,12 @@ package com.umdc.backoffice.v1.roles.mapper;
 
 import com.umdc.backoffice.v1.features.mapper.FeatureMapper;
 import com.umdc.backoffice.v1.users.mapper.UserMapper;
-import com.prx.commons.general.pojo.Feature;
-import com.prx.commons.general.pojo.Role;
-import com.prx.commons.services.config.mapper.MapperAppConfig;
-import com.prx.persistence.general.domains.FeatureEntity;
-import com.prx.persistence.general.domains.RoleEntity;
-import com.prx.persistence.general.domains.RoleFeatureEntity;
+import com.umdc.commons.general.pojo.Feature;
+import com.umdc.commons.general.pojo.Role;
+import com.umdc.commons.services.config.mapper.MapperAppConfig;
+import com.umdc.persistence.general.domains.FeatureEntity;
+import com.umdc.persistence.general.domains.RoleEntity;
+import com.umdc.persistence.general.domains.RoleFeatureEntity;
 import org.mapstruct.*;
 
 import java.util.ArrayList;

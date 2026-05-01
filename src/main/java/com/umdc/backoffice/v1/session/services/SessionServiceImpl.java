@@ -22,9 +22,9 @@ import com.umdc.backoffice.v1.session.to.SessionRequest;
 import com.umdc.backoffice.v1.session.to.SessionResponse;
 import com.umdc.backoffice.v1.session.to.UserAliasTO;
 import com.umdc.backoffice.v1.users.mapper.UserMapper;
-import com.prx.commons.util.ValidatorCommonsUtil;
-import com.prx.persistence.general.domains.UserEntity;
-import com.prx.persistence.general.repositories.UserRepository;
+import com.umdc.commons.util.ValidatorCommonsUtil;
+import com.umdc.persistence.general.domains.UserEntity;
+import com.umdc.persistence.general.repositories.UserRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -214,6 +214,7 @@ public class SessionServiceImpl implements SessionService {
      * @param token the token
      * @return the claims
      */
+    @Override
     public Claims getTokenClaims(String token) {
         return Jwts.parser()
                 .verifyWith(key)

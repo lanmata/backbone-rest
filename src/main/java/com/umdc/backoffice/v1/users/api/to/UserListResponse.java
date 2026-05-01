@@ -16,8 +16,8 @@ package com.umdc.backoffice.v1.users.api.to;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.prx.commons.general.pojo.User;
-import com.prx.commons.general.to.Response;
+import com.umdc.commons.general.pojo.User;
+import com.umdc.commons.general.to.Response;
 import java.time.LocalDateTime;
 import java.util.List;
 

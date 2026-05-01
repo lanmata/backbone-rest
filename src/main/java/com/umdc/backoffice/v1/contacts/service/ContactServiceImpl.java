@@ -14,9 +14,9 @@ package com.umdc.backoffice.v1.contacts.service;
 
 import com.umdc.backoffice.v1.contacts.mapper.ContactMapper;
 import com.umdc.backoffice.v1.contacttypes.mapper.ContactTypeMapper;
-import com.prx.commons.general.pojo.Contact;
-import com.prx.persistence.general.domains.ContactEntity;
-import com.prx.persistence.general.repositories.ContactRepository;
+import com.umdc.commons.general.pojo.Contact;
+import com.umdc.persistence.general.domains.ContactEntity;
+import com.umdc.persistence.general.repositories.ContactRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,8 +26,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Collectors;
-
 import static com.umdc.backoffice.util.MessageUtil.MESSAGE_HEADER_STR;
 
 /**
@@ -50,15 +48,15 @@ public class ContactServiceImpl implements ContactService {
         this.contactTypeMapper = contactTypeMapper;
     }
 
+    @Override
     public List<Contact> saveAll(List<Contact> contacts) {
         final List<ContactEntity> results = new ArrayList<>();
         contacts.forEach(contact -> results.add(contactRepository.save(contactMapper.toSource(contact))));
 
-        if (!results.isEmpty()) {
-            return results.stream().map(contactMapper::toTarget).collect(Collectors.toList());
+        if (results.isEmpty()) {
+            return new ArrayList<>();
         }
-
-        return new ArrayList<>();
+        return results.stream().map(contactMapper::toTarget).toList();
     }
 
     @Override

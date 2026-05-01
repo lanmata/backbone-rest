@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
  * This class holds the configuration properties for keystore, truststore, and management authenticator.
  */
 @Component
-@ConfigurationProperties(prefix = "prx.security")
+@ConfigurationProperties(prefix = "umdc.security")
 public class SecurityProperties {
 
     private StoreProperties keystore;

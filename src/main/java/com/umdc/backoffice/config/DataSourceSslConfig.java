@@ -2,13 +2,13 @@ package com.umdc.backoffice.config;
 
 import com.umdc.backoffice.constant.BackboneAppConstants;
 import com.umdc.backoffice.constant.keys.BackboneMessage;
-import com.prx.commons.exception.StandardException;
+import com.umdc.commons.exception.StandardException;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
+import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;

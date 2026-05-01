@@ -14,7 +14,7 @@
 package com.umdc.backoffice.v1.contacttypes.service;
 
 import com.umdc.backoffice.v1.contacttypes.api.to.ContactTypeRequest;
-import com.prx.commons.general.pojo.ContactType;
+import com.umdc.commons.general.pojo.ContactType;
 import org.apache.commons.lang.NotImplementedException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,7 +36,8 @@ class ContactTypeServiceTest {
     @Test
     @DisplayName("Test listing contact types by ID - Empty List")
     void testListById() {
-        assertThrows(NotImplementedException.class, () -> contactTypeService.listById(new ArrayList<>()));
+        List<UUID> emptyIds = new ArrayList<>();
+        assertThrows(NotImplementedException.class, () -> contactTypeService.listById(emptyIds));
     }
 
     /**
@@ -68,7 +69,9 @@ class ContactTypeServiceTest {
     @Test
     @DisplayName("Test updating a contact type")
     void testUpdate() {
-        assertThrows(NotImplementedException.class, () -> contactTypeService.update(UUID.randomUUID(), new ContactType()));
+        UUID id = UUID.randomUUID();
+        ContactType contactType = new ContactType();
+        assertThrows(NotImplementedException.class, () -> contactTypeService.update(id, contactType));
     }
 
     /**
@@ -77,7 +80,8 @@ class ContactTypeServiceTest {
     @Test
     @DisplayName("Test creating a contact type")
     void testCreate() {
-        assertThrows(NotImplementedException.class, () -> contactTypeService.create(new ContactTypeRequest()));
+        ContactTypeRequest request = new ContactTypeRequest();
+        assertThrows(NotImplementedException.class, () -> contactTypeService.create(request));
     }
 
     /**
@@ -90,20 +94,22 @@ class ContactTypeServiceTest {
     }
 
     /**
-     * Method under test: {@link ContactTypeService#list()}
+     * Method under test: {@link ContactTypeService#delete(UUID)}
      */
     @Test
     @DisplayName("Test deleting a contact type")
     void testDelete() {
-        assertThrows(NotImplementedException.class, () -> contactTypeService.delete(UUID.randomUUID()));
+        UUID id = UUID.randomUUID();
+        assertThrows(NotImplementedException.class, () -> contactTypeService.delete(id));
     }
 
     /**
-     * Method under test: {@link ContactTypeService#list()}
+     * Method under test: {@link ContactTypeService#findById(UUID)}
      */
     @Test
     @DisplayName("Test finding a contact type by ID")
     void testFindById() {
-        assertThrows(NotImplementedException.class, () -> contactTypeService.findById(UUID.randomUUID()));
+        UUID id = UUID.randomUUID();
+        assertThrows(NotImplementedException.class, () -> contactTypeService.findById(id));
     }
 }

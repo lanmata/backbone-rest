@@ -12,13 +12,13 @@
  */
 package com.umdc.backoffice.v1.people.mapper;
 
-import com.prx.commons.general.pojo.Contact;
-import com.prx.commons.general.pojo.ContactType;
-import com.prx.commons.general.pojo.Person;
-import com.prx.commons.services.config.mapper.MapperAppConfig;
-import com.prx.persistence.general.domains.ContactEntity;
-import com.prx.persistence.general.domains.ContactTypeEntity;
-import com.prx.persistence.general.domains.PersonEntity;
+import com.umdc.commons.general.pojo.Contact;
+import com.umdc.commons.general.pojo.ContactType;
+import com.umdc.commons.general.pojo.Person;
+import com.umdc.commons.services.config.mapper.MapperAppConfig;
+import com.umdc.persistence.general.domains.ContactEntity;
+import com.umdc.persistence.general.domains.ContactTypeEntity;
+import com.umdc.persistence.general.domains.PersonEntity;
 import org.mapstruct.*;
 
 import java.util.ArrayList;

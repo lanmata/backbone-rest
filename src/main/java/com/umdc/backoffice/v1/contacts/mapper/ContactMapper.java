@@ -13,8 +13,8 @@
 package com.umdc.backoffice.v1.contacts.mapper;
 
 import com.umdc.backoffice.v1.contacttypes.mapper.ContactTypeMapper;
-import com.prx.commons.general.pojo.Contact;
-import com.prx.persistence.general.domains.ContactEntity;
+import com.umdc.commons.general.pojo.Contact;
+import com.umdc.persistence.general.domains.ContactEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

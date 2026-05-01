@@ -13,8 +13,8 @@
 
 package com.umdc.backoffice.v1.util;
 
-import com.prx.commons.general.pojo.Role;
-import com.prx.persistence.general.domains.RoleEntity;
+import com.umdc.commons.general.pojo.Role;
+import com.umdc.persistence.general.domains.RoleEntity;
 import org.apache.commons.lang.NotImplementedException;
 
 import java.util.ArrayList;

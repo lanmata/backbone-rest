@@ -16,7 +16,7 @@ package com.umdc.backoffice.v1.profileimage.api.controller;
 import com.umdc.backoffice.v1.profileimage.service.ProfileImageService;
 import com.umdc.backoffice.v1.profileimage.to.GetProfileImageReferenceResponse;
 import com.umdc.backoffice.v1.profileimage.to.PostProfileImageResponse;
-import com.prx.commons.util.HttpStatusUtil;
+import com.umdc.commons.util.HttpStatusUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

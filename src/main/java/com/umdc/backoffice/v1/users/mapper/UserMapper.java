@@ -17,8 +17,8 @@ import com.umdc.backoffice.v1.roles.mapper.RoleMapper;
 import com.umdc.backoffice.v1.users.api.to.UserCreateRequest;
 import com.umdc.backoffice.v1.users.api.to.UserCreateResponse;
 import com.umdc.backoffice.v1.users.api.to.UserTO;
-import com.prx.commons.services.config.mapper.MapperAppConfig;
-import com.prx.persistence.general.domains.UserEntity;
+import com.umdc.commons.services.config.mapper.MapperAppConfig;
+import com.umdc.persistence.general.domains.UserEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

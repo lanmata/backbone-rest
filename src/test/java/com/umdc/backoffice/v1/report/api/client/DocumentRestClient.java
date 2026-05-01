@@ -14,7 +14,7 @@
 package com.umdc.backoffice.v1.report.api.client;
 
 
-import com.prx.commons.util.DateUtil;
+import com.umdc.commons.util.DateUtil;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.config.Registry;

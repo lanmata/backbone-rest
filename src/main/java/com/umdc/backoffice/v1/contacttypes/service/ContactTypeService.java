@@ -14,8 +14,8 @@
 package com.umdc.backoffice.v1.contacttypes.service;
 
 import com.umdc.backoffice.v1.contacttypes.api.to.ContactTypeRequest;
-import com.prx.commons.general.pojo.ContactType;
-import com.prx.commons.services.CrudService;
+import com.umdc.commons.general.pojo.ContactType;
+import com.umdc.commons.services.CrudService;
 import org.apache.commons.lang.NotImplementedException;
 import org.springframework.http.ResponseEntity;
 
@@ -51,6 +51,7 @@ public interface ContactTypeService extends CrudService<UUID, ContactType> {
         throw new NotImplementedException();
     }
 
+    @Override
     default ResponseEntity<ContactType> update(UUID contactTypeId, ContactType contactType) {
         throw new NotImplementedException();
     }

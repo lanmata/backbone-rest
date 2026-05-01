@@ -22,7 +22,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @author Luis Antonio Mata
  * @version 1.0.1.20200904-01, 26-10-2020
  */
-@SpringBootApplication(scanBasePackages = {"com.umdc.backoffice", "com.prx.commons.services"})
+@SpringBootApplication(scanBasePackages = {"com.umdc.backoffice", "com.umdc.commons.services"})
 public class UMDCBackofficeRestApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(UMDCBackofficeRestApplication.class, args);

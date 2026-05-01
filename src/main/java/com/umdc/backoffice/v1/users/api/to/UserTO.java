@@ -14,9 +14,9 @@
 package com.umdc.backoffice.v1.users.api.to;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.prx.commons.general.pojo.Application;
-import com.prx.commons.general.pojo.Person;
-import com.prx.commons.general.pojo.Role;
+import com.umdc.commons.general.pojo.Application;
+import com.umdc.commons.general.pojo.Person;
+import com.umdc.commons.general.pojo.Role;
 import jakarta.validation.constraints.Email;
 
 import java.time.LocalDateTime;

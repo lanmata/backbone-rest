@@ -15,8 +15,8 @@ package com.umdc.backoffice.v1.people.api.controller;
 
 import com.umdc.backoffice.v1.people.api.to.PersonRequest;
 import com.umdc.backoffice.v1.people.service.PersonService;
-import com.prx.commons.general.pojo.Person;
-import com.prx.commons.util.HttpStatusUtil;
+import com.umdc.commons.general.pojo.Person;
+import com.umdc.commons.util.HttpStatusUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

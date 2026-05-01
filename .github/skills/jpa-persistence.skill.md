@@ -6,7 +6,7 @@ applies-to: [Developer, Database Architect]
 # JPA Persistence
 ## External Module
 Entities and repos live in com.prx:persistence:0.0.3 - DO NOT modify entity classes.
-Packages: com.prx.persistence.general.{domains,repositories}
+Packages: com.umdc.persistence.general.{domains,repositories}
 ## Key Repositories
 | Repo | Key Methods |
 |------|------------|

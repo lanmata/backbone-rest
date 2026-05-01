@@ -13,9 +13,9 @@
 package com.umdc.backoffice.v1.users.service;
 
 import com.umdc.backoffice.v1.users.api.to.UserTO;
-import com.prx.persistence.general.domains.ApplicationEntity;
-import com.prx.persistence.general.domains.RoleEntity;
-import com.prx.persistence.general.domains.UserEntity;
+import com.umdc.persistence.general.domains.ApplicationEntity;
+import com.umdc.persistence.general.domains.RoleEntity;
+import com.umdc.persistence.general.domains.UserEntity;
 
 import java.util.UUID;
 
@@ -38,7 +38,7 @@ public interface UserApplicationRoleService {
     /// @param applicationEntity the application entity
     /// @param roleEntity the role entity
     /// @return the configured ApplicationRoleUserEntity
-    com.prx.persistence.general.domains.ApplicationRoleUserEntity buildApplicationRoleUser(
+    com.umdc.persistence.general.domains.ApplicationRoleUserEntity buildApplicationRoleUser(
             UUID userId,
             UserEntity userEntity,
             ApplicationEntity applicationEntity,

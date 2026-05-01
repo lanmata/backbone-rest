@@ -15,7 +15,7 @@ package com.umdc.backoffice.aop;
 
 import com.umdc.backoffice.constant.keys.LogActionKey;
 import com.umdc.backoffice.constant.keys.UserMessageKey;
-import com.prx.commons.constants.httpstatus.type.MessageType;
+import com.umdc.commons.constants.httpstatus.type.MessageType;
 
 import java.lang.annotation.*;
 

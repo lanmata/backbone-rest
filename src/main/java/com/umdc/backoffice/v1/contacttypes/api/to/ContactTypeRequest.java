@@ -13,8 +13,8 @@
 
 package com.umdc.backoffice.v1.contacttypes.api.to;
 
-import com.prx.commons.general.pojo.ContactType;
-import com.prx.commons.general.to.Request;
+import com.umdc.commons.general.pojo.ContactType;
+import com.umdc.commons.general.to.Request;
 
 import java.io.Serializable;
 

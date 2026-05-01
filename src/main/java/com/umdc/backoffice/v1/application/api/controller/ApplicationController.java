@@ -15,7 +15,7 @@ package com.umdc.backoffice.v1.application.api.controller;
 
 import com.umdc.backoffice.v1.application.api.to.ApplicationCreateRequest;
 import com.umdc.backoffice.v1.application.service.ApplicationService;
-import com.prx.commons.general.pojo.Application;
+import com.umdc.commons.general.pojo.Application;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
