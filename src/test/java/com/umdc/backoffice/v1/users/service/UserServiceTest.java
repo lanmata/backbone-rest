@@ -19,6 +19,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
+
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -32,13 +36,15 @@ class UserServiceTest {
     @Test
     @DisplayName("Test finding user by ID")
     void findUserById() {
-        assertThrows(NotImplementedException.class, () -> userService.findUserById(UUID.randomUUID()));
+        UUID userId = UUID.randomUUID();
+        assertThrows(NotImplementedException.class, () -> userService.findUserById(userId));
     }
 
     @Test
     @DisplayName("Test finding user by alias")
     void findUserByAlias() {
-        assertThrows(NotImplementedException.class, () -> userService.findUserByAlias("pepe", UUID.randomUUID()));
+        UUID appId = UUID.randomUUID();
+        assertThrows(NotImplementedException.class, () -> userService.findUserByAlias("pepe", appId));
     }
 
     @Test
@@ -50,7 +56,8 @@ class UserServiceTest {
     @Test
     @DisplayName("Test finding all users")
     void findAll() {
-        assertThrows(NotImplementedException.class, () -> userService.findAll(UUID.randomUUID()));
+        UUID appId = UUID.randomUUID();
+        assertThrows(NotImplementedException.class, () -> userService.findAll(appId));
     }
 
     @Test
@@ -63,37 +70,26 @@ class UserServiceTest {
     @Test
     @DisplayName("Test unlinking a user")
     void unlink() {
-        assertThrows(NotImplementedException.class, () -> userService.unlink(UUID.randomUUID(), UUID.randomUUID()));
+        UUID userId = UUID.randomUUID();
+        UUID appId = UUID.randomUUID();
+        assertThrows(NotImplementedException.class, () -> userService.unlink(userId, appId));
     }
 
     @Test
     @DisplayName("Test linking a user")
     void roleLink() {
-        assertThrows(NotImplementedException.class, () -> userService.roleLink(UUID.randomUUID(), UUID.randomUUID()));
+        UUID userId = UUID.randomUUID();
+        UUID roleId = UUID.randomUUID();
+        assertThrows(NotImplementedException.class, () -> userService.roleLink(userId, roleId));
     }
 
-    @Test
-    @DisplayName("Test alias validation")
-    void validateAlias() {
-        assertThrows(NotImplementedException.class, () -> userService.validateAlias("pepe", UUID.randomUUID()));
-    }
-
-    @Test
-    @DisplayName("Validate alias is available")
-    void validateAliasAvailable() {
-        assertThrows(NotImplementedException.class, () -> userService.validateAlias("availableAlias", UUID.randomUUID()));
-    }
-
-    @Test
-    @DisplayName("Validate alias is not available")
-    void validateAliasNotAvailable() {
-        assertThrows(NotImplementedException.class, () -> userService.validateAlias("unavailableAlias", UUID.randomUUID()));
-    }
-
-    @Test
-    @DisplayName("Validate alias with null alias")
-    void validateAliasNullAlias() {
-        assertThrows(NotImplementedException.class, () -> userService.validateAlias(null, UUID.randomUUID()));
+    @ParameterizedTest(name = "validateAlias alias={0}")
+    @NullSource
+    @ValueSource(strings = {"pepe", "availableAlias", "unavailableAlias"})
+    @DisplayName("Test alias validation with various alias values")
+    void validateAlias(String alias) {
+        UUID appId = UUID.randomUUID();
+        assertThrows(NotImplementedException.class, () -> userService.validateAlias(alias, appId));
     }
 
     @Test
@@ -102,22 +98,13 @@ class UserServiceTest {
         assertThrows(NotImplementedException.class, () -> userService.validateAlias("alias", null));
     }
 
-    @Test
-    @DisplayName("Validate email is available")
-    void validateEmailAvailable() {
-        assertThrows(NotImplementedException.class, () -> userService.validateEmail("available@example.com", UUID.randomUUID()));
-    }
-
-    @Test
-    @DisplayName("Validate email is not available")
-    void validateEmailNotAvailable() {
-        assertThrows(NotImplementedException.class, () -> userService.validateEmail("unavailable@example.com", UUID.randomUUID()));
-    }
-
-    @Test
-    @DisplayName("Validate email with null email")
-    void validateEmailNullEmail() {
-        assertThrows(NotImplementedException.class, () -> userService.validateEmail(null, UUID.randomUUID()));
+    @ParameterizedTest(name = "validateEmail email={0}")
+    @NullSource
+    @ValueSource(strings = {"available@example.com", "unavailable@example.com"})
+    @DisplayName("Test email validation with various email values")
+    void validateEmail(String email) {
+        UUID appId = UUID.randomUUID();
+        assertThrows(NotImplementedException.class, () -> userService.validateEmail(email, appId));
     }
 
     @Test
