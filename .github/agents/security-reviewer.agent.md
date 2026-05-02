@@ -9,12 +9,15 @@ tools:
   - grep_search
   - file_search
   - validate_cves
+tool-docs:
+  - '.github/tools/dependency-check.tool.md'
 skills:
   - cve-detection
   - dependency-audit
   - owasp-top10
   - jwt-security
   - spring-security
+skill-definition: '.github/skills/security-reviewer/SKILL.md'
 ---
 
 # Security Reviewer Subagent

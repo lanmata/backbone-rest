@@ -4,7 +4,11 @@ description: Automated test authoring agent for unit and integration tests
 user-invocable: true
 subagent-only: false
 tools: ['run_in_terminal', 'read_file', 'insert_edit_into_file', 'replace_string_in_file', 'create_file', 'grep_search', 'file_search', 'get_errors']
+tool-docs:
+  - '.github/tools/maven-build.tool.md'
+  - '.github/tools/pmd-check.tool.md'
 skills: ['junit5-testing', 'mockito-mocking', 'spring-boot-testing', 'jacoco-coverage', 'test-design-patterns']
+skill-definition: '.github/skills/test-writer/SKILL.md'
 ---
 
 # QA / Test Writer Agent
@@ -97,7 +101,7 @@ Domains to test under `src/test/java/com/prx/backoffice/v1/<domain>/`:
 | `users`       | `UserServiceImpl`             | `UserRepository`, `ApplicationRepository`, `RoleRepository`, `ApplicationRoleUserRepository` |
 | `session`     | `SessionServiceImpl`          | `UserRepository`                                                 |
 | `roles`       | `RoleServiceImpl`             | `RoleRepository`                                                 |
-| `contacts`    | `ContactServiceImpl`          | Contact repos (from `com.prx.persistence`)                       |
+| `contacts`    | `ContactServiceImpl`          | Contact repos (from `com.umdc.persistence`)                       |
 | `contacttypes`| `ContactTypeServiceImpl`      | ContactType repos                                                |
 | `features`    | `FeatureServiceImpl`          | Feature repos                                                    |
 | `people`      | `PersonServiceImpl`           | Person repos                                                     |

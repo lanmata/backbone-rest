@@ -43,7 +43,7 @@ Reference the affected domain under /api/v1/<domain>."
 "Implement the feature based on the acceptance criteria:
 [paste acceptance criteria]
 Follow the existing pattern:
-  *Api.java (interface: mappings + OpenAPI) → *Controller.java (thin, delegates) → *ServiceImpl.java (ResponseEntity logic) → repositories (com.prx.persistence)
+  *Api.java (interface: mappings + OpenAPI) → *Controller.java (thin, delegates) → *ServiceImpl.java (ResponseEntity logic) → repositories (com.umdc.persistence)
 Use MessageUtil for user-facing messages. Use MapperAppConfig for MapStruct config."
 ```
 

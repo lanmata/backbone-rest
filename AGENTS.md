@@ -3,7 +3,7 @@
 ## Project Snapshot
 - This is a Java 21 Spring Boot 3.4 REST service (`backbone-rest`) for backoffice entities.
 - Main app bootstrap is `src/main/java/com/prx/backoffice/PrxBackofficeRestApplication.java`.
-- The app scans external PRX modules (`com.prx.persistence`, `com.prx.commons.services`), so domain entities/repos are mostly not in this repo.
+- The app scans external PRX modules (`com.umdc.persistence`, `com.umdc.commons.services`), so domain entities/repos are mostly not in this repo.
 - API surface is mostly under `/api/v1/*` (for example `UserController`, `SessionController`).
 
 ## Architecture That Matters

@@ -4,7 +4,10 @@ description: API contract and OpenAPI specification reviewer subagent
 user-invocable: false
 subagent-only: true
 tools: ['read_file', 'grep_search', 'file_search', 'get_errors']
+tool-docs:
+  - '.github/tools/openapi-validator.tool.md'
 skills: ['openapi-specification', 'rest-api-design', 'api-contract-review']
+skill-definition: '.github/skills/api-reviewer/SKILL.md'
 ---
 
 # API Reviewer Subagent

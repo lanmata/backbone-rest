@@ -129,13 +129,13 @@ The app intentionally delegates entities and repositories to two private PRX lib
 ┌────────────────────────────────────────────────────────────┐
 │  backbone-rest (this app)                                  │
 │                                                            │
-│  @EntityScan("com.prx.persistence")        ──────────────► prx-persistence (0.0.3)
-│  @EnableJpaRepositories("com.prx.persistence")             │  UserEntity, PersonEntity,
+│  @EntityScan("com.umdc.persistence")        ──────────────► prx-persistence (0.0.3)
+│  @EnableJpaRepositories("com.umdc.persistence")             │  UserEntity, PersonEntity,
 │                                                            │  RoleEntity, FeatureEntity,
 │  @SpringBootApplication(                                   │  ApplicationEntity,
 │    scanBasePackages = {                                     │  ApplicationRoleUserEntity,
 │      "com.prx.backoffice",                                  │  ContactEntity,
-│      "com.prx.commons.services"  ──────────────────────►   │  ContactTypeEntity, etc.
+│      "com.umdc.commons.services"  ──────────────────────►   │  ContactTypeEntity, etc.
 │    })                                                      │
 │                                                prx-commons (0.0.4)
 │                                                            │  Domain POJOs (User, Role,

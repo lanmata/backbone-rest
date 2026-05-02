@@ -19,14 +19,14 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.8</version>
+        <version>4.0.6</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
-    <groupId>com.prx.backbone</groupId>
+    <groupId>com.umdc.backbone</groupId>
     <artifactId>backbone-rest</artifactId>
-    <version>0.0.2</version>
-    <name>PRX Backbone REST</name>
+    <version>0.0.1</version>
+    <name>UMDC Backbone REST</name>
     <description>Management service to system entities</description>
 
     <url/>
@@ -38,9 +38,9 @@
             <id>lmata</id>
             <name>Luis Antonio Mata</name>
             <email>luis.antonio.mata@gmail.com</email>
-            <url>www.prx-dev.com</url>
-            <organization>PRX Dev Innova</organization>
-            <organizationUrl>www.prx.com</organizationUrl>
+            <url>www.umdc-dev.com</url>
+            <organization>UM DevCreative</organization>
+            <organizationUrl>www.umdc.com</organizationUrl>
         </developer>
     </developers>
     <scm>
@@ -55,10 +55,10 @@
         <!-- Use a dedicated jacoco argLine property to avoid conflicts with CI/global agent injection -->
         <jacoco.argLine/>
         <!--        PRX Commons-->
-        <com.prx.commons.version>0.0.1</com.prx.commons.version>
-        <com.prx.commons-services.version>0.0.1</com.prx.commons-services.version>
-        <com.prx.security-oauth.version>0.0.1</com.prx.security-oauth.version>
-        <com.prx.persistence.version>0.0.3</com.prx.persistence.version>
+        <com.umdc.commons.version>0.0.1</com.umdc.commons.version>
+        <com.umdc.commons-services.version>0.0.1</com.umdc.commons-services.version>
+        <com.umdc.security-oauth.version>0.0.1</com.umdc.security-oauth.version>
+        <com.umdc.persistence.version>0.0.1</com.umdc.persistence.version>
         <!--        MAVEN-->
         <maven.compiler.release>${java.version}</maven.compiler.release>
         <maven.compiler.source>${java.version}</maven.compiler.source>
@@ -73,15 +73,15 @@
         <!--        OPEN API -->
         <springdoc.version>2.6.0</springdoc.version>
         <!--        SPRING -->
-        <spring-boot.version>3.5.8</spring-boot.version>
-        <spring-cloud.version>2025.0.1</spring-cloud.version>
+        <spring-boot.version>4.0.6</spring-boot.version>
+        <spring-cloud.version>2025.1.1</spring-cloud.version>
 
         <!-- Centralized versions for previously hardcoded dependency/plugin versions -->
         <postgresql.version>42.7.7</postgresql.version>
         <aws.sdk.version>2.21.0</aws.sdk.version>
         <google.gson.version>2.13.2</google.gson.version>
         <mapstruct.version>1.6.3</mapstruct.version>
-        <jwt.version>0.12.3</jwt.version>
+        <jwt.version>0.12.6</jwt.version>
         <snakeyaml.version>2.5</snakeyaml.version>
         <org.json.version>20250517</org.json.version>
         <plexus.utils.version>4.0.2</plexus.utils.version>
@@ -150,9 +150,24 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
+        <!-- eureka-client-jersey3 provides TransportClientFactories<?> required by EurekaClient
+             auto-configuration in Spring Cloud 4.x / 2025.0.x. spring-boot-starter-jersey was
+             removed because no JAX-RS code exists in this project and it conflicted with Eureka's
+             Jersey3 transport auto-configuration. -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-jersey</artifactId>
+            <groupId>com.netflix.eureka</groupId>
+            <artifactId>eureka-client-jersey3</artifactId>
+        </dependency>
+        <!-- Jersey 3 client runtime — required by eureka-client-jersey3 for
+             Jersey3TransportClientFactories to be class-loadable so that
+             EurekaClientAutoConfiguration @ConditionalOnClass succeeds -->
+        <dependency>
+            <groupId>org.glassfish.jersey.core</groupId>
+            <artifactId>jersey-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.inject</groupId>
+            <artifactId>jersey-hk2</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
@@ -185,7 +200,7 @@
         <dependency>
             <groupId>commons-fileupload</groupId>
             <artifactId>commons-fileupload</artifactId>
-            <version>1.5</version>
+            <version>1.6.0</version>
         </dependency>
         <!--        Converter-->
         <dependency>
@@ -200,14 +215,14 @@
         </dependency>
         <!--        PRX Dependencies-->
         <dependency>
-            <groupId>com.prx</groupId>
-            <artifactId>prx-commons</artifactId>
-            <version>${com.prx.commons.version}</version>
+            <groupId>com.umdc</groupId>
+            <artifactId>commons</artifactId>
+            <version>${com.umdc.commons.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.prx</groupId>
+            <groupId>com.umdc</groupId>
             <artifactId>commons-services</artifactId>
-            <version>${com.prx.commons-services.version}</version>
+            <version>${com.umdc.commons-services.version}</version>
             <exclusions>
                 <!-- Exclude older springdoc artifacts that pull in javax.servlet (1.8.x) -->
                 <exclusion>
@@ -235,9 +250,9 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>com.prx</groupId>
+            <groupId>com.umdc</groupId>
             <artifactId>persistence</artifactId>
-            <version>${com.prx.persistence.version}</version>
+            <version>${com.umdc.persistence.version}</version>
             <exclusions>
                 <!-- Exclude javax.servlet if brought in -->
                 <exclusion>
@@ -298,6 +313,13 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
+        <!-- Apache HttpClient 5 — used by HttpClientConfig for SSLContextBuilder-based
+             inter-service RestTemplate with PRX Internal CA trust store -->
+        <dependency>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5</artifactId>
+        </dependency>
         <!--        TEST-->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
@@ -312,7 +334,7 @@
         <dependency>
             <groupId>org.codehaus.plexus</groupId>
             <artifactId>plexus-utils</artifactId>
-            <version>4.0.1</version>
+            <version>4.0.3</version>
         </dependency>
         <dependency>
             <groupId>com.h2database</groupId>
@@ -364,7 +386,7 @@
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
-            <version>5.2.5</version>
+            <version>5.4.0</version>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
@@ -643,9 +665,9 @@
 
     <distributionManagement>
         <repository>
-            <id>PRX-Repsy</id>
+            <id>repsy</id>
             <name>My Private Maven Repository on Repsy</name>
-            <url>https://repo.repsy.io/mvn/${repsy.account.user}/${repsy.account.password}</url>
+            <url>https://repo.repsy.io/mvn/lmata/prx</url>
         </repository>
     </distributionManagement>
 </project>

@@ -1,0 +1,52 @@
+/*
+ *  @(#)FeatureRequest.java
+ *
+ *  Copyright (c) Luis Antonio Mata Mata. All rights reserved.
+ *
+ *   All rights to this product are owned by Luis Antonio Mata Mata and may only
+ *  be used under the terms of its associated license document. You may NOT
+ *  copy, modify, sublicense, or distribute this source file or portions of
+ *  it unless previously authorized in writing by Luis Antonio Mata Mata.
+ *  In any event, this notice and the above copyright must always be included
+ *  verbatim with this file.
+ */
+
+package com.umdc.backoffice.v1.features.api.to;
+
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import com.umdc.commons.general.pojo.Feature;
+import com.umdc.commons.general.to.Request;
+
+/**
+ * FeatureRequest.
+ *
+ * @author <a href='mailto:luis.antonio.mata@gmail.com'>Luis Antonio Mata</a>
+ * @version 1.0.0, 24-03-2021
+ */
+@JsonNaming
+public class FeatureRequest extends Request {
+    private Feature feature;
+
+    /**
+     * Default Constructor
+     */
+    public FeatureRequest() {
+        super();
+        // Default Constructor
+    }
+
+    public Feature getFeature() {
+        return feature;
+    }
+
+    public void setFeature(Feature feature) {
+        this.feature = feature;
+    }
+
+    @Override
+    public String toString() {
+        return "FeatureRequest{" +
+                "feature=" + feature +
+                '}';
+    }
+}

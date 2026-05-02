@@ -4,15 +4,20 @@ description: Automated code review agent for Java/Spring Boot projects
 user-invocable: false
 subagent-only: true
 tools:
+  - run_in_terminal
   - read_file
   - grep_search
   - file_search
   - get_errors
+tool-docs:
+  - '.github/tools/pmd-check.tool.md'
+  - '.github/tools/maven-build.tool.md'
 skills:
   - java-code-quality
   - spring-boot-best-practices
   - clean-code
   - pmd-analysis
+skill-definition: '.github/skills/code-reviewer/SKILL.md'
 ---
 
 # Code Reviewer Subagent
@@ -31,7 +36,7 @@ adherence to project conventions, and potential issues.
 - Services return `ResponseEntity<?>` directly — not raw domain objects.
 - DTOs live in `com.prx.backoffice.v1.<domain>.api.to` (may be records or regular classes).
 - User-facing messages use `MessageUtil` (keys from `*MessageKey` enums) — avoid new string literals.
-- MapStruct mappers declare `config = MapperAppConfig.class` (from `com.prx.commons.services`).
+- MapStruct mappers declare `config = MapperAppConfig.class` (from `com.umdc.commons.services`).
 - Logging uses `LoggerFactory.getLogger` (SLF4J) with `MessageUtil.LOG_START_MSG` / `LOG_END_MSG` conventions.
 - Docs use `///` triple-slash JavaDoc style in many files — preserve existing style.
 

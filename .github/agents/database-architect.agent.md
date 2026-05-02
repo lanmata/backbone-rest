@@ -9,11 +9,14 @@ tools:
   - file_search
   - run_in_terminal
   - create_file
+tool-docs:
+  - '.github/tools/maven-build.tool.md'
 skills:
   - jpa-persistence
   - sql-optimization
   - schema-design
   - spring-data-jpa
+skill-definition: '.github/skills/database-architect/SKILL.md'
 ---
 
 # Database Architect Subagent
@@ -29,10 +32,10 @@ management, query optimization, and data modeling for the **backbone-rest** micr
 - **Test DB**: H2 in-memory
 - **ORM**: Spring Data JPA / Hibernate
 - **Entities and repositories are in an external module** (`com.prx:persistence:0.0.3`)
-  — they live in `com.prx.persistence.general.domains` and `com.prx.persistence.general.repositories`, **not** in this repo.
+  — they live in `com.umdc.persistence.general.domains` and `com.umdc.persistence.general.repositories`, **not** in this repo.
 - Schema migrations are managed externally. DDL is set to `none` (no auto-create).
 
-### Key Entities (`com.prx.persistence.general.domains`)
+### Key Entities (`com.umdc.persistence.general.domains`)
 
 - `UserEntity` — User profiles, authentication (alias, password, email, active)
 - `ApplicationEntity` — Application registrations
@@ -42,7 +45,7 @@ management, query optimization, and data modeling for the **backbone-rest** micr
 - `ContactEntity` — Contact data tied to persons
 - `ContactTypeEntity` — Contact type enumeration
 
-### Key Repositories (`com.prx.persistence.general.repositories`)
+### Key Repositories (`com.umdc.persistence.general.repositories`)
 
 - `UserRepository` — includes `findByAlias`, `findByAliasAndApplication`, `findByEmailAndApplication`, `findByApplication`, `findUserInfo`
 - `ApplicationRepository`
