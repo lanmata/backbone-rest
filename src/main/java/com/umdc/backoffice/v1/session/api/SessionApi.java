@@ -15,6 +15,7 @@ package com.umdc.backoffice.v1.session.api;
 
 import com.umdc.backoffice.v1.session.services.SessionService;
 import com.umdc.backoffice.v1.session.to.SessionEmailRequest;
+import com.umdc.backoffice.v1.session.to.SessionRefreshRequest;
 import com.umdc.backoffice.v1.session.to.SessionRequest;
 import com.umdc.backoffice.v1.session.to.SessionResponse;
 import com.umdc.commons.constants.httpstatus.key.ServerErrorKey;
@@ -111,6 +112,33 @@ public interface SessionApi {
     @GetMapping(value = "/renew", produces = {MediaType.APPLICATION_JSON_VALUE})
     default ResponseEntity<SessionResponse> renewSessionToken(@RequestHeader(SESSION_TOKEN_KEY) String sessionToken) {
         return ResponseEntity.status(HttpStatusUtil.NOT_IMPLEMENTED).body(new SessionResponse());
+    }
+
+    /// Endpoint to exchange a refresh token for a new access token and a new refresh token.
+    /// <p>
+    /// This endpoint is intentionally <strong>public</strong> (no active session required) —
+    /// it is the mechanism by which a client obtains a new session after the access token
+    /// has expired, using the longer-lived refresh token issued at login.
+    /// </p>
+    ///
+    /// @param request the refresh request containing the refresh token
+    /// @return a ResponseEntity containing a new access token and a new refresh token
+    @Operation(
+            summary = "Refresh session token",
+            description = "Exchanges a valid or recently-expired refresh token for a new access token and refresh token. "
+                    + "Public endpoint — no active session required.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "New access and refresh tokens returned"),
+            @ApiResponse(responseCode = HttpStatusUtil.BAD_REQUEST_STR, description = "Missing or empty refresh token"),
+            @ApiResponse(responseCode = HttpStatusUtil.UNAUTHORIZED_STR,
+                    description = "Invalid token, wrong token type, or beyond the grace period"),
+            @ApiResponse(responseCode = HttpStatusUtil.INTERNAL_SERVER_ERROR_STR, description = "Token generation failed")
+    })
+    @PostMapping(value = "/refresh",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    default ResponseEntity<SessionResponse> refreshSessionToken(@RequestBody SessionRefreshRequest request) {
+        return this.getSessionService().refreshSession(request.refreshToken());
     }
 
 }

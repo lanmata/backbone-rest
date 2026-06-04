@@ -1,7 +1,6 @@
 package com.umdc.backoffice.v1.session.services;
 
 import io.jsonwebtoken.Claims;
-import org.apache.commons.lang.NotImplementedException;
 
 import java.util.Date;
 import java.util.Map;
@@ -17,6 +16,15 @@ import java.util.Optional;
 public interface SessionJwtService {
 
     String SESSION_TOKEN_KEY = "session-token";
+
+    /// Token type claim value for refresh tokens.
+    /// Refresh tokens carry a longer TTL and are used exclusively by
+    /// {@code POST /api/v1/session/refresh} to obtain new access tokens.
+    String REFRESH_TOKEN_KEY = "refresh-token";
+
+    String AUTHORIZATION_HEADER = "Authorization";
+
+    String BEARER_PREFIX = "Bearer ";
 
     /**
      * Checks if the given token is expired.
@@ -49,12 +57,12 @@ public interface SessionJwtService {
     }
 
     /**
-     * Retrieves the Keycloak user ID from the given token.
+     * Retrieves the subject (user ID) from the given token.
      *
      * @param token the JWT token
-     * @return an Optional containing the user ID if present, otherwise an empty Optional
+     * @return an Optional containing the subject if present, otherwise an empty Optional
      */
-    default Optional<String> getKeycloakUserIdFromToken(String token) {
+    default Optional<String> getSubjectFromToken(String token) {
         try {
             Claims claims = getTokenClaims(token);
             return Optional.ofNullable(claims.getSubject());
@@ -79,7 +87,7 @@ public interface SessionJwtService {
      * @return the claims contained in the token
      */
     default Claims getTokenClaims(String token) {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException("Not implemented");
     }
 
     /**

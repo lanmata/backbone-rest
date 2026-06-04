@@ -129,6 +129,41 @@ public final class KeystoreUtil {
                 securityProperties.getManagementAuthenticator().getKeyAlias());
     }
 
+    /// Loads the {@link PrivateKey} for the given alias from the keystore described by {@code storeProperties}.
+    ///
+    /// @param storeProperties the keystore location/type/password descriptor
+    /// @param alias           the key alias to retrieve
+    /// @return the {@link PrivateKey} associated with the alias
+    /// @throws CertificateSecurityException if the key cannot be loaded
+    public PrivateKey loadPrivateKey(StoreProperties storeProperties, String alias)
+            throws CertificateSecurityException {
+        try {
+            KeyStore ks = getKeyStore(storeProperties);
+            return (PrivateKey) ks.getKey(alias, storeProperties.getPassword().toCharArray());
+        } catch (KeyStoreException | NoSuchAlgorithmException | UnrecoverableKeyException e) {
+            LOGGER.warn("Error loading private key for alias '{}'", alias);
+            throw new CertificateSecurityException(e);
+        }
+    }
+
+    /// Loads the {@link PublicKey} for the given alias from the keystore described by {@code storeProperties}.
+    ///
+    /// @param storeProperties the keystore location/type/password descriptor
+    /// @param alias           the certificate alias to retrieve the public key from
+    /// @return the {@link PublicKey} associated with the alias
+    /// @throws CertificateSecurityException if the key cannot be loaded
+    public PublicKey loadPublicKey(StoreProperties storeProperties, String alias)
+            throws CertificateSecurityException {
+        try {
+            KeyStore ks = getKeyStore(storeProperties);
+            Certificate cert = ks.getCertificate(alias);
+            return cert.getPublicKey();
+        } catch (KeyStoreException e) {
+            LOGGER.warn("Error loading public key for alias '{}'", alias);
+            throw new CertificateSecurityException(e);
+        }
+    }
+
     private SslBundle loadSslBundle(KeyStore trustStore, KeyStore keyStore, String keystorePassword) {
         return SslBundle.of(SslStoreBundle.of(keyStore, keystorePassword, trustStore));
     }

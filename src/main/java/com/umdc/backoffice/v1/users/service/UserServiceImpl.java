@@ -16,6 +16,10 @@ import com.umdc.backoffice.constant.keys.UserMessageKey;
 import com.umdc.backoffice.v1.application.service.ApplicationService;
 import com.umdc.backoffice.v1.contacts.mapper.ContactMapper;
 import com.umdc.backoffice.v1.contacttypes.mapper.ContactTypeMapper;
+import com.umdc.backoffice.constant.types.AuditEventType;
+import com.umdc.backoffice.v1.iam.audit.service.AuditEventService;
+import com.umdc.backoffice.v1.iam.passwords.api.to.PasswordPolicyViolation;
+import com.umdc.backoffice.v1.iam.passwords.service.PasswordPolicyService;
 import com.umdc.backoffice.v1.users.api.to.UserCreateRequest;
 import com.umdc.backoffice.v1.users.api.to.UserCreateResponse;
 import com.umdc.backoffice.v1.users.api.to.UserTO;
@@ -33,6 +37,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -58,6 +63,9 @@ public class UserServiceImpl implements UserService {
     private final ContactMapper contactMapper;
     private final ContactTypeMapper contactTypeMapper;
     private final UserApplicationRoleService userApplicationRoleService;
+    private final PasswordEncoder passwordEncoder;
+    private final AuditEventService auditEventService;
+    private final PasswordPolicyService passwordPolicyService;
 
     /// Constructs a new UserServiceImpl with the provided dependencies.
     ///
@@ -65,12 +73,20 @@ public class UserServiceImpl implements UserService {
     /// @param applicationRoleUserRepository the repository to manage application role-user mappings
     /// @param applicationService the service to manage application operations
     /// @param userMapper the mapper to convert between user entities and DTOs
+    /// @param contactMapper the mapper for contacts
+    /// @param contactTypeMapper the mapper for contact types
     /// @param userApplicationRoleService the service to manage user-application-role relationships
+    /// @param passwordEncoder the encoder for BCrypt password hashing
+    /// @param auditEventService the service for recording security audit events
+    /// @param passwordPolicyService the service that validates password complexity rules
     public UserServiceImpl(UserRepository userRepository,
                            ApplicationRoleUserRepository applicationRoleUserRepository,
                            ApplicationService applicationService,
                            UserMapper userMapper, ContactMapper contactMapper, ContactTypeMapper contactTypeMapper,
-                           UserApplicationRoleService userApplicationRoleService) {
+                           UserApplicationRoleService userApplicationRoleService,
+                           PasswordEncoder passwordEncoder,
+                           AuditEventService auditEventService,
+                           PasswordPolicyService passwordPolicyService) {
         this.userRepository = userRepository;
         this.applicationRoleUserRepository = applicationRoleUserRepository;
         this.applicationService = applicationService;
@@ -78,6 +94,9 @@ public class UserServiceImpl implements UserService {
         this.contactMapper = contactMapper;
         this.contactTypeMapper = contactTypeMapper;
         this.userApplicationRoleService = userApplicationRoleService;
+        this.passwordEncoder = passwordEncoder;
+        this.auditEventService = auditEventService;
+        this.passwordPolicyService = passwordPolicyService;
     }
 
 
@@ -117,6 +136,16 @@ public class UserServiceImpl implements UserService {
         try {
             // findById will throw StandardException if not found; keep logic simple
             final var userEntity = findById(userId);
+            // Validate new password against policy before any field is updated
+            if (isNonEmpty(user.getPassword())) {
+                var policyViolations = passwordPolicyService.validate(user.getPassword());
+                if (!policyViolations.isEmpty()) {
+                    String summary = buildViolationSummary(policyViolations);
+                    return ResponseEntity.unprocessableEntity()
+                            .header(HttpHeaders.WARNING, summary)
+                            .build();
+                }
+            }
             // Update fields
             updateUserFields(userEntity, user);
             // Delegate person update - helper checks for null/emptiness
@@ -136,6 +165,10 @@ public class UserServiceImpl implements UserService {
             }
             // Delegate role refresh to dedicated service
             userApplicationRoleService.refreshRoleByApplication(userEntity, user);
+            if (Objects.nonNull(user.getRoles()) && !user.getRoles().isEmpty()) {
+                auditEventService.record(userId, null, AuditEventType.ROLE_ASSIGNED,
+                        null, null, null);
+            }
 
             LOGGER.info("Before to save {}", userEntity);
             var result = userRepository.save(userEntity);
@@ -147,13 +180,15 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    // New helper: update simple user fields
+    // New helper: update simple user fields (encodes password with BCrypt when changed)
     private void updateUserFields(UserEntity target, UserTO source) {
         if (isNonEmpty(source.getDisplayName())) {
             target.setDisplayName(source.getDisplayName());
         }
         if (isNonEmpty(source.getPassword()) && !Objects.equals(target.getPassword(), source.getPassword())) {
-            target.setPassword(source.getPassword());
+            target.setPassword(passwordEncoder.encode(source.getPassword()));
+            auditEventService.record(target.getId(), null, AuditEventType.PASSWORD_CHANGE,
+                    null, null, null);
         }
         if (Objects.nonNull(source.getNotificationEmail())) {
             target.setNotificationEmail(source.getNotificationEmail());
@@ -174,7 +209,7 @@ public class UserServiceImpl implements UserService {
         }
         var personSource = source.getPerson();
         var personTarget = target.getPerson();
-        if (personTarget == null) {
+        if (Objects.isNull(personTarget)) {
             // If no person entity exists, create one to keep behavior predictable
             personTarget = new PersonEntity();
             target.setPerson(personTarget);
@@ -207,6 +242,10 @@ public class UserServiceImpl implements UserService {
         return Objects.nonNull(s) && !s.isEmpty();
     }
 
+    private String buildViolationSummary(List<PasswordPolicyViolation> violations) {
+        return String.join("; ", violations.stream().map(PasswordPolicyViolation::message).toList());
+    }
+
     /// Converts Contact POJOs to ContactEntity objects.
     /// Handles cases where only ContactType ID is provided (common in updates).
     ///
@@ -230,7 +269,7 @@ public class UserServiceImpl implements UserService {
 
     private void extracted(Contact contact, ContactEntity contactEntity) {
         // Handle contact type - only ID is required for JPA relationship
-        if (contact.getContactType() != null && contact.getContactType().getId() != null) {
+        if (Objects.nonNull(contact.getContactType()) && Objects.nonNull(contact.getContactType().getId())) {
             ContactTypeEntity contactTypeEntity = contactTypeMapper.toSource(contact.getContactType());
 
             // Only set other fields if they are provided (not null)
@@ -247,14 +286,13 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-
-    /// Finds a user with the given ID.
+    /// Finds a user with the given ID by delegating to {@link #findUserById(UUID)}.
     ///
     /// @param id the user ID
     /// @return the response entity containing the user data
     @Override
     public ResponseEntity<UserTO> find(UUID id) {
-        return null;
+        return findUserById(id);
     }
 
     /// Finds a user by the given user ID.
@@ -290,17 +328,19 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    /// Finds all users.
+    /// Finds all users for the given application ID.
+    /// Returns 400 Bad Request if {@code applicationId} is null to prevent
+    /// cross-tenant data leakage.
     ///
-    /// @return the response entity containing the list of users
+    /// @param applicationId the application ID (must not be null)
+    /// @return the response entity containing the list of users, or 400 if applicationId is null
     @Override
     public ResponseEntity<List<UserTO>> findAll(UUID applicationId) {
-        final List<UserTO> userEntityList = new ArrayList<>();
-        if (Objects.nonNull(applicationId)) {
-            userRepository.findByApplication(applicationId).forEach(userEntity -> userEntityList.add(userMapper.toTarget(userEntity)));
-        } else {
-            userRepository.findAll().forEach(userEntity -> userEntityList.add(userMapper.toTarget(userEntity)));
+        if (Objects.isNull(applicationId)) {
+            return ResponseEntity.badRequest().build();
         }
+        final List<UserTO> userEntityList = new ArrayList<>();
+        userRepository.findByApplication(applicationId).forEach(userEntity -> userEntityList.add(userMapper.toTarget(userEntity)));
         if (userEntityList.isEmpty()) {
             return ResponseEntity.notFound().build();
         } else {
@@ -309,25 +349,40 @@ public class UserServiceImpl implements UserService {
     }
 
     /// Creates a new user with the given user creation request.
+    /// The password is BCrypt-encoded before persisting.
     ///
     /// @param userCreateRequest the user creation request
     /// @return the response entity containing the created user data
     @Override
     @Transactional
     public ResponseEntity<UserCreateResponse> create(UserCreateRequest userCreateRequest) {
-        if (null == userCreateRequest) {
+        if (Objects.isNull(userCreateRequest)) {
             return ResponseEntity.badRequest().build();
         } else if (userCreateRequest.alias().isBlank()) {
             return ResponseEntity.badRequest().header(HttpHeaders.WARNING, "username is required").build();
         } else if (userCreateRequest.password().isBlank()) {
             return ResponseEntity.badRequest().header(HttpHeaders.WARNING, "password is required").build();
-        } else if (Objects.isNull(userCreateRequest.roleId())) {
-            return ResponseEntity.badRequest().header(HttpHeaders.WARNING, "Role is required").build();
+        } else if (Objects.isNull(userCreateRequest.roleId())) {            return ResponseEntity.badRequest().header(HttpHeaders.WARNING, "Role is required").build();
         } else if (findUserByAlias(userCreateRequest.alias(), userCreateRequest.applicationId()).getStatusCode().equals(HttpStatus.OK)) {
             return ResponseEntity.badRequest().header(HttpHeaders.WARNING, "User previously exist.").build();
         }
 
+        // Validate password complexity before encoding
+        var createPolicyViolations = passwordPolicyService.validate(userCreateRequest.password());
+        if (!createPolicyViolations.isEmpty()) {
+            String summary = buildViolationSummary(createPolicyViolations);
+            return ResponseEntity.unprocessableEntity()
+                    .header(HttpHeaders.WARNING, summary)
+                    .build();
+        }
+
         var userEntity = userMapper.toSource(userCreateRequest);
+
+        // Encode the password with BCrypt before persisting
+        if (isNonEmpty(userEntity.getPassword())) {
+            userEntity.setPassword(passwordEncoder.encode(userEntity.getPassword()));
+        }
+
         userEntity.setCreatedDate(LocalDateTime.now());
         userEntity.setLastUpdate(LocalDateTime.now());
 
@@ -363,14 +418,36 @@ public class UserServiceImpl implements UserService {
         return ResponseEntity.status(HttpStatus.CREATED).body(userResult);
     }
 
-    /// Unlinks a role from a user with the given user ID and role ID.
+    /// Unlinks a role from a user.
+    /// Removes the matching {@link ApplicationRoleUserEntity} from the user's
+    /// collection by role ID, then saves the updated entity.
     ///
     /// @param userId the user ID
-    /// @param roleId the role ID
-    /// @return the response entity
+    /// @param roleId the role ID to remove
+    /// @return 200 with updated UserTO; 404 if user or role not found; 400 on null params
     @Override
+    @Transactional
     public ResponseEntity<UserTO> unlink(UUID userId, UUID roleId) {
-        throw new UnsupportedOperationException();
+        if (Objects.isNull(userId) || Objects.isNull(roleId)) {
+            return ResponseEntity.badRequest().build();
+        }
+        Optional<UserEntity> optionalUser = userRepository.findById(userId);
+        if (optionalUser.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        UserEntity userEntity = optionalUser.get();
+        Set<ApplicationRoleUserEntity> mutableRoles = new HashSet<>(userEntity.getApplicationRoleUser());
+        boolean removed = mutableRoles.removeIf(
+                aru -> Objects.nonNull(aru.getId()) && roleId.equals(aru.getId().getRoleId())
+        );
+        if (!removed) {
+            return ResponseEntity.notFound().build();
+        }
+        userEntity.setApplicationRoleUser(mutableRoles);
+        UserEntity saved = userRepository.save(userEntity);
+        auditEventService.record(userId, null, AuditEventType.ROLE_REVOKED, null, null, null);
+        LOGGER.info("Role {} unlinked from user {}", roleId, userId);
+        return ResponseEntity.ok(userMapper.toTarget(saved));
     }
 
     /// Finds a user by the given alias.
@@ -381,7 +458,7 @@ public class UserServiceImpl implements UserService {
         Optional<UserEntity> userEntityOptional;
         UserEntity userEntity;
         if (Objects.isNull(applicationId)) {
-            userEntityOptional = Optional.of(userRepository.findByAlias(alias));
+            userEntityOptional = Optional.ofNullable(userRepository.findByAlias(alias));
         } else {
             userEntityOptional = userRepository.findByAliasAndApplication(alias, applicationId);
         }
@@ -393,24 +470,19 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResponseEntity<Void> deleteUserByApplicationAndUserId(UUID applicationId, UUID userId) {
-        if (applicationId == null || userId == null) {
+        if (Objects.isNull(applicationId) || Objects.isNull(userId)) {
             return ResponseEntity.badRequest().build();
         }
 
         // Use applicationService instead of repository
         var applicationResponse = applicationService.find(applicationId);
-        if (applicationResponse.getStatusCode().isError() || applicationResponse.getBody() == null) {
+        if (applicationResponse.getStatusCode().isError() || Objects.isNull(applicationResponse.getBody())) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
 
         var userOpt = userRepository.findById(userId);
         if (userOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-        // Permission check placeholder (implement as needed)
-        boolean hasPermission = true; // Replace with actual permission logic
-        if (!hasPermission) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         // Check if user belongs to application
         boolean userInApp = userOpt.get().getApplicationRoleUser().stream()

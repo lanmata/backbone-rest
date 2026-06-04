@@ -18,16 +18,20 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 /**
  * Data Transfer Object for session responses.
- * Contains the session token.
+ * Contains the access token and an optional refresh token.
  *
- * @version 1.0.0, 20-10-2020
+ * @version 1.1.0, 20-10-2020
  */
 @JsonPropertyOrder({
-        "token"
+        "token",
+        "refreshToken"
 })
 public class SessionResponse {
     @JsonProperty("token")
     private String token;
+
+    @JsonProperty("refreshToken")
+    private String refreshToken;
 
     /**
      * Default Constructor.
@@ -38,9 +42,9 @@ public class SessionResponse {
     }
 
     /**
-     * Constructor with token parameter.
+     * Constructor with access token parameter.
      *
-     * @param token the session token
+     * @param token the session access token
      */
     public SessionResponse(String token) {
         super();
@@ -48,21 +52,51 @@ public class SessionResponse {
     }
 
     /**
-     * Gets the session token.
+     * Constructor with access token and refresh token.
      *
-     * @return the session token
+     * @param token        the session access token
+     * @param refreshToken the refresh token (longer-lived)
+     */
+    public SessionResponse(String token, String refreshToken) {
+        super();
+        this.token = token;
+        this.refreshToken = refreshToken;
+    }
+
+    /**
+     * Gets the session access token.
+     *
+     * @return the session access token
      */
     public String getToken() {
         return token;
     }
 
     /**
-     * Sets the session token.
+     * Sets the session access token.
      *
-     * @param token the session token
+     * @param token the session access token
      */
     public void setToken(String token) {
         this.token = token;
+    }
+
+    /**
+     * Gets the refresh token.
+     *
+     * @return the refresh token, or {@code null} if not set
+     */
+    public String getRefreshToken() {
+        return refreshToken;
+    }
+
+    /**
+     * Sets the refresh token.
+     *
+     * @param refreshToken the refresh token
+     */
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
     }
 
     /**
@@ -72,8 +106,9 @@ public class SessionResponse {
      */
     @Override
     public String toString() {
-        return "UserAccessResponse{" +
+        return "SessionResponse{" +
                 "token='" + token + '\'' +
+                ", refreshToken='" + refreshToken + '\'' +
                 '}';
     }
 }

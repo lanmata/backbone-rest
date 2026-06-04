@@ -14,6 +14,7 @@ package com.umdc.backoffice.v1.session.api;
 
 import com.umdc.backoffice.v1.session.services.SessionService;
 import com.umdc.backoffice.v1.session.to.SessionEmailRequest;
+import com.umdc.backoffice.v1.session.to.SessionRefreshRequest;
 import com.umdc.backoffice.v1.session.to.SessionRequest;
 import com.umdc.backoffice.v1.session.to.SessionResponse;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -28,6 +29,7 @@ import static com.umdc.backoffice.v1.session.services.SessionJwtService.SESSION_
 /// @version 1.0.0, 12-02-2021
 @RestController
 @RequestMapping("/api/v1/session")
+@CrossOrigin(origins = "*")
 public class SessionController implements SessionApi {
 
     ///  The session service to be used by this controller.
@@ -67,5 +69,10 @@ public class SessionController implements SessionApi {
     @Override
     public ResponseEntity<SessionResponse> renewSessionToken(@RequestHeader(SESSION_TOKEN_KEY) String sessionToken) {
         return sessionService.renewToken(sessionToken);
+    }
+
+    @Override
+    public ResponseEntity<SessionResponse> refreshSessionToken(SessionRefreshRequest request) {
+        return sessionService.refreshSession(request.refreshToken());
     }
 }

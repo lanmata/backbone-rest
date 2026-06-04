@@ -15,6 +15,7 @@ package com.umdc.backoffice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 /**
  * MessageUtilTest.
@@ -23,6 +24,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @version 1.0.1.20200904-01, 26-10-2020
  */
 @SpringBootApplication(scanBasePackages = {"com.umdc.backoffice", "com.umdc.commons.services"})
+@EnableAsync
 public class UMDCBackofficeRestApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(UMDCBackofficeRestApplication.class, args);

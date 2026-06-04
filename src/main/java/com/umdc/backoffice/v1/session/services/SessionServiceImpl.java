@@ -14,8 +14,11 @@
 package com.umdc.backoffice.v1.session.services;
 
 import com.umdc.backoffice.constant.keys.AuthKey;
+import com.umdc.backoffice.security.bruteforce.LoginAttemptService;
 import com.umdc.backoffice.security.jwt.JwtConfigProperties;
 import com.umdc.backoffice.util.MessageUtil;
+import com.umdc.backoffice.constant.types.AuditEventType;
+import com.umdc.backoffice.v1.iam.audit.service.AuditEventService;
 import com.umdc.backoffice.v1.session.mapper.UserAliasMapper;
 import com.umdc.backoffice.v1.session.to.SessionEmailRequest;
 import com.umdc.backoffice.v1.session.to.SessionRequest;
@@ -26,11 +29,13 @@ import com.umdc.commons.util.ValidatorCommonsUtil;
 import com.umdc.persistence.general.domains.UserEntity;
 import com.umdc.persistence.general.repositories.UserRepository;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -41,6 +46,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Service class for handling JWT operations related to sessions.
  */
 @Service
+@SuppressWarnings("PMD.GodClass") // Class has grown during Phase 1 security hardening; refactor recommended
 public class SessionServiceImpl implements SessionService {
 
     private final JwtConfigProperties jwtConfigProperties;
@@ -48,7 +54,21 @@ public class SessionServiceImpl implements SessionService {
     private final UserMapper userMapper;
     private final UserAliasMapper userAliasMapper;
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JtiDenyListService jtiDenyListService;
+    private final LoginAttemptService loginAttemptService;
+    private final AuditEventService auditEventService;
     private final SecretKey key;
+
+    private static final String INVALID_APPLICATION_ID_MSG = "Invalid application ID";
+    private static final String ACCOUNT_LOCKED_MSG = "Account temporarily locked due to too many failed attempts";
+    private static final String INVALID_TOKEN_MSG = "Invalid or malformed token";
+    private static final String TOKEN_EXPIRED_GRACE_MSG = "Refresh token has expired beyond the grace period";
+    private static final String INVALID_TOKEN_TYPE_MSG = "Token type is not valid for refresh";
+    private static final String CANNOT_IDENTIFY_USER_MSG = "Cannot identify user from token claims";
+    private static final String USER_INACTIVE_MSG = "User not found or account is inactive";
+    private static final long REFRESH_TOKEN_MULTIPLIER = 7L;
+    private static final long REFRESH_GRACE_SECONDS = 604_800L; // 7 days
 
     /**
      * Constructs a new SessionServiceImpl with the specified dependencies.
@@ -58,15 +78,26 @@ public class SessionServiceImpl implements SessionService {
      * @param userMapper          the user mapper
      * @param userAliasMapper     the user alias mapper
      * @param userRepository      the user repository
+     * @param passwordEncoder     the password encoder for BCrypt verification
+     * @param jtiDenyListService  the JTI deny-list service for token revocation
+     * @param loginAttemptService the brute-force login attempt tracking service
+     * @param auditEventService   the audit event service for recording security events
      */
     public SessionServiceImpl(JwtConfigProperties jwtConfigProperties, MessageUtil messageUtil,
-                              UserMapper userMapper, UserAliasMapper userAliasMapper,
-                              UserRepository userRepository) {
+                               UserMapper userMapper, UserAliasMapper userAliasMapper,
+                               UserRepository userRepository, PasswordEncoder passwordEncoder,
+                               JtiDenyListService jtiDenyListService,
+                               LoginAttemptService loginAttemptService,
+                               AuditEventService auditEventService) {
         this.jwtConfigProperties = jwtConfigProperties;
         this.userMapper = userMapper;
         this.userAliasMapper = userAliasMapper;
         this.userRepository = userRepository;
         this.messageUtil = messageUtil;
+        this.passwordEncoder = passwordEncoder;
+        this.jtiDenyListService = jtiDenyListService;
+        this.loginAttemptService = loginAttemptService;
+        this.auditEventService = auditEventService;
         this.key = generateKey();
     }
 
@@ -104,7 +135,6 @@ public class SessionServiceImpl implements SessionService {
         }
 
         // IF User is active
-        // To next: I have to include the Service ID validation
         userEntity = userRepository.findByAlias(sessionRequest.getAlias());
         if (Objects.isNull(userEntity)) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
@@ -114,8 +144,17 @@ public class SessionServiceImpl implements SessionService {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        // IF User and Password validated
-        if (userEntity.getAlias().equals(sessionRequest.getAlias()) && userEntity.getPassword().equals(sessionRequest.getPassword())) {
+        // Brute-force protection — check before validating password
+        if (loginAttemptService.isLocked(sessionRequest.getAlias(), null)) {
+            auditEventService.record(userEntity.getId(), null, AuditEventType.ACCOUNT_LOCKED,
+                    null, null, null);
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body(new SessionResponse(ACCOUNT_LOCKED_MSG));
+        }
+
+        // IF User and Password validated (BCrypt)
+        if (userEntity.getAlias().equals(sessionRequest.getAlias())
+                && passwordEncoder.matches(sessionRequest.getPassword(), userEntity.getPassword())) {
             var userAlias = loadUserAlias(userEntity.getId());
             if (Objects.nonNull(userAlias) && Objects.nonNull(userAlias.getRoles())) {
                 parameters = new ConcurrentHashMap<>();
@@ -123,9 +162,16 @@ public class SessionServiceImpl implements SessionService {
                 parameters.put(AuthKey.FIRSTNAME.value, userAlias.getFirstname());
                 parameters.put(AuthKey.LASTNAME.value, userAlias.getLastname());
                 sessionToken = generateSessionToken(sessionId, parameters);
-                return ResponseEntity.ok(new SessionResponse(sessionToken));
+                loginAttemptService.recordSuccess(sessionRequest.getAlias(), null);
+                auditEventService.record(userEntity.getId(), null, AuditEventType.LOGIN_SUCCESS,
+                        null, null, null);
+                String refreshToken = generateRefreshToken(userEntity.getId());
+                return ResponseEntity.ok(new SessionResponse(sessionToken, refreshToken));
             }
         }
+        loginAttemptService.recordFailure(sessionRequest.getAlias(), null);
+        auditEventService.record(userEntity.getId(), null, AuditEventType.LOGIN_FAILURE,
+                null, null, null);
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
@@ -145,7 +191,7 @@ public class SessionServiceImpl implements SessionService {
             messageError = messageUtil.getUserCorreoNoValido();
             isFieldsInvalid = true;
         } else if (Objects.isNull(sessionEmailRequest.applicationId())) {
-            messageError = "Invalid application ID";
+            messageError = INVALID_APPLICATION_ID_MSG;
             isFieldsInvalid = true;
         } else if (ValidatorCommonsUtil.esVacio(sessionEmailRequest.password())) {
             messageError = messageUtil.getUserClaveNulaVacia();
@@ -167,22 +213,43 @@ public class SessionServiceImpl implements SessionService {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
+        // Brute-force protection — check before validating password
+        if (loginAttemptService.isLocked(sessionEmailRequest.email(), sessionEmailRequest.applicationId())) {
+            auditEventService.record(userEntity.getId(), sessionEmailRequest.applicationId(),
+                    AuditEventType.ACCOUNT_LOCKED, null, null, null);
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body(new SessionResponse(ACCOUNT_LOCKED_MSG));
+        }
+
         var applicationId = userEntity.getApplicationRoleUser().stream()
                 .filter(applicationRoleUser ->
                         applicationRoleUser.getApplication().getId().equals(sessionEmailRequest.applicationId())
                 ).map(applicationRoleUser -> applicationRoleUser.getApplication().getId()).findFirst();
         if (applicationId.isPresent() && applicationId.get().equals(sessionEmailRequest.applicationId())
                 && userEntity.getEmail().equals(sessionEmailRequest.email())
-                && userEntity.getPassword().equals(sessionEmailRequest.password())) {
+                && passwordEncoder.matches(sessionEmailRequest.password(), userEntity.getPassword())) {
 
-            // IF User and Password validated
-            return ResponseEntity.ok(new SessionResponse(generateSessionToken(userEntity.getId())));
+            // IF User and Password validated (BCrypt)
+            loginAttemptService.recordSuccess(sessionEmailRequest.email(), sessionEmailRequest.applicationId());
+            auditEventService.record(userEntity.getId(), sessionEmailRequest.applicationId(),
+                    AuditEventType.LOGIN_SUCCESS, null, null, null);
+            String newToken = generateSessionToken(userEntity.getId());
+            if (Objects.isNull(newToken)) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(new SessionResponse(messageUtil.getSinDatos()));
+            }
+            String newRefreshToken = generateRefreshToken(userEntity.getId());
+            return ResponseEntity.ok(new SessionResponse(newToken, newRefreshToken));
         }
+        loginAttemptService.recordFailure(sessionEmailRequest.email(), sessionEmailRequest.applicationId());
+        auditEventService.record(userEntity.getId(), sessionEmailRequest.applicationId(),
+                AuditEventType.LOGIN_FAILURE, null, null, null);
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
     /**
      * Generates a session token with the specified username and parameters.
+     * Adds {@code iss} and {@code aud} claims when configured.
      *
      * @param username   the username
      * @param parameters the parameters
@@ -199,13 +266,69 @@ public class SessionServiceImpl implements SessionService {
             claims.putAll(parameters);
         }
 
-        return Jwts.builder()
+        var builder = Jwts.builder()
                 .claims(claims)
                 .subject(username)
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + jwtConfigProperties.getExpirationMs()))
-                .signWith(key)
-                .compact();
+                .expiration(new Date(System.currentTimeMillis() + jwtConfigProperties.getExpirationMs()));
+
+        String issuer = jwtConfigProperties.getIssuer();
+        if (Objects.nonNull(issuer) && !issuer.isEmpty()) {
+            builder.issuer(issuer);
+        }
+        String audience = jwtConfigProperties.getAudience();
+        if (Objects.nonNull(audience) && !audience.isEmpty()) {
+            builder.audience().add(audience).and();
+        }
+
+        return builder.signWith(key).compact();
+    }
+
+    /**
+     * {@inheritDoc}
+     * Overrides the default to also reject tokens whose JTI is in the deny-list.
+     */
+    @Override
+    public boolean isValid(String token) {
+        try {
+            Claims claims = getTokenClaims(token);
+            String jti = (String) claims.get(AuthKey.JTI.value);
+            if (Objects.nonNull(jti) && jtiDenyListService.isDenied(jti)) {
+                return false;
+            }
+            return SESSION_TOKEN_KEY.equals(claims.get(AuthKey.TYPE.value))
+                    && new Date().before(claims.getExpiration());
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * Revokes the given session token by adding its JTI to the deny-list
+     * with the remaining TTL so it is evicted automatically on natural expiry.
+     *
+     * @param token the session token to revoke
+     * @return 204 No Content on success; 400 Bad Request on invalid token
+     */
+    @Override
+    public ResponseEntity<Void> revokeToken(String token) {
+        try {
+            if (ValidatorCommonsUtil.esVacio(token)) {
+                return ResponseEntity.badRequest().build();
+            }
+            Claims claims = getTokenClaims(token);
+            String jti = (String) claims.get(AuthKey.JTI.value);
+            if (Objects.isNull(jti)) {
+                return ResponseEntity.badRequest().build();
+            }
+            long remainingTtlSeconds = (claims.getExpiration().getTime() - System.currentTimeMillis()) / 1000L;
+            if (remainingTtlSeconds > 0) {
+                jtiDenyListService.denyJti(jti, remainingTtlSeconds);
+            }
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     /**
@@ -348,4 +471,133 @@ public class SessionServiceImpl implements SessionService {
                     .body(new SessionResponse(messageUtil.getUserInvalido()));
         }
     }
+
+    /**
+     * Exchanges a valid or recently-expired refresh token for a new access token
+     * and a new refresh token.
+     * <p>
+     * Tokens of type {@code refresh-token} are accepted. Tokens of type {@code session-token}
+     * are also accepted for backward compatibility. A grace window of
+     * {@value #REFRESH_GRACE_SECONDS} seconds (7 days) beyond the {@code exp} claim is
+     * allowed so that a client with a just-expired refresh token can still obtain new tokens
+     * without forcing a full re-login.
+     * </p>
+     *
+     * @param refreshToken the refresh token string
+     * @return 200 with new access + refresh tokens; 400 on empty input;
+     *         401 on invalid/expired/wrong-type token; 500 on generation failure
+     */
+    @Override
+    public ResponseEntity<SessionResponse> refreshSession(String refreshToken) {
+        if (refreshToken == null || refreshToken.isBlank()) {
+            return ResponseEntity.badRequest().body(new SessionResponse());
+        }
+
+        Claims claims;
+        try {
+            claims = getTokenClaims(refreshToken);
+        } catch (ExpiredJwtException e) {
+            // Allow a grace window beyond the expiry time
+            long expMs = e.getClaims().getExpiration().getTime();
+            long graceMs = REFRESH_GRACE_SECONDS * 1000L;
+            if (System.currentTimeMillis() > expMs + graceMs) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(new SessionResponse(TOKEN_EXPIRED_GRACE_MSG));
+            }
+            claims = e.getClaims();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new SessionResponse(INVALID_TOKEN_MSG));
+        }
+
+        // Accept refresh-token or session-token (backward compat)
+        Object tokenType = claims.get(AuthKey.TYPE.value);
+        if (!REFRESH_TOKEN_KEY.equals(tokenType) && !SESSION_TOKEN_KEY.equals(tokenType)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new SessionResponse(INVALID_TOKEN_TYPE_MSG));
+        }
+
+        // Resolve userId from the uid claim first, then fall back to subject
+        String userIdStr = (String) claims.get(AuthKey.USER_ID.value);
+        UUID userId = null;
+
+        if (userIdStr != null && !userIdStr.isBlank()) {
+            try {
+                userId = UUID.fromString(userIdStr);
+            } catch (IllegalArgumentException ignored) {
+                // will fall through to alias lookup below
+            }
+        }
+
+        if (Objects.isNull(userId)) {
+            // Fall back to subject — may be a session-id string or alias
+            String subject = claims.getSubject();
+            if (subject == null || subject.isBlank()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(new SessionResponse(CANNOT_IDENTIFY_USER_MSG));
+            }
+            try {
+                userId = UUID.fromString(subject);
+            } catch (IllegalArgumentException ignored) {
+                // subject is an alias; look up by alias
+                UserEntity aliasEntity = userRepository.findByAlias(subject);
+                if (Objects.isNull(aliasEntity) || !aliasEntity.getActive()) {
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                            .body(new SessionResponse(USER_INACTIVE_MSG));
+                }
+                userId = aliasEntity.getId();
+            }
+        }
+
+        Optional<UserEntity> userEntityOpt = userRepository.findById(userId);
+        if (userEntityOpt.isEmpty() || !userEntityOpt.get().getActive()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new SessionResponse(USER_INACTIVE_MSG));
+        }
+
+        String newAccessToken = generateSessionToken(userId);
+        String newRefreshToken = generateRefreshToken(userId);
+
+        if (Objects.isNull(newAccessToken)) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new SessionResponse());
+        }
+
+        return ResponseEntity.ok(new SessionResponse(newAccessToken, newRefreshToken));
+    }
+
+    /**
+     * Generates a refresh token for the given user ID.
+     * The refresh token carries {@code type=refresh-token} and has a TTL of
+     * {@value #REFRESH_TOKEN_MULTIPLIER}× the configured access-token expiry.
+     *
+     * @param userId the user whose ID is set as subject and {@code uid} claim
+     * @return the compact refresh token string
+     */
+    private String generateRefreshToken(UUID userId) {
+        long refreshTtlMs = jwtConfigProperties.getExpirationMs() * REFRESH_TOKEN_MULTIPLIER;
+        Map<String, Object> refreshClaims = new ConcurrentHashMap<>();
+        refreshClaims.put(AuthKey.JTI.value, UUID.randomUUID().toString());
+        refreshClaims.put(AuthKey.TYPE.value, REFRESH_TOKEN_KEY);
+        refreshClaims.put(AuthKey.USER_ID.value, userId.toString());
+        refreshClaims.put(AuthKey.IAT.value, new Date());
+
+        var builder = Jwts.builder()
+                .claims(refreshClaims)
+                .subject(userId.toString())
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + refreshTtlMs));
+
+        String issuer = jwtConfigProperties.getIssuer();
+        if (Objects.nonNull(issuer) && !issuer.isEmpty()) {
+            builder.issuer(issuer);
+        }
+        String audience = jwtConfigProperties.getAudience();
+        if (Objects.nonNull(audience) && !audience.isEmpty()) {
+            builder.audience().add(audience).and();
+        }
+
+        return builder.signWith(key).compact();
+    }
 }
+

@@ -10,120 +10,133 @@
  *  In any event, this notice and the above copyright must always be included
  *  verbatim with this file.
  */
-
 package com.umdc.backoffice.security.config;
 
-import com.umdc.backoffice.property.SecurityProperties;
-import com.umdc.backoffice.security.exception.CertificateSecurityException;
-import com.umdc.backoffice.security.jwt.JwtConverter;
-import com.umdc.backoffice.security.jwt.JwtConverterProperties;
-import com.umdc.backoffice.util.KeystoreUtil;
+import com.umdc.backoffice.security.filter.ManagedClientTokenFilter;
+import com.umdc.backoffice.security.filter.SessionJwtAuthenticationFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.restclient.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import static org.springframework.http.HttpMethod.GET;
+import java.util.Arrays;
+import java.util.List;
 
-/**
- * Security configuration class for the application.
- */
+/// Security configuration for the backbone-rest application.
+/// <p>
+/// Uses the application's own session-token JWT as the sole authentication mechanism.
+/// OAuth2 / Keycloak / Supabase are intentionally excluded.
+/// </p>
 @Configuration
 @EnableWebSecurity
-@EnableConfigurationProperties({JwtConverterProperties.class, SecurityProperties.class})
 public class SecurityConfig {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SecurityConfig.class);
 
-    private static final String[] SWAGGER_LIST = {
+    private static final String[] SWAGGER_PATHS = {
             "/swagger-ui/**",
             "/v3/api-docs/**",
             "/swagger-resources/**",
             "/swagger-resources"
     };
 
-    @Value("${umdc.management.clientRoles}")
-    private String[] clientRoleList;
+    private final SessionJwtAuthenticationFilter sessionJwtAuthenticationFilter;
+    private final ManagedClientTokenFilter managedClientTokenFilter;
+    private final String apiExcludes;
+    private final String allowedOrigins;
 
-    @Value("${spring.security.oauth2.resourceserver.jwt.jwk-set-uri}")
-    private String jwkSetUri;
-
-    @Value("${umdc.api.endpoint}")
-    private String appPath;
-
-    private final SecurityProperties securityProperties;
-
-    private final JwtConverterProperties jwtConverterProperties;
-
-    private final KeystoreUtil keyStoreUtil = new KeystoreUtil();
-
-    /**
-     * Constructor for SecurityConfig.
-     *
-     * @param securityProperties     the security properties
-     * @param jwtConverterProperties the JWT converter properties
-     */
-    public SecurityConfig(SecurityProperties securityProperties, JwtConverterProperties jwtConverterProperties) {
-        this.jwtConverterProperties = jwtConverterProperties;
-        this.securityProperties = securityProperties;
+    /// Constructs a new {@code SecurityConfig}.
+    ///
+    /// @param sessionJwtAuthenticationFilter the filter that validates the session-token header
+    /// @param managedClientTokenFilter       the filter that validates M2M Bearer tokens
+    /// @param apiExcludes                    comma-separated public paths from {@code umdc.api.excludes}
+    /// @param allowedOrigins                 comma-separated allowed CORS origins (defaults to {@code *})
+    public SecurityConfig(SessionJwtAuthenticationFilter sessionJwtAuthenticationFilter,
+                          ManagedClientTokenFilter managedClientTokenFilter,
+                          @Value("${umdc.api.excludes}") String apiExcludes,
+                          @Value("${umdc.cors.allowed-origins:*}") String allowedOrigins) {
+        this.sessionJwtAuthenticationFilter = sessionJwtAuthenticationFilter;
+        this.managedClientTokenFilter = managedClientTokenFilter;
+        this.apiExcludes = apiExcludes;
+        this.allowedOrigins = allowedOrigins;
     }
 
-    /**
-     * Configures the security filter chain.
-     *
-     * @param http the HttpSecurity to configure
-     * @return the configured SecurityFilterChain
-     * @throws Exception if an error occurs while configuring the security filter chain
-     */
+    /// Configures the application security filter chain.
+    /// <p>
+    /// Disables CSRF (stateless REST API), sets stateless session management,
+    /// permits Swagger, public session endpoints, and {@code umdc.api.excludes} paths,
+    /// and requires authentication for everything else.
+    /// The {@link SessionJwtAuthenticationFilter} is inserted before
+    /// {@link UsernamePasswordAuthenticationFilter}.
+    /// </p>
+    ///
+    /// @param http the {@link HttpSecurity} to configure
+    /// @return the configured {@link SecurityFilterChain}
+    /// @throws Exception if an error occurs during configuration
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        LOGGER.info("Loading SecurityFilterChain");
-        var jwtConverter = new JwtConverter(this.jwtConverterProperties);
-        http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(SWAGGER_LIST).permitAll()
-                        .requestMatchers(GET, appPath.concat("/**")).hasAnyRole(clientRoleList)
-                        .anyRequest().authenticated())
-                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtConverter)));
+        String[] publicPaths = Arrays.stream(apiExcludes.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toArray(String[]::new);
 
-        http.sessionManagement(sessionManagement -> sessionManagement
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-        http.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtConverter)));
+        LOGGER.info("SecurityFilterChain loaded — public paths: {}", Arrays.toString(publicPaths));
 
-        LOGGER.info("Loaded SecurityFilterChain::");
+        http
+            .csrf(AbstractHttpConfigurer::disable)
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .sessionManagement(session ->
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth -> {
+                auth.requestMatchers(SWAGGER_PATHS).permitAll();
+                if (publicPaths.length > 0) {
+                    auth.requestMatchers(publicPaths).permitAll();
+                }
+                // Session endpoints — alias login, email login, validate, renew
+                auth.requestMatchers(HttpMethod.POST, "/api/v1/session").permitAll();
+                auth.requestMatchers(HttpMethod.POST, "/api/v1/session/token").permitAll();
+                auth.requestMatchers(HttpMethod.GET,  "/api/v1/session/validate").permitAll();
+                auth.requestMatchers(HttpMethod.GET,  "/api/v1/session/renew").permitAll();
+                // Refresh endpoint — public because it IS the mechanism to obtain a new session
+                // token when the access token has expired. Analogous to the login endpoints.
+                auth.requestMatchers(HttpMethod.POST, "/api/v1/session/refresh").permitAll();
+                // MCAM M2M public endpoints — token issuance and introspection (Phase 2 pre-registration)
+                auth.requestMatchers(HttpMethod.POST, "/api/v1/managed-clients/token").permitAll();
+                auth.requestMatchers(HttpMethod.POST, "/api/v1/managed-clients/introspect").permitAll();
+                auth.anyRequest().authenticated();
+            })
+            .addFilterBefore(managedClientTokenFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(sessionJwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+        LOGGER.info("SecurityFilterChain built successfully");
         return http.build();
     }
 
-    /**
-     * Creates a JwtDecoder bean.
-     *
-     * @param restTemplate the RestTemplate to use
-     * @return the configured JwtDecoder
-     */
+    /// Produces a CORS configuration source that applies to all paths.
+    /// Allowed origins are controlled by the {@code umdc.cors.allowed-origins} property.
+    ///
+    /// @return the configured {@link CorsConfigurationSource}
     @Bean
-    public JwtDecoder jwtDecoder(RestTemplate restTemplate) {
-        return NimbusJwtDecoder.withJwkSetUri(this.jwkSetUri).restOperations(restTemplate).build();
-    }
-
-    /**
-     * Creates a RestTemplate bean.
-     *
-     * @return the configured RestTemplate
-     * @throws CertificateSecurityException if an error occurs while configuring the SSL bundle
-     */
-    @Bean
-    public RestTemplate getRestTemplate() throws CertificateSecurityException {
-        RestTemplateBuilder restTemplateBuilder = new RestTemplateBuilder();
-        return restTemplateBuilder.sslBundle(keyStoreUtil.getSslBundle(securityProperties)).build();
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOriginPatterns(List.of(allowedOrigins.split(",")));
+        configuration.setAllowedMethods(List.of(HttpMethod.GET.name(), HttpMethod.POST.name(), HttpMethod.PUT.name(),
+                HttpMethod.DELETE.name(), HttpMethod.OPTIONS.name(), HttpMethod.PATCH.name()));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(false);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }

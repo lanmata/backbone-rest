@@ -22,6 +22,8 @@ import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.util.EnumSet;
 
+import static com.umdc.backoffice.constant.BackboneAppConstants.BACKBONE_ENTITY_PACKAGE;
+import static com.umdc.backoffice.constant.BackboneAppConstants.BACKBONE_REPOSITORY_PACKAGE;
 import static com.umdc.backoffice.constant.BackboneAppConstants.ENTITY_PACKAGE;
 import static com.umdc.backoffice.constant.BackboneAppConstants.REPOSITORY_PACKAGE;
 
@@ -78,8 +80,8 @@ import static com.umdc.backoffice.constant.BackboneAppConstants.REPOSITORY_PACKA
  * @see HikariDataSource
  */
 @Configuration
-@EntityScan(basePackages = {ENTITY_PACKAGE})
-@EnableJpaRepositories(basePackages = {REPOSITORY_PACKAGE})
+@EntityScan(basePackages = {ENTITY_PACKAGE, BACKBONE_ENTITY_PACKAGE})
+@EnableJpaRepositories(basePackages = {REPOSITORY_PACKAGE, BACKBONE_REPOSITORY_PACKAGE})
 public class DataSourceSslConfig {
 
     /**
