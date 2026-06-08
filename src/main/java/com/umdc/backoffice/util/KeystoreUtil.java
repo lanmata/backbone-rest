@@ -43,12 +43,18 @@ public final class KeystoreUtil {
     /// @throws CertificateSecurityException if an error occurs while loading the keystore
     public KeyStore getKeyStore(StoreProperties securityProperties) throws CertificateSecurityException {
         KeyStore keyStore;
-        // Load Truststore
-        try (InputStream keyStoreStream = getClass().getClassLoader().getResourceAsStream(securityProperties.getLocation())) {
+        String location = securityProperties.getLocation();
+        if (location != null && location.startsWith("classpath:")) {
+            location = location.substring("classpath:".length());
+        }
+        try (InputStream keyStoreStream = getClass().getClassLoader().getResourceAsStream(location)) {
+            if (keyStoreStream == null) {
+                throw new IOException("Keystore resource not found: " + securityProperties.getLocation());
+            }
             keyStore = KeyStore.getInstance(securityProperties.getType());
             keyStore.load(keyStoreStream, securityProperties.getPassword().toCharArray());
         } catch (IOException | NoSuchAlgorithmException | CertificateException | KeyStoreException e) {
-            LOGGER.warn("Error occurred while loading the trust store file.");
+            LOGGER.warn("Error occurred while loading the keystore file: {}", securityProperties.getLocation());
             throw new CertificateSecurityException(e);
         }
         return keyStore;
@@ -157,6 +163,9 @@ public final class KeystoreUtil {
         try {
             KeyStore ks = getKeyStore(storeProperties);
             Certificate cert = ks.getCertificate(alias);
+            if (cert == null) {
+                throw new KeyStoreException("No certificate found for alias '" + alias + "' in keystore '" + storeProperties.getLocation() + "'");
+            }
             return cert.getPublicKey();
         } catch (KeyStoreException e) {
             LOGGER.warn("Error loading public key for alias '{}'", alias);

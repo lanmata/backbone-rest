@@ -53,22 +53,22 @@ public class SecurityConfig {
 
     private final SessionJwtAuthenticationFilter sessionJwtAuthenticationFilter;
     private final ManagedClientTokenFilter managedClientTokenFilter;
-    private final String apiExcludes;
+//    private final String apiExcludes;
     private final String allowedOrigins;
 
     /// Constructs a new {@code SecurityConfig}.
     ///
     /// @param sessionJwtAuthenticationFilter the filter that validates the session-token header
     /// @param managedClientTokenFilter       the filter that validates M2M Bearer tokens
-    /// @param apiExcludes                    comma-separated public paths from {@code umdc.api.excludes}
+//    / @param apiExcludes                    comma-separated public paths from {@code umdc.api.excludes}
     /// @param allowedOrigins                 comma-separated allowed CORS origins (defaults to {@code *})
     public SecurityConfig(SessionJwtAuthenticationFilter sessionJwtAuthenticationFilter,
                           ManagedClientTokenFilter managedClientTokenFilter,
-                          @Value("${umdc.api.excludes}") String apiExcludes,
+//                          @Value("${umdc.api.excludes}") String apiExcludes,
                           @Value("${umdc.cors.allowed-origins:*}") String allowedOrigins) {
         this.sessionJwtAuthenticationFilter = sessionJwtAuthenticationFilter;
         this.managedClientTokenFilter = managedClientTokenFilter;
-        this.apiExcludes = apiExcludes;
+//        this.apiExcludes = apiExcludes;
         this.allowedOrigins = allowedOrigins;
     }
 
@@ -86,12 +86,12 @@ public class SecurityConfig {
     /// @throws Exception if an error occurs during configuration
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        String[] publicPaths = Arrays.stream(apiExcludes.split(","))
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .toArray(String[]::new);
+//        String[] publicPaths = Arrays.stream(apiExcludes.split(","))
+//                .map(String::trim)
+//                .filter(s -> !s.isEmpty())
+//                .toArray(String[]::new);
 
-        LOGGER.info("SecurityFilterChain loaded — public paths: {}", Arrays.toString(publicPaths));
+//        LOGGER.info("SecurityFilterChain loaded — public paths: {}", Arrays.toString(publicPaths));
 
         http
             .csrf(AbstractHttpConfigurer::disable)
@@ -100,9 +100,6 @@ public class SecurityConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> {
                 auth.requestMatchers(SWAGGER_PATHS).permitAll();
-                if (publicPaths.length > 0) {
-                    auth.requestMatchers(publicPaths).permitAll();
-                }
                 // Session endpoints — alias login, email login, validate, renew
                 auth.requestMatchers(HttpMethod.POST, "/api/v1/session").permitAll();
                 auth.requestMatchers(HttpMethod.POST, "/api/v1/session/token").permitAll();

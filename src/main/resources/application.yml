@@ -25,23 +25,12 @@ spring:
             alias: backbone-rest
           keystore:
             # backbone.jks — server identity cert signed by PRX Internal CA (alias: backbone-rest)
-            location: classpath:${SSL_KEYSTORE_LOCATION:backbone.jks}
+            location: classpath:${SSL_KEYSTORE_LOCATION:keystore-no-present}
             password: ${SSL_KEYSTORE_PASSWORD:changeit}
             type: ${SSL_KEYSTORE_TYPE:JKS}
           truststore:
             # prx-truststore.jks — PRX Internal CA root; used to trust outbound *.tst calls
-            location: classpath:${SSL_TRUSTSTORE_LOCATION:prx-truststore.jks}
+            location: classpath:${SSL_TRUSTSTORE_LOCATION:truststore-no-present}
             password: ${SSL_TRUSTSTORE_PASSWORD:changeit}
             type: ${SSL_TRUSTSTORE_TYPE:JKS}
 
-umdc:
-  security:
-    managementAuthenticator:
-      keyAlias: ${MCAM_KEY_ALIAS:backbone-rest}
-      tokenTtlSeconds: ${MCAM_TOKEN_TTL_SECONDS:3600}
-      rotationGracePeriodSeconds: ${MCAM_ROTATION_GRACE_SECONDS:300}
-      rateLimitRpm: ${MCAM_RATE_LIMIT_RPM:60}
-      keystore:
-        location: ${SSL_KEYSTORE_LOCATION:classpath:backbone.jks}
-        password: ${SSL_KEYSTORE_PASSWORD:changeit}
-        type: JKS

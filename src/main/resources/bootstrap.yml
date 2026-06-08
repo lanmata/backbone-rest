@@ -3,51 +3,61 @@
 app:
   name: backbone-rest
 umdc:
+  app:
+    title: Backbone REST API
+    version: 0.0.2
+    name: backbone-rest
   logging:
     trace:
       enabled: ${LOGGING_TRACE_ENABLED}
   database-cert: db-root-cert
-  # SSL keystore and truststore used by KeystoreUtil / HttpClientConfig / SecurityConfig
+  cloud:
+    vault:
+      enabled: ${INFISICAL_ENABLED:false}
+      url: ${INFISICAL_SITE_URL:---}
+      client-id: ${INFISICAL_CLIENT_ID:---}
+      client-secret: ${INFISICAL_CLIENT_SECRET:---}
+      project-id: ${INFISICAL_PROJECT_ID:---}
+      environment: ${INFISICAL_ENVIRONMENT:--}
+      secret-path: ${INFISICAL_SECRET_PATH:/}
   security:
+    managementAuthenticator:
+      keyAlias: ${MCAM_KEY_ALIAS:backbone-rest}
+      tokenTtlSeconds: ${MCAM_TOKEN_TTL_SECONDS:3600}
+      rotationGracePeriodSeconds: ${MCAM_ROTATION_GRACE_SECONDS:300}
+      rateLimitRpm: ${MCAM_RATE_LIMIT_RPM:60}
+      keystore:
+        location: ${SSL_KEYSTORE_LOCATION:classpath:keystore-no-present}
+        password: ${SSL_KEYSTORE_PASSWORD:changeit}
+        type: JKS
     jwt:
       secret: ${APP_TOKEN_SECRET}
       expirationMs: ${APP_TOKEN_EXPIRATION}
       issuer: ${JWT_ISSUER:backbone-rest}
       audience: ${JWT_AUDIENCE:backbone-rest-client}
-    keystore:
-      # backbone.jks — server identity cert signed by PRX Internal CA (alias: backbone-rest)
-      location: classpath:${SSL_KEYSTORE_LOCATION:backbone.jks}
+    keystore: # backbone.jks — server identity cert signed by PRX Internal CA (alias: backbone-rest)
+      location: classpath:${SSL_KEYSTORE_LOCATION:keystore-no-present}
       password: ${SSL_KEYSTORE_PASSWORD:changeit}
       type: ${SSL_KEYSTORE_TYPE:JKS}
-    truststore:
-      # prx-truststore.jks — PRX Internal CA root for outbound *.tst inter-service calls
-      location: classpath:${SSL_TRUSTSTORE_LOCATION:prx-truststore.jks}
+    truststore: # prx-truststore.jks — PRX Internal CA root for outbound *.tst inter-service calls
+      location: classpath:${SSL_TRUSTSTORE_LOCATION:truststore-no-present}
       password: ${SSL_TRUSTSTORE_PASSWORD:changeit}
       type: ${SSL_TRUSTSTORE_TYPE:JKS}
-  app:
-    title: Backbone REST API
-    version: 0.0.2
-    name: backbone-rest
+  # SSL keystore and truststore used by KeystoreUtil / HttpClientConfig / SecurityConfig
   management:
     clientRoles: authenticated
     # The environments for the application
   api:
     endpoint: /v1
-    excludes: /v1/sessions/token, /v1/sessions/validate
-    exclude:
-      methods: accessToken
 # Application specific configurations
 log:
   debug: ${LOGGING_TRACE_ENABLED}
+logging:
+  level:
+    org.springframework.cloud.configuration.SSLContextFactory: ERROR
 spring:
   mvc:
     throw-exception-if-no-handler-found: true
-  data:
-    redis:
-      url: ${REDIS_URL:}
-
-  #  autoconfigure:
-#    exclude: org.springframework.boot.autoconfigure.security.SecurityAutoConfiguration
   mustache:
     check-template-location: false
   test:
@@ -62,21 +72,6 @@ spring:
   application:
     # The name of the Spring Boot application, taken from the app.name property
     name: ${umdc.app.name}
-#  security:
-#    # Disables the security for the Spring Boot application
-#    oauth2:
-#      client:
-#        registration:
-#          supabase-auth:
-#            redirect-uri: ${AUTH_SERVER_URI}
-#            authorization-grant-type: password
-#            scope: openid
-#            client-secret: ${AUTH_CLIENT_SECRET}
-#            client-id: ${AUTH_CLIENT_ID}
-#      resourceserver:
-#        jwt:
-#          issuer-uri: ${AUTH_SERVER_URI}${AUTH_ISSUER_URI}
-#          jwk-set-uri: ${AUTH_SERVER_URI}${AUTH_JWK_URI}
   cloud:
     # The Spring Cloud Config specific configurations
     #<><><><><><><><><><><><><><> INFISICAL <><><><><><><><><><><><><><>
@@ -107,7 +102,7 @@ spring:
       # classpath resource directly rather than via spring.ssl.bundle.
       tls:
         enabled: true
-        trust-store: classpath:${SSL_TRUSTSTORE_LOCATION:prx-truststore.jks}
+        trust-store: classpath:${SSL_TRUSTSTORE_LOCATION:truststore-no-present}
         trust-store-password: ${SSL_TRUSTSTORE_PASSWORD:changeit}
         trust-store-type: ${SSL_TRUSTSTORE_TYPE:JKS}
   jpa:
@@ -122,7 +117,7 @@ spring:
     defer-datasource-initialization: true
 
 swagger:
-  base-package: 'com.umdc.jobs.backend.api.controller'
+  base-package: 'com.umdc.backoffice.v1'
   api-info:
     title: ${umdc.app.name}
     version: ${umdc.app.version}
@@ -141,10 +136,6 @@ eureka:
   client:
     tls:
       enabled: true
-      trust-store: classpath:${SSL_TRUSTSTORE_LOCATION:prx-truststore.jks}
+      trust-store: classpath:${SSL_TRUSTSTORE_LOCATION:truststore-no-present}
       trust-store-password: ${SSL_TRUSTSTORE_PASSWORD:changeit}
       trust-store-type: ${SSL_TRUSTSTORE_TYPE:JKS}
-
-logging:
-  level:
-    org.springframework.cloud.configuration.SSLContextFactory: ERROR
