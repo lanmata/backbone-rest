@@ -86,14 +86,8 @@ public class SecurityConfig {
     /// @throws Exception if an error occurs during configuration
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-//        String[] publicPaths = Arrays.stream(apiExcludes.split(","))
-//                .map(String::trim)
-//                .filter(s -> !s.isEmpty())
-//                .toArray(String[]::new);
-
-//        LOGGER.info("SecurityFilterChain loaded — public paths: {}", Arrays.toString(publicPaths));
-
         http
+            .csrf(AbstractHttpConfigurer::disable)
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
