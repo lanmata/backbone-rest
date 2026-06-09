@@ -21,7 +21,7 @@ import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import static com.umdc.backoffice.v1.session.services.SessionJwtService.SESSION_TOKEN_KEY;
+import static com.umdc.backoffice.v1.session.services.SessionJwtService.AUTHORIZATION_HEADER;
 
 /// REST controller for managing session-related operations.
 /// Provides endpoints for generating and validating session tokens.
@@ -58,7 +58,7 @@ public class SessionController implements SessionApi {
         boolean isValid = false;
         try {
             var value = sessionService.getTokenClaims(sessionToken).get("type");
-            isValid = SESSION_TOKEN_KEY.equals(value) && !sessionService.isTokenExpired(sessionToken);
+            isValid = AUTHORIZATION_HEADER.equals(value) && !sessionService.isTokenExpired(sessionToken);
 
         } catch (ExpiredJwtException e) {
             return ResponseEntity.ok(false);
@@ -67,7 +67,7 @@ public class SessionController implements SessionApi {
     }
 
     @Override
-    public ResponseEntity<SessionResponse> renewSessionToken(@RequestHeader(SESSION_TOKEN_KEY) String sessionToken) {
+    public ResponseEntity<SessionResponse> renewSessionToken(@RequestHeader(AUTHORIZATION_HEADER) String sessionToken) {
         return sessionService.renewToken(sessionToken);
     }
 

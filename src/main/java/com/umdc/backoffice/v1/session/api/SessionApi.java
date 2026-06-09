@@ -33,7 +33,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.util.Map;
 
-import static com.umdc.backoffice.v1.session.services.SessionJwtService.SESSION_TOKEN_KEY;
+import static com.umdc.backoffice.v1.session.services.SessionJwtService.AUTHORIZATION_HEADER;
 
 @Tag(name = "session", description = "The Session API")
 public interface SessionApi {
@@ -93,7 +93,7 @@ public interface SessionApi {
             @ApiResponse(responseCode = HttpStatusUtil.UNAUTHORIZED_STR, description = "Invalid session token")
     })
     @GetMapping("/validate")
-    default ResponseEntity<Boolean> validateSessionToken(@RequestHeader(SESSION_TOKEN_KEY) String sessionToken) {
+    default ResponseEntity<Boolean> validateSessionToken(@RequestHeader(AUTHORIZATION_HEADER) String sessionToken) {
         return ResponseEntity.status(HttpStatusUtil.NOT_IMPLEMENTED).body(Boolean.FALSE);
     }
 
@@ -110,7 +110,7 @@ public interface SessionApi {
             @ApiResponse(responseCode = HttpStatusUtil.INTERNAL_SERVER_ERROR_STR, description = "Token generation failed")
     })
     @GetMapping(value = "/renew", produces = {MediaType.APPLICATION_JSON_VALUE})
-    default ResponseEntity<SessionResponse> renewSessionToken(@RequestHeader(SESSION_TOKEN_KEY) String sessionToken) {
+    default ResponseEntity<SessionResponse> renewSessionToken(@RequestHeader(AUTHORIZATION_HEADER) String sessionToken) {
         return ResponseEntity.status(HttpStatusUtil.NOT_IMPLEMENTED).body(new SessionResponse());
     }
 

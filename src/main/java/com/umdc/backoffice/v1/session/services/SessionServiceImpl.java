@@ -14,6 +14,7 @@
 package com.umdc.backoffice.v1.session.services;
 
 import com.umdc.backoffice.constant.keys.AuthKey;
+import com.umdc.backoffice.messages.JWTMessage;
 import com.umdc.backoffice.security.bruteforce.LoginAttemptService;
 import com.umdc.backoffice.security.jwt.JwtConfigProperties;
 import com.umdc.backoffice.util.MessageUtil;
@@ -25,6 +26,7 @@ import com.umdc.backoffice.v1.session.to.SessionRequest;
 import com.umdc.backoffice.v1.session.to.SessionResponse;
 import com.umdc.backoffice.v1.session.to.UserAliasTO;
 import com.umdc.backoffice.v1.users.mapper.UserMapper;
+import com.umdc.commons.exception.StandardException;
 import com.umdc.commons.util.ValidatorCommonsUtil;
 import com.umdc.persistence.general.domains.UserEntity;
 import com.umdc.persistence.general.repositories.UserRepository;
@@ -33,6 +35,8 @@ import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -62,10 +66,7 @@ public class SessionServiceImpl implements SessionService {
 
     private static final String INVALID_APPLICATION_ID_MSG = "Invalid application ID";
     private static final String ACCOUNT_LOCKED_MSG = "Account temporarily locked due to too many failed attempts";
-    private static final String INVALID_TOKEN_MSG = "Invalid or malformed token";
-    private static final String TOKEN_EXPIRED_GRACE_MSG = "Refresh token has expired beyond the grace period";
     private static final String INVALID_TOKEN_TYPE_MSG = "Token type is not valid for refresh";
-    private static final String CANNOT_IDENTIFY_USER_MSG = "Cannot identify user from token claims";
     private static final String USER_INACTIVE_MSG = "User not found or account is inactive";
     private static final long REFRESH_TOKEN_MULTIPLIER = 7L;
     private static final long REFRESH_GRACE_SECONDS = 604_800L; // 7 days
@@ -84,11 +85,11 @@ public class SessionServiceImpl implements SessionService {
      * @param auditEventService   the audit event service for recording security events
      */
     public SessionServiceImpl(JwtConfigProperties jwtConfigProperties, MessageUtil messageUtil,
-                               UserMapper userMapper, UserAliasMapper userAliasMapper,
-                               UserRepository userRepository, PasswordEncoder passwordEncoder,
-                               JtiDenyListService jtiDenyListService,
-                               LoginAttemptService loginAttemptService,
-                               AuditEventService auditEventService) {
+                              UserMapper userMapper, UserAliasMapper userAliasMapper,
+                              UserRepository userRepository, PasswordEncoder passwordEncoder,
+                              JtiDenyListService jtiDenyListService,
+                              LoginAttemptService loginAttemptService,
+                              AuditEventService auditEventService) {
         this.jwtConfigProperties = jwtConfigProperties;
         this.userMapper = userMapper;
         this.userAliasMapper = userAliasMapper;
@@ -339,11 +340,25 @@ public class SessionServiceImpl implements SessionService {
      */
     @Override
     public Claims getTokenClaims(String token) {
-        return Jwts.parser()
-                .verifyWith(key)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+        Claims claims;
+        try {
+            claims = Jwts.parser()
+                    .verifyWith(key)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+        } catch (ExpiredJwtException e) {
+            // Allow a grace window beyond the expiry time
+            long expMs = e.getClaims().getExpiration().getTime();
+            long graceMs = REFRESH_GRACE_SECONDS * 1000L;
+            if (System.currentTimeMillis() > expMs + graceMs) {
+                throw new StandardException(JWTMessage.TOKEN_EXPIRED, e);
+            }
+            claims = e.getClaims();
+        } catch (Exception e) {
+            throw new StandardException(JWTMessage.TOKEN_INVALID, e);
+        }
+        return claims;
     }
 
     /**
@@ -419,57 +434,60 @@ public class SessionServiceImpl implements SessionService {
                         .body(new SessionResponse(messageUtil.getUserClaveNoPermitida()));
             }
 
-            // Extract user information from the current token
-            Claims claims = getTokenClaims(currentToken);
-            String username = claims.getSubject();
-
-            // Get user details to generate new token
-            String userIdStr = (String) claims.get(AuthKey.USER_ID.value);
-            if (ValidatorCommonsUtil.esVacio(userIdStr)) {
-                // If USER_ID is not in claims, try to find user by username (subject)
-                UserEntity userEntity = userRepository.findByAlias(username);
-                if (Objects.isNull(userEntity)) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                            .body(new SessionResponse(messageUtil.getUserCorreoNoExiste()));
-                }
-
-                if (!userEntity.getActive()) {
-                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                            .body(new SessionResponse(messageUtil.getUserInvalido()));
-                }
-
-                String newToken = generateSessionToken(userEntity.getId());
-                if (Objects.nonNull(newToken)) {
-                    return ResponseEntity.ok(new SessionResponse(newToken));
-                }
-            } else {
-                // Use USER_ID from claims
-                UUID userId = UUID.fromString(userIdStr);
-                Optional<UserEntity> userEntity = userRepository.findById(userId);
-
-                if (userEntity.isEmpty()) {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                            .body(new SessionResponse(messageUtil.getSinDatos()));
-                }
-
-                if (!userEntity.get().getActive()) {
-                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                            .body(new SessionResponse(messageUtil.getUserInvalido()));
-                }
-
-                String newToken = generateSessionToken(userId);
-                if (Objects.nonNull(newToken)) {
-                    return ResponseEntity.ok(new SessionResponse(newToken));
-                }
-            }
-
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new SessionResponse());
-
+            return getSessionResponseResponseEntity(currentToken);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new SessionResponse(messageUtil.getUserInvalido()));
         }
+    }
+
+    private @NonNull ResponseEntity<SessionResponse> getSessionResponseResponseEntity(String currentToken) {
+        // Extract user information from the current token
+        Claims claims = getTokenClaims(currentToken);
+        String username = claims.getSubject();
+
+        // Get user details to generate new token
+        String userIdStr = (String) claims.get(AuthKey.USER_ID.value);
+        if (ValidatorCommonsUtil.esVacio(userIdStr)) {
+            // If USER_ID is not in claims, try to find user by username (subject)
+            UserEntity userEntity = userRepository.findByAlias(username);
+            if (Objects.isNull(userEntity)) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new SessionResponse(messageUtil.getUserCorreoNoExiste()));
+            }
+
+            if (!userEntity.getActive()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(new SessionResponse(messageUtil.getUserInvalido()));
+            }
+
+            String newToken = generateSessionToken(userEntity.getId());
+            if (Objects.nonNull(newToken)) {
+                return ResponseEntity.ok(new SessionResponse(newToken));
+            }
+        } else {
+            // Use USER_ID from claims
+            UUID userId = UUID.fromString(userIdStr);
+            Optional<UserEntity> userEntity = userRepository.findById(userId);
+
+            if (userEntity.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new SessionResponse(messageUtil.getSinDatos()));
+            }
+
+            if (!userEntity.get().getActive()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(new SessionResponse(messageUtil.getUserInvalido()));
+            }
+
+            String newToken = generateSessionToken(userId);
+            if (Objects.nonNull(newToken)) {
+                return ResponseEntity.ok(new SessionResponse(newToken));
+            }
+        }
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new SessionResponse());
     }
 
     /**
@@ -485,38 +503,52 @@ public class SessionServiceImpl implements SessionService {
      *
      * @param refreshToken the refresh token string
      * @return 200 with new access + refresh tokens; 400 on empty input;
-     *         401 on invalid/expired/wrong-type token; 500 on generation failure
+     * 401 on invalid/expired/wrong-type token; 500 on generation failure
      */
     @Override
     public ResponseEntity<SessionResponse> refreshSession(String refreshToken) {
+        UUID userId = null;
+        Claims claims;
         if (refreshToken == null || refreshToken.isBlank()) {
             return ResponseEntity.badRequest().body(new SessionResponse());
         }
-
-        Claims claims;
         try {
             claims = getTokenClaims(refreshToken);
-        } catch (ExpiredJwtException e) {
-            // Allow a grace window beyond the expiry time
-            long expMs = e.getClaims().getExpiration().getTime();
-            long graceMs = REFRESH_GRACE_SECONDS * 1000L;
-            if (System.currentTimeMillis() > expMs + graceMs) {
+            // Accept refresh-token or Autorization (backward compat)
+            Object tokenType = claims.get(AuthKey.TYPE.value);
+            if (!REFRESH_TOKEN_KEY.equals(tokenType) && !AUTHORIZATION_HEADER.equals(tokenType)) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(new SessionResponse(TOKEN_EXPIRED_GRACE_MSG));
+                        .body(new SessionResponse(INVALID_TOKEN_TYPE_MSG));
             }
-            claims = e.getClaims();
+            userId = getUserId(claims);
         } catch (Exception e) {
+            if (e instanceof StandardException se) {
+                return ResponseEntity.status(se.getCode())
+                        .body(new SessionResponse(se.getMessage()));
+            }
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new SessionResponse(INVALID_TOKEN_MSG));
+                    .body(new SessionResponse(e.getMessage()));
         }
 
-        // Accept refresh-token or session-token (backward compat)
-        Object tokenType = claims.get(AuthKey.TYPE.value);
-        if (!REFRESH_TOKEN_KEY.equals(tokenType) && !SESSION_TOKEN_KEY.equals(tokenType)) {
+        assert userId != null;
+        Optional<UserEntity> userEntityOpt = userRepository.findById(userId);
+        if (userEntityOpt.isEmpty() || !userEntityOpt.get().getActive()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new SessionResponse(INVALID_TOKEN_TYPE_MSG));
+                    .body(new SessionResponse(USER_INACTIVE_MSG));
         }
 
+        String newAccessToken = generateSessionToken(userId);
+        String newRefreshToken = generateRefreshToken(userId);
+
+        if (Objects.isNull(newAccessToken)) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new SessionResponse());
+        }
+
+        return ResponseEntity.ok(new SessionResponse(newAccessToken, newRefreshToken));
+    }
+
+    private @Nullable UUID getUserId(Claims claims) {
         // Resolve userId from the uid claim first, then fall back to subject
         String userIdStr = (String) claims.get(AuthKey.USER_ID.value);
         UUID userId = null;
@@ -533,8 +565,7 @@ public class SessionServiceImpl implements SessionService {
             // Fall back to subject — may be a session-id string or alias
             String subject = claims.getSubject();
             if (subject == null || subject.isBlank()) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(new SessionResponse(CANNOT_IDENTIFY_USER_MSG));
+                throw new StandardException(JWTMessage.CANNOT_IDENTIFY_USER);
             }
             try {
                 userId = UUID.fromString(subject);
@@ -542,28 +573,12 @@ public class SessionServiceImpl implements SessionService {
                 // subject is an alias; look up by alias
                 UserEntity aliasEntity = userRepository.findByAlias(subject);
                 if (Objects.isNull(aliasEntity) || !aliasEntity.getActive()) {
-                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                            .body(new SessionResponse(USER_INACTIVE_MSG));
+                    throw new StandardException(JWTMessage.USER_INACTIVE);
                 }
                 userId = aliasEntity.getId();
             }
         }
-
-        Optional<UserEntity> userEntityOpt = userRepository.findById(userId);
-        if (userEntityOpt.isEmpty() || !userEntityOpt.get().getActive()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new SessionResponse(USER_INACTIVE_MSG));
-        }
-
-        String newAccessToken = generateSessionToken(userId);
-        String newRefreshToken = generateRefreshToken(userId);
-
-        if (Objects.isNull(newAccessToken)) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new SessionResponse());
-        }
-
-        return ResponseEntity.ok(new SessionResponse(newAccessToken, newRefreshToken));
+        return userId;
     }
 
     /**
