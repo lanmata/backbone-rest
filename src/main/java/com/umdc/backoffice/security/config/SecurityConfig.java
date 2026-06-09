@@ -94,7 +94,6 @@ public class SecurityConfig {
 //        LOGGER.info("SecurityFilterChain loaded — public paths: {}", Arrays.toString(publicPaths));
 
         http
-            .csrf(AbstractHttpConfigurer::disable)
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
