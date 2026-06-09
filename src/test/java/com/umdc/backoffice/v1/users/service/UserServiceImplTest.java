@@ -4,6 +4,8 @@ import com.umdc.backoffice.constant.keys.UserMessageKey;
 import com.umdc.backoffice.v1.application.service.ApplicationService;
 import com.umdc.backoffice.v1.contacts.mapper.ContactMapper;
 import com.umdc.backoffice.v1.contacttypes.mapper.ContactTypeMapper;
+import com.umdc.backoffice.v1.iam.audit.service.AuditEventService;
+import com.umdc.backoffice.v1.iam.passwords.service.PasswordPolicyService;
 import com.umdc.backoffice.v1.people.mapper.PersonMapper;
 import com.umdc.backoffice.v1.users.api.to.UserCreateRequest;
 import com.umdc.backoffice.v1.users.api.to.UserCreateResponse;
@@ -20,6 +22,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.*;
 
@@ -51,6 +54,15 @@ class UserServiceImplTest {
 
     @Mock
     ContactTypeMapper contactTypeMapper;
+
+    @Mock
+    PasswordEncoder passwordEncoder;
+
+    @Mock
+    PasswordPolicyService passwordPolicyService;
+
+    @Mock
+    AuditEventService auditEventService;
 
     @InjectMocks
     UserServiceImpl userService;
@@ -141,31 +153,18 @@ class UserServiceImplTest {
 
     @Test
     void testFindAllWithoutApplicationId_UsersFound() {
-        UserEntity userEntity = new UserEntity();
-        List<UserEntity> userEntities = new ArrayList<>();
-        userEntities.add(userEntity);
-        UserTO userTO = new UserTO();
-        when(userRepository.findAll()).thenReturn(userEntities);
-        when(userMapper.toTarget(userEntity)).thenReturn(userTO);
-
+        // null applicationId is rejected with 400 to prevent cross-tenant data leakage
         ResponseEntity<List<UserTO>> result = userService.findAll(null);
         assertNotNull(result);
-        assertEquals(HttpStatus.OK, result.getStatusCode());
-        assertNotNull(result.getBody());
-        assertFalse(result.getBody().isEmpty());
-        verify(userRepository, times(1)).findAll();
-        verify(userMapper, times(1)).toTarget(userEntity);
+        assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
     }
 
     @Test
     void testFindAllWithoutApplicationId_NoUsers() {
-        when(userRepository.findAll()).thenReturn(new ArrayList<>());
-
+        // null applicationId is rejected with 400 to prevent cross-tenant data leakage
         ResponseEntity<List<UserTO>> result = userService.findAll(null);
         assertNotNull(result);
-        assertEquals(HttpStatus.NOT_FOUND, result.getStatusCode());
-        assertNull(result.getBody());
-        verify(userRepository, times(1)).findAll();
+        assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
     }
 
     @Test
@@ -533,37 +532,26 @@ class UserServiceImplTest {
     }
 
     @Test
-    void testUnlink_ThrowsUnsupportedOperation() {
-        UUID userId = UUID.randomUUID();
-        UUID roleId = UUID.randomUUID();
-
-        assertThrows(UnsupportedOperationException.class, () -> {
-            userService.unlink(userId, roleId);
-        });
+    void testUnlink_NullParams_ReturnsBadRequest() {
+        ResponseEntity<UserTO> response = userService.unlink(null, null);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
     @Test
-    void testFind_ReturnsNull() {
+    void testFind_DelegatesToFindUserById() {
         UUID userId = UUID.randomUUID();
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
         ResponseEntity<UserTO> response = userService.find(userId);
-        assertNull(response);
+        assertNotNull(response);
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
     @Test
     void testFindAll_WithNullApplicationId_ReturnsUsers() {
-        UserEntity user1 = new UserEntity();
-        UserEntity user2 = new UserEntity();
-        List<UserEntity> users = Arrays.asList(user1, user2);
-
-        when(userRepository.findAll()).thenReturn(users);
-        when(userMapper.toTarget(user1)).thenReturn(new UserTO());
-        when(userMapper.toTarget(user2)).thenReturn(new UserTO());
-
+        // null applicationId is rejected with 400 to prevent cross-tenant data leakage
         ResponseEntity<List<UserTO>> response = userService.findAll(null);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(2, response.getBody().size());
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
     @Test
@@ -958,6 +946,78 @@ class UserServiceImplTest {
         UUID appId = UUID.randomUUID();
         ResponseEntity<Void> response = userService.deleteUserByApplicationAndUserId(appId, null);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    void unlink_nullUserId_returnsBadRequest() {
+        UUID roleId = UUID.randomUUID();
+        ResponseEntity<UserTO> response = userService.unlink(null, roleId);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    void unlink_nullRoleId_returnsBadRequest() {
+        UUID userId = UUID.randomUUID();
+        ResponseEntity<UserTO> response = userService.unlink(userId, null);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    void unlink_userNotFound_returnsNotFound() {
+        UUID userId = UUID.randomUUID();
+        UUID roleId = UUID.randomUUID();
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        ResponseEntity<UserTO> response = userService.unlink(userId, roleId);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    void unlink_roleNotFoundOnUser_returnsNotFound() {
+        UUID userId = UUID.randomUUID();
+        UUID roleId = UUID.randomUUID();
+
+        // User exists but has no matching role in applicationRoleUser
+        UserEntity userEntity = new UserEntity();
+        userEntity.setId(userId);
+        userEntity.setApplicationRoleUser(new HashSet<>());
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(userEntity));
+
+        ResponseEntity<UserTO> response = userService.unlink(userId, roleId);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    void unlink_success_returns200WithUpdatedUser() {
+        UUID userId = UUID.randomUUID();
+        UUID roleId = UUID.randomUUID();
+
+        ApplicationRoleUserEntityId aruId = new ApplicationRoleUserEntityId();
+        aruId.setRoleId(roleId);
+
+        ApplicationRoleUserEntity aru = new ApplicationRoleUserEntity();
+        aru.setId(aruId);
+
+        UserEntity userEntity = new UserEntity();
+        userEntity.setId(userId);
+        userEntity.setApplicationRoleUser(new HashSet<>(Set.of(aru)));
+
+        UserTO expectedUserTO = new UserTO();
+        expectedUserTO.setId(userId);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(userEntity));
+        when(userRepository.save(any(UserEntity.class))).thenReturn(userEntity);
+        when(userMapper.toTarget(userEntity)).thenReturn(expectedUserTO);
+
+        ResponseEntity<UserTO> response = userService.unlink(userId, roleId);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(expectedUserTO, response.getBody());
+        verify(userRepository, times(1)).save(any(UserEntity.class));
     }
 
 }

@@ -1,0 +1,321 @@
+name: backbone-rest-gemma
+version: 0.1.0
+schema: v1
+
+# ─────────────────────────────────────────────────────────────────────
+# Models — Gemma 4 (E4B) served by Docker Model Runner @ Alienware host
+# Mirrors ~/.continue/config.json. OpenAI-compatible endpoint.
+# ─────────────────────────────────────────────────────────────────────
+models:
+  - name: Gemma 4 Backbone (Chat)
+    provider: openai
+    model: docker.io/ai/gemma4:E4B
+    apiBase: http://192.168.50.49:12434/v1
+    apiKey: dummy
+    roles:
+      - chat
+      - edit
+      - apply
+      - summarize
+    defaultCompletionOptions:
+      contextLength: 8192
+      maxTokens: 4096
+      temperature: 0.2
+      topP: 0.9
+
+  - name: Gemma 4 Backbone (Autocomplete)
+    provider: openai
+    model: docker.io/ai/gemma4:E4B
+    apiBase: http://192.168.50.49:12434/v1
+    apiKey: dummy
+    roles:
+      - autocomplete
+    defaultCompletionOptions:
+      contextLength: 4096
+      maxTokens: 256
+      temperature: 0.1
+
+  - name: Gemma 4 Backbone (Embed)
+    provider: openai
+    model: docker.io/ai/gemma4:E4B
+    apiBase: http://192.168.50.49:12434/v1
+    apiKey: dummy
+    roles:
+      - embed
+
+# ─────────────────────────────────────────────────────────────────────
+# Context Providers — sources Gemma can pull into a turn
+# ─────────────────────────────────────────────────────────────────────
+context:
+  - provider: file
+  - provider: code
+  - provider: codebase
+  - provider: diff
+  - provider: terminal
+  - provider: problems
+  - provider: open
+  - provider: tree
+  - provider: folder
+  - provider: search
+  - provider: url
+  - provider: docs
+  - provider: currentFile
+  - provider: repo-map
+
+# ─────────────────────────────────────────────────────────────────────
+# Rules — always-on system instructions
+# ─────────────────────────────────────────────────────────────────────
+rules:
+  - name: project-context
+    rule: |
+      You are working in the backbone-rest project — a Spring Boot 3.4.1 / Java 21
+      backoffice REST service (package root: com.umdc.backoffice, API surface: /api/v1/*).
+      Always read .ai/GEMINI.md first for the project context, hard rules, and the
+      index of agents/skills/prompts/hooks/tools/workflows.
+
+  - name: hard-conventions
+    rule: |
+      MUST follow these backbone-rest conventions:
+      - Interface-first controllers: *Api.java carries @RequestMapping + OpenAPI
+        annotations + default method that delegates to the service. *Controller.java
+        is thin: @RestController, constructor injection, @Override every API method,
+        no business logic.
+      - Services return ResponseEntity<?> — status decisions live in *ServiceImpl.
+      - Constructor injection only — never @Autowired field injection.
+      - MapStruct mappers use config = MapperAppConfig.class from com.umdc.commons.services.
+      - SLF4J logging via LoggerFactory.getLogger — never System.out.
+      - MessageUtil for user-facing messages; keys in *MessageKey enums.
+      - PMD must report zero violations (ruleset.xml is enforced at test phase).
+      - OpenAPI 3.1 spec at src/main/resources/META-INF/api.yaml is the API contract —
+        update it whenever an *Api.java interface changes.
+      - Preserve /api/v1/* backward compatibility unless explicitly authorized.
+      - Maven only — there is no mvnw. Use `mvn` directly.
+      - Never commit secrets, certificates, or modify keystore.jks / *.crt.
+
+  - name: branch-context
+    rule: |
+      Current feature branch: ds-196-include-supabase-storage.
+      Active integration: Supabase Storage for profile images
+      (domain module: com.umdc.backoffice.v1.profileimage).
+      Spring profile for Supabase: remote-supabase.
+
+# ─────────────────────────────────────────────────────────────────────
+# Agents — each entry is a dispatchable persona
+# Invoke via slash command (e.g. /agent:developer). Each prompt instructs
+# Gemma to load and follow the matching .agent.md system prompt.
+# ─────────────────────────────────────────────────────────────────────
+prompts:
+  # === Primary agents (user-invocable) ===
+  - name: agent:orchestrator
+    description: Decompose multi-agent requests, delegate, consolidate
+    prompt: |
+      Adopt the persona defined in .ai/agents/orchestrator.agent.md.
+      Decompose the user's request, dispatch to specialized agents (developer,
+      test-writer, api-reviewer, security-reviewer, ...), and consolidate their
+      output into a single report. Track progress and surface blockers.
+
+  - name: agent:developer
+    description: Senior Spring Boot 3.4 / Java 21 implementer
+    prompt: |
+      Adopt the persona defined in .ai/agents/developer.agent.md.
+      Implement features or fixes following the interface-first controller pattern,
+      MapStruct mappers, constructor injection, and PMD-zero policy.
+
+  - name: agent:test-writer
+    description: JUnit 5 + Mockito test author
+    prompt: |
+      Adopt the persona defined in .ai/agents/test-writer.agent.md.
+      Write unit/integration tests that achieve JaCoCo targets and pass PMD.
+
+  - name: agent:product-owner
+    description: Requirements, acceptance criteria, API contracts
+    prompt: |
+      Adopt the persona defined in .ai/agents/product-owner.agent.md.
+
+  - name: agent:project-manager
+    description: Delivery planning, quality gates, release coordination
+    prompt: |
+      Adopt the persona defined in .ai/agents/project-manager.agent.md.
+
+  - name: agent:repo-analyst
+    description: Deep codebase analysis and requirements discovery
+    prompt: |
+      Adopt the persona defined in .ai/agents/repo-requirements-analyst.agent.md.
+
+  # === Subagents (agent-invocable) ===
+  - name: agent:api-reviewer
+    description: Validate *Api.java against META-INF/api.yaml
+    prompt: |
+      Adopt the persona defined in .ai/agents/api-reviewer.agent.md.
+
+  - name: agent:code-reviewer
+    description: PMD + Spring Boot convention + interface-first audit
+    prompt: |
+      Adopt the persona defined in .ai/agents/code-reviewer.agent.md.
+
+  - name: agent:database-architect
+    description: JPA entity / query advice
+    prompt: |
+      Adopt the persona defined in .ai/agents/database-architect.agent.md.
+
+  - name: agent:devops-engineer
+    description: Docker, Maven, Repsy publishing, CI/CD setup
+    prompt: |
+      Adopt the persona defined in .ai/agents/devops-engineer.agent.md.
+
+  - name: agent:security-reviewer
+    description: CVE scan, OWASP Top 10, JWT/Supabase auth audit
+    prompt: |
+      Adopt the persona defined in .ai/agents/security-reviewer.agent.md.
+
+  # ───────────────────────────────────────────────────────────────────
+  # Skills — invocable capability packs
+  # ───────────────────────────────────────────────────────────────────
+
+  # Standalone skills
+  - name: skill:rest-api-design
+    description: REST API design — interface-first + OpenAPI 3.1
+    prompt: |
+      Apply the guidance in .ai/skills/rest-api-design.skill.md.
+
+  - name: skill:api-contract-review
+    description: Validate *Api.java surface vs OpenAPI spec
+    prompt: |
+      Apply the checklist in .ai/skills/api-contract-review.skill.md against the
+      diff. Cross-reference src/main/resources/META-INF/api.yaml.
+
+  - name: skill:jpa-persistence
+    description: JPA entity + repository + transaction patterns
+    prompt: |
+      Apply the guidance in .ai/skills/jpa-persistence.skill.md.
+
+  - name: skill:release-management
+    description: CHANGELOG, version bumps, tag/release coordination
+    prompt: |
+      Apply the playbook in .ai/skills/release-management.skill.md.
+
+  # Per-agent skill manifests
+  - name: skill:orchestrator
+    description: Multi-agent decomposition & delegation skill
+    prompt: |
+      Apply .ai/skills/orchestrator/SKILL.md.
+
+  - name: skill:developer
+    description: Feature/fix implementation skill (Spring Boot 3.4)
+    prompt: |
+      Apply .ai/skills/developer/SKILL.md.
+
+  - name: skill:test-writer
+    description: JUnit 5 + Mockito test authoring skill
+    prompt: |
+      Apply .ai/skills/test-writer/SKILL.md.
+
+  - name: skill:product-owner
+    description: Requirements & acceptance criteria skill
+    prompt: |
+      Apply .ai/skills/product-owner/SKILL.md.
+
+  - name: skill:project-manager
+    description: Delivery planning & quality gate skill
+    prompt: |
+      Apply .ai/skills/project-manager/SKILL.md.
+
+  - name: skill:repo-requirements-analyst
+    description: Codebase analysis & requirements discovery skill
+    prompt: |
+      Apply .ai/skills/repo-requirements-analyst/SKILL.md.
+
+  - name: skill:api-reviewer
+    description: *Api.java ↔ api.yaml validation skill
+    prompt: |
+      Apply .ai/skills/api-reviewer/SKILL.md.
+
+  - name: skill:code-reviewer
+    description: PMD + convention review skill
+    prompt: |
+      Apply .ai/skills/code-reviewer/SKILL.md.
+
+  - name: skill:database-architect
+    description: JPA entity/query advice skill
+    prompt: |
+      Apply .ai/skills/database-architect/SKILL.md.
+
+  - name: skill:devops-engineer
+    description: Build/CI/Docker/Repsy publishing skill
+    prompt: |
+      Apply .ai/skills/devops-engineer/SKILL.md.
+
+  - name: skill:security-reviewer
+    description: CVE + OWASP + JWT/Supabase auth review skill
+    prompt: |
+      Apply .ai/skills/security-reviewer/SKILL.md.
+
+  # ───────────────────────────────────────────────────────────────────
+  # Tools — external-command contracts & guard-rails
+  # ───────────────────────────────────────────────────────────────────
+  - name: tool:maven-build
+    description: Maven build / test / package commands
+    prompt: |
+      Consult .ai/tools/maven-build.tool.md. There is no mvnw — use `mvn` directly.
+
+  - name: tool:pmd-check
+    description: Run PMD against ruleset.xml — zero-violation policy
+    prompt: |
+      Consult .ai/tools/pmd-check.tool.md. Resolve every violation before commit.
+
+  - name: tool:openapi-validator
+    description: Validate src/main/resources/META-INF/api.yaml
+    prompt: |
+      Consult .ai/tools/openapi-validator.tool.md.
+
+  - name: tool:dependency-check
+    description: CVE scanning of project dependencies
+    prompt: |
+      Consult .ai/tools/dependency-check.tool.md.
+
+  - name: tool:sonar-analysis
+    description: SonarQube static analysis runner
+    prompt: |
+      Consult .ai/tools/sonar-analysis.tool.md.
+
+  - name: tool:docker-build
+    description: Docker image build for backbone-rest
+    prompt: |
+      Consult .ai/tools/docker-build.tool.md.
+
+  - name: tool:github-cli
+    description: GitHub CLI (`gh`) — PRs, issues, releases
+    prompt: |
+      Consult .ai/tools/github-cli.tool.md.
+
+  - name: tool:git
+    description: Git commit/branch/release etiquette for backbone-rest
+    prompt: |
+      Consult .ai/tools/git.tool.md. Never commit secrets or *.crt / keystore.jks.
+
+  - name: tool:keytool
+    description: Java keytool operations (TLS certs / keystores)
+    prompt: |
+      Consult .ai/tools/keytool.tool.md. Never modify the committed keystore.jks.
+
+# ─────────────────────────────────────────────────────────────────────
+# Docs — additional grounding sources Gemma can search
+# ─────────────────────────────────────────────────────────────────────
+docs:
+  - name: Spring Boot 3.4 Reference
+    startUrl: https://docs.spring.io/spring-boot/docs/3.4.x/reference/html/
+
+  - name: Spring Security
+    startUrl: https://docs.spring.io/spring-security/reference/
+
+  - name: Supabase
+    startUrl: https://supabase.com/docs
+
+  - name: MapStruct
+    startUrl: https://mapstruct.org/documentation/stable/reference/html/
+
+  - name: PMD Java Rules
+    startUrl: https://pmd.github.io/pmd/pmd_rules_java.html
+
+  - name: OpenAPI 3.1
+    startUrl: https://spec.openapis.org/oas/v3.1.0

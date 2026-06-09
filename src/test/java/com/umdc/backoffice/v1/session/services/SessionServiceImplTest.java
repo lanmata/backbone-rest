@@ -1,7 +1,9 @@
 package com.umdc.backoffice.v1.session.services;
 
+import com.umdc.backoffice.security.bruteforce.LoginAttemptService;
 import com.umdc.backoffice.security.jwt.JwtConfigProperties;
 import com.umdc.backoffice.util.MessageUtil;
+import com.umdc.backoffice.v1.iam.audit.service.AuditEventService;
 import com.umdc.backoffice.v1.session.mapper.UserAliasMapper;
 import com.umdc.backoffice.v1.session.to.SessionEmailRequest;
 import com.umdc.backoffice.v1.session.to.SessionRequest;
@@ -20,10 +22,16 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class SessionServiceImplTest {
@@ -43,6 +51,18 @@ class SessionServiceImplTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private JtiDenyListService jtiDenyListService;
+
+    @Mock
+    private LoginAttemptService loginAttemptService;
+
+    @Mock
+    private AuditEventService auditEventService;
+
     private SessionServiceImpl sessionService;
 
     private static final String TEST_SECRET = "dGVzdC1zZWNyZXQta2V5LWZvci1qd3QtdG9rZW4tdGVzdGluZy1wdXJwb3Nlcy1vbmx5LW1pbmltdW0tMjU2LWJpdHM=";
@@ -53,7 +73,8 @@ class SessionServiceImplTest {
         MockitoAnnotations.openMocks(this);
         when(jwtConfigProperties.getSecret()).thenReturn(TEST_SECRET);
         when(jwtConfigProperties.getExpirationMs()).thenReturn(EXPIRATION_MS);
-        sessionService = new SessionServiceImpl(jwtConfigProperties, messageUtil, userMapper, userAliasMapper, userRepository);
+        sessionService = new SessionServiceImpl(jwtConfigProperties, messageUtil, userMapper, userAliasMapper,
+                userRepository, passwordEncoder, jtiDenyListService, loginAttemptService, auditEventService);
     }
 
     @Test
@@ -171,6 +192,7 @@ class SessionServiceImplTest {
         when(userRepository.findUserInfo(userId)).thenReturn(userInfo);
         when(userMapper.toTarget(userInfo)).thenReturn(userTO);
         when(userAliasMapper.toTarget(userTO)).thenReturn(userAliasTO);
+        when(passwordEncoder.matches("password", "password")).thenReturn(true);
 
         ResponseEntity<SessionResponse> response = sessionService.loadSession(request);
 
@@ -309,6 +331,7 @@ class SessionServiceImplTest {
         when(userRepository.findUserInfo(userId)).thenReturn(userInfo);
         when(userMapper.toTarget(userInfo)).thenReturn(userTO);
         when(userAliasMapper.toTarget(userTO)).thenReturn(userAliasTO);
+        when(passwordEncoder.matches("password", "password")).thenReturn(true);
 
         ResponseEntity<SessionResponse> response = sessionService.loadSession(request);
 
@@ -515,14 +538,59 @@ class SessionServiceImplTest {
         assertEquals("testuser123", username);
     }
 
+    @Test
+    void revokeToken_validToken_returns204() {
+        // Arrange
+        String token = sessionService.generateSessionToken("testUser", null);
+
+        // Act
+        ResponseEntity<Void> response = sessionService.revokeToken(token);
+
+        // Assert
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        verify(jtiDenyListService, times(1)).denyJti(anyString(), anyLong());
+    }
+
+    @Test
+    void revokeToken_invalidToken_returns400() {
+        // Act — null token
+        ResponseEntity<Void> responseNull = sessionService.revokeToken(null);
+        // Act — empty token
+        ResponseEntity<Void> responseEmpty = sessionService.revokeToken("");
+
+        // Assert
+        assertEquals(HttpStatus.BAD_REQUEST, responseNull.getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST, responseEmpty.getStatusCode());
+    }
+
+    @Test
+    void isValid_returnsFalse_whenJtiIsDenied() {
+        // Arrange — mock deny-list to deny any JTI
+        when(jtiDenyListService.isDenied(any(String.class))).thenReturn(true);
+        String token = sessionService.generateSessionToken("testUser", null);
+
+        // Act
+        boolean result = sessionService.isValid(token);
+
+        // Assert
+        assertFalse(result);
+    }
+
+    @Test
+    void generateSessionToken_containsIssAndAud() {
+        // Arrange
+        when(jwtConfigProperties.getIssuer()).thenReturn("test-issuer");
+        when(jwtConfigProperties.getAudience()).thenReturn("test-audience");
+
+        // Act
+        String token = sessionService.generateSessionToken("testUser", null);
+        Claims claims = sessionService.getTokenClaims(token);
+
+        // Assert
+        assertEquals("test-issuer", claims.getIssuer());
+        assertTrue(claims.getAudience().contains("test-audience"));
+    }
+
 }
-
-
-
-
-
-
-
-
 
 

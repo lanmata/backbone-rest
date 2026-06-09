@@ -14,13 +14,14 @@ package com.umdc.backoffice.v1.session.api;
 
 import com.umdc.backoffice.v1.session.services.SessionService;
 import com.umdc.backoffice.v1.session.to.SessionEmailRequest;
+import com.umdc.backoffice.v1.session.to.SessionRefreshRequest;
 import com.umdc.backoffice.v1.session.to.SessionRequest;
 import com.umdc.backoffice.v1.session.to.SessionResponse;
 import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import static com.umdc.backoffice.v1.session.services.SessionJwtService.SESSION_TOKEN_KEY;
+import static com.umdc.backoffice.v1.session.services.SessionJwtService.AUTHORIZATION_HEADER;
 
 /// REST controller for managing session-related operations.
 /// Provides endpoints for generating and validating session tokens.
@@ -28,6 +29,7 @@ import static com.umdc.backoffice.v1.session.services.SessionJwtService.SESSION_
 /// @version 1.0.0, 12-02-2021
 @RestController
 @RequestMapping("/api/v1/session")
+@CrossOrigin(origins = "*")
 public class SessionController implements SessionApi {
 
     ///  The session service to be used by this controller.
@@ -56,7 +58,7 @@ public class SessionController implements SessionApi {
         boolean isValid = false;
         try {
             var value = sessionService.getTokenClaims(sessionToken).get("type");
-            isValid = SESSION_TOKEN_KEY.equals(value) && !sessionService.isTokenExpired(sessionToken);
+            isValid = AUTHORIZATION_HEADER.equals(value) && !sessionService.isTokenExpired(sessionToken);
 
         } catch (ExpiredJwtException e) {
             return ResponseEntity.ok(false);
@@ -65,7 +67,12 @@ public class SessionController implements SessionApi {
     }
 
     @Override
-    public ResponseEntity<SessionResponse> renewSessionToken(@RequestHeader(SESSION_TOKEN_KEY) String sessionToken) {
+    public ResponseEntity<SessionResponse> renewSessionToken(@RequestHeader(AUTHORIZATION_HEADER) String sessionToken) {
         return sessionService.renewToken(sessionToken);
+    }
+
+    @Override
+    public ResponseEntity<SessionResponse> refreshSessionToken(SessionRefreshRequest request) {
+        return sessionService.refreshSession(request.refreshToken());
     }
 }

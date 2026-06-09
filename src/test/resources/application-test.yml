@@ -97,24 +97,6 @@ components:
     basicAuth:     # <-- arbitrary name for the security scheme
       type: http
       scheme: basic
-#<><><><><><><><><><><><><><> KEYCLOAK <><><><><><><><><><><><><><>
-keycloak:
-  enabled: true
-  realm: prx-access-validator
-  auth-server-url: https://qa.prx.test/auth/
-  ssl-required: external
-  resource: prx-services
-  bearer-only: true
-  use-resource-role-mappings: true
-  public-client: true
-  confidential-port: 0
-  disable-trust-manager: true
-  security-constraints:
-    - authRoles:
-        - rservice-rest
-    - securityCollections:
-        - patterns: '/v1/*'
-        - name: prx-services
 #<><><><><><><><><><><><><><> SWAGGER <><><><><><><><><><><><><><>
 swagger:
   base-package: 'com.prx.backoffice.controller'

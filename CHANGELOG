@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Management Client Authentication Manager (MCAM) — M2M OAuth2 client credential lifecycle
+  - POST   /api/v1/managed-clients              — Register managed client (returns secret once)
+  - GET    /api/v1/managed-clients              — List clients (paginated, filterable)
+  - GET    /api/v1/managed-clients/{clientId}   — Get client detail (no secret fields)
+  - PUT    /api/v1/managed-clients/{clientId}   — Update client metadata (partial update)
+  - DELETE /api/v1/managed-clients/{clientId}   — Delete client + revoke all tokens
+  - POST   /api/v1/managed-clients/token        — Issue M2M access token (public endpoint)
+  - POST   /api/v1/managed-clients/{clientId}/rotate-secret — Rotate client secret
+  - DELETE /api/v1/managed-clients/{clientId}/tokens        — Revoke all active tokens
+  - POST   /api/v1/managed-clients/introspect   — Introspect M2M token (public endpoint)
+- Flyway migrations V2 (managed_client), V3 (managed_client_audit_event), V4 (audit_event CHECK extension)
+- ManagedClientTokenFilter — RS256 M2M JWT validation registered before SessionJwtAuthenticationFilter
+- AuditEventType extended with 9 additive M2M event type constants
+- ManagementAuthenticatorProperties extended: tokenTtlSeconds, rotationGracePeriodSeconds, rateLimitRpm
+- ManagedClientMaintenanceService — scheduled cleanup of stale prevSecretHash values
+
+### Security
+- client_secret BCrypt-hashed at strength >= 12; plaintext never logged or persisted
+- Constant-time secret comparison via BCryptPasswordEncoder.matches() (AC-TOK-02)
+- All key material injected via environment variables — no hardcoded secrets
+- Secret rotation grace period enforced via Redis TTL (mcam:grace:{clientId})
+- Per-client rate limiting on token issuance (mcam:ratelimit:{clientId})
+- Token revocation via Redis tombstone pattern (mcam:revoked:{jti})
+
+### Previously Added
 - Created `AuthKey` enum to represent the authentication keys.
 - Created `MapperAppConfig` interface for Mapper configuration.
 - Created `SessionController`, `SessionRequest`, and `SessionResponse` classes for the session API operations.

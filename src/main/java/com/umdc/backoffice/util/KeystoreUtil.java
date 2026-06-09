@@ -43,12 +43,18 @@ public final class KeystoreUtil {
     /// @throws CertificateSecurityException if an error occurs while loading the keystore
     public KeyStore getKeyStore(StoreProperties securityProperties) throws CertificateSecurityException {
         KeyStore keyStore;
-        // Load Truststore
-        try (InputStream keyStoreStream = getClass().getClassLoader().getResourceAsStream(securityProperties.getLocation())) {
+        String location = securityProperties.getLocation();
+        if (location != null && location.startsWith("classpath:")) {
+            location = location.substring("classpath:".length());
+        }
+        try (InputStream keyStoreStream = getClass().getClassLoader().getResourceAsStream(location)) {
+            if (keyStoreStream == null) {
+                throw new IOException("Keystore resource not found: " + securityProperties.getLocation());
+            }
             keyStore = KeyStore.getInstance(securityProperties.getType());
             keyStore.load(keyStoreStream, securityProperties.getPassword().toCharArray());
         } catch (IOException | NoSuchAlgorithmException | CertificateException | KeyStoreException e) {
-            LOGGER.warn("Error occurred while loading the trust store file.");
+            LOGGER.warn("Error occurred while loading the keystore file: {}", securityProperties.getLocation());
             throw new CertificateSecurityException(e);
         }
         return keyStore;
@@ -127,6 +133,44 @@ public final class KeystoreUtil {
                 getKeyStore(securityProperties.getManagementAuthenticator().getTruststore()),
                 securityProperties.getManagementAuthenticator().getKeystore().getPassword(),
                 securityProperties.getManagementAuthenticator().getKeyAlias());
+    }
+
+    /// Loads the {@link PrivateKey} for the given alias from the keystore described by {@code storeProperties}.
+    ///
+    /// @param storeProperties the keystore location/type/password descriptor
+    /// @param alias           the key alias to retrieve
+    /// @return the {@link PrivateKey} associated with the alias
+    /// @throws CertificateSecurityException if the key cannot be loaded
+    public PrivateKey loadPrivateKey(StoreProperties storeProperties, String alias)
+            throws CertificateSecurityException {
+        try {
+            KeyStore ks = getKeyStore(storeProperties);
+            return (PrivateKey) ks.getKey(alias, storeProperties.getPassword().toCharArray());
+        } catch (KeyStoreException | NoSuchAlgorithmException | UnrecoverableKeyException e) {
+            LOGGER.warn("Error loading private key for alias '{}'", alias);
+            throw new CertificateSecurityException(e);
+        }
+    }
+
+    /// Loads the {@link PublicKey} for the given alias from the keystore described by {@code storeProperties}.
+    ///
+    /// @param storeProperties the keystore location/type/password descriptor
+    /// @param alias           the certificate alias to retrieve the public key from
+    /// @return the {@link PublicKey} associated with the alias
+    /// @throws CertificateSecurityException if the key cannot be loaded
+    public PublicKey loadPublicKey(StoreProperties storeProperties, String alias)
+            throws CertificateSecurityException {
+        try {
+            KeyStore ks = getKeyStore(storeProperties);
+            Certificate cert = ks.getCertificate(alias);
+            if (cert == null) {
+                throw new KeyStoreException("No certificate found for alias '" + alias + "' in keystore '" + storeProperties.getLocation() + "'");
+            }
+            return cert.getPublicKey();
+        } catch (KeyStoreException e) {
+            LOGGER.warn("Error loading public key for alias '{}'", alias);
+            throw new CertificateSecurityException(e);
+        }
     }
 
     private SslBundle loadSslBundle(KeyStore trustStore, KeyStore keyStore, String keystorePassword) {
