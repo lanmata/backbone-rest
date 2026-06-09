@@ -43,6 +43,7 @@ public class ManagedClientRotationServiceImpl implements ManagedClientRotationSe
     private final ManagedClientRedisService redisService;
     private final ManagedClientAuditService auditService;
     private final SecurityProperties securityProperties;
+    private final SecureRandom secureRandom = new SecureRandom();
 
     /// Constructs a new {@code ManagedClientRotationServiceImpl}.
     ///
@@ -63,7 +64,7 @@ public class ManagedClientRotationServiceImpl implements ManagedClientRotationSe
         this.securityProperties = securityProperties;
     }
 
-    /// {@inheritDoc}
+    /** {@inheritDoc} */
     @Override
     public ResponseEntity<?> rotateSecret(UUID clientId, String requestorIp) {
         LOGGER.debug("Secret rotation requested for clientId='{}'", clientId);
@@ -78,7 +79,7 @@ public class ManagedClientRotationServiceImpl implements ManagedClientRotationSe
         ManagedClientEntity entity = found.get();
         String currentSecretHash = entity.getSecretHash();
 
-        SecureRandom secureRandom = new SecureRandom();
+
         byte[] rawBytes = new byte[32];
         secureRandom.nextBytes(rawBytes);
         String newRawSecret = Base64.getUrlEncoder().withoutPadding().encodeToString(rawBytes);
