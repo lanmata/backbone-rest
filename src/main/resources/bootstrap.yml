@@ -11,15 +11,6 @@ umdc:
     trace:
       enabled: ${LOGGING_TRACE_ENABLED}
   database-cert: db-root-cert
-  cloud:
-    vault:
-      enabled: ${CONFIG_SERVER_ENABLED:false}
-      url: ${CONFIG_SERVER_URL:---}
-      client-id: ${CONFIG_SERVER_CLIENT_ID:---}
-      client-secret: ${CONFIG_SERVER_CLIENT_SECRET:---}
-      project-id: ${CONFIG_SERVER_PROJECT_ID:---}
-      environment: ${CONFIG_SERVER_ENVIRONMENT:--}
-      secret-path: ${CONFIG_SERVER_SECRET_PATH:/}
   security:
     managementAuthenticator:
       keyAlias: ${MCAM_KEY_ALIAS:backbone-rest}
@@ -74,11 +65,6 @@ spring:
     name: ${umdc.app.name}
   cloud:
     # The Spring Cloud Config specific configurations
-    #<><><><><><><><><><><><><><> INFISICAL <><><><><><><><><><><><><><>
-    # Secrets are injected by InfisicalEnvironmentPostProcessor via env vars:
-    # CONFIG_SERVER_ENABLED, CONFIG_SERVER_SITE_URL, CONFIG_SERVER_CLIENT_ID,
-    # CONFIG_SERVER_CLIENT_SECRET, CONFIG_SERVER_PROJECT_ID,
-    # CONFIG_SERVER_ENVIRONMENT, CONFIG_SERVER_SECRET_PATH
     bootstrap:
       # Enables the Spring Cloud Bootstrap application context
       enabled: ${SPRING_BOOT_CLOUD_BOOTSTRAP_ENABLED}
@@ -102,6 +88,20 @@ spring:
       # classpath resource directly rather than via spring.ssl.bundle.
       tls:
         enabled: true
+        trust-store: classpath:${SSL_TRUSTSTORE_LOCATION:truststore-no-present}
+        trust-store-password: ${SSL_TRUSTSTORE_PASSWORD:changeit}
+        trust-store-type: ${SSL_TRUSTSTORE_TYPE:JKS}
+    vault:
+      enabled: ${VAULT_ENABLED:false}
+      uri: ${VAULT_URI:https://vault.umdc-qa.tst}
+      authentication: TOKEN
+      token: ${VAULT_TOKEN}
+      kv:
+        enabled: true
+        backend: ${VAULT_KV_BACKEND:secret}
+        default-context: ${spring.application.name}
+        profile-separator: /
+      ssl:
         trust-store: classpath:${SSL_TRUSTSTORE_LOCATION:truststore-no-present}
         trust-store-password: ${SSL_TRUSTSTORE_PASSWORD:changeit}
         trust-store-type: ${SSL_TRUSTSTORE_TYPE:JKS}
