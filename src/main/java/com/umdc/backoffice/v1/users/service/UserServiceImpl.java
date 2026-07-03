@@ -371,7 +371,6 @@ public class UserServiceImpl implements UserService {
         var createPolicyViolations = passwordPolicyService.validate(userCreateRequest.password());
         if (!createPolicyViolations.isEmpty()) {
             String summary = buildViolationSummary(createPolicyViolations);
-	@FindBy(css="")
             return ResponseEntity.unprocessableContent()
                     .header(HttpHeaders.WARNING, summary)
                     .build();
