@@ -30,9 +30,7 @@ class SessionServiceTest {
     @Test
     @DisplayName("Load session with valid alias and password")
     void loadSessionWithValidAliasAndPassword() {
-        SessionRequest sessionRequest = new SessionRequest();
-        sessionRequest.setAlias("validAlias");
-        sessionRequest.setPassword("validPassword");
+        SessionRequest sessionRequest = new SessionRequest("validAlias", "validPassword", UUID.randomUUID());
 
         ResponseEntity<SessionResponse> response = sessionService.loadSession(sessionRequest);
 
@@ -40,21 +38,9 @@ class SessionServiceTest {
     }
 
     @Test
-    @DisplayName("Load session with valid email and password")
-    void loadSessionWithValidEmailAndPassword() {
-        SessionEmailRequest sessionEmailRequest = new SessionEmailRequest("validEmail@example.com", "validPassword", UUID.randomUUID());
-
-        ResponseEntity<SessionResponse> response = sessionService.loadSession(sessionEmailRequest);
-
-        assertEquals(HttpStatus.NOT_IMPLEMENTED, response.getStatusCode());
-    }
-
-    @Test
     @DisplayName("Load session with invalid alias and password")
     void loadSessionWithInvalidAliasAndPassword() {
-        SessionRequest sessionRequest = new SessionRequest();
-        sessionRequest.setAlias("invalidAlias");
-        sessionRequest.setPassword("invalidPassword");
+        SessionRequest sessionRequest = new SessionRequest("invalidAlias", "invalidPassword", UUID.randomUUID());
 
         ResponseEntity<SessionResponse> response = sessionService.loadSession(sessionRequest);
 
@@ -74,8 +60,7 @@ class SessionServiceTest {
     @Test
     @DisplayName("Load session with missing alias")
     void loadSessionWithMissingAlias() {
-        SessionRequest sessionRequest = new SessionRequest();
-        sessionRequest.setPassword("validPassword");
+        SessionRequest sessionRequest = new SessionRequest(null, "validPassword", UUID.randomUUID());
 
         ResponseEntity<SessionResponse> response = sessionService.loadSession(sessionRequest);
 
@@ -83,20 +68,9 @@ class SessionServiceTest {
     }
 
     @Test
-    @DisplayName("Load session with missing email")
-    void loadSessionWithMissingEmail() {
-        SessionEmailRequest sessionEmailRequest = new SessionEmailRequest("validEmail@example.com", "validPassword", UUID.randomUUID());
-
-        ResponseEntity<SessionResponse> response = sessionService.loadSession(sessionEmailRequest);
-
-        assertEquals(HttpStatus.NOT_IMPLEMENTED, response.getStatusCode());
-    }
-
-    @Test
     @DisplayName("Load session with missing password")
     void loadSessionWithMissingPassword() {
-        SessionRequest sessionRequest = new SessionRequest();
-        sessionRequest.setAlias("validAlias");
+        SessionRequest sessionRequest = new SessionRequest("validAlias", null, UUID.randomUUID());
 
         ResponseEntity<SessionResponse> response = sessionService.loadSession(sessionRequest);
 

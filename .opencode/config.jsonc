@@ -1,0 +1,162 @@
+{
+  // backbone-rest — OpenCode configuration
+  // Generated from actual codebase analysis. Do NOT hardcode credentials here.
+
+  "project_name": "backbone-rest",
+  "description": "Spring Boot 4.0.6 / Java 21 backoffice REST service managing users, roles, contacts, features, sessions, profile images, and managed M2M clients. Integrates with Supabase (PostgreSQL pooler + S3 Storage) and Spring Cloud Vault.",
+  "tech_stack": [
+    "java-21",
+    "spring-boot-4.0.6",
+    "spring-cloud-2025.1.1",
+    "spring-security",
+    "jpa-hibernate",
+    "postgresql",
+    "redis",
+    "aws-s3",
+    "mapstruct-1.6.3",
+    "jjwt-0.12.6",
+    "springdoc-openapi-2.6.0",
+    "maven",
+    "pmd",
+    "jacoco",
+    "junit5",
+    "mockito",
+    "docker"
+  ],
+
+  "agent": "developer",
+
+  "agents": {
+    "developer": {
+      "description": "Primary Java 21 / Spring Boot developer agent",
+      "file": ".opencode/agents/developer.md"
+    },
+    "reviewer": {
+      "description": "Read-only code review agent: PMD + conventions + OWASP",
+      "file": ".opencode/agents/reviewer.md"
+    },
+    "tester": {
+      "description": "JUnit 5 + Mockito test writer targeting JaCoCo thresholds",
+      "file": ".opencode/agents/tester.md"
+    },
+    "database": {
+      "description": "JPA entity, repository, and SQL migration specialist",
+      "file": ".opencode/agents/database.md"
+    },
+    "devops": {
+      "description": "Docker, Maven packaging, and environment variable specialist",
+      "file": ".opencode/agents/devops.md"
+    },
+    "security": {
+      "description": "Read-only OWASP + JWT + secret management auditor",
+      "file": ".opencode/agents/security.md"
+    },
+    "api": {
+      "description": "REST contract design and OpenAPI annotation specialist",
+      "file": ".opencode/agents/api.md"
+    }
+  },
+
+  "skills": {
+    "implement-feature": {
+      "file": ".opencode/skills/implement-feature.md"
+    },
+    "add-sql-migration": {
+      "file": ".opencode/skills/add-sql-migration.md"
+    },
+    "security-audit": {
+      "file": ".opencode/skills/security-audit.md"
+    }
+  },
+
+  "mcp": {
+    "servers": [
+      // ── Tier 1: Always-on ────────────────────────────────────────────────────
+
+      // Symbol index and call graph over the repository.
+      // Used by: developer, reviewer, tester, api
+      // Env-vars: none
+      // Setup: index is built automatically on first run
+      {
+        "name": "codegraph",
+        "command": "npx",
+        "args": ["-y", "@opencode-ai/plugin", "codegraph"]
+      },
+
+      // Git history and blame inside the repo.
+      // Used by: developer, reviewer, devops
+      // Env-vars: none
+      {
+        "name": "git",
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-git", "--repository", "."]
+      },
+
+      // GitHub PRs, issues, and Actions (read/write).
+      // Used by: reviewer, devops, project-manager
+      // Env-vars: GITHUB_PERSONAL_ACCESS_TOKEN (classic token with repo scope)
+      // Setup: export GITHUB_PERSONAL_ACCESS_TOKEN=<your-token>
+      {
+        "name": "github",
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-github"],
+        "env": {
+          "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+        }
+      },
+
+      // PostgreSQL MCP via wrapper that reads credentials from env-vars.
+      // Used by: developer, database, security
+      // Env-vars: DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD, DB_SSLMODE
+      // Setup: set env-vars for Supabase pooler or local PG; run .opencode/tools/postgres-mcp.sh
+      {
+        "name": "postgres",
+        "command": ".opencode/tools/postgres-mcp.sh"
+      },
+
+      // ── Tier 2: High-value additions ─────────────────────────────────────────
+
+      // Inline external documentation fetch (Swagger, Spring, etc.).
+      // Used by: developer, api
+      // Env-vars: none
+      {
+        "name": "fetch",
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-fetch"]
+      },
+
+      // Docker image/container operations for local dev workflow.
+      // Used by: devops
+      // Env-vars: DOCKER_HOST (optional, defaults to local socket)
+      {
+        "name": "docker",
+        "command": "npx",
+        "args": ["-y", "mcp-server-docker"]
+      },
+
+      // Cross-session context store (useful for long-lived feature branches).
+      // Used by: developer, reviewer
+      // Env-vars: none
+      {
+        "name": "memory",
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-memory"]
+      }
+    ]
+  },
+
+  "hooks": {
+    "before_edit": ".opencode/hooks/before-edit.sh",
+    "after_session": ".opencode/hooks/after-session.sh"
+  },
+
+  "keybindings": {
+    "ctrl+shift+d": "developer",
+    "ctrl+shift+r": "reviewer",
+    "ctrl+shift+t": "tester",
+    "ctrl+shift+b": "database",
+    "ctrl+shift+k": "devops",
+    "ctrl+shift+s": "security",
+    "ctrl+shift+a": "api"
+  }
+}

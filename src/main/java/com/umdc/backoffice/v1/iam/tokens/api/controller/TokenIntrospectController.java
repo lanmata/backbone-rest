@@ -12,7 +12,6 @@
  */
 package com.umdc.backoffice.v1.iam.tokens.api.controller;
 
-import com.umdc.backoffice.v1.iam.tokens.api.TokenIntrospectApi;
 import com.umdc.backoffice.v1.iam.tokens.api.to.TokenIntrospectRequest;
 import com.umdc.backoffice.v1.iam.tokens.api.to.TokenIntrospectResponse;
 import com.umdc.backoffice.v1.iam.tokens.service.TokenIntrospectService;

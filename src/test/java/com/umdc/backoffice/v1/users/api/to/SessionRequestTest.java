@@ -12,43 +12,53 @@
  */
 package com.umdc.backoffice.v1.users.api.to;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
 import com.umdc.backoffice.v1.session.to.SessionRequest;
 import org.junit.jupiter.api.Test;
 
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 /**
- * UserAccessRequestTest.
+ * Unit tests for the {@link SessionRequest} record.
  *
  * @author Luis Antonio Mata
- * @version 1.0.0, 20-10-2020
+ * @version 2.0.0, 03-07-2026
  */
 class SessionRequestTest {
 
     @Test
-    void gettersAndSetters() {
-        final var userAccessRequest = new SessionRequest();
+    void accessorsReturnConstructorValues() {
+        UUID appId = UUID.randomUUID();
+        SessionRequest request = new SessionRequest("lmata", "123456789", appId);
 
-        userAccessRequest.setAlias("lmata");
-        userAccessRequest.setPassword("123456789");
-        userAccessRequest.setAppName("AP001");
-        userAccessRequest.setAppToken("3456d789gfsduyt");
-        userAccessRequest.setDateTime(LocalDateTime.now(ZoneId.systemDefault()));
-
-        assertAll("Test Getters and Setters",
-            () -> assertNotNull(userAccessRequest.getAlias()),
-            () -> assertNotNull(userAccessRequest.getPassword()),
-            () -> assertNotNull(userAccessRequest.getDateTime()),
-            () -> assertNotNull(userAccessRequest.getAppName()),
-            () -> assertNotNull(userAccessRequest.getAppToken()),
-            () -> assertNotNull(userAccessRequest.toString()),
-            () -> assertNotEquals(1, userAccessRequest.hashCode()),
-            () -> assertNotEquals(new SessionRequest(), userAccessRequest)
-                 );
+        assertAll("SessionRequest accessors",
+                () -> assertEquals("lmata", request.alias()),
+                () -> assertEquals("123456789", request.password()),
+                () -> assertEquals(appId, request.applicationId()),
+                () -> assertNotNull(request.toString())
+        );
     }
 
+    @Test
+    void equalRecordsAreEqual() {
+        UUID appId = UUID.randomUUID();
+        SessionRequest r1 = new SessionRequest("lmata", "secret", appId);
+        SessionRequest r2 = new SessionRequest("lmata", "secret", appId);
+
+        assertEquals(r1, r2);
+        assertEquals(r1.hashCode(), r2.hashCode());
+    }
+
+    @Test
+    void differentAliasProducesInequality() {
+        UUID appId = UUID.randomUUID();
+        SessionRequest r1 = new SessionRequest("alice", "secret", appId);
+        SessionRequest r2 = new SessionRequest("bob", "secret", appId);
+
+        assertNotEquals(r1, r2);
+    }
 }

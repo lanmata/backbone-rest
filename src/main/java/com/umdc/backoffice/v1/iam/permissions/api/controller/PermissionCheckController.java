@@ -12,7 +12,6 @@
  */
 package com.umdc.backoffice.v1.iam.permissions.api.controller;
 
-import com.umdc.backoffice.v1.iam.permissions.api.PermissionCheckApi;
 import com.umdc.backoffice.v1.iam.permissions.api.to.PermissionCheckRequest;
 import com.umdc.backoffice.v1.iam.permissions.api.to.PermissionCheckResponse;
 import com.umdc.backoffice.v1.iam.permissions.service.PermissionCheckService;

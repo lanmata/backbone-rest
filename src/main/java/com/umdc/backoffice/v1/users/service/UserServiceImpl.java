@@ -166,7 +166,7 @@ public class UserServiceImpl implements UserService {
             // Delegate role refresh to dedicated service
             userApplicationRoleService.refreshRoleByApplication(userEntity, user);
             if (Objects.nonNull(user.getRoles()) && !user.getRoles().isEmpty()) {
-                auditEventService.record(userId, null, AuditEventType.ROLE_ASSIGNED,
+                auditEventService.saveRecord(userId, null, AuditEventType.ROLE_ASSIGNED,
                         null, null, null);
             }
 
@@ -187,7 +187,7 @@ public class UserServiceImpl implements UserService {
         }
         if (isNonEmpty(source.getPassword()) && !Objects.equals(target.getPassword(), source.getPassword())) {
             target.setPassword(passwordEncoder.encode(source.getPassword()));
-            auditEventService.record(target.getId(), null, AuditEventType.PASSWORD_CHANGE,
+            auditEventService.saveRecord(target.getId(), null, AuditEventType.PASSWORD_CHANGE,
                     null, null, null);
         }
         if (Objects.nonNull(source.getNotificationEmail())) {
@@ -371,7 +371,7 @@ public class UserServiceImpl implements UserService {
         var createPolicyViolations = passwordPolicyService.validate(userCreateRequest.password());
         if (!createPolicyViolations.isEmpty()) {
             String summary = buildViolationSummary(createPolicyViolations);
-            return ResponseEntity.unprocessableEntity()
+            return ResponseEntity.unprocessableContent()
                     .header(HttpHeaders.WARNING, summary)
                     .build();
         }
@@ -445,7 +445,7 @@ public class UserServiceImpl implements UserService {
         }
         userEntity.setApplicationRoleUser(mutableRoles);
         UserEntity saved = userRepository.save(userEntity);
-        auditEventService.record(userId, null, AuditEventType.ROLE_REVOKED, null, null, null);
+        auditEventService.saveRecord(userId, null, AuditEventType.ROLE_REVOKED, null, null, null);
         LOGGER.info("Role {} unlinked from user {}", roleId, userId);
         return ResponseEntity.ok(userMapper.toTarget(saved));
     }
