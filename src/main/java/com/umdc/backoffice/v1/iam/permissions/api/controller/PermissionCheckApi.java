@@ -10,7 +10,7 @@
  *  In any event, this notice and the above copyright must always be included
  *  verbatim with this file.
  */
-package com.umdc.backoffice.v1.iam.permissions.api;
+package com.umdc.backoffice.v1.iam.permissions.api.controller;
 
 import com.umdc.backoffice.v1.iam.permissions.api.to.PermissionCheckRequest;
 import com.umdc.backoffice.v1.iam.permissions.api.to.PermissionCheckResponse;

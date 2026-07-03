@@ -32,20 +32,23 @@ public interface AuditEventService {
     /// @param ipAddress     client IP address (may be {@code null})
     /// @param userAgent     client user-agent string (may be {@code null})
     /// @param details       JSON string with additional details (may be {@code null})
-    void record(UUID userId, UUID applicationId, AuditEventType eventType,
-                String ipAddress, String userAgent, String details);
+    void saveRecord(UUID userId, UUID applicationId, AuditEventType eventType,
+                    String ipAddress, String userAgent, String details);
 
-    /// Queries audit events with optional filters. Passing {@code null} for any
-    /// filter parameter disables filtering on that dimension.
-    ///
-    /// @param userId        optional user filter
-    /// @param applicationId optional application filter
-    /// @param eventType     optional event-type filter
-    /// @param from          optional lower bound on {@code occurredAt}
-    /// @param to            optional upper bound on {@code occurredAt}
-    /// @param page          zero-based page index
-    /// @param size          page size
-    /// @return a {@link ResponseEntity} containing the matching events
+    /**
+     * Queries audit events with optional filters. Passing {@code null} for any
+     * filter parameter disables filtering on that particular dimension.
+     *
+     * @param userId        optional filter for the identifier of the user who triggered the event
+     * @param applicationId optional filter for the application context where the event occurred
+     * @param eventType     optional filter for the type of the event
+     * @param from          optional lower bound on the event's occurred timestamp
+     * @param to            optional upper bound on the event's occurred timestamp
+     * @param page          zero-based page index for paginated results
+     * @param size          number of results to include in a single page
+     * @return a {@code ResponseEntity} containing a list of {@code AuditEventTO} objects
+     *         that match the specified filters
+     */
     ResponseEntity<List<AuditEventTO>> findEvents(UUID userId, UUID applicationId,
                                                    AuditEventType eventType,
                                                    LocalDateTime from, LocalDateTime to,

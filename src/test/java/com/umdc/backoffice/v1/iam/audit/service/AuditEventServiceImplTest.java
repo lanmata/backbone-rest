@@ -63,7 +63,7 @@ class AuditEventServiceImplTest {
         UUID userId = UUID.randomUUID();
         UUID appId  = UUID.randomUUID();
 
-        auditEventService.record(userId, appId, AuditEventType.LOGIN_SUCCESS,
+        auditEventService.saveRecord(userId, appId, AuditEventType.LOGIN_SUCCESS,
                 TEST_IP, TEST_AGENT, null);
 
         verify(auditEventRepository, times(1)).save(any(AuditEventEntity.class));
@@ -76,7 +76,7 @@ class AuditEventServiceImplTest {
         UUID appId  = UUID.randomUUID();
         ArgumentCaptor<AuditEventEntity> captor = ArgumentCaptor.forClass(AuditEventEntity.class);
 
-        auditEventService.record(userId, appId, AuditEventType.LOGIN_SUCCESS,
+        auditEventService.saveRecord(userId, appId, AuditEventType.LOGIN_SUCCESS,
                 TEST_IP, TEST_AGENT, TEST_DETAILS);
 
         verify(auditEventRepository).save(captor.capture());
@@ -95,7 +95,7 @@ class AuditEventServiceImplTest {
         UUID userId = UUID.randomUUID();
         ArgumentCaptor<AuditEventEntity> captor = ArgumentCaptor.forClass(AuditEventEntity.class);
 
-        auditEventService.record(userId, null, AuditEventType.LOGIN_FAILURE,
+        auditEventService.saveRecord(userId, null, AuditEventType.LOGIN_FAILURE,
                 TEST_IP, TEST_AGENT, null);
 
         verify(auditEventRepository).save(captor.capture());
@@ -195,7 +195,7 @@ class AuditEventServiceImplTest {
     private AuditEventTO buildTO(AuditEventEntity entity) {
         return new AuditEventTO(entity.getId(), entity.getUserId(), entity.getApplicationId(),
                 entity.getEventType(), entity.getIpAddress(), entity.getUserAgent(),
-                LocalDateTime.now(), null, LocalDateTime.now());
+                LocalDateTime.parse("2026-05-05T12:12:12"), null, LocalDateTime.parse("2026-05-05T12:12:12"));
     }
 }
 

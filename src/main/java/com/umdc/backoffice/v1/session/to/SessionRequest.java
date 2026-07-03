@@ -12,89 +12,19 @@
  */
 package com.umdc.backoffice.v1.session.to;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import com.umdc.commons.general.to.Request;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
+import java.util.UUID;
+
 /**
- * Data Transfer Object for session requests.
- * Contains user alias and password for session creation.
+ * Request payload for alias-based session creation.
+ * Carries user alias, password, and the target application context.
  *
- * @version 1.0.0, 20-10-2020
+ * @version 2.0.0, 03-07-2026
  */
-@JsonNaming
-public class SessionRequest extends Request {
-    /**
-     * The user alias.
-     */
-    @NotNull
-    @NotEmpty
-    @JsonProperty("alias")
-    private String alias;
-    /**
-     * The user password.
-     */
-    @NotNull
-    @NotEmpty
-    @JsonProperty("password")
-    private String password;
-
-    /**
-     * Default Constructor.
-     */
-    public SessionRequest() {
-        super();
-        // Default Constructor.
-    }
-
-    /**
-     * Gets the user alias.
-     *
-     * @return the user alias
-     */
-    public String getAlias() {
-        return alias;
-    }
-
-    /**
-     * Sets the user alias.
-     *
-     * @param alias the user alias
-     */
-    public void setAlias(String alias) {
-        this.alias = alias;
-    }
-
-    /**
-     * Gets the user password.
-     *
-     * @return the user password
-     */
-    public String getPassword() {
-        return password;
-    }
-
-    /**
-     * Sets the user password.
-     *
-     * @param password the user password
-     */
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    /**
-     * Returns a string representation of the session request.
-     *
-     * @return a string representation of the session request
-     */
-    @Override
-    public String toString() {
-        return "UserAccessRequest{" +
-                "alias='" + alias + '\'' +
-                ", password='" + password + '\'' +
-                '}';
-    }
-}
+public record SessionRequest(
+        @NotNull @NotEmpty String alias,
+        @NotNull @NotEmpty String password,
+        @NotNull UUID applicationId
+) {}

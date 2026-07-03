@@ -31,6 +31,9 @@ import com.umdc.commons.util.ValidatorCommonsUtil;
 import com.umdc.persistence.general.domains.UserEntity;
 import com.umdc.persistence.general.repositories.UserRepository;
 import io.jsonwebtoken.Claims;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -114,19 +117,25 @@ public class SessionServiceImpl implements SessionService {
         String sessionToken;
         ResponseEntity<SessionResponse> responseEntity;
         boolean isFieldsInvalid = false;
+        Optional<UserEntity> optionalUserEntity;
         UserEntity userEntity;
         String messageError = "";
         Map<String, String> parameters;
+        String ipAddress = extractIpAddress();
+        String userAgent = extractUserAgent();
 
         // IF User and Service linked
         if (ValidatorCommonsUtil.esNulo(sessionRequest)) {
             messageError = messageUtil.getUserSolicitudNulaVacia();
             isFieldsInvalid = true;
-        } else if (ValidatorCommonsUtil.esVacio(sessionRequest.getAlias())) {
+        } else if (ValidatorCommonsUtil.esVacio(sessionRequest.alias())) {
             messageError = messageUtil.getUserAliasNuloVacio();
             isFieldsInvalid = true;
-        } else if (ValidatorCommonsUtil.esVacio(sessionRequest.getPassword())) {
+        } else if (ValidatorCommonsUtil.esVacio(sessionRequest.password())) {
             messageError = messageUtil.getUserClaveNulaVacia();
+            isFieldsInvalid = true;
+        } else if (Objects.isNull(sessionRequest.applicationId())) {
+            messageError = INVALID_APPLICATION_ID_MSG;
             isFieldsInvalid = true;
         }
 
@@ -135,27 +144,33 @@ public class SessionServiceImpl implements SessionService {
             return responseEntity;
         }
 
-        // IF User is active
-        userEntity = userRepository.findByAlias(sessionRequest.getAlias());
-        if (Objects.isNull(userEntity)) {
+        // Lookup user scoped to the target application
+        optionalUserEntity = userRepository.findByAliasAndApplication(sessionRequest.alias(), sessionRequest.applicationId());
+        if (optionalUserEntity.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
 
+        userEntity = optionalUserEntity.get();
         if (!userEntity.getActive()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
         // Brute-force protection — check before validating password
-        if (loginAttemptService.isLocked(sessionRequest.getAlias(), null)) {
-            auditEventService.record(userEntity.getId(), null, AuditEventType.ACCOUNT_LOCKED,
-                    null, null, null);
+        if (loginAttemptService.isLocked(sessionRequest.alias(), sessionRequest.applicationId())) {
+            auditEventService.saveRecord(userEntity.getId(), sessionRequest.applicationId(), AuditEventType.ACCOUNT_LOCKED,
+                    ipAddress, userAgent, buildDescription("Account locked", sessionRequest.alias()));
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                     .body(new SessionResponse(ACCOUNT_LOCKED_MSG));
         }
 
-        // IF User and Password validated (BCrypt)
-        if (userEntity.getAlias().equals(sessionRequest.getAlias())
-                && passwordEncoder.matches(sessionRequest.getPassword(), userEntity.getPassword())) {
+        // Verify application membership, alias, and password (BCrypt)
+        var appIdMatched = userEntity.getApplicationRoleUser().stream()
+                .filter(aru -> aru.getApplication().getId().equals(sessionRequest.applicationId()))
+                .map(aru -> aru.getApplication().getId()).findFirst();
+
+        if (appIdMatched.isPresent() && appIdMatched.get().equals(sessionRequest.applicationId())
+                && userEntity.getAlias().equals(sessionRequest.alias())
+                && passwordEncoder.matches(sessionRequest.password(), userEntity.getPassword())) {
             var userAlias = loadUserAlias(userEntity.getId());
             if (Objects.nonNull(userAlias) && Objects.nonNull(userAlias.getRoles())) {
                 parameters = new ConcurrentHashMap<>();
@@ -163,16 +178,16 @@ public class SessionServiceImpl implements SessionService {
                 parameters.put(AuthKey.FIRSTNAME.value, userAlias.getFirstname());
                 parameters.put(AuthKey.LASTNAME.value, userAlias.getLastname());
                 sessionToken = generateSessionToken(sessionId, parameters);
-                loginAttemptService.recordSuccess(sessionRequest.getAlias(), null);
-                auditEventService.record(userEntity.getId(), null, AuditEventType.LOGIN_SUCCESS,
-                        null, null, null);
+                loginAttemptService.recordSuccess(sessionRequest.alias(), sessionRequest.applicationId());
+                auditEventService.saveRecord(userEntity.getId(), sessionRequest.applicationId(), AuditEventType.LOGIN_SUCCESS,
+                        ipAddress, userAgent, buildDescription("Login successful", sessionRequest.alias()));
                 String refreshToken = generateRefreshToken(userEntity.getId());
                 return ResponseEntity.ok(new SessionResponse(sessionToken, refreshToken));
             }
         }
-        loginAttemptService.recordFailure(sessionRequest.getAlias(), null);
-        auditEventService.record(userEntity.getId(), null, AuditEventType.LOGIN_FAILURE,
-                null, null, null);
+        loginAttemptService.recordFailure(sessionRequest.alias(), sessionRequest.applicationId());
+        auditEventService.saveRecord(userEntity.getId(), sessionRequest.applicationId(), AuditEventType.LOGIN_FAILURE,
+                ipAddress, userAgent, buildDescription("Login failed", sessionRequest.alias()));
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
@@ -216,7 +231,7 @@ public class SessionServiceImpl implements SessionService {
 
         // Brute-force protection — check before validating password
         if (loginAttemptService.isLocked(sessionEmailRequest.email(), sessionEmailRequest.applicationId())) {
-            auditEventService.record(userEntity.getId(), sessionEmailRequest.applicationId(),
+            auditEventService.saveRecord(userEntity.getId(), sessionEmailRequest.applicationId(),
                     AuditEventType.ACCOUNT_LOCKED, null, null, null);
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                     .body(new SessionResponse(ACCOUNT_LOCKED_MSG));
@@ -232,7 +247,7 @@ public class SessionServiceImpl implements SessionService {
 
             // IF User and Password validated (BCrypt)
             loginAttemptService.recordSuccess(sessionEmailRequest.email(), sessionEmailRequest.applicationId());
-            auditEventService.record(userEntity.getId(), sessionEmailRequest.applicationId(),
+            auditEventService.saveRecord(userEntity.getId(), sessionEmailRequest.applicationId(),
                     AuditEventType.LOGIN_SUCCESS, null, null, null);
             String newToken = generateSessionToken(userEntity.getId());
             if (Objects.isNull(newToken)) {
@@ -243,7 +258,7 @@ public class SessionServiceImpl implements SessionService {
             return ResponseEntity.ok(new SessionResponse(newToken, newRefreshToken));
         }
         loginAttemptService.recordFailure(sessionEmailRequest.email(), sessionEmailRequest.applicationId());
-        auditEventService.record(userEntity.getId(), sessionEmailRequest.applicationId(),
+        auditEventService.saveRecord(userEntity.getId(), sessionEmailRequest.applicationId(),
                 AuditEventType.LOGIN_FAILURE, null, null, null);
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
@@ -579,6 +594,34 @@ public class SessionServiceImpl implements SessionService {
             }
         }
         return userId;
+    }
+
+    private String extractIpAddress() {
+        try {
+            var attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            if (attrs == null) return null;
+            HttpServletRequest request = attrs.getRequest();
+            String forwarded = request.getHeader("X-Forwarded-For");
+            return (forwarded != null && !forwarded.isBlank())
+                    ? forwarded.split(",")[0].trim()
+                    : request.getRemoteAddr();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private String extractUserAgent() {
+        try {
+            var attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            if (attrs == null) return null;
+            return attrs.getRequest().getHeader("User-Agent");
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private String buildDescription(String action, String alias) {
+        return "{\"action\":\"" + action + "\",\"alias\":\"" + alias + "\"}";
     }
 
     /**

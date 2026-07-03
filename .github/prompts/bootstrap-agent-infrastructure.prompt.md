@@ -11,7 +11,7 @@ tools: [run_in_terminal, read_file, grep_search, file_search, create_file, inser
 You are the **Agent Infrastructure Bootstrap** assistant.
 
 Your mission: analyze the target project from scratch, then generate a complete, 
-project-adapted agent infrastructure under `.github/` — including agents, skills,
+project-adapted agent infrastructure under `.claude/` — including agents, skills,
 tools, prompts, and hooks. Every artifact must reflect the real conventions,
 tech stack, and workflows of THIS project, not a generic template.
 
@@ -64,10 +64,10 @@ find src/test -name "*.java" 2>/dev/null | head -5
 find . -name "*.test.ts" -o -name "*_test.go" -o -name "test_*.py" 2>/dev/null | head -5
 ```
 
-### 0.5 — Check Existing `.github/` Structure
+### 0.5 — Check Existing `.claude/` Structure
 
 ```bash
-find .github -type f 2>/dev/null | sort
+find .claude -type f 2>/dev/null | sort
 ```
 
 Record as a snapshot:
@@ -82,7 +82,7 @@ PROJECT SNAPSHOT
   Config system:  <detected>
   Entry point:    <detected>
   Domain modules: [list]
-  Existing .github artifacts: [list or "none"]
+  Existing .claude artifacts: [list or "none"]
 ```
 
 ---
@@ -112,7 +112,7 @@ Based on the tech stack and architecture, define which agents are needed.
 | Project has sprint/release planning | `project-manager` |
 | New/unfamiliar codebase | `repo-requirements-analyst` |
 
-For each selected agent, create `.github/agents/<agent-name>.agent.md` with:
+For each selected agent, create `.claude/agents/<agent-name>.agent.md` with:
 
 ```markdown
 ---
@@ -132,8 +132,8 @@ tools:
   - run_subagent           # orchestrator only
   - validate_cves          # security-reviewer only
 tool-docs:
-  - '.github/tools/<relevant-tool>.tool.md'
-skill-definition: '.github/skills/<agent-name>/SKILL.md'
+  - '.claude/tools/<relevant-tool>.tool.md'
+skill-definition: '.claude/skills/<agent-name>/SKILL.md'
 ---
 
 # <Agent Name>
@@ -157,7 +157,7 @@ skill-definition: '.github/skills/<agent-name>/SKILL.md'
 
 ### 2.1 — Agent-Specific Skills
 
-For each agent, create `.github/skills/<agent-name>/SKILL.md` containing:
+For each agent, create `.claude/skills/<agent-name>/SKILL.md` containing:
 
 ```markdown
 ---
@@ -189,7 +189,7 @@ applies-to: [<Agent Name>]
 
 ### 2.2 — Shared Skills (if needed)
 
-If 2+ agents share a skill area, create `.github/skills/<skill-name>.skill.md`:
+If 2+ agents share a skill area, create `.claude/skills/<skill-name>.skill.md`:
 
 ```markdown
 ---
@@ -210,7 +210,7 @@ applies-to: [<Agent1>, <Agent2>]
 ## PHASE 3 — Define Tools
 
 For each build, test, analysis, or deployment command used in this project,
-create `.github/tools/<tool-name>.tool.md`:
+create `.claude/tools/<tool-name>.tool.md`:
 
 ```markdown
 ---
@@ -253,22 +253,22 @@ cat Makefile 2>/dev/null | grep "^[a-z]" | head -20
 ls Dockerfile docker-compose.yml 2>/dev/null
 
 # CI/CD
-ls .github/workflows/*.yml 2>/dev/null
+ls .claude/workflows/*.yml 2>/dev/null
 ```
 
 **Standard tool set to consider:**
 
-| Tool file | Create when |
-|-----------|------------|
-| `<build-tool>.tool.md` | Always (Maven/npm/Gradle/make) |
-| `<test-runner>.tool.md` | Always |
-| `<lint-tool>.tool.md` | Static analysis exists |
-| `docker-build.tool.md` | Dockerfile exists |
-| `git.tool.md` | Always |
-| `github-cli.tool.md` | GitHub repo + releases |
+| Tool file                    | Create when |
+|------------------------------|------------|
+| `<build-tool>.tool.md`       | Always (Maven/npm/Gradle/make) |
+| `<test-runner>.tool.md`      | Always |
+| `<lint-tool>.tool.md`        | Static analysis exists |
+| `docker-build.tool.md`       | Dockerfile exists |
+| `git.tool.md`                | Always |
+| `claude-code.tool.md`        | GitHub repo + releases |
 | `<security-scanner>.tool.md` | Dependency audit tool exists |
-| `<api-validator>.tool.md` | OpenAPI spec exists |
-| `keytool.tool.md` | JKS keystore / SSL certs present |
+| `<api-validator>.tool.md`    | OpenAPI spec exists |
+| `keytool.tool.md`            | JKS keystore / SSL certs present |
 
 **Rule**: Remove any tool that is a duplicate of another or references a wrong command.
 
@@ -276,7 +276,7 @@ ls .github/workflows/*.yml 2>/dev/null
 
 ## PHASE 4 — Create Prompts
 
-For each repetitive agent task, create `.github/prompts/<task>.prompt.md`.
+For each repetitive agent task, create `.claude/prompts/<task>.prompt.md`.
 
 ### Frontmatter format
 
@@ -319,7 +319,7 @@ tools: [<list of required tools>]
 
 Hooks define when agents are triggered automatically based on development events.
 
-Create `.github/hooks/<event>.hook.md` for each hook:
+Create `.claude/hooks/<event>.hook.md` for each hook:
 
 ```markdown
 ---
@@ -362,12 +362,12 @@ auto-block: true/false
 Create the following catalog / index files:
 
 ```
-.github/agents/agents.md       — list of all agents, invocability, purpose
-.github/skills/skills.md       — shared skills table + agent skill folder map
-.github/tools/tools.md         — all tools, who uses them, key commands
-.github/prompts/prompts.md     — all prompts, agent, mode, trigger
-.github/hooks/hooks.md         — all hooks, trigger, blocking, lifecycle diagram
-.github/copilot-agents.md      — master index referencing all of the above
+.claude/agents/agents.md       — list of all agents, invocability, purpose
+.claude/skills/skills.md       — shared skills table + agent skill folder map
+.claude/tools/tools.md         — all tools, who uses them, key commands
+.claude/prompts/prompts.md     — all prompts, agent, mode, trigger
+.claude/hooks/hooks.md         — all hooks, trigger, blocking, lifecycle diagram
+.claude/copilot-agents.md      — master index referencing all of the above
 ```
 
 ---
@@ -378,26 +378,26 @@ After generating all artifacts, validate:
 
 ```bash
 # 1. Every agent file has: name, description, tools, skill-definition
-grep -L "skill-definition:" .github/agents/*.agent.md
+grep -L "skill-definition:" .claude/agents/*.agent.md
 
 # 2. Every skill-definition path resolves
-for f in .github/agents/*.agent.md; do
+for f in .claude/agents/*.agent.md; do
   path=$(grep "skill-definition:" "$f" | sed "s/.*: '//;s/'//")
   [ -f "$path" ] || echo "MISSING SKILL: $path (in $f)"
 done
 
 # 3. Every tool-docs path resolves
-for f in .github/agents/*.agent.md; do
-  grep "\.github/tools/" "$f" | sed "s/.*'\(.*\)'/\1/" | while read p; do
+for f in .claude/agents/*.agent.md; do
+  grep "\.claude/tools/" "$f" | sed "s/.*'\(.*\)'/\1/" | while read p; do
     [ -f "$p" ] || echo "MISSING TOOL: $p (in $f)"
   done
 done
 
 # 4. Every prompt references a valid agent
-grep -h "^agent:" .github/prompts/*.prompt.md | sort | uniq
+grep -h "^agent:" .claude/prompts/*.prompt.md | sort | uniq
 
 # 5. Every hook references valid prompt files
-grep -h "prompt.md" .github/hooks/*.hook.md | sort | uniq
+grep -h "prompt.md" .claude/hooks/*.hook.md | sort | uniq
 ```
 
 Fix any broken references before proceeding to the summary.
@@ -430,8 +430,8 @@ After completing all phases, produce this structured report:
 ### Phase 2 — Skills Created
 | File | Type | Used By |
 |------|------|---------|
-| `.github/skills/<agent>/SKILL.md` | agent-specific | <agent> |
-| `.github/skills/<name>.skill.md` | shared | <agent1>, <agent2> |
+| `.claude/skills/<agent>/SKILL.md` | agent-specific | <agent> |
+| `.claude/skills/<name>.skill.md` | shared | <agent1>, <agent2> |
 
 ### Phase 3 — Tools Created / Kept / Removed
 | Action | File | Reason |
@@ -476,12 +476,12 @@ mvn test && mvn pmd:check   # (or equivalent for this project)
 ```
 
 ### Files Created: N total
-- N agents  (.github/agents/)
-- N skills  (.github/skills/)
-- N tools   (.github/tools/)
-- N prompts (.github/prompts/)
-- N hooks   (.github/hooks/)
-- N indexes (.github/)
+- N agents  (.claude/agents/)
+- N skills  (.claude/skills/)
+- N tools   (.claude/tools/)
+- N prompts (.claude/prompts/)
+- N hooks   (.claude/hooks/)
+- N indexes (.claude/)
 ```
 
 ---

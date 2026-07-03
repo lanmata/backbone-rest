@@ -1788,20 +1788,17 @@ components:
     SessionRequest:
       type: "object"
       description: "Request body for alias+password session creation"
-      required: ["alias", "password"]
+      required: ["alias", "password", "applicationId"]
       properties:
         alias:
           type: "string"
         password:
           type: "string"
           format: "password"
-        dateTime:
-          type: ["string", "null"]
-          format: "date-time"
-        appName:
-          type: ["string", "null"]
-        appToken:
-          type: ["string", "null"]
+        applicationId:
+          type: "string"
+          format: "uuid"
+          description: "Target application context for the session"
 
     SessionEmailRequest:
       type: "object"

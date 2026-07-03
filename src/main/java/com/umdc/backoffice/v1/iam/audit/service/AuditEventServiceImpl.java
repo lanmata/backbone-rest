@@ -37,7 +37,7 @@ import java.util.UUID;
 
 /// Implementation of {@link AuditEventService}.
 /// <p>
-/// {@link #record} is annotated with {@link Async} so that audit writes never
+/// {@link #saveRecord} is annotated with {@link Async} so that audit writes never
 /// block the authentication critical path. All other methods are synchronous.
 /// </p>
 @Service
@@ -70,15 +70,22 @@ public class AuditEventServiceImpl implements AuditEventService {
         this.auditEventMapper = auditEventMapper;
     }
 
-    /// {@inheritDoc}
-    /// <p>
-    /// Executed on a separate thread from the Spring async executor so that
-    /// database I/O does not delay the login response.
-    /// </p>
+    /**
+     * {@inheritDoc}
+     * Saves an audit event record asynchronously to the database.
+     * This method logs the event details and persists the data using the audit event repository.
+     *
+     * @param userId        The unique identifier of the user associated with the event.
+     * @param applicationId The unique identifier of the application triggering the event.
+     * @param eventType     The type of the audit event being recorded.
+     * @param ipAddress     The IP address from which the event was triggered.
+     * @param userAgent     The user agent string related to the event.
+     * @param details       Additional details or metadata about the event.
+     */
     @Async
     @Override
-    public void record(UUID userId, UUID applicationId, AuditEventType eventType,
-                       String ipAddress, String userAgent, String details) {
+    public void saveRecord(UUID userId, UUID applicationId, AuditEventType eventType,
+                           String ipAddress, String userAgent, String details) {
         LOGGER.debug("Recording audit event — userId='{}', eventType='{}'", userId, eventType);
         try {
             AuditEventEntity entity = new AuditEventEntity(
@@ -92,7 +99,7 @@ public class AuditEventServiceImpl implements AuditEventService {
         }
     }
 
-    /// {@inheritDoc}
+    /** {@inheritDoc} */
     @Override
     public ResponseEntity<List<AuditEventTO>> findEvents(UUID userId, UUID applicationId,
                                                           AuditEventType eventType,

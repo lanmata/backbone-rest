@@ -10,7 +10,7 @@
  *  In any event, this notice and the above copyright must always be included
  *  verbatim with this file.
  */
-package com.umdc.backoffice.v1.iam.audit.api;
+package com.umdc.backoffice.v1.iam.audit.api.controller;
 
 import com.umdc.backoffice.v1.iam.audit.api.to.AuditEventTO;
 import com.umdc.backoffice.constant.types.AuditEventType;
@@ -47,8 +47,8 @@ public interface AuditApi {
     default AuditEventService getService() {
         return new AuditEventService() {
             @Override
-            public void record(UUID userId, UUID applicationId, AuditEventType eventType,
-                               String ipAddress, String userAgent, String details) {
+            public void saveRecord(UUID userId, UUID applicationId, AuditEventType eventType,
+                                   String ipAddress, String userAgent, String details) {
                 // no-op default
             }
 
@@ -62,17 +62,20 @@ public interface AuditApi {
         };
     }
 
-    /// Retrieves a paginated list of audit events filtered by the supplied
-    /// optional query parameters.
-    ///
-    /// @param userId        optional user UUID filter
-    /// @param applicationId optional application UUID filter
-    /// @param eventType     optional event-type filter (e.g. {@code LOGIN_SUCCESS})
-    /// @param from          optional ISO-8601 lower bound on {@code occurredAt}
-    /// @param to            optional ISO-8601 upper bound on {@code occurredAt}
-    /// @param page          zero-based page index (default 0)
-    /// @param size          page size (default 20)
-    /// @return a {@link ResponseEntity} containing the list of matching events
+    /**
+     * Retrieves a paginated list of security audit events based on optional filtering criteria.
+     * Omitting a filter parameter will disable filtering on that dimension.
+     *
+     * @param userId        Optional identifier of the user who triggered the events to filter by.
+     * @param applicationId Optional identifier of the application context to filter by.
+     * @param eventType     Optional event type to filter by (case-insensitive).
+     * @param from          Optional lower bound on the occurrence timestamp of events.
+     * @param to            Optional upper bound on the occurrence timestamp of events.
+     * @param page          Zero-based index of the page to retrieve (default is 0).
+     * @param size          Number of events per page (default is 20).
+     * @return A {@link ResponseEntity} containing a list of {@link AuditEventTO} objects that match the filters,
+     *         or an appropriate HTTP status code if no events match or there is an error.
+     */
     @Operation(
             summary = "Query audit events",
             description = "Returns a paginated list of security audit events. All query parameters are optional; "

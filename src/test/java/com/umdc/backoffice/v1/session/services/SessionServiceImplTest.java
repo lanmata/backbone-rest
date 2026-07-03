@@ -77,6 +77,8 @@ class SessionServiceImplTest {
                 userRepository, passwordEncoder, jtiDenyListService, loginAttemptService, auditEventService);
     }
 
+    // ── loadSession(SessionRequest) ──────────────────────────────────────────
+
     @Test
     void testLoadSession_NullRequest() {
         when(messageUtil.getUserSolicitudNulaVacia()).thenReturn("Request is null or empty");
@@ -90,9 +92,7 @@ class SessionServiceImplTest {
 
     @Test
     void testLoadSession_EmptyAlias() {
-        SessionRequest request = new SessionRequest();
-        request.setAlias("");
-        request.setPassword("password");
+        SessionRequest request = new SessionRequest("", "password", UUID.randomUUID());
 
         when(messageUtil.getUserAliasNuloVacio()).thenReturn("Alias is null or empty");
 
@@ -105,9 +105,7 @@ class SessionServiceImplTest {
 
     @Test
     void testLoadSession_EmptyPassword() {
-        SessionRequest request = new SessionRequest();
-        request.setAlias("testAlias");
-        request.setPassword("");
+        SessionRequest request = new SessionRequest("testAlias", "", UUID.randomUUID());
 
         when(messageUtil.getUserClaveNulaVacia()).thenReturn("Password is null or empty");
 
@@ -119,12 +117,22 @@ class SessionServiceImplTest {
     }
 
     @Test
-    void testLoadSession_UserNotFound() {
-        SessionRequest request = new SessionRequest();
-        request.setAlias("testAlias");
-        request.setPassword("password");
+    void testLoadSession_NullApplicationId() {
+        SessionRequest request = new SessionRequest("testAlias", "password", null);
 
-        when(userRepository.findByAlias("testAlias")).thenReturn(null);
+        ResponseEntity<SessionResponse> response = sessionService.loadSession(request);
+
+        assertEquals(HttpStatus.NOT_ACCEPTABLE, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals("Invalid application ID", response.getBody().getToken());
+    }
+
+    @Test
+    void testLoadSession_UserNotFound() {
+        UUID appId = UUID.randomUUID();
+        SessionRequest request = new SessionRequest("testAlias", "password", appId);
+
+        when(userRepository.findByAliasAndApplication("testAlias", appId)).thenReturn(Optional.empty());
 
         ResponseEntity<SessionResponse> response = sessionService.loadSession(request);
 
@@ -133,16 +141,15 @@ class SessionServiceImplTest {
 
     @Test
     void testLoadSession_UserInactive() {
-        SessionRequest request = new SessionRequest();
-        request.setAlias("testAlias");
-        request.setPassword("password");
+        UUID appId = UUID.randomUUID();
+        SessionRequest request = new SessionRequest("testAlias", "password", appId);
 
         UserEntity userEntity = new UserEntity();
         userEntity.setAlias("testAlias");
         userEntity.setPassword("password");
         userEntity.setActive(false);
 
-        when(userRepository.findByAlias("testAlias")).thenReturn(userEntity);
+        when(userRepository.findByAliasAndApplication("testAlias", appId)).thenReturn(Optional.of(userEntity));
 
         ResponseEntity<SessionResponse> response = sessionService.loadSession(request);
 
@@ -151,17 +158,22 @@ class SessionServiceImplTest {
 
     @Test
     void testLoadSession_WrongPassword() {
-        SessionRequest request = new SessionRequest();
-        request.setAlias("testAlias");
-        request.setPassword("wrongPassword");
+        UUID appId = UUID.randomUUID();
+        SessionRequest request = new SessionRequest("testAlias", "wrongPassword", appId);
+
+        ApplicationEntity applicationEntity = new ApplicationEntity();
+        applicationEntity.setId(appId);
+        ApplicationRoleUserEntity applicationRoleUser = new ApplicationRoleUserEntity();
+        applicationRoleUser.setApplication(applicationEntity);
 
         UserEntity userEntity = new UserEntity();
+        userEntity.setId(UUID.randomUUID());
         userEntity.setAlias("testAlias");
         userEntity.setPassword("correctPassword");
         userEntity.setActive(true);
-        userEntity.setId(UUID.randomUUID());
+        userEntity.setApplicationRoleUser(Set.of(applicationRoleUser));
 
-        when(userRepository.findByAlias("testAlias")).thenReturn(userEntity);
+        when(userRepository.findByAliasAndApplication("testAlias", appId)).thenReturn(Optional.of(userEntity));
 
         ResponseEntity<SessionResponse> response = sessionService.loadSession(request);
 
@@ -170,16 +182,21 @@ class SessionServiceImplTest {
 
     @Test
     void testLoadSession_Success() {
-        SessionRequest request = new SessionRequest();
-        request.setAlias("testAlias");
-        request.setPassword("password");
-
+        UUID appId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
+        SessionRequest request = new SessionRequest("testAlias", "password", appId);
+
+        ApplicationEntity applicationEntity = new ApplicationEntity();
+        applicationEntity.setId(appId);
+        ApplicationRoleUserEntity applicationRoleUser = new ApplicationRoleUserEntity();
+        applicationRoleUser.setApplication(applicationEntity);
+
         UserEntity userEntity = new UserEntity();
         userEntity.setId(userId);
         userEntity.setAlias("testAlias");
-        userEntity.setPassword("password");
+        userEntity.setPassword("encodedPassword");
         userEntity.setActive(true);
+        userEntity.setApplicationRoleUser(Set.of(applicationRoleUser));
 
         UserEntity userInfo = new UserEntity();
         UserTO userTO = new UserTO();
@@ -188,11 +205,11 @@ class SessionServiceImplTest {
         userAliasTO.setFirstname("John");
         userAliasTO.setLastname("Doe");
 
-        when(userRepository.findByAlias("testAlias")).thenReturn(userEntity);
+        when(userRepository.findByAliasAndApplication("testAlias", appId)).thenReturn(Optional.of(userEntity));
         when(userRepository.findUserInfo(userId)).thenReturn(userInfo);
         when(userMapper.toTarget(userInfo)).thenReturn(userTO);
         when(userAliasMapper.toTarget(userTO)).thenReturn(userAliasTO);
-        when(passwordEncoder.matches("password", "password")).thenReturn(true);
+        when(passwordEncoder.matches("password", "encodedPassword")).thenReturn(true);
 
         ResponseEntity<SessionResponse> response = sessionService.loadSession(request);
 
@@ -203,24 +220,68 @@ class SessionServiceImplTest {
 
     @Test
     void testLoadSession_UserAliasNull() {
-        SessionRequest request = new SessionRequest();
-        request.setAlias("testAlias");
-        request.setPassword("password");
-
+        UUID appId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
+        SessionRequest request = new SessionRequest("testAlias", "password", appId);
+
+        ApplicationEntity applicationEntity = new ApplicationEntity();
+        applicationEntity.setId(appId);
+        ApplicationRoleUserEntity applicationRoleUser = new ApplicationRoleUserEntity();
+        applicationRoleUser.setApplication(applicationEntity);
+
         UserEntity userEntity = new UserEntity();
         userEntity.setId(userId);
         userEntity.setAlias("testAlias");
-        userEntity.setPassword("password");
+        userEntity.setPassword("encodedPassword");
         userEntity.setActive(true);
+        userEntity.setApplicationRoleUser(Set.of(applicationRoleUser));
 
-        when(userRepository.findByAlias("testAlias")).thenReturn(userEntity);
+        when(userRepository.findByAliasAndApplication("testAlias", appId)).thenReturn(Optional.of(userEntity));
+        when(passwordEncoder.matches("password", "encodedPassword")).thenReturn(true);
         when(userRepository.findUserInfo(userId)).thenReturn(null);
 
         ResponseEntity<SessionResponse> response = sessionService.loadSession(request);
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
+
+    @Test
+    void testLoadSession_WithRolesNull() {
+        UUID appId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        SessionRequest request = new SessionRequest("testAlias", "password", appId);
+
+        ApplicationEntity applicationEntity = new ApplicationEntity();
+        applicationEntity.setId(appId);
+        ApplicationRoleUserEntity applicationRoleUser = new ApplicationRoleUserEntity();
+        applicationRoleUser.setApplication(applicationEntity);
+
+        UserEntity userEntity = new UserEntity();
+        userEntity.setId(userId);
+        userEntity.setAlias("testAlias");
+        userEntity.setPassword("encodedPassword");
+        userEntity.setActive(true);
+        userEntity.setApplicationRoleUser(Set.of(applicationRoleUser));
+
+        UserEntity userInfo = new UserEntity();
+        UserTO userTO = new UserTO();
+        UserAliasTO userAliasTO = new UserAliasTO();
+        userAliasTO.setRoles(null);
+        userAliasTO.setFirstname("John");
+        userAliasTO.setLastname("Doe");
+
+        when(userRepository.findByAliasAndApplication("testAlias", appId)).thenReturn(Optional.of(userEntity));
+        when(passwordEncoder.matches("password", "encodedPassword")).thenReturn(true);
+        when(userRepository.findUserInfo(userId)).thenReturn(userInfo);
+        when(userMapper.toTarget(userInfo)).thenReturn(userTO);
+        when(userAliasMapper.toTarget(userTO)).thenReturn(userAliasTO);
+
+        ResponseEntity<SessionResponse> response = sessionService.loadSession(request);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    // ── loadSession(SessionEmailRequest) ────────────────────────────────────
 
     @Test
     void testLoadSessionEmail_NullRequest() {
@@ -366,6 +427,8 @@ class SessionServiceImplTest {
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 
+    // ── Token operations ─────────────────────────────────────────────────────
+
     @Test
     void testGenerateSessionToken() {
         Map<String, String> parameters = new HashMap<>();
@@ -376,7 +439,7 @@ class SessionServiceImplTest {
         String token = sessionService.generateSessionToken("testUser", parameters);
 
         assertNotNull(token);
-        assertTrue(token.split("\\.").length == 3);
+        assertEquals(3, token.split("\\.").length);
     }
 
     @Test
@@ -384,7 +447,7 @@ class SessionServiceImplTest {
         String token = sessionService.generateSessionToken("testUser", null);
 
         assertNotNull(token);
-        assertTrue(token.split("\\.").length == 3);
+        assertEquals(3, token.split("\\.").length);
     }
 
     @Test
@@ -392,7 +455,7 @@ class SessionServiceImplTest {
         String token = sessionService.generateSessionToken("testUser", new HashMap<>());
 
         assertNotNull(token);
-        assertTrue(token.split("\\.").length == 3);
+        assertEquals(3, token.split("\\.").length);
     }
 
     @Test
@@ -438,34 +501,79 @@ class SessionServiceImplTest {
     }
 
     @Test
-    void testLoadSession_WithRolesNull() {
-        SessionRequest request = new SessionRequest();
-        request.setAlias("testAlias");
-        request.setPassword("password");
+    void testGenerateSessionToken_WithAllParameters() {
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("roles_id", "[UUID1,UUID2]");
+        parameters.put("firstname", "Jane");
+        parameters.put("lastname", "Smith");
+        parameters.put("alias", "jsmith");
+        parameters.put("user_id", UUID.randomUUID().toString());
 
-        UUID userId = UUID.randomUUID();
-        UserEntity userEntity = new UserEntity();
-        userEntity.setId(userId);
-        userEntity.setAlias("testAlias");
-        userEntity.setPassword("password");
-        userEntity.setActive(true);
+        String token = sessionService.generateSessionToken("jsmith", parameters);
 
-        UserEntity userInfo = new UserEntity();
-        UserTO userTO = new UserTO();
-        UserAliasTO userAliasTO = new UserAliasTO();
-        userAliasTO.setRoles(null); // Null roles
-        userAliasTO.setFirstname("John");
-        userAliasTO.setLastname("Doe");
+        assertNotNull(token);
+        assertFalse(token.isEmpty());
+        assertEquals(3, token.split("\\.").length);
 
-        when(userRepository.findByAlias("testAlias")).thenReturn(userEntity);
-        when(userRepository.findUserInfo(userId)).thenReturn(userInfo);
-        when(userMapper.toTarget(userInfo)).thenReturn(userTO);
-        when(userAliasMapper.toTarget(userTO)).thenReturn(userAliasTO);
-
-        ResponseEntity<SessionResponse> response = sessionService.loadSession(request);
-
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        Claims claims = sessionService.getTokenClaims(token);
+        assertEquals("jsmith", claims.getSubject());
+        assertTrue(claims.containsKey("roles_id"));
+        assertTrue(claims.containsKey("firstname"));
     }
+
+    @Test
+    void testGetUsernameFromToken_ValidToken() {
+        Map<String, String> params = new HashMap<>();
+        params.put("test", "value");
+        String token = sessionService.generateSessionToken("testuser123", params);
+
+        String username = sessionService.getUsernameFromToken(token);
+
+        assertEquals("testuser123", username);
+    }
+
+    @Test
+    void revokeToken_validToken_returns204() {
+        String token = sessionService.generateSessionToken("testUser", null);
+
+        ResponseEntity<Void> response = sessionService.revokeToken(token);
+
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        verify(jtiDenyListService, times(1)).denyJti(anyString(), anyLong());
+    }
+
+    @Test
+    void revokeToken_invalidToken_returns400() {
+        ResponseEntity<Void> responseNull = sessionService.revokeToken(null);
+        ResponseEntity<Void> responseEmpty = sessionService.revokeToken("");
+
+        assertEquals(HttpStatus.BAD_REQUEST, responseNull.getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST, responseEmpty.getStatusCode());
+    }
+
+    @Test
+    void isValid_returnsFalse_whenJtiIsDenied() {
+        when(jtiDenyListService.isDenied(any(String.class))).thenReturn(true);
+        String token = sessionService.generateSessionToken("testUser", null);
+
+        boolean result = sessionService.isValid(token);
+
+        assertFalse(result);
+    }
+
+    @Test
+    void generateSessionToken_containsIssAndAud() {
+        when(jwtConfigProperties.getIssuer()).thenReturn("test-issuer");
+        when(jwtConfigProperties.getAudience()).thenReturn("test-audience");
+
+        String token = sessionService.generateSessionToken("testUser", null);
+        Claims claims = sessionService.getTokenClaims(token);
+
+        assertEquals("test-issuer", claims.getIssuer());
+        assertTrue(claims.getAudience().contains("test-audience"));
+    }
+
+    // ── Email flow — additional edge cases ───────────────────────────────────
 
     @Test
     void testLoadSessionEmail_WrongEmail() {
@@ -487,7 +595,7 @@ class SessionServiceImplTest {
         SessionEmailRequest request = new SessionEmailRequest("test@example.com", "password", appId);
 
         ApplicationEntity applicationEntity = new ApplicationEntity();
-        applicationEntity.setId(differentAppId); // Different app ID
+        applicationEntity.setId(differentAppId);
 
         ApplicationRoleUserEntity applicationRoleUser = new ApplicationRoleUserEntity();
         applicationRoleUser.setApplication(applicationEntity);
@@ -505,92 +613,4 @@ class SessionServiceImplTest {
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
-
-    @Test
-    void testGenerateSessionToken_WithAllParameters() {
-        Map<String, String> parameters = new HashMap<>();
-        parameters.put("roles_id", "[UUID1,UUID2]");
-        parameters.put("firstname", "Jane");
-        parameters.put("lastname", "Smith");
-        parameters.put("alias", "jsmith");
-        parameters.put("user_id", UUID.randomUUID().toString());
-
-        String token = sessionService.generateSessionToken("jsmith", parameters);
-
-        assertNotNull(token);
-        assertTrue(token.length() > 0);
-        assertTrue(token.split("\\.").length == 3);
-
-        Claims claims = sessionService.getTokenClaims(token);
-        assertEquals("jsmith", claims.getSubject());
-        assertTrue(claims.containsKey("roles_id"));
-        assertTrue(claims.containsKey("firstname"));
-    }
-
-    @Test
-    void testGetUsernameFromToken_ValidToken() {
-        Map<String, String> params = new HashMap<>();
-        params.put("test", "value");
-        String token = sessionService.generateSessionToken("testuser123", params);
-
-        String username = sessionService.getUsernameFromToken(token);
-
-        assertEquals("testuser123", username);
-    }
-
-    @Test
-    void revokeToken_validToken_returns204() {
-        // Arrange
-        String token = sessionService.generateSessionToken("testUser", null);
-
-        // Act
-        ResponseEntity<Void> response = sessionService.revokeToken(token);
-
-        // Assert
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-        verify(jtiDenyListService, times(1)).denyJti(anyString(), anyLong());
-    }
-
-    @Test
-    void revokeToken_invalidToken_returns400() {
-        // Act — null token
-        ResponseEntity<Void> responseNull = sessionService.revokeToken(null);
-        // Act — empty token
-        ResponseEntity<Void> responseEmpty = sessionService.revokeToken("");
-
-        // Assert
-        assertEquals(HttpStatus.BAD_REQUEST, responseNull.getStatusCode());
-        assertEquals(HttpStatus.BAD_REQUEST, responseEmpty.getStatusCode());
-    }
-
-    @Test
-    void isValid_returnsFalse_whenJtiIsDenied() {
-        // Arrange — mock deny-list to deny any JTI
-        when(jtiDenyListService.isDenied(any(String.class))).thenReturn(true);
-        String token = sessionService.generateSessionToken("testUser", null);
-
-        // Act
-        boolean result = sessionService.isValid(token);
-
-        // Assert
-        assertFalse(result);
-    }
-
-    @Test
-    void generateSessionToken_containsIssAndAud() {
-        // Arrange
-        when(jwtConfigProperties.getIssuer()).thenReturn("test-issuer");
-        when(jwtConfigProperties.getAudience()).thenReturn("test-audience");
-
-        // Act
-        String token = sessionService.generateSessionToken("testUser", null);
-        Claims claims = sessionService.getTokenClaims(token);
-
-        // Assert
-        assertEquals("test-issuer", claims.getIssuer());
-        assertTrue(claims.getAudience().contains("test-audience"));
-    }
-
 }
-
-
