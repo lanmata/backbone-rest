@@ -1,0 +1,47 @@
+# Changelog
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+- **Cloudflare R2 Integration**: Implemented Cloudflare R2 storage for profile images
+  - Added `CloudflareR2Properties` configuration class for R2 settings
+  - Created `CloudflareR2StorageClient` component for S3-compatible operations
+  - Added AWS SDK S3 dependency (v2.21.0) for R2 integration
+  - Added comprehensive test suite for R2 storage operations
+  - Created `CLOUDFLARE_R2_SETUP.md` documentation for setup and configuration
+- Updated `ProfileImageServiceImpl` to use Cloudflare R2 instead of local file storage
+- Added automatic image type detection (JPEG, PNG, GIF, WebP)
+- Added R2 configuration to `bootstrap.yml` with environment variable support
+- Created `AuthKey` enum to represent the authentication keys.
+- Created `MapperAppConfig` interface for Mapper configuration.
+- Created `SessionController`, `SessionRequest`, and `SessionResponse` classes for the session API operations.
+- Created `SessionService` interface and `SessionServiceImpl` class.
+- Created `CHANGELOG`.
+
+### Changed
+- Migrated profile image storage from local filesystem to Cloudflare R2
+- Updated profile image upload to return public CDN URLs
+- Refactored `enums` package to `constant` package.
+- Refactored `RolMessageKey` to `RoleMessageKey` enum.
+- Updated Spring Boot from 3.3.4 to 3.3.5.
+
+### Dependencies
+- Added `software.amazon.awssdk:s3:2.21.0` for Cloudflare R2 compatibility
+
+### Configuration
+- Added required environment variables:
+  - `CLOUDFLARE_R2_ACCOUNT_ID`
+  - `CLOUDFLARE_R2_ENDPOINT`
+  - `CLOUDFLARE_R2_ACCESS_KEY`
+  - `CLOUDFLARE_R2_SECRET_KEY`
+  - `CLOUDFLARE_R2_BUCKET_NAME`
+  - `CLOUDFLARE_R2_PUBLIC_URL` (optional)
+
+### Documentation
+- Added comprehensive R2 setup guide in `CLOUDFLARE_R2_SETUP.md`
+- Documented API endpoints, storage structure, and troubleshooting
+
