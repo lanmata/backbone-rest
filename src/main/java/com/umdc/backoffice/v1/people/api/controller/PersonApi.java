@@ -50,7 +50,7 @@ public interface PersonApi {
     @ApiResponses(value = {
         @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "Person created")
     })
-    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/")
+    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     default ResponseEntity<Person> create(@Parameter(description = "Request to create a person", required = true)
                                           @RequestBody final PersonRequest personRequest) {
         return getService().create(personRequest.getPerson());
@@ -101,7 +101,7 @@ public interface PersonApi {
             @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "OK"),
             @ApiResponse(responseCode = HttpStatusUtil.NOT_FOUND_STR, description = "Person not found")
     })
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/")
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     default ResponseEntity<List<Person>> list() {
         return getService().list((UUID) null);
     }
