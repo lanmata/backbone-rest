@@ -12,7 +12,6 @@
  */
 package com.umdc.backoffice.v1.roles.service;
 
-import com.umdc.backoffice.v1.features.mapper.FeatureMapper;
 import com.umdc.backoffice.v1.features.mapper.decorator.FeatureMapperUtil;
 import com.umdc.backoffice.v1.features.service.FeatureService;
 import com.umdc.backoffice.v1.roles.mapper.RoleMapper;
@@ -22,6 +21,7 @@ import com.umdc.persistence.general.domains.FeatureEntity;
 import com.umdc.persistence.general.domains.RoleEntity;
 import com.umdc.persistence.general.domains.RoleFeatureEntity;
 import com.umdc.persistence.general.domains.RoleFeaturePK;
+import com.umdc.persistence.general.repositories.FeatureRepository;
 import com.umdc.persistence.general.repositories.RoleFeatureRepository;
 import com.umdc.persistence.general.repositories.RoleRepository;
 import jakarta.validation.constraints.NotNull;
@@ -64,7 +64,7 @@ class RoleServiceImplTest {
     private RoleMapper roleMapper;
 
     @Mock
-    private FeatureMapper featureMapper;
+    private FeatureRepository featureRepository;
 
     @Mock
     private RoleRepository roleRepository;
@@ -291,7 +291,7 @@ class RoleServiceImplTest {
         roleFeatureEntity.setRole(roleEntity);
         roleFeatureEntity.setFeature(featureEntity);
 
-        Mockito.doReturn(featureEntity).when(featureMapper).toSource(ArgumentMatchers.any(Feature.class));
+        Mockito.when(featureRepository.findById(ArgumentMatchers.any(UUID.class))).thenReturn(Optional.of(featureEntity));
         Mockito.doReturn(roleEntity.getRoleFeatures()).when(featureMapperUtil).toRoleFeatureEntity(ArgumentMatchers.anyList());
         Mockito.doReturn(roleEntity).when(roleMapper).toSource(ArgumentMatchers.any(Role.class));
         Mockito.when(roleRepository.save(ArgumentMatchers.any(RoleEntity.class))).thenReturn(roleEntity);

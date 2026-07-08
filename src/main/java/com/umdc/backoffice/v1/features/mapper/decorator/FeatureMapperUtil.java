@@ -76,8 +76,8 @@ public class FeatureMapperUtil {
 				final var roleFeatureEntity = new RoleFeatureEntity();
 				final var featureEntity = new FeatureEntity();
 				featureEntity.setId(feature.getId());
-				featureEntity.setName(featureEntity.getName());
-				featureEntity.setDescription(featureEntity.getDescription());
+				featureEntity.setName(feature.getName());
+				featureEntity.setDescription(feature.getDescription());
 				featureEntity.setActive(feature.getActive());
 				roleFeatureEntity.setFeature(featureEntity);
 				rolFeatureEntities.add(roleFeatureEntity);

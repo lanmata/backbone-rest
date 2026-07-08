@@ -140,7 +140,11 @@ session-token: <token>
   "role": {
     "name": "SUPPORT",
     "description": "Customer support agent",
-    "active": true
+    "active": true,
+    "features": [
+      { "id": "feat-uuid-1" },
+      { "id": "feat-uuid-2" }
+    ]
   }
 }
 ```
@@ -150,14 +154,61 @@ session-token: <token>
 | `role.name` | `string` | ✅ | Unique role name (convention: UPPERCASE) |
 | `role.description` | `string` | — | Human-readable description |
 | `role.active` | `boolean` | — | Whether the role is active |
+| `role.features` | `Feature[]` | — | Existing features to link at creation time; only `id` is required per entry |
 
-**Response `200 OK`:** The created `Role` object with generated `id`.
+**Create Role Flow:**
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant RoleApi
+    participant RoleServiceImpl
+    participant RoleRepository
+    participant FeatureRepository
+    participant RoleFeatureRepository
+
+    Client->>RoleApi: POST /api/v1/roles/ {role}
+
+    alt role is null
+        RoleServiceImpl-->>Client: 400 Bad Request
+    end
+
+    RoleApi->>RoleServiceImpl: create(role)
+    RoleServiceImpl->>RoleServiceImpl: roleMapper.toSource(role)
+
+    alt mapping returns null
+        RoleServiceImpl-->>Client: 422 Unprocessable Content
+    end
+
+    RoleServiceImpl->>RoleRepository: save(roleEntity) [features cleared]
+    RoleRepository-->>RoleServiceImpl: savedRoleEntity
+
+    alt role.features is not empty
+        loop for each feature
+            RoleServiceImpl->>FeatureRepository: findById(feature.id)
+            FeatureRepository-->>RoleServiceImpl: featureEntity (fully loaded)
+            RoleServiceImpl->>RoleServiceImpl: build RoleFeatureEntity (role + feature + active=true)
+        end
+        RoleServiceImpl->>RoleFeatureRepository: saveAll(roleFeatureEntities)
+        RoleFeatureRepository-->>RoleServiceImpl: persisted links
+        RoleServiceImpl->>RoleServiceImpl: roleEntity.setRoleFeatures(links)
+    end
+
+    RoleServiceImpl->>RoleServiceImpl: roleMapper.toTarget(roleEntity)
+    RoleServiceImpl-->>Client: 201 Created {Role with features}
+```
+
+> **Note:** Features must already exist in the system before being referenced here.
+> Only the feature `id` is required; name and description are resolved from the database.
+
+**Response `201 Created`:** The created `Role` object with generated `id` and linked features.
 
 **Error Responses:**
 
 | Code | Description |
 |------|-------------|
 | `400 Bad Request` | Role object is null |
+| `422 Unprocessable Content` | Role payload could not be mapped |
 
 ---
 
@@ -375,20 +426,38 @@ Design features around **actions on resources**, not UI screens:
 
 ```
 1. Create Features
-   POST /api/v1/features/  { "feature": { "name": "MANAGE_USERS", ... } }
-   POST /api/v1/features/  { "feature": { "name": "VIEW_REPORTS", ... } }
+   POST /api/v1/features/  { "feature": { "name": "MANAGE_USERS", "description": "...", "active": true } }
+   POST /api/v1/features/  { "feature": { "name": "VIEW_REPORTS",  "description": "...", "active": true } }
+   → note the returned "id" values for use in step 2
 
-2. Create Roles
-   POST /api/v1/roles/  { "role": { "name": "ADMIN", ... } }
-   POST /api/v1/roles/  { "role": { "name": "SUPPORT", ... } }
+2. Create Roles (with features linked inline)
+   POST /api/v1/roles/
+   {
+     "role": {
+       "name": "ADMIN",
+       "description": "Full access administrator",
+       "active": true,
+       "features": [
+         { "id": "<manage_users_id>" },
+         { "id": "<view_reports_id>" }
+       ]
+     }
+   }
 
-3. Link Features to Roles (via persistence layer / DB migration)
-   INSERT INTO role_feature (role_id, feature_id) VALUES (admin_id, manage_users_id);
-   INSERT INTO role_feature (role_id, feature_id) VALUES (admin_id, view_reports_id);
-   INSERT INTO role_feature (role_id, feature_id) VALUES (support_id, view_reports_id);
+   POST /api/v1/roles/
+   {
+     "role": {
+       "name": "SUPPORT",
+       "description": "Read-only support agent",
+       "active": true,
+       "features": [
+         { "id": "<view_reports_id>" }
+       ]
+     }
+   }
 
-4. Assign Roles to Users (via user creation or link endpoint)
-   POST /api/v1/users  { ..., "roleId": admin_role_id, "applicationId": ... }
+3. Assign Roles to Users (via user creation or link endpoint)
+   POST /api/v1/users  { ..., "roleId": "<admin_role_id>", "applicationId": "..." }
 ```
 
 ---
