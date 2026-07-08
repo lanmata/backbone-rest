@@ -12,8 +12,8 @@
  */
 package com.umdc.backoffice.v1.roles.service;
 
-import com.umdc.backoffice.v1.features.mapper.FeatureMapper;
 import com.umdc.backoffice.v1.roles.mapper.RoleMapper;
+import com.umdc.persistence.general.repositories.FeatureRepository;
 import com.umdc.commons.general.pojo.Feature;
 import com.umdc.commons.general.pojo.Role;
 import com.umdc.persistence.general.domains.RoleEntity;
@@ -43,14 +43,14 @@ public class RoleServiceImpl implements RoleService {
     private final RoleRepository roleRepository;
     private final RoleFeatureRepository roleFeatureRepository;
     private final RoleMapper roleMapper;
-    private final FeatureMapper featureMapper;
+    private final FeatureRepository featureRepository;
 
     public RoleServiceImpl(RoleRepository roleRepository, RoleFeatureRepository roleFeatureRepository,
-                           RoleMapper roleMapper, FeatureMapper featureMapper) {
+                           RoleMapper roleMapper, FeatureRepository featureRepository) {
         this.roleRepository = roleRepository;
         this.roleFeatureRepository = roleFeatureRepository;
         this.roleMapper = roleMapper;
-        this.featureMapper = featureMapper;
+        this.featureRepository = featureRepository;
     }
 
     /**
@@ -109,15 +109,11 @@ public class RoleServiceImpl implements RoleService {
         var roleEntity = roleMapper.toSource(role);
         if (null == roleEntity) {
             LOGGER.warn("Role with content bad.");
-            return ResponseEntity.unprocessableEntity().build();
+            return ResponseEntity.unprocessableContent().build();
         }
         roleEntity.setRoleFeatures(null);
         var roleEntityResult = roleRepository.save(roleEntity);
         LOGGER.info("Role created.");
-        if (Objects.nonNull(role.getFeatures()) && !role.getFeatures().isEmpty()) {
-            roleEntityResult.setRoleFeatures(updateRoleFeatureLink(role.getFeatures(), roleEntityResult));
-            LOGGER.info("Role & features references created.");
-        }
         return new ResponseEntity<>(roleMapper.toTarget(roleEntityResult), HttpStatus.CREATED);
     }
 
@@ -140,7 +136,7 @@ public class RoleServiceImpl implements RoleService {
         } else {
             roleResponseEntity = ResponseEntity.notFound().build();
         }
-        LOGGER.info(roleResponseEntity.getStatusCode() + "| Rol {}", role);
+        LOGGER.info("{}| Rol {}", roleResponseEntity.getStatusCode() , role);
         return roleResponseEntity;
     }
 
@@ -167,7 +163,7 @@ public class RoleServiceImpl implements RoleService {
                 roleFeaturePk.setFeatureId(feature.getId());
                 roleFeaturePk.setRoleId(roleEntity.getId());
                 roleFeatureEntity.setRoleFeaturePK(roleFeaturePk);
-                roleFeatureEntity.setFeature(featureMapper.toSource(feature));
+                roleFeatureEntity.setFeature(featureRepository.findById(feature.getId()).orElseThrow());
                 roleFeatureEntity.setRole(roleEntity);
                 roleFeatureEntity.setActive(true);
                 roleFeatureEntities.add(roleFeatureEntity);
@@ -175,24 +171,6 @@ public class RoleServiceImpl implements RoleService {
             roleFeatureRepository.saveAll(roleFeatureEntities);
             roleEntity.setRoleFeatures(roleFeatureEntities);
         }
-    }
-
-    private Set<RoleFeatureEntity> updateRoleFeatureLink(List<Feature> features, RoleEntity roleEntity) {
-        var roleFeatureEntities = new HashSet<RoleFeatureEntity>();
-        features.forEach(feature -> {
-            var featureEntity = featureMapper.toSource(feature);
-            var roleFeaturePk = new RoleFeaturePK();
-            var roleFeatureEntity = new RoleFeatureEntity();
-            roleFeatureEntity.setActive(true);
-            roleFeatureEntity.setRole(roleEntity);
-            roleFeatureEntity.setFeature(featureEntity);
-            roleFeaturePk.setRoleId(roleEntity.getId());
-            roleFeaturePk.setFeatureId(featureEntity.getId());
-            roleFeatureEntity.setRoleFeaturePK(roleFeaturePk);
-            roleFeatureEntities.add(roleFeatureEntity);
-        });
-        roleFeatureRepository.saveAll(roleFeatureEntities);
-        return roleFeatureEntities;
     }
 
     private Optional<List<Role>> getRoleList(Optional<List<RoleEntity>> optionalRoleEntityList) {

@@ -111,7 +111,7 @@ public interface RoleApi {
             @ApiResponse(responseCode = HttpStatusUtil.BAD_REQUEST_STR, description = "Role null.")
     })
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/")
-    default ResponseEntity<Role> create(RoleRequest roleCreateRequest){
+    default ResponseEntity<Role> create(@RequestBody RoleRequest roleCreateRequest){
         return getService().create(roleCreateRequest.getRole());
     }
 
