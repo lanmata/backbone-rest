@@ -106,7 +106,7 @@ public interface FeatureApi {
             @ApiResponse(responseCode = HttpStatusUtil.CREATED_STR, description = "OK"),
             @ApiResponse(responseCode = HttpStatusUtil.NOT_ACCEPTABLE_STR, description = "NOT ACCEPTABLE")
     })
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE, path = "/")
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     default ResponseEntity<Feature> create(@Parameter(description = "Feature properties", required = true) @RequestBody FeatureRequest featureRequest) {
         return getService().create(featureRequest.getFeature());
     }
