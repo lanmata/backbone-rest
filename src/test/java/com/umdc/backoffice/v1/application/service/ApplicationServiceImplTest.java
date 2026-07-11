@@ -18,164 +18,61 @@ import com.umdc.commons.general.pojo.Application;
 import com.umdc.persistence.general.domains.ApplicationEntity;
 import com.umdc.persistence.general.repositories.ApplicationRepository;
 import org.apache.commons.lang.NotImplementedException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 class ApplicationServiceImplTest {
 
-    @Test
-    @DisplayName("Create application successfully")
-    void createApplicationSuccessfully() {
-        ApplicationRepository applicationRepository = mock(ApplicationRepository.class);
-        ApplicationMapper applicationMapper = mock(ApplicationMapper.class);
-        ApplicationServiceImpl applicationService = new ApplicationServiceImpl(applicationRepository, applicationMapper);
+    @Mock
+    private ApplicationRepository applicationRepository;
 
+    @Mock
+    private ApplicationMapper applicationMapper;
+
+    private ApplicationServiceImpl applicationService;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+        applicationService = new ApplicationServiceImpl(applicationRepository, applicationMapper);
+    }
+
+    // ── create ──────────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("create: persists application and returns 200 with createdDate populated")
+    void createApplicationSuccessfully() {
         Application application = new Application();
-        when(applicationMapper.toSource(application)).thenReturn(new ApplicationEntity());
-        when(applicationRepository.save(any())).thenReturn(new ApplicationEntity());
-        when(applicationMapper.toTarget(any())).thenReturn(application);
+        ApplicationEntity entity = new ApplicationEntity();
+
+        when(applicationMapper.toSource(application)).thenReturn(entity);
+        when(applicationRepository.save(entity)).thenReturn(entity);
+        when(applicationMapper.toTarget(entity)).thenReturn(application);
 
         ResponseEntity<Application> response = applicationService.create(application);
 
-        assertEquals(ResponseEntity.ok(application), response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertNotNull(response.getBody().getCreatedDate());
+        verify(applicationRepository).save(entity);
     }
 
     @Test
-    @DisplayName("Create application with null application")
-    void createApplicationWithNullApplication() {
-        ApplicationRepository applicationRepository = mock(ApplicationRepository.class);
-        ApplicationMapper applicationMapper = mock(ApplicationMapper.class);
-        ApplicationServiceImpl applicationService = new ApplicationServiceImpl(applicationRepository, applicationMapper);
-
-
-        assertThrows(NullPointerException.class, () ->  applicationService.create(null));
-    }
-
-    @Test
-    @DisplayName("Update application successfully")
-    void updateApplicationSuccessfully() {
-        var id = UUID.randomUUID();
-        ApplicationRepository applicationRepository = mock(ApplicationRepository.class);
-        ApplicationMapper applicationMapper = mock(ApplicationMapper.class);
-        ApplicationServiceImpl applicationService = new ApplicationServiceImpl(applicationRepository, applicationMapper);
-
-        Application application = new Application();
-        when(applicationRepository.findById(any())).thenReturn(Optional.of(new ApplicationEntity()));
-        when(applicationMapper.toSource(application)).thenReturn(new ApplicationEntity());
-        when(applicationRepository.save(any())).thenReturn(new Application());
-        when(applicationMapper.toTarget(any())).thenReturn(application);
-
-        assertThrows(NotImplementedException.class, () ->  applicationService.update(id, application));
-
-    }
-
-    @Test
-    @DisplayName("Update application with non-existent ID")
-    void updateApplicationWithNonExistentId() {
-        var id = UUID.randomUUID();
-        ApplicationRepository applicationRepository = mock(ApplicationRepository.class);
-        ApplicationMapper applicationMapper = mock(ApplicationMapper.class);
-        ApplicationServiceImpl applicationService = new ApplicationServiceImpl(applicationRepository, applicationMapper);
-
-        Application application = new Application();
-        when(applicationRepository.findById(any())).thenReturn(Optional.empty());
-
-        assertThrows(NotImplementedException.class, () -> applicationService.update(id, application));
-    }
-
-    @Test
-    @DisplayName("Delete application successfully")
-    void deleteApplicationSuccessfully() {
-        var id = UUID.randomUUID();
-        ApplicationRepository applicationRepository = mock(ApplicationRepository.class);
-        ApplicationMapper applicationMapper = mock(ApplicationMapper.class);
-        ApplicationServiceImpl applicationService = new ApplicationServiceImpl(applicationRepository, applicationMapper);
-
-        Application application = new Application();
-        when(applicationRepository.findById(any())).thenReturn(Optional.of(new ApplicationEntity()));
-        doNothing().when(applicationRepository).delete(any());
-
-
-        assertThrows(NotImplementedException.class, () -> applicationService.delete(id, application));
-    }
-
-    @Test
-    @DisplayName("Delete application with non-existent ID")
-    void deleteApplicationWithNonExistentId() {
-        var id = UUID.randomUUID();
-        ApplicationRepository applicationRepository = mock(ApplicationRepository.class);
-        ApplicationMapper applicationMapper = mock(ApplicationMapper.class);
-        ApplicationServiceImpl applicationService = new ApplicationServiceImpl(applicationRepository, applicationMapper);
-
-        Application application = new Application();
-        when(applicationRepository.findById(any())).thenReturn(Optional.empty());
-
-        assertThrows(NotImplementedException.class, () ->  applicationService.delete(id, application));
-
-    }
-
-    @Test
-    @DisplayName("Find application by ID successfully")
-    void findApplicationByIdSuccessfully() {
-        ApplicationRepository applicationRepository = mock(ApplicationRepository.class);
-        ApplicationMapper applicationMapper = mock(ApplicationMapper.class);
-        ApplicationServiceImpl applicationService = new ApplicationServiceImpl(applicationRepository, applicationMapper);
-
-        UUID appId = UUID.randomUUID();
-        ApplicationEntity applicationEntity = new ApplicationEntity();
-        applicationEntity.setId(appId);
-        Application application = new Application();
-        application.setId(appId);
-
-        when(applicationRepository.findById(appId)).thenReturn(Optional.of(applicationEntity));
-        when(applicationMapper.toTarget(applicationEntity)).thenReturn(application);
-
-        ResponseEntity<Application> response = applicationService.find(appId);
-
-        assertEquals(200, response.getStatusCode().value());
-        assertEquals(application, response.getBody());
-        verify(applicationRepository, times(1)).findById(appId);
-    }
-
-    @Test
-    @DisplayName("Find application by non-existent ID throws exception")
-    void findApplicationByNonExistentIdThrowsException() {
-        ApplicationRepository applicationRepository = mock(ApplicationRepository.class);
-        ApplicationMapper applicationMapper = mock(ApplicationMapper.class);
-        ApplicationServiceImpl applicationService = new ApplicationServiceImpl(applicationRepository, applicationMapper);
-
-        UUID appId = UUID.randomUUID();
-        when(applicationRepository.findById(appId)).thenReturn(Optional.empty());
-
-        assertThrows(Exception.class, () -> applicationService.find(appId));
-    }
-
-    @Test
-    @DisplayName("List applications returns not implemented")
-    void listApplicationsReturnsNotImplemented() {
-        ApplicationRepository applicationRepository = mock(ApplicationRepository.class);
-        ApplicationMapper applicationMapper = mock(ApplicationMapper.class);
-        ApplicationServiceImpl applicationService = new ApplicationServiceImpl(applicationRepository, applicationMapper);
-
-        UUID appId = UUID.randomUUID();
-        assertThrows(NotImplementedException.class, () -> applicationService.list(appId));
-    }
-
-    @Test
-    @DisplayName("Create application with complete data")
+    @DisplayName("create: with complete application data returns 200 and correct body")
     void createApplicationWithCompleteData() {
-        ApplicationRepository applicationRepository = mock(ApplicationRepository.class);
-        ApplicationMapper applicationMapper = mock(ApplicationMapper.class);
-        ApplicationServiceImpl applicationService = new ApplicationServiceImpl(applicationRepository, applicationMapper);
-
         Application application = new Application();
         application.setId(UUID.randomUUID());
         application.setName("Test App");
@@ -192,8 +89,128 @@ class ApplicationServiceImplTest {
 
         ResponseEntity<Application> response = applicationService.create(application);
 
-        assertEquals(200, response.getStatusCode().value());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(application, response.getBody());
         verify(applicationRepository, times(1)).save(entity);
+    }
+
+    @Test
+    @DisplayName("create: null application throws NullPointerException")
+    void createApplicationWithNullApplicationThrowsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> applicationService.create(null));
+    }
+
+    // ── find ────────────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("find: existing ID returns 200 with application body")
+    void findApplicationByIdSuccessfully() {
+        UUID appId = UUID.randomUUID();
+        ApplicationEntity entity = new ApplicationEntity();
+        entity.setId(appId);
+        Application application = new Application();
+        application.setId(appId);
+
+        when(applicationRepository.findById(appId)).thenReturn(Optional.of(entity));
+        when(applicationMapper.toTarget(entity)).thenReturn(application);
+
+        ResponseEntity<Application> response = applicationService.find(appId);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(application, response.getBody());
+        verify(applicationRepository).findById(appId);
+    }
+
+    @Test
+    @DisplayName("find: non-existent ID returns 404")
+    void findApplicationByNonExistentIdReturnsNotFound() {
+        UUID appId = UUID.randomUUID();
+        when(applicationRepository.findById(appId)).thenReturn(Optional.empty());
+
+        ResponseEntity<Application> response = applicationService.find(appId);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        verify(applicationRepository).findById(appId);
+        verifyNoInteractions(applicationMapper);
+    }
+
+    // ── listAll ─────────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("listAll: returns 200 with all applications when records exist")
+    void listAllApplicationsSuccessfully() {
+        ApplicationEntity entity1 = new ApplicationEntity();
+        ApplicationEntity entity2 = new ApplicationEntity();
+        Application app1 = new Application();
+        Application app2 = new Application();
+
+        when(applicationRepository.findAll()).thenReturn(List.of(entity1, entity2));
+        when(applicationMapper.toTarget(entity1)).thenReturn(app1);
+        when(applicationMapper.toTarget(entity2)).thenReturn(app2);
+
+        ResponseEntity<List<Application>> response = applicationService.listAll();
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(2, response.getBody().size());
+        assertTrue(response.getBody().containsAll(List.of(app1, app2)));
+        verify(applicationRepository).findAll();
+    }
+
+    @Test
+    @DisplayName("listAll: returns 404 when no applications exist")
+    void listAllApplicationsWhenNoneExistReturnsNotFound() {
+        when(applicationRepository.findAll()).thenReturn(List.of());
+
+        ResponseEntity<List<Application>> response = applicationService.listAll();
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        verify(applicationRepository).findAll();
+        verifyNoInteractions(applicationMapper);
+    }
+
+    // ── update ──────────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("update: delegates to default interface method and throws NotImplementedException")
+    void updateApplicationThrowsNotImplemented() {
+        assertThrows(NotImplementedException.class,
+                () -> applicationService.update(UUID.randomUUID(), new Application()));
+    }
+
+    @Test
+    @DisplayName("update: with non-existent ID still throws NotImplementedException")
+    void updateApplicationWithNonExistentIdThrowsNotImplemented() {
+        when(applicationRepository.findById(any())).thenReturn(Optional.empty());
+
+        assertThrows(NotImplementedException.class,
+                () -> applicationService.update(UUID.randomUUID(), new Application()));
+    }
+
+    // ── delete ──────────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("delete: delegates to default interface method and throws NotImplementedException")
+    void deleteApplicationThrowsNotImplemented() {
+        assertThrows(NotImplementedException.class,
+                () -> applicationService.delete(UUID.randomUUID(), new Application()));
+    }
+
+    @Test
+    @DisplayName("delete: with non-existent ID still throws NotImplementedException")
+    void deleteApplicationWithNonExistentIdThrowsNotImplemented() {
+        when(applicationRepository.findById(any())).thenReturn(Optional.empty());
+
+        assertThrows(NotImplementedException.class,
+                () -> applicationService.delete(UUID.randomUUID(), new Application()));
+    }
+
+    // ── list ────────────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("list: delegates to default interface method and throws NotImplementedException")
+    void listApplicationsByIdThrowsNotImplemented() {
+        assertThrows(NotImplementedException.class,
+                () -> applicationService.list(UUID.randomUUID()));
     }
 }

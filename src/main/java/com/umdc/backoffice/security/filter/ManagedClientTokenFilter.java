@@ -19,6 +19,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -66,11 +67,11 @@ public class ManagedClientTokenFilter extends OncePerRequestFilter {
         this.objectMapper = objectMapper;
     }
 
-    /// {@inheritDoc}
+    /** {@inheritDoc} */
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain)
+    protected void doFilterInternal(@NonNull HttpServletRequest request,
+                                    @NonNull HttpServletResponse response,
+                                    @NonNull FilterChain filterChain)
             throws ServletException, IOException {
 
         if (SecurityContextHolder.getContext().getAuthentication() != null) {
@@ -92,29 +93,40 @@ public class ManagedClientTokenFilter extends OncePerRequestFilter {
 
         LOGGER.debug("M2M token detected from {}", request.getRemoteAddr());
 
-        if (!tokenService.isTokenActive(rawToken)) {
-            LOGGER.warn("Invalid or revoked M2M token from {}", request.getRemoteAddr());
+        try {
+            if (!tokenService.isTokenActive(rawToken)) {
+                LOGGER.warn("Invalid or revoked M2M token from {}", request.getRemoteAddr());
+                rejectUnauthorized(response, "invalid_token");
+                return;
+            }
+
+            Map<String, Object> payload = decodePayload(rawToken);
+            String subject = (String) payload.getOrDefault(CLAIM_SUB, "");
+            @SuppressWarnings("unchecked")
+            List<String> scopes = (List<String>) payload.getOrDefault(CLAIM_SCOPES, Collections.emptyList());
+
+            List<SimpleGrantedAuthority> authorities = scopes.stream()
+                    .map(SimpleGrantedAuthority::new)
+                    .toList();
+
+            var authentication = new UsernamePasswordAuthenticationToken(subject, null, authorities);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            LOGGER.debug("M2M authentication set for clientId='{}'", subject);
+        } catch (Exception e) {
+            LOGGER.error("M2M token processing failed from {}: {}", request.getRemoteAddr(), e.getMessage(), e);
             SecurityContextHolder.clearContext();
-            response.setContentType("application/json");
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("{\"error\":\"invalid_token\"}");
+            rejectUnauthorized(response, "token_processing_error");
             return;
         }
 
-        Map<String, Object> payload = decodePayload(rawToken);
-        String subject = (String) payload.getOrDefault(CLAIM_SUB, "");
-        @SuppressWarnings("unchecked")
-        List<String> scopes = (List<String>) payload.getOrDefault(CLAIM_SCOPES, Collections.emptyList());
-
-        List<SimpleGrantedAuthority> authorities = scopes.stream()
-                .map(SimpleGrantedAuthority::new)
-                .toList();
-
-        var authentication = new UsernamePasswordAuthenticationToken(subject, null, authorities);
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        LOGGER.debug("M2M authentication set for clientId='{}'", subject);
-
         filterChain.doFilter(request, response);
+    }
+
+    private void rejectUnauthorized(HttpServletResponse response, String errorCode) throws IOException {
+        SecurityContextHolder.clearContext();
+        response.setContentType("application/json");
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.getWriter().write("{\"error\":\"" + errorCode + "\"}");
     }
 
     private boolean isManagedClientToken(String rawToken) {

@@ -16,15 +16,22 @@ package com.umdc.backoffice.v1.application.service;
 import com.umdc.backoffice.v1.application.mapper.ApplicationMapper;
 import com.umdc.commons.general.pojo.Application;
 import com.umdc.persistence.general.repositories.ApplicationRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
 public class ApplicationServiceImpl implements ApplicationService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationServiceImpl.class);
 
     private final ApplicationRepository applicationRepository;
     private final ApplicationMapper applicationMapper;
@@ -38,14 +45,20 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Override
     public ResponseEntity<Application> create(Application application) {
         var result = Optional.of(applicationRepository.save(applicationMapper.toSource(application)));
-        return result.map(entity -> ResponseEntity.ok(applicationMapper.toTarget(entity))).orElseGet(() -> ResponseEntity.notFound().build());
+        return result.map(entity -> {
+            Application created = applicationMapper.toTarget(entity);
+            created.setCreatedDate(LocalDateTime.now(ZoneOffset.UTC));
+            LOGGER.debug("Application created: id={}, createdDate={}", created.getId(), created.getCreatedDate());
+            return ResponseEntity.ok(created);
+        }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     /** {@inheritDoc} */
     @Override
     public ResponseEntity<Application> find(UUID id) {
         var applicationEntity = applicationRepository.findById(id);
-        return ResponseEntity.ok(applicationMapper.toTarget(applicationEntity.get()));
+        return applicationEntity.map(entity -> ResponseEntity.ok(applicationMapper.toTarget(entity)))
+                                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     /** {@inheritDoc} */
@@ -64,5 +77,18 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Override
     public ResponseEntity<List<Application>> list(UUID... id) {
         return ApplicationService.super.list(id);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public ResponseEntity<List<Application>> listAll() {
+        LOGGER.debug("Listing all applications");
+        List<Application> applications = new ArrayList<>();
+        applicationRepository.findAll().forEach(entity -> applications.add(applicationMapper.toTarget(entity)));
+        if (applications.isEmpty()) {
+            LOGGER.debug("No applications found");
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(applications);
     }
 }

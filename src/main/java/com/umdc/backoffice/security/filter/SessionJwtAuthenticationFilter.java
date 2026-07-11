@@ -20,6 +20,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -62,9 +63,9 @@ public class SessionJwtAuthenticationFilter extends OncePerRequestFilter {
     /// @throws ServletException if a servlet error occurs
     /// @throws IOException      if an I/O error occurs
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain)
+    protected void doFilterInternal(@NonNull HttpServletRequest request,
+                                    @NonNull HttpServletResponse response,
+                                    @NonNull FilterChain filterChain)
             throws ServletException, IOException {
 
         if (SecurityContextHolder.getContext().getAuthentication() != null) {
@@ -75,35 +76,46 @@ public class SessionJwtAuthenticationFilter extends OncePerRequestFilter {
         String token = request.getHeader(AUTHORIZATION_HEADER);
 
         if (token == null || token.isBlank() || !token.contains(BEARER_PREFIX)) {
-            LOGGER.debug("No {} header present — passing request through unauthenticated", SESSION_TOKEN_KEY);
+            LOGGER.debug("No {} header present — passing request through unauthenticated", AUTHORIZATION_HEADER);
             filterChain.doFilter(request, response);
             return;
         }
         token = token.replace(BEARER_PREFIX, "");
 
         LOGGER.debug("{} header detected — validating token", AUTHORIZATION_HEADER);
-        boolean valid = sessionService.isValid(token);
-        LOGGER.debug("Token validity result: {}", valid);
+        try {
+            boolean valid = sessionService.isValid(token);
+            LOGGER.debug("Token validity result: {}", valid);
 
-        if (!valid) {
-            LOGGER.warn("Invalid or expired session token received from {}", request.getRemoteAddr());
+            if (!valid) {
+                LOGGER.warn("Invalid or expired session token received from {}", request.getRemoteAddr());
+                rejectUnauthorized(response, "invalid_token");
+                return;
+            }
+
+            Claims claims = sessionService.getTokenClaims(token);
+            String subject = claims.getSubject();
+            List<SimpleGrantedAuthority> authorities = extractAuthorities(claims);
+
+            LOGGER.debug("Token valid for subject='{}', authorities={}", subject, authorities);
+
+            var authentication = new UsernamePasswordAuthenticationToken(subject, null, authorities);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+        } catch (Exception e) {
+            LOGGER.error("Session token processing failed from {}: {}", request.getRemoteAddr(), e.getMessage(), e);
             SecurityContextHolder.clearContext();
-            response.setContentType("application/json");
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("{\"error\":\"invalid_token\"}");
+            rejectUnauthorized(response, "token_processing_error");
             return;
         }
 
-        Claims claims = sessionService.getTokenClaims(token);
-        String subject = claims.getSubject();
-        List<SimpleGrantedAuthority> authorities = extractAuthorities(claims);
-
-        LOGGER.debug("Token valid for subject='{}', authorities={}", subject, authorities);
-
-        var authentication = new UsernamePasswordAuthenticationToken(subject, null, authorities);
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-
         filterChain.doFilter(request, response);
+    }
+
+    private void rejectUnauthorized(HttpServletResponse response, String errorCode) throws IOException {
+        SecurityContextHolder.clearContext();
+        response.setContentType("application/json");
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.getWriter().write("{\"error\":\"" + errorCode + "\"}");
     }
 
     /// Extracts role-based granted authorities from the token claims.

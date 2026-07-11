@@ -20,12 +20,15 @@ import com.umdc.commons.util.HttpStatusUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+
+import java.util.List;
 
 /// Interface for the Application API.
 /// Provides endpoints for creating applications.
@@ -37,6 +40,19 @@ public interface ApplicationApi {
     /// @return the application service
     default ApplicationService getService() {
         return new ApplicationService() {};
+    }
+
+    /// Returns all registered applications.
+    ///
+    /// @return all applications wrapped in a ResponseEntity
+    @Operation(summary = "List all applications", description = "Returns every registered application.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "Application list returned."),
+        @ApiResponse(responseCode = HttpStatusUtil.NOT_FOUND_STR, description = "No applications found.")
+    })
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    default ResponseEntity<List<Application>> listAll() {
+        return this.getService().listAll();
     }
 
     /// Creates a new application.
