@@ -1,146 +1,115 @@
-# 🚀 Getting Started
+# 📚 Backbone REST — Developer User Guide `v1`
 
-> **Guide:** v1 · [← Back to Index](./README.md)
+> **Version:** API v1 · App `0.0.2` · Last updated: June 2026
 
----
-
-## Base URL
-
-| Environment | Base URL |
-|-------------|----------|
-| Development | `http://localhost:8080` |
-| Staging     | `https://<your-staging-host>` |
-| Production  | `https://<your-production-host>` |
-
-All endpoints are versioned under the prefix:
-
-```
-/api/v1/
-```
+Welcome to the **Backbone REST** backoffice service documentation. This guide covers every domain exposed under `/api/v1/` — from authentication to user management, application clients, and IAM controls.
 
 ---
 
-## Content Type
+## 🗂️ Table of Contents
 
-All request and response bodies use JSON:
-
-```http
-Content-Type: application/json
-Accept: application/json
-```
+| # | Guide | Description |
+|---|-------|-------------|
+| 0 | [Dependencies & Requirements](./00-prerequisites.md) | System requirements, env vars, Maven dependencies, Docker |
+| 1 | [Getting Started](https://prx.myjetbrains.com/youtrack/articles/UMDC-A-139/Getting-Started) | Base URL, authentication overview, request format |
+| 2 | [Authentication & Sessions](https://prx.myjetbrains.com/youtrack/articles/UMDC-A-140/Authentication-Sessions) | Session tokens, refresh flow, JWT details |
+| 3 | [User Management](https://prx.myjetbrains.com/youtrack/articles/UMDC-A-141/User-Management) | Create, find, update, delete users |
+| 4 | [Application Client Management](https://prx.myjetbrains.com/youtrack/articles/UMDC-A-142/Application-Client-Management) | Register and manage application clients |
+| 5 | [User–Application–Role](https://prx.myjetbrains.com/youtrack/articles/UMDC-A-143/UserApplicationRole-Multi-Tenant-RBAC) | Multi-tenant linking, role assignment per app |
+| 6 | [Roles & Features](https://prx.myjetbrains.com/youtrack/articles/UMDC-A-144/Roles-Features) | RBAC: role CRUD, feature flags, role-feature linking |
+| 7 | [IAM — Permissions & Tokens](https://prx.myjetbrains.com/youtrack/articles/UMDC-A-145/IAM-Identity-Access-Management) | Permission check, token introspection, audit |
+| 8 | [Managed Clients (MCAM)](https://prx.myjetbrains.com/youtrack/articles/UMDC-A-146/Managed-Client-Authentication-Manager-MCAM) | M2M OAuth2 client credentials — register, token issuance, rotation, revocation |
+| 9 | [Service Type Management](./09-service-type.md) | Create, list, find, and update service type catalog entries |
+| 10 | [API Reference](./10-api-reference.md) | All endpoints — full request/response contract for every domain |
+| 11 | [Container Deployment](./11-container-deployment.md) | Docker run template, env vars reference, bootstrap sequence |
 
 ---
 
-## Authentication Model
+## 🏗️ Architecture at a Glance
 
-Backbone REST uses **three complementary security layers**:
+```mermaid
+flowchart TB
+    Client["Client Application\n(Mobile · Web · Service-to-Service)"]
+    subgraph API["backbone-rest  /api/v1/"]
+        direction LR
+        S["/sessions"]
+        U["/users"]
+        R["/roles"]
+        A["/applications"]
+        P["/iam/permissions"]
+        T["/iam/tokens"]
+        M["/managed-clients"]
+        ST["/service-types"]
+    end
+    DB[("PostgreSQL (Supabase) · Redis")]
+    Client -->|"HTTPS + Bearer JWT / session-token"| API
+    API --> DB
+```
+
+### Domain Model
 
 ```mermaid
 graph TD
-    subgraph Security Layers
-        L1(Layer 1: OAuth2 Resource Server JWT)
-        L1 -->|Requires Valid Bearer Token| API_V1["/api/v1/** Endpoints"]
-        L1 -.-> Provider[OAuth2 Identity Provider]
-
-        L2(Layer 2: App Session Token)
-        L2 -- Minted at /api/v1/sessions --> EndpointSession[/api/v1/sessions/]
-        L2 -->|via session-token header| IAM_Endpoints["IAM Endpoints (/iam*)"]
-
-        L3(Layer 3: M2M Token)
-        L3 -- Issued by POST /managed-clients/token --> ClientService[Managed Clients Service]
-        L3 -->|Authorization Header| M2M_Services["Machine-to-Machine Services"]
-    end
-
-    subgraph Access Flow
-        API_V1 --> EndpointA[Domain A API Calls]
-        API_V1 --> EndpointB[Core Endpoints]
-        IAM_Endpoints -- Requires Layer 2 & 1 context --> TokenManagement(Permissions/Tokens)
-        M2M_Services -- Direct machine-to-machine calls --> BackendProcess(Backend Processes)
-    end
-
-    style L1 fill:#f9f,stroke:#333,stroke-width:2px
-    style L2 fill:#add8e6,stroke:#333,stroke-width:2px
-    style L3 fill:#90ee90,stroke:#333,stroke-width:2px
-```
-
-### Public Endpoints (no token required)
-
-| Endpoint | Reason |
-|----------|--------|
-| `POST /api/v1/sessions/token` | Login — token not yet available |
-| `GET  /api/v1/sessions/validate` | Token validation utility |
-| `POST /api/v1/managed-clients/token` | M2M credential exchange — no prior token |
-| `POST /api/v1/managed-clients/introspect` | Token validation utility (M2M) |
-
-> All other endpoints require a valid `session-token` header.
-
----
-
-## Request Headers
-
-| Header | Required | Description |
-|--------|----------|-------------|
-| `Content-Type` | ✅ | Must be `application/json` for POST/PUT |
-| `Accept` | Recommended | `application/json` |
-| `session-token` | ✅ (protected routes) | JWT session token from `/sessions` |
-
----
-
-## HTTP Status Codes
-
-| Code | Meaning | When Used |
-|------|---------|-----------|
-| `200 OK` | Success | GET, PUT operations |
-| `201 Created` | Resource created | POST create operations |
-| `202 Accepted` | Update accepted | Partial update operations |
-| `204 No Content` | Success, no body | DELETE operations |
-| `400 Bad Request` | Invalid input | Malformed payload / missing fields |
-| `401 Unauthorized` | Auth failure | Invalid or missing session token |
-| `404 Not Found` | Resource missing | Entity not found |
-| `406 Not Acceptable` | Business rejection | Validation failed at service layer |
-| `417 Expectation Failed` | Precondition failed | Required field missing at service |
-| `500 Internal Server Error` | Server failure | Unexpected error |
-
----
-
-## Error Response Format
-
-Errors are returned with the appropriate HTTP status. Some endpoints return plain status codes (no body) while others return a message string.
-
----
-
-## Pagination
-
-The current API does **not** implement pagination. List endpoints return all matching records. Filtering is done by `applicationId` path parameter.
-
----
-
-## UUID Identifiers
-
-All entity identifiers use **UUID v4** format:
-
-```
-3fa85f64-5717-4562-b3fc-2c963f66afa6
+    App["Application\none tenant / client app"] --> ARU["ApplicationRoleUser\njunction table (multi-tenant RBAC)"]
+    ARU --> User
+    ARU --> Role
+    Role --> RF[RoleFeature]
+    RF --> Feature["Feature\ncapability / permission flag"]
 ```
 
 ---
 
-## Date/Time Format
+## ⚡ Quick Reference — All Endpoints
 
-Timestamps follow `yyyy-MM-dd HH:mm:ss` (local time, no timezone):
-
-```json
-"createdDate": "2026-01-15 09:30:00"
-```
-
-Dates (birthdate) follow `yyyy-MM-dd`:
-
-```json
-"birthdate": "1990-06-15"
-```
+| Method | Path | Summary |
+|--------|------|---------|
+| `POST` | `/api/v1/sessions` | Login with alias + password |
+| `POST` | `/api/v1/sessions/token` | Login with email + password |
+| `GET`  | `/api/v1/sessions/validate` | Validate session token |
+| `GET`  | `/api/v1/sessions/renew` | Renew session token |
+| `POST` | `/api/v1/sessions/refresh` | Refresh using refresh token |
+| `POST` | `/api/v1/users` | Create user |
+| `GET`  | `/api/v1/users/user/{userId}` | Get user by ID |
+| `GET`  | `/api/v1/users/application/{applicationId}` | List all users in application |
+| `GET`  | `/api/v1/users/userByAlias/{alias}/application/{applicationId}` | Get user by alias |
+| `GET`  | `/api/v1/users/alias/{alias}/application/{applicationId}` | Get user alias record |
+| `GET`  | `/api/v1/users/check/alias/{alias}/application/{applicationId}` | Check alias availability |
+| `GET`  | `/api/v1/users/check/email/{email}/application/{applicationId}` | Check email availability |
+| `PUT`  | `/api/v1/users/{userId}/full-detail` | Full user update |
+| `PUT`  | `/api/v1/users/{userId}` | Partial user update |
+| `PUT`  | `/api/v1/users/link/user/{userId}/role/{roleId}` | Link role to user |
+| `PUT`  | `/api/v1/users/unlink/user/{userId}/role/{roleId}` | Unlink role from user |
+| `DELETE` | `/api/v1/users/application/{applicationId}/user/{userId}` | Delete user |
+| `GET`  | `/api/v1/applications` | List all applications |
+| `POST` | `/api/v1/applications` | Register application client |
+| `GET`  | `/api/v1/roles/find/{roleId}` | Get role by ID |
+| `GET`  | `/api/v1/roles` | List all roles |
+| `GET`  | `/api/v1/roles/{includeInactive}` | List roles by status |
+| `POST` | `/api/v1/roles/` | Create role |
+| `PUT`  | `/api/v1/roles/{roleId}` | Update role |
+| `GET`  | `/api/v1/roles/user/{userId}` | List roles by user |
+| `GET`  | `/api/v1/features/find/{featureId}` | Get feature by ID |
+| `GET`  | `/api/v1/features/{includeInactive}` | List features by status |
+| `POST` | `/api/v1/features/` | Create feature |
+| `PUT`  | `/api/v1/features/{featureId}` | Update feature |
+| `POST` | `/api/v1/iam/permissions/check` | Check user permission |
+| `POST` | `/api/v1/iam/tokens/introspect` | Introspect session token |
+| `POST` | `/api/v1/managed-clients` | Register M2M managed client |
+| `GET`  | `/api/v1/managed-clients` | List managed clients |
+| `GET`  | `/api/v1/managed-clients/{clientId}` | Get managed client detail |
+| `PUT`  | `/api/v1/managed-clients/{clientId}` | Update managed client |
+| `DELETE` | `/api/v1/managed-clients/{clientId}` | Delete managed client |
+| `POST` | `/api/v1/managed-clients/token` | Issue M2M access token (public) |
+| `POST` | `/api/v1/managed-clients/{clientId}/rotate-secret` | Rotate client secret |
+| `DELETE` | `/api/v1/managed-clients/{clientId}/tokens` | Revoke all active tokens |
+| `POST` | `/api/v1/managed-clients/introspect` | Introspect M2M token (public) |
+| `GET`  | `/api/v1/service-types` | List all service types |
+| `GET`  | `/api/v1/service-types/{active}` | List service types by active status |
+| `GET`  | `/api/v1/service-types/find/{serviceTypeId}` | Get service type by ID |
+| `POST` | `/api/v1/service-types/` | Create service type |
+| `PUT`  | `/api/v1/service-types/{serviceTypeId}` | Update service type |
 
 ---
 
-> ➡️ Next: [Authentication & Sessions](./02-authentication-sessions.md)
-
+> 💡 **Tip:** Human clients use a `Authorization: Bearer <OAUTH2_JWT>` header for protected endpoints. Application clients use `/managed-clients/token` to obtain an M2M Bearer token. See [Managed Clients (MCAM)](./08-managed-clients-mcam.md) for the full M2M flow.
 
