@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.Objects;
 
 /// REST controller for managing applications.
@@ -37,6 +38,11 @@ public class ApplicationController implements ApplicationApi {
     /// @param applicationService the application service
     public ApplicationController(ApplicationService applicationService) {
         this.applicationService = applicationService;
+    }
+
+    @Override
+    public ResponseEntity<List<Application>> listAll() {
+        return applicationService.listAll();
     }
 
     /// Creates a new application.

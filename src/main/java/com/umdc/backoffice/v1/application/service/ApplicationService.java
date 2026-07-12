@@ -78,4 +78,11 @@ public interface ApplicationService extends CrudService<UUID, Application> {
     default ResponseEntity<List<Application>> list(UUID... id) {
         throw new NotImplementedException();
     }
+
+    /// Returns all registered applications.
+    ///
+    /// @return all applications wrapped in a ResponseEntity, or 404 if none exist
+    default ResponseEntity<List<Application>> listAll() {
+        throw new NotImplementedException();
+    }
 }

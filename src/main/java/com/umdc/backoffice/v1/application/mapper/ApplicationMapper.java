@@ -40,8 +40,6 @@ public interface ApplicationMapper {
     /// @return the converted Service object
     @Mapping(target = "userList", ignore = true)
     @Mapping(target = "roleList", ignore = true)
-    @Mapping(target = "lastUpdate", ignore = true)
-    @Mapping(target = "createdDate", ignore = true)
     Application toTarget(ApplicationEntity applicationEntity);
 
     /// Converts a Service object to a ServiceEntity object.

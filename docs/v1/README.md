@@ -76,6 +76,7 @@ graph TD
 | `PUT`  | `/api/v1/users/unlink/user/{userId}/role/{roleId}` | Unlink role from user |
 | `DELETE` | `/api/v1/users/application/{applicationId}/user/{userId}` | Delete user |
 | `POST` | `/api/v1/applications` | Register application client |
+| `GET`  | `/api/v1/applications` | List all applications |
 | `GET`  | `/api/v1/roles/find/{roleId}` | Get role by ID |
 | `GET`  | `/api/v1/roles` | List all roles |
 | `GET`  | `/api/v1/roles/{includeInactive}` | List roles by status |

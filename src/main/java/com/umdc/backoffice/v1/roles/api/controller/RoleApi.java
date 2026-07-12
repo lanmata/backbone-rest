@@ -51,7 +51,7 @@ public interface RoleApi {
             @ApiResponse(responseCode = HttpStatusUtil.NOT_FOUND_STR, description = "")
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/find/{roleId}")
-    default ResponseEntity<Role> find(UUID roleId){
+    default ResponseEntity<Role> find(@PathVariable UUID roleId){
         return getService().find(roleId);
     }
 
@@ -67,7 +67,7 @@ public interface RoleApi {
             @ApiResponse(responseCode = HttpStatusUtil.NOT_FOUND_STR, description = "")
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/{includeInactive}/{roleIds}")
-    default ResponseEntity<List<Role>> list(boolean includeInactive, List<UUID> roleIds) {
+    default ResponseEntity<List<Role>> list(@PathVariable boolean includeInactive, @PathVariable List<UUID> roleIds) {
         return getService().list(includeInactive, roleIds);
     }
 
@@ -82,7 +82,7 @@ public interface RoleApi {
             @ApiResponse(responseCode = HttpStatusUtil.NOT_FOUND_STR, description = "")
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/{includeInactive}")
-    default ResponseEntity<List<Role>> list(boolean includeInactive) {
+    default ResponseEntity<List<Role>> list(@PathVariable boolean includeInactive) {
         return getService().list(includeInactive, null);
     }
 
@@ -127,7 +127,7 @@ public interface RoleApi {
             @ApiResponse(responseCode = HttpStatusUtil.NOT_FOUND_STR, description = "")
     })
     @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/{roleId}")
-    default ResponseEntity<Role> update(UUID roleId, RoleRequest roleRequest){
+    default ResponseEntity<Role> update(@PathVariable UUID roleId, @RequestBody RoleRequest roleRequest){
         return getService().update(roleId, roleRequest.getRole());
     }
 
@@ -142,7 +142,7 @@ public interface RoleApi {
             @ApiResponse(responseCode = HttpStatusUtil.NOT_FOUND_STR, description = "")
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/user/{userId}")
-    default ResponseEntity<List<Role>> listByUser(UUID userId) {
+    default ResponseEntity<List<Role>> listByUser(@PathVariable UUID userId) {
         return getService().listByUser(userId);
     }
 }
