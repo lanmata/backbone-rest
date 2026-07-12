@@ -10,6 +10,7 @@ Welcome to the **Backbone REST** backoffice service documentation. This guide co
 
 | # | Guide | Description |
 |---|-------|-------------|
+| 0 | [Dependencies & Requirements](./00-prerequisites.md) | System requirements, env vars, Maven dependencies, Docker |
 | 1 | [Getting Started](./01-getting-started.md) | Base URL, authentication overview, request format |
 | 2 | [Authentication & Sessions](./02-authentication-sessions.md) | Session tokens, refresh flow, JWT details |
 | 3 | [User Management](./03-user-management.md) | Create, find, update, delete users |
@@ -18,6 +19,7 @@ Welcome to the **Backbone REST** backoffice service documentation. This guide co
 | 6 | [Roles & Features](./06-roles-features.md) | RBAC: role CRUD, feature flags, role-feature linking |
 | 7 | [IAM — Permissions & Tokens](./07-iam.md) | Permission check, token introspection, audit |
 | 8 | [Managed Clients (MCAM)](./08-managed-clients-mcam.md) | M2M OAuth2 client credentials — register, token issuance, rotation, revocation |
+| 9 | [Service Type Management](./09-service-type.md) | Create, list, find, and update service type catalog entries |
 
 ---
 
@@ -35,6 +37,7 @@ flowchart TB
         P["/iam/permissions"]
         T["/iam/tokens"]
         M["/managed-clients"]
+        ST["/service-types"]
     end
     DB[("PostgreSQL (Supabase) · Redis")]
     Client -->|"HTTPS + Bearer JWT / session-token"| API
@@ -98,6 +101,11 @@ graph TD
 | `POST` | `/api/v1/managed-clients/{clientId}/rotate-secret` | Rotate client secret |
 | `DELETE` | `/api/v1/managed-clients/{clientId}/tokens` | Revoke all active tokens |
 | `POST` | `/api/v1/managed-clients/introspect` | Introspect M2M token (public) |
+| `GET`  | `/api/v1/service-types` | List all service types |
+| `GET`  | `/api/v1/service-types/{active}` | List service types by active status |
+| `GET`  | `/api/v1/service-types/find/{serviceTypeId}` | Get service type by ID |
+| `POST` | `/api/v1/service-types/` | Create service type |
+| `PUT`  | `/api/v1/service-types/{serviceTypeId}` | Update service type |
 
 ---
 

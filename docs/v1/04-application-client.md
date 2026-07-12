@@ -103,6 +103,68 @@ Creates a new application client registration. Once registered, users and roles 
 
 ---
 
+### 2. List All Applications
+
+```http
+GET /api/v1/applications
+Authorization: Bearer <session-token>
+```
+
+Returns every registered application on the platform. Useful for discovery, admin dashboards, or populating an application selector in a management UI.
+
+#### Response `200 OK`
+
+```json
+[
+  {
+    "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    "name": "My Awesome App",
+    "description": "Customer-facing e-commerce application",
+    "active": true
+  },
+  {
+    "id": "a1b2c3d4-0000-1111-2222-333344445555",
+    "name": "Backoffice Portal",
+    "description": "Internal management portal",
+    "active": true
+  }
+]
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `UUID` | Application identifier |
+| `name` | `string` | Application name |
+| `description` | `string` | Application description |
+| `active` | `boolean` | Active status |
+
+#### Error Responses
+
+| Code | Description |
+|------|-------------|
+| `404 Not Found` | No applications have been registered yet |
+
+#### Flow
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant API as GET /api/v1/applications
+    participant DB as PostgreSQL
+
+    C->>API: GET /api/v1/applications<br/>Authorization: Bearer <token>
+    API->>DB: findAll()
+    alt applications exist
+        DB-->>API: List<ApplicationEntity>
+        API-->>C: 200 OK — Application[]
+    else empty
+        DB-->>API: []
+        API-->>C: 404 Not Found
+    end
+```
+
+---
+
 ## The Application ID in Other Endpoints
 
 Once you have registered an application and obtained its `id`, you use it as a **scope parameter** in virtually every other API call:
