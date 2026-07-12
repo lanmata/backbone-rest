@@ -20,6 +20,8 @@ Welcome to the **Backbone REST** backoffice service documentation. This guide co
 | 7 | [IAM — Permissions & Tokens](./07-iam.md) | Permission check, token introspection, audit |
 | 8 | [Managed Clients (MCAM)](./08-managed-clients-mcam.md) | M2M OAuth2 client credentials — register, token issuance, rotation, revocation |
 | 9 | [Service Type Management](./09-service-type.md) | Create, list, find, and update service type catalog entries |
+| 10 | [API Reference](./10-api-reference.md) | All endpoints — full request/response contract for every domain |
+| 11 | [Container Deployment](./11-container-deployment.md) | Docker run template, env vars reference, bootstrap sequence |
 
 ---
 
