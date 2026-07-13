@@ -24,9 +24,9 @@ import com.umdc.commons.constants.httpstatus.type.MessageType;
  */
 public enum ApplicationMessageKey implements MessageType {
     /**
-     * Error during user creation.
+     * Error during application creation.
      */
-    APPLICATION_ERROR_CREATED(1,"Error durante la creación de aplicacion"),
+    APPLICATION_ERROR_CREATED(1,"Application creation failed."),
 
     /**
      * Operation successful.
@@ -36,32 +36,32 @@ public enum ApplicationMessageKey implements MessageType {
     /**
      * Application created successfully.
      */
-    APPLICATION_CREATED(201,"Aplicacion creado"),
+    APPLICATION_CREATED(201,"Application created successfully."),
 
     /**
      * Application blocked or inactive.
      */
-    APPLICATION_BLOCKED(403,"Aplicacion bloqueado o inactivo"),
+    APPLICATION_BLOCKED(403,"Application is blocked or inactive."),
 
     /**
      * Application found.
      */
-    APPLICATION_FOUND(200,"Aplicacion encontrado"),
+    APPLICATION_FOUND(200,"Application found."),
 
     /**
      * Application not found.
      */
-    APPLICATION_NOT_FOUND(404,"Aplicacion no encontrado"),
+    APPLICATION_NOT_FOUND(404,"Application not found."),
 
     /**
      * Error during application creation.
      */
-    APPLICATION_CREATE_ERROR(404,"Error durante la creación de aplicacion"),
+    APPLICATION_CREATE_ERROR(400,"Invalid application request. Verify that all required fields are present."),
 
     /**
-     * Application already exists.
+     * Application name already in use.
      */
-    APPLICATION_PREVIOUS_EXIST(409,"Nombre de aplicacion ya se encuentra ocupado, ingrese un nombre de aplicacion diferente");
+    APPLICATION_PREVIOUS_EXIST(409,"Application name is already in use. Please choose a different name.");
 
     private final int code;
     private final String status;
