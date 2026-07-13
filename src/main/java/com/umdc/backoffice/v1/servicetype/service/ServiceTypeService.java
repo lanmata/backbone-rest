@@ -20,75 +20,91 @@ import org.springframework.http.ResponseEntity;
 import java.util.List;
 import java.util.UUID;
 
-/// Interface for service type operations.
-/// Extends the CrudService interface to provide CRUD operations for service types.
-///
-/// @version 1.0.0, 11-07-2026
+/**
+ * Interface for service type operations.
+ * Extends the CrudService interface to provide CRUD operations for service types.
+ *
+ * @version 1.0.0, 11-07-2026
+ */
 public interface ServiceTypeService extends CrudService<UUID, ServiceType> {
 
-    /// Creates a new service type.
-    ///
-    /// @param serviceType the service type to create
-    /// @return the created service type wrapped in a ResponseEntity
-    /// @throws NotImplementedException if the method is not implemented
+    /**
+     * Creates a new service type.
+     *
+     * @param serviceType the service type to create
+     * @return the created service type wrapped in a ResponseEntity
+     * @throws NotImplementedException if the method is not implemented
+     */
     @Override
     default ResponseEntity<ServiceType> create(ServiceType serviceType) {
         throw new NotImplementedException();
     }
 
-    /// Finds a service type by its ID.
-    ///
-    /// @param id the ID of the service type to find
-    /// @return the found service type wrapped in a ResponseEntity
-    /// @throws NotImplementedException if the method is not implemented
+    /**
+     * Finds a service type by its ID.
+     *
+     * @param id the ID of the service type to find
+     * @return the found service type wrapped in a ResponseEntity
+     * @throws NotImplementedException if the method is not implemented
+     */
     @Override
     default ResponseEntity<ServiceType> find(UUID id) {
         throw new NotImplementedException();
     }
 
-    /// Updates an existing service type.
-    ///
-    /// @param id          the ID of the service type to update
-    /// @param serviceType the service type with updated information
-    /// @return the updated service type wrapped in a ResponseEntity
-    /// @throws NotImplementedException if the method is not implemented
+    /**
+     * Updates an existing service type.
+     *
+     * @param id          the ID of the service type to update
+     * @param serviceType the service type with updated information
+     * @return the updated service type wrapped in a ResponseEntity
+     * @throws NotImplementedException if the method is not implemented
+     */
     @Override
     default ResponseEntity<ServiceType> update(UUID id, ServiceType serviceType) {
         throw new NotImplementedException();
     }
 
-    /// Deletes a service type.
-    ///
-    /// @param id          the ID of the service type to delete
-    /// @param serviceType the service type to delete
-    /// @return the deleted service type wrapped in a ResponseEntity
-    /// @throws NotImplementedException if the method is not implemented
+    /**
+     * Deletes a service type.
+     *
+     * @param id          the ID of the service type to delete
+     * @param serviceType the service type to delete
+     * @return the deleted service type wrapped in a ResponseEntity
+     * @throws NotImplementedException if the method is not implemented
+     */
     @Override
     default ResponseEntity<ServiceType> delete(UUID id, ServiceType serviceType) {
         throw new NotImplementedException();
     }
 
-    /// Lists service types by their IDs.
-    ///
-    /// @param id the IDs of the service types to list
-    /// @return a list of service types wrapped in a ResponseEntity
-    /// @throws NotImplementedException if the method is not implemented
+    /**
+     * Lists service types by their IDs.
+     *
+     * @param id the IDs of the service types to list
+     * @return a list of service types wrapped in a ResponseEntity
+     * @throws NotImplementedException if the method is not implemented
+     */
     @Override
     default ResponseEntity<List<ServiceType>> list(UUID... id) {
         throw new NotImplementedException();
     }
 
-    /// Returns all registered service types.
-    ///
-    /// @return all service types wrapped in a ResponseEntity, or 404 if none exist
+    /**
+     * Returns all registered service types.
+     *
+     * @return all service types wrapped in a ResponseEntity, or 404 if none exist
+     */
     default ResponseEntity<List<ServiceType>> listAll() {
         throw new NotImplementedException();
     }
 
-    /// Returns service types filtered by active status.
-    ///
-    /// @param active {@code true} for active, {@code false} for inactive
-    /// @return matching service types wrapped in a ResponseEntity, or 404 if none exist
+    /**
+     * Returns service types filtered by active status.
+     *
+     * @param active {@code true} for active, {@code false} for inactive
+     * @return matching service types wrapped in a ResponseEntity, or 404 if none exist
+     */
     default ResponseEntity<List<ServiceType>> listByStatus(boolean active) {
         throw new NotImplementedException();
     }

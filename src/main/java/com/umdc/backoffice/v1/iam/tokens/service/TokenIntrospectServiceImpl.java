@@ -26,11 +26,13 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Set;
 
-/// Implementation of {@link TokenIntrospectService}.
-/// <p>
-/// Returns an {@code active: false} response for blank or invalid tokens,
-/// and a fully populated response for valid tokens.
-/// </p>
+/**
+ * Implementation of {@link TokenIntrospectService}.
+ * <p>
+ * Returns an {@code active: false} response for blank or invalid tokens,
+ * and a fully populated response for valid tokens.
+ * </p>
+ */
 @Service
 public class TokenIntrospectServiceImpl implements TokenIntrospectService {
 
@@ -40,14 +42,18 @@ public class TokenIntrospectServiceImpl implements TokenIntrospectService {
 
     private final SessionService sessionService;
 
-    /// Constructs a new {@code TokenIntrospectServiceImpl}.
-    ///
-    /// @param sessionService the session service used for token validation and claims extraction
+    /**
+     * Constructs a new {@code TokenIntrospectServiceImpl}.
+     *
+     * @param sessionService the session service used for token validation and claims extraction
+     */
     public TokenIntrospectServiceImpl(SessionService sessionService) {
         this.sessionService = sessionService;
     }
 
-    /// {@inheritDoc}
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public ResponseEntity<TokenIntrospectResponse> introspect(TokenIntrospectRequest request) {
         String token = request.token();

@@ -18,10 +18,12 @@ import com.umdc.commons.services.config.mapper.MapperAppConfig;
 import com.umdc.persistence.general.domains.ApplicationEntity;
 import org.mapstruct.*;
 
-/// Mapper interface for converting between Service and ServiceEntity objects.
-/// Utilizes MapStruct for automatic mapping.
-///
-/// @version 1.0.0, 20-10-2020
+/**
+ * Mapper interface for converting between Service and ServiceEntity objects.
+ * Utilizes MapStruct for automatic mapping.
+ *
+ * @version 1.0.0, 20-10-2020
+ */
 @Mapper(
         // Specifies the configuration class to use for this mapper.
         config = MapperAppConfig.class
@@ -34,19 +36,23 @@ import org.mapstruct.*;
 )
 public interface ApplicationMapper {
 
-    /// Converts a ServiceEntity object to a Service object.
-    ///
-    /// @param applicationEntity the ServiceEntity object to convert
-    /// @return the converted Service object
+    /**
+     * Converts a ServiceEntity object to a Service object.
+     *
+     * @param applicationEntity the ServiceEntity object to convert
+     * @return the converted Service object
+     */
     @Mapping(target = "userList", ignore = true)
     @Mapping(target = "roleList", ignore = true)
     Application toTarget(ApplicationEntity applicationEntity);
 
-    /// Converts a Service object to a ServiceEntity object.
-    /// Inherits the inverse configuration from the toTarget method.
-    ///
-    /// @param application the Service object to convert
-    /// @return the converted ServiceEntity object
+    /**
+     * Converts a Service object to a ServiceEntity object.
+     * Inherits the inverse configuration from the toTarget method.
+     *
+     * @param application the Service object to convert
+     * @return the converted ServiceEntity object
+     */
     @InheritInverseConfiguration
     ApplicationEntity toSource(Application application);
 

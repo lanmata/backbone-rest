@@ -23,7 +23,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-/// Redis-backed implementation of {@link ManagedClientRedisService}.
+/**
+ * Redis-backed implementation of {@link ManagedClientRedisService}.
+ */
 @Service
 public class ManagedClientRedisServiceImpl implements ManagedClientRedisService {
 
@@ -38,14 +40,18 @@ public class ManagedClientRedisServiceImpl implements ManagedClientRedisService 
 
     private final StringRedisTemplate redisTemplate;
 
-    /// Constructs a new {@code ManagedClientRedisServiceImpl}.
-    ///
-    /// @param redisTemplate the Spring Data Redis string template
+    /**
+     * Constructs a new {@code ManagedClientRedisServiceImpl}.
+     *
+     * @param redisTemplate the Spring Data Redis string template
+     */
     public ManagedClientRedisServiceImpl(StringRedisTemplate redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
 
-    /// {@inheritDoc}
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void storeToken(String jti, UUID clientId, List<String> scopes, long ttlSeconds) {
         String payload = clientId.toString() + ":" + String.join(",", scopes);
@@ -53,39 +59,51 @@ public class ManagedClientRedisServiceImpl implements ManagedClientRedisService 
         LOGGER.debug("Stored M2M token jti='{}' for clientId='{}'", jti, clientId);
     }
 
-    /// {@inheritDoc}
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isTokenStored(String jti) {
         return Boolean.TRUE.equals(redisTemplate.hasKey(KEY_TOKEN + jti));
     }
 
-    /// {@inheritDoc}
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void revokeToken(String jti, long ttlSeconds) {
         redisTemplate.opsForValue().set(KEY_REVOKED + jti, "1", Duration.ofSeconds(ttlSeconds));
         LOGGER.debug("Revoked M2M token jti='{}'", jti);
     }
 
-    /// {@inheritDoc}
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isRevoked(String jti) {
         return Boolean.TRUE.equals(redisTemplate.hasKey(KEY_REVOKED + jti));
     }
 
-    /// {@inheritDoc}
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void addClientTokenJti(String jti, UUID clientId) {
         redisTemplate.opsForSet().add(KEY_CLIENT_TOKENS + clientId, jti);
     }
 
-    /// {@inheritDoc}
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Set<String> getClientTokenJtis(UUID clientId) {
         Set<String> members = redisTemplate.opsForSet().members(KEY_CLIENT_TOKENS + clientId);
         return members != null ? members : Set.of();
     }
 
-    /// {@inheritDoc}
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean checkAndIncrementRateLimit(UUID clientId, int maxRpm) {
         String key = KEY_RATELIMIT + clientId;
@@ -100,33 +118,43 @@ public class ManagedClientRedisServiceImpl implements ManagedClientRedisService 
         return allowed;
     }
 
-    /// {@inheritDoc}
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setGracePeriod(UUID clientId, long ttlSeconds) {
         redisTemplate.opsForValue().set(KEY_GRACE + clientId, "1", Duration.ofSeconds(ttlSeconds));
         LOGGER.debug("Grace period set for clientId='{}' ttl={} s", clientId, ttlSeconds);
     }
 
-    /// {@inheritDoc}
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isInGracePeriod(UUID clientId) {
         return Boolean.TRUE.equals(redisTemplate.hasKey(KEY_GRACE + clientId));
     }
 
-    /// {@inheritDoc}
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void storeGraceSecret(UUID clientId, String prevHash, long graceTtlSeconds) {
         redisTemplate.opsForValue().set(KEY_GRACE + clientId, prevHash, Duration.ofSeconds(graceTtlSeconds));
         LOGGER.debug("Grace secret stored for clientId='{}' ttl={} s", clientId, graceTtlSeconds);
     }
 
-    /// {@inheritDoc}
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Optional<String> getGraceSecret(UUID clientId) {
         return Optional.ofNullable(redisTemplate.opsForValue().get(KEY_GRACE + clientId));
     }
 
-    /// {@inheritDoc}
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void removeGraceSecret(UUID clientId) {
         redisTemplate.delete(KEY_GRACE + clientId);

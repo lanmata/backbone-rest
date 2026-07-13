@@ -14,9 +14,11 @@ package com.umdc.backoffice.v1.session.to;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/// Request body for the {@code POST /api/v1/session/refresh} endpoint.
-///
-/// @param refreshToken the refresh token issued at login time
+/**
+ * Request body for the {@code POST /api/v1/session/refresh} endpoint.
+ *
+ * @param refreshToken the refresh token issued at login time
+ */
 public record SessionRefreshRequest(@JsonProperty("refreshToken") String refreshToken) {
 }
 

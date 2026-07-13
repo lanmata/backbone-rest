@@ -23,13 +23,15 @@ import org.springframework.context.annotation.Primary;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-/// Global Jackson configuration.
-/// <p>
-/// Applies a uniform {@code yyyy-MM-dd HH:mm:ss} pattern to every
-/// {@link LocalDateTime} field serialized by the API — including POJOs from
-/// external modules (e.g. {@code Application} from commons) that cannot be
-/// annotated directly with {@code @JsonFormat}.
-/// </p>
+/**
+ * Global Jackson configuration.
+ * <p>
+ * Applies a uniform {@code yyyy-MM-dd HH:mm:ss} pattern to every
+ * {@link LocalDateTime} field serialized by the API — including POJOs from
+ * external modules (e.g. {@code Application} from commons) that cannot be
+ * annotated directly with {@code @JsonFormat}.
+ * </p>
+ */
 @Configuration
 public class LocalDateTimeFormatConfig {
 

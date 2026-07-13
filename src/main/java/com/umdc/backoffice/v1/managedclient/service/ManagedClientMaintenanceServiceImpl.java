@@ -23,8 +23,10 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/// Scheduled service that clears stale {@code prevSecretHash} values from
-/// managed-client rows after the rotation grace period has elapsed (R-05 mitigation).
+/**
+ * Scheduled service that clears stale {@code prevSecretHash} values from
+ * managed-client rows after the rotation grace period has elapsed (R-05 mitigation).
+ */
 @Service
 public class ManagedClientMaintenanceServiceImpl implements ManagedClientMaintenanceService {
 
@@ -33,21 +35,25 @@ public class ManagedClientMaintenanceServiceImpl implements ManagedClientMainten
     private final ManagedClientRepository repository;
     private final SecurityProperties securityProperties;
 
-    /// Constructs a new {@code ManagedClientMaintenanceServiceImpl}.
-    ///
-    /// @param repository         the managed client JPA repository
-    /// @param securityProperties the security configuration properties
+    /**
+     * Constructs a new {@code ManagedClientMaintenanceServiceImpl}.
+     *
+     * @param repository         the managed client JPA repository
+     * @param securityProperties the security configuration properties
+     */
     public ManagedClientMaintenanceServiceImpl(ManagedClientRepository repository,
                                                SecurityProperties securityProperties) {
         this.repository = repository;
         this.securityProperties = securityProperties;
     }
 
-    /// {@inheritDoc}
-    ///
-    /// Runs every 10 minutes by default ({@code MCAM_MAINTENANCE_INTERVAL_MS}).
-    /// Clears {@code prevSecretHash} on clients where {@code secretLastRotatedAt}
-    /// plus the grace period is in the past.
+    /**
+     * {@inheritDoc}
+     *
+     * Runs every 10 minutes by default ({@code MCAM_MAINTENANCE_INTERVAL_MS}).
+     * Clears {@code prevSecretHash} on clients where {@code secretLastRotatedAt}
+     * plus the grace period is in the past.
+     */
     @Scheduled(fixedDelayString = "${MCAM_MAINTENANCE_INTERVAL_MS:600000}")
     @Override
     public void clearExpiredPrevSecretHashes() {

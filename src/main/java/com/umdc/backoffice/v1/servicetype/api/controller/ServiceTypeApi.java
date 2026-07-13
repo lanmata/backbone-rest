@@ -33,23 +33,29 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.util.List;
 import java.util.UUID;
 
-/// Interface for the Service Type API.
-/// Provides endpoints for managing service types.
+/**
+ * Interface for the Service Type API.
+ * Provides endpoints for managing service types.
+ */
 @Tag(name = "service-type", description = "The service type API")
 @RequestMapping("/api/v1/service-types")
 public interface ServiceTypeApi {
 
-    /// Gets the service type service.
-    ///
-    /// @return the service type service
+    /**
+     * Gets the service type service.
+     *
+     * @return the service type service
+     */
     default ServiceTypeService getService() {
         return new ServiceTypeService() {
         };
     }
 
-    /// Returns all registered service types.
-    ///
-    /// @return all service types wrapped in a ResponseEntity
+    /**
+     * Returns all registered service types.
+     *
+     * @return all service types wrapped in a ResponseEntity
+     */
     @Operation(summary = "List all service types", description = "Returns every registered service type.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "Service type list returned."),
@@ -60,10 +66,12 @@ public interface ServiceTypeApi {
         return getService().listAll();
     }
 
-    /// Returns service types filtered by active status.
-    ///
-    /// @param active whether to return active or inactive service types
-    /// @return matching service types wrapped in a ResponseEntity
+    /**
+     * Returns service types filtered by active status.
+     *
+     * @param active whether to return active or inactive service types
+     * @return matching service types wrapped in a ResponseEntity
+     */
     @Operation(summary = "List service types by status", description = "Returns service types filtered by active flag.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "Service type list returned."),
@@ -76,10 +84,12 @@ public interface ServiceTypeApi {
         return getService().listByStatus(active);
     }
 
-    /// Finds a service type by its ID.
-    ///
-    /// @param serviceTypeId the unique identifier of the service type
-    /// @return the found service type wrapped in a ResponseEntity
+    /**
+     * Finds a service type by its ID.
+     *
+     * @param serviceTypeId the unique identifier of the service type
+     * @return the found service type wrapped in a ResponseEntity
+     */
     @Operation(summary = "Find service type by ID", description = "Returns a single service type by its UUID.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "Service type found."),
@@ -93,10 +103,12 @@ public interface ServiceTypeApi {
         return getService().find(serviceTypeId);
     }
 
-    /// Creates a new service type.
-    ///
-    /// @param serviceTypeRequest the service type creation request
-    /// @return the created service type wrapped in a ResponseEntity
+    /**
+     * Creates a new service type.
+     *
+     * @param serviceTypeRequest the service type creation request
+     * @return the created service type wrapped in a ResponseEntity
+     */
     @Operation(summary = "Create a service type", description = "Creates a new service type.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = HttpStatusUtil.CREATED_STR, description = "Service type created successfully."),
@@ -110,11 +122,13 @@ public interface ServiceTypeApi {
         return getService().create(serviceTypeRequest.getServiceType());
     }
 
-    /// Updates an existing service type.
-    ///
-    /// @param serviceTypeId      the unique identifier of the service type to update
-    /// @param serviceTypeRequest the service type update request
-    /// @return the updated service type wrapped in a ResponseEntity
+    /**
+     * Updates an existing service type.
+     *
+     * @param serviceTypeId      the unique identifier of the service type to update
+     * @param serviceTypeRequest the service type update request
+     * @return the updated service type wrapped in a ResponseEntity
+     */
     @Operation(summary = "Update a service type", description = "Updates an existing service type by its UUID.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = HttpStatusUtil.ACCEPTED_STR, description = "Service type updated."),

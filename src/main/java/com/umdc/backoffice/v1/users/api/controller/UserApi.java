@@ -45,10 +45,12 @@ public interface UserApi {
         };
     }
 
-    /// Checks if a user alias is available.
-    ///
-    /// @param alias the user alias
-    /// @return the response entity with the validation result
+    /**
+     * Checks if a user alias is available.
+     *
+     * @param alias the user alias
+     * @return the response entity with the validation result
+     */
     @Operation(description = "Checks if a user alias is available.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "Alias is available"),
@@ -59,10 +61,12 @@ public interface UserApi {
         return getService().validateAlias(alias, applicationId);
     }
 
-    /// Checks if a user email is available.
-    ///
-    /// @param email the user email
-    /// @return the response entity with the validation result
+    /**
+     * Checks if a user email is available.
+     *
+     * @param email the user email
+     * @return the response entity with the validation result
+     */
     @Operation(description = "Checks if a user email is available.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "Email is available"),
@@ -73,10 +77,12 @@ public interface UserApi {
         return getService().validateEmail(email, applicationId);
     }
 
-    /// Creates a new user.
-    ///
-    /// @param userCreateRequest the user create request
-    /// @return the response entity with the user create response
+    /**
+     * Creates a new user.
+     *
+     * @param userCreateRequest the user create request
+     * @return the response entity with the user create response
+     */
     @Operation(description = "Create a new user.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = HttpStatusUtil.CREATED_STR, description = "User created.")
@@ -87,10 +93,12 @@ public interface UserApi {
         return getService().create(userCreateRequest);
     }
 
-    /// Finds a user by its identifier.
-    ///
-    /// @param userId the user identifier
-    /// @return the response entity with the user
+    /**
+     * Finds a user by its identifier.
+     *
+     * @param userId the user identifier
+     * @return the response entity with the user
+     */
     @Operation(description = "Find a user by ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "User found.")
@@ -100,9 +108,11 @@ public interface UserApi {
         return getService().findUserById(userId);
     }
 
-    /// Gets a list of all users.
-    ///
-    /// @return the response entity containing the list of users
+    /**
+     * Gets a list of all users.
+     *
+     * @return the response entity containing the list of users
+     */
     @Operation(description = "Getting an user list")
     @ApiResponses(value = {
             @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "User Found")
@@ -112,10 +122,12 @@ public interface UserApi {
         return getService().findAll(applicationId);
     }
 
-    /// Finds a user by its alias.
-    ///
-    /// @param alias the user alias
-    /// @return the response entity with the user
+    /**
+     * Finds a user by its alias.
+     *
+     * @param alias the user alias
+     * @return the response entity with the user
+     */
     @Operation(description = "Find a user by alias")
     @ApiResponses(value = {
             @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "User found")
@@ -126,10 +138,12 @@ public interface UserApi {
         return getService().findUserByAlias(alias, applicationId);
     }
 
-    /// Finds a user alias by its alias.
-    ///
-    /// @param alias the user alias
-    /// @return the response entity with the user alias
+    /**
+     * Finds a user alias by its alias.
+     *
+     * @param alias the user alias
+     * @return the response entity with the user alias
+     */
     @Operation(description = "Find a user alias by alias")
     @ApiResponses(value = {
             @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "User alias found")
@@ -140,11 +154,13 @@ public interface UserApi {
         return getService().findUserAliasByAlias(alias, applicationId);
     }
 
-    /// Updates a user.
-    ///
-    /// @param userId the user ID
-    /// @param user   the user to update
-    /// @return the response entity with the user
+    /**
+     * Updates a user.
+     *
+     * @param userId the user ID
+     * @param user   the user to update
+     * @return the response entity with the user
+     */
     @Operation(description = "Update a user")
     @ApiResponses(value = {
             @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "Updated user"),
@@ -158,11 +174,13 @@ public interface UserApi {
         return getService().update(userId, user);
     }
 
-    /// Unlinks a role from a user.
-    ///
-    /// @param userId the user ID
-    /// @param roleId the role ID
-    /// @return the response entity containing the updated user
+    /**
+     * Unlinks a role from a user.
+     *
+     * @param userId the user ID
+     * @param roleId the role ID
+     * @return the response entity containing the updated user
+     */
     @Operation(description = "Unlinks a role from a user")
     @ApiResponses(value = {
             @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "Role unlinked from user")
@@ -173,11 +191,13 @@ public interface UserApi {
         return getService().unlink(userId, roleId);
     }
 
-    /// Links a role to a user.
-    ///
-    /// @param userId the user ID
-    /// @param roleId the role ID
-    /// @return the response entity containing the updated user
+    /**
+     * Links a role to a user.
+     *
+     * @param userId the user ID
+     * @param roleId the role ID
+     * @return the response entity containing the updated user
+     */
     @Operation(description = "Links a role to a user")
     @ApiResponses(value = {
             @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "Role linked to user")
@@ -188,13 +208,15 @@ public interface UserApi {
         return getService().roleLink(userId, roleId);
     }
 
-    /// Updates a user using PutUserUpdateRequest.
-    /// Supports partial updates - only the fields provided in the request will be updated.
-    /// Supported fields: firstName, lastName, middleName, displayName, gender, birthdate, contacts (phone numbers).
-    ///
-    /// @param userId the user ID
-    /// @param request the PutUserUpdateRequest body
-    /// @return the response entity with the update status
+    /**
+     * Updates a user using PutUserUpdateRequest.
+     * Supports partial updates - only the fields provided in the request will be updated.
+     * Supported fields: firstName, lastName, middleName, displayName, gender, birthdate, contacts (phone numbers).
+     *
+     * @param userId the user ID
+     * @param request the PutUserUpdateRequest body
+     * @return the response entity with the update status
+     */
     @Operation(description = "Partial update of user details including firstName, lastName, middleName, displayName, gender, birthdate, and phone numbers (contacts). Only provided fields will be updated.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = HttpStatusUtil.ACCEPTED_STR, description = "User updated and accepted"),
@@ -208,11 +230,13 @@ public interface UserApi {
     }
 
 
-    /// Deletes a user based on the specified application ID and user ID.
-    ///
-    /// @param applicationId the unique identifier of the application
-    /// @param userId the unique identifier of the user
-    /// @return a ResponseEntity of type Void, indicating the success or failure of the operation
+    /**
+     * Deletes a user based on the specified application ID and user ID.
+     *
+     * @param applicationId the unique identifier of the application
+     * @param userId the unique identifier of the user
+     * @return a ResponseEntity of type Void, indicating the success or failure of the operation
+     */
     @Operation(description = "Deletes a user by application ID and user ID.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = HttpStatusUtil.NO_CONTENT_STR, description = "User deleted successfully"),

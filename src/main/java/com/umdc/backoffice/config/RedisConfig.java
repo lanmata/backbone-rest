@@ -59,12 +59,14 @@ public class RedisConfig {
     public RedisConfig(DataRedisProperties properties) {
         this.properties = properties;
     }
-    /// Builds the {@link LettuceConnectionFactory} using the resolved connection source.
-    ///
-    /// When {@code source = "url"} the factory is constructed from Lettuce's own
-    /// {@link RedisURI}, preserving all URL-encoded credentials and TLS flags.
-    /// When {@code source = "properties"} the factory is constructed from discrete
-    /// {@link RedisStandaloneConfiguration} fields.
+    /**
+     * Builds the {@link LettuceConnectionFactory} using the resolved connection source.
+     *
+     * When {@code source = "url"} the factory is constructed from Lettuce's own
+     * {@link RedisURI}, preserving all URL-encoded credentials and TLS flags.
+     * When {@code source = "properties"} the factory is constructed from discrete
+     * {@link RedisStandaloneConfiguration} fields.
+     */
     @Bean
     public LettuceConnectionFactory redisConnectionFactory() {
         RedisEndpoint endpoint = resolveEndpoint();
@@ -126,8 +128,10 @@ public class RedisConfig {
         }
         return fromDiscreteProperties();
     }
-    /// Parses the Redis URL using Lettuce's {@link RedisURI} to produce a
-    /// loggable {@link RedisEndpoint} snapshot.
+    /**
+     * Parses the Redis URL using Lettuce's {@link RedisURI} to produce a
+     * loggable {@link RedisEndpoint} snapshot.
+     */
     private RedisEndpoint fromUrl(String rawUrl) {
         RedisURI redisURI;
         try {

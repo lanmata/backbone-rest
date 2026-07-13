@@ -18,35 +18,43 @@ import org.springframework.stereotype.Service;
 
 import java.util.concurrent.CompletableFuture;
 
-/// Implementation of {@link ManagedClientSecretHashService} using BCrypt.
+/**
+ * Implementation of {@link ManagedClientSecretHashService} using BCrypt.
+ */
 @Service
 public class ManagedClientSecretHashServiceImpl implements ManagedClientSecretHashService {
 
     private final PasswordEncoder passwordEncoder;
 
-    /// Constructs a new {@code ManagedClientSecretHashServiceImpl}.
-    ///
-    /// @param passwordEncoder the BCrypt password encoder bean (strength 12)
+    /**
+     * Constructs a new {@code ManagedClientSecretHashServiceImpl}.
+     *
+     * @param passwordEncoder the BCrypt password encoder bean (strength 12)
+     */
     public ManagedClientSecretHashServiceImpl(PasswordEncoder passwordEncoder) {
         this.passwordEncoder = passwordEncoder;
     }
 
-    /// {@inheritDoc}
-    /// <p>
-    /// Runs on the {@code mcamHashExecutor} thread pool to prevent BCrypt from
-    /// blocking Tomcat I/O threads under load (NFR-P-03).
-    /// </p>
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Runs on the {@code mcamHashExecutor} thread pool to prevent BCrypt from
+     * blocking Tomcat I/O threads under load (NFR-P-03).
+     * </p>
+     */
     @Async("mcamHashExecutor")
     @Override
     public CompletableFuture<String> hashSecret(String rawSecret) {
         return CompletableFuture.completedFuture(passwordEncoder.encode(rawSecret));
     }
 
-    /// {@inheritDoc}
-    /// <p>
-    /// {@code BCryptPasswordEncoder.matches()} internally uses a constant-time
-    /// comparison algorithm, preventing timing-oracle attacks (AC-TOK-02).
-    /// </p>
+    /**
+     * {@inheritDoc}
+     * <p>
+     * {@code BCryptPasswordEncoder.matches()} internally uses a constant-time
+     * comparison algorithm, preventing timing-oracle attacks (AC-TOK-02).
+     * </p>
+     */
     @Override
     public boolean matchesWithConstantTime(String rawSecret, String storedHash) {
         return passwordEncoder.matches(rawSecret, storedHash);

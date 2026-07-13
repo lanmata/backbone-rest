@@ -43,8 +43,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-/// Implementation of {@link ManagedClientTokenService} providing RS256 M2M token issuance,
-/// revocation, and introspection (MCAM Phase 3).
+/**
+ * Implementation of {@link ManagedClientTokenService} providing RS256 M2M token issuance,
+ * revocation, and introspection (MCAM Phase 3).
+ */
 @Service
 public class ManagedClientTokenServiceImpl implements ManagedClientTokenService {
 
@@ -64,14 +66,16 @@ public class ManagedClientTokenServiceImpl implements ManagedClientTokenService 
     private PrivateKey privateKey;
     private PublicKey publicKey;
 
-    /// Constructs a new {@code ManagedClientTokenServiceImpl}.
-    ///
-    /// @param repository        the managed client repository
-    /// @param secretHashService the BCrypt hash comparison service
-    /// @param redisService      the Redis token lifecycle service
-    /// @param auditService      the audit event recording service
-    /// @param securityProperties the security configuration properties
-    /// @param keystoreUtil      the keystore utility for key extraction
+    /**
+     * Constructs a new {@code ManagedClientTokenServiceImpl}.
+     *
+     * @param repository        the managed client repository
+     * @param secretHashService the BCrypt hash comparison service
+     * @param redisService      the Redis token lifecycle service
+     * @param auditService      the audit event recording service
+     * @param securityProperties the security configuration properties
+     * @param keystoreUtil      the keystore utility for key extraction
+     */
     public ManagedClientTokenServiceImpl(ManagedClientRepository repository,
                                          ManagedClientSecretHashService secretHashService,
                                          ManagedClientRedisService redisService,
@@ -86,10 +90,12 @@ public class ManagedClientTokenServiceImpl implements ManagedClientTokenService 
         this.keystoreUtil = keystoreUtil;
     }
 
-    /// Loads the RS256 private and public keys from the MCAM keystore.
-    /// Fails fast at application startup if the keys cannot be loaded.
-    ///
-    /// @throws CertificateSecurityException if key extraction fails
+    /**
+     * Loads the RS256 private and public keys from the MCAM keystore.
+     * Fails fast at application startup if the keys cannot be loaded.
+     *
+     * @throws CertificateSecurityException if key extraction fails
+     */
     @PostConstruct
     void init() throws CertificateSecurityException {
         ManagementAuthenticatorProperties mcam = securityProperties.getManagementAuthenticator();
@@ -98,7 +104,9 @@ public class ManagedClientTokenServiceImpl implements ManagedClientTokenService 
         LOGGER.info("MCAM RS256 keys loaded for alias='{}'", mcam.getKeyAlias());
     }
 
-    /// {@inheritDoc}
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public ResponseEntity<?> issueToken(ManagedClientTokenRequest request) {
         UUID clientId = request.getClientId();
@@ -173,7 +181,9 @@ public class ManagedClientTokenServiceImpl implements ManagedClientTokenService 
         return ResponseEntity.ok(response);
     }
 
-    /// {@inheritDoc}
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public ResponseEntity<?> revokeAllTokens(UUID clientId) {
         if (!repository.existsById(clientId)) {
@@ -191,7 +201,9 @@ public class ManagedClientTokenServiceImpl implements ManagedClientTokenService 
         return ResponseEntity.noContent().build();
     }
 
-    /// {@inheritDoc}
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public ResponseEntity<?> introspectToken(String rawToken) {
         ManagedClientTokenIntrospectResponse inactive = new ManagedClientTokenIntrospectResponse();
@@ -242,7 +254,9 @@ public class ManagedClientTokenServiceImpl implements ManagedClientTokenService 
         return ResponseEntity.ok(active);
     }
 
-    /// {@inheritDoc}
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isTokenActive(String rawToken) {
         try {

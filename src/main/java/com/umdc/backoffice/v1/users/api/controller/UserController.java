@@ -29,8 +29,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
-/// REST controller for managing users.
-/// Provides endpoints for user operations such as create, update, and find.
+/**
+ * REST controller for managing users.
+ * Provides endpoints for user operations such as create, update, and find.
+ */
 @RestController
 @RequestMapping("/api/v1/users")
 @CrossOrigin(origins = "*")
@@ -39,9 +41,11 @@ public class UserController implements UserApi {
 
     private final UserService userService;
 
-    /// Constructor for UserController.
-    ///
-    /// @param userService the user service
+    /**
+     * Constructor for UserController.
+     *
+     * @param userService the user service
+     */
     public UserController(UserService userService) {
         this.userService = userService;
     }
@@ -114,8 +118,10 @@ public class UserController implements UserApi {
         return userService.roleLink(userId, roleId);
     }
 
-    /// Converts a PutUserUpdateRequest to a UserTO.
-    /// Only sets fields that are provided (not null) to enable partial updates.
+    /**
+     * Converts a PutUserUpdateRequest to a UserTO.
+     * Only sets fields that are provided (not null) to enable partial updates.
+     */
     private UserTO toUserTO(UUID userId, PutUserUpdateRequest request) {
         Application application = new Application();
         application.setId(request.application());
@@ -212,7 +218,9 @@ public class UserController implements UserApi {
         return userTO;
     }
 
-    /// Updates a user using PutUserUpdateRequest by converting to UserTO and calling update.
+    /**
+     * Updates a user using PutUserUpdateRequest by converting to UserTO and calling update.
+     */
     @Override
     public ResponseEntity<Void> putUserDetail(UUID userId, PutUserUpdateRequest request) {
         return userService.update(userId, toUserTO(userId, request)).getStatusCode().is2xxSuccessful() ?

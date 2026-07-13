@@ -28,8 +28,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
 
-/// Thin REST controller delegate for managed client CRUD operations.
-/// All business logic is handled by {@link ManagedClientService}.
+/**
+ * Thin REST controller delegate for managed client CRUD operations.
+ * All business logic is handled by {@link ManagedClientService}.
+ */
 @RestController
 @RequestMapping("/api/v1/managed-clients")
 public class ManagedClientController implements ManagedClientApi {
@@ -38,11 +40,13 @@ public class ManagedClientController implements ManagedClientApi {
     private final ManagedClientTokenService managedClientTokenService;
     private final ManagedClientRotationService managedClientRotationService;
 
-    /// Constructs a new {@code ManagedClientController}.
-    ///
-    /// @param managedClientService      the service handling MCAM CRUD logic
-    /// @param managedClientTokenService the service handling M2M token lifecycle
-    /// @param managedClientRotationService the service handling secret rotation
+    /**
+     * Constructs a new {@code ManagedClientController}.
+     *
+     * @param managedClientService      the service handling MCAM CRUD logic
+     * @param managedClientTokenService the service handling M2M token lifecycle
+     * @param managedClientRotationService the service handling secret rotation
+     */
     public ManagedClientController(ManagedClientService managedClientService,
                                    ManagedClientTokenService managedClientTokenService,
                                    ManagedClientRotationService managedClientRotationService) {
@@ -51,17 +55,23 @@ public class ManagedClientController implements ManagedClientApi {
         this.managedClientRotationService = managedClientRotationService;
     }
 
-    /// Package-visible accessor used by {@link ManagedClientApi} default methods.
+    /**
+     * Package-visible accessor used by {@link ManagedClientApi} default methods.
+     */
     ManagedClientService getManagedClientService() {
         return managedClientService;
     }
 
-    /// Package-visible accessor used by {@link ManagedClientApi} default methods.
+    /**
+     * Package-visible accessor used by {@link ManagedClientApi} default methods.
+     */
     ManagedClientTokenService getManagedClientTokenService() {
         return managedClientTokenService;
     }
 
-    /// Package-visible accessor used by {@link ManagedClientApi} default methods.
+    /**
+     * Package-visible accessor used by {@link ManagedClientApi} default methods.
+     */
     ManagedClientRotationService getManagedClientRotationService() {
         return managedClientRotationService;
     }

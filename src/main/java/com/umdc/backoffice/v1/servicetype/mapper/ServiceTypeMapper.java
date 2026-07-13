@@ -20,8 +20,10 @@ import org.mapstruct.Mapper;
 import org.mapstruct.MapperConfig;
 import org.mapstruct.ReportingPolicy;
 
-/// Mapper interface for converting between {@link ServiceType} and {@link ServiceTypeEntity}.
-/// Utilizes MapStruct for automatic mapping.
+/**
+ * Mapper interface for converting between {@link ServiceType} and {@link ServiceTypeEntity}.
+ * Utilizes MapStruct for automatic mapping.
+ */
 @Mapper(
         config = MapperAppConfig.class
 )
@@ -31,16 +33,20 @@ import org.mapstruct.ReportingPolicy;
 )
 public interface ServiceTypeMapper {
 
-    /// Converts a {@link ServiceTypeEntity} to a {@link ServiceType}.
-    ///
-    /// @param entity the entity to convert
-    /// @return the converted POJO
+    /**
+     * Converts a {@link ServiceTypeEntity} to a {@link ServiceType}.
+     *
+     * @param entity the entity to convert
+     * @return the converted POJO
+     */
     ServiceType toTarget(ServiceTypeEntity entity);
 
-    /// Converts a {@link ServiceType} to a {@link ServiceTypeEntity}.
-    ///
-    /// @param serviceType the POJO to convert
-    /// @return the converted entity
+    /**
+     * Converts a {@link ServiceType} to a {@link ServiceTypeEntity}.
+     *
+     * @param serviceType the POJO to convert
+     * @return the converted entity
+     */
     @InheritInverseConfiguration
     ServiceTypeEntity toSource(ServiceType serviceType);
 }

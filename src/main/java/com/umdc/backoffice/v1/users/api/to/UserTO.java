@@ -23,11 +23,13 @@ import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
 
-/// UserTO.
-///
-/// @author Luis Antonio Mata
-/// @version 1.0.0, 17-05-2022
-/// @since 11
+/**
+ * UserTO.
+ *
+ * @author Luis Antonio Mata
+ * @version 1.0.0, 17-05-2022
+ * @since 11
+ */
 public class UserTO {
     private UUID id;
     private String alias;
@@ -51,7 +53,9 @@ public class UserTO {
     private Set<Role> roles;
     private Set<Application> applications;
 
-    /// Default Constructor.
+    /**
+     * Default Constructor.
+     */
     public UserTO() {
         //Default Constructor.
     }

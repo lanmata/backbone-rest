@@ -19,25 +19,31 @@ import com.umdc.persistence.general.domains.UserEntity;
 
 import java.util.UUID;
 
-/// Service interface for managing user-application-role relationships.
-///
-/// @version 1.0.0, 2026-04-08
+/**
+ * Service interface for managing user-application-role relationships.
+ *
+ * @version 1.0.0, 2026-04-08
+ */
 public interface UserApplicationRoleService {
 
-    /// Refreshes the role assignment for a user within an application.
-    /// Updates the ApplicationRoleUser entity based on current user data.
-    ///
-    /// @param userEntity the user entity to update
-    /// @param userTO the user DTO containing the desired role and application
+    /**
+     * Refreshes the role assignment for a user within an application.
+     * Updates the ApplicationRoleUser entity based on current user data.
+     *
+     * @param userEntity the user entity to update
+     * @param userTO the user DTO containing the desired role and application
+     */
     void refreshRoleByApplication(UserEntity userEntity, UserTO userTO);
 
-    /// Builds an ApplicationRoleUser entity linking user, application, and role.
-    ///
-    /// @param userId the user ID
-    /// @param userEntity the user entity
-    /// @param applicationEntity the application entity
-    /// @param roleEntity the role entity
-    /// @return the configured ApplicationRoleUserEntity
+    /**
+     * Builds an ApplicationRoleUser entity linking user, application, and role.
+     *
+     * @param userId the user ID
+     * @param userEntity the user entity
+     * @param applicationEntity the application entity
+     * @param roleEntity the role entity
+     * @return the configured ApplicationRoleUserEntity
+     */
     com.umdc.persistence.general.domains.ApplicationRoleUserEntity buildApplicationRoleUser(
             UUID userId,
             UserEntity userEntity,

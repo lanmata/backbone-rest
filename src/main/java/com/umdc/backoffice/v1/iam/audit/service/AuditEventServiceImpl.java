@@ -35,11 +35,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-/// Implementation of {@link AuditEventService}.
-/// <p>
-/// {@link #saveRecord} is annotated with {@link Async} so that audit writes never
-/// block the authentication critical path. All other methods are synchronous.
-/// </p>
+/**
+ * Implementation of {@link AuditEventService}.
+ * <p>
+ * {@link #saveRecord} is annotated with {@link Async} so that audit writes never
+ * block the authentication critical path. All other methods are synchronous.
+ * </p>
+ */
 @Service
 public class AuditEventServiceImpl implements AuditEventService {
 
@@ -57,11 +59,13 @@ public class AuditEventServiceImpl implements AuditEventService {
     private final ManagedClientAuditEventRepository managedClientAuditEventRepository;
     private final AuditEventMapper auditEventMapper;
 
-    /// Constructs a new {@code AuditEventServiceImpl}.
-    ///
-    /// @param auditEventRepository              the repository used to persist IAM audit events
-    /// @param managedClientAuditEventRepository the repository used to query M2M audit events
-    /// @param auditEventMapper                  the mapper used to convert entities to TOs
+    /**
+     * Constructs a new {@code AuditEventServiceImpl}.
+     *
+     * @param auditEventRepository              the repository used to persist IAM audit events
+     * @param managedClientAuditEventRepository the repository used to query M2M audit events
+     * @param auditEventMapper                  the mapper used to convert entities to TOs
+     */
     public AuditEventServiceImpl(AuditEventRepository auditEventRepository,
                                   ManagedClientAuditEventRepository managedClientAuditEventRepository,
                                   AuditEventMapper auditEventMapper) {
@@ -131,9 +135,11 @@ public class AuditEventServiceImpl implements AuditEventService {
         return ResponseEntity.ok(auditEventMapper.toTOList(results));
     }
 
-    /// Maps a {@link ManagedClientAuditEventEntity} to an {@link AuditEventTO}.
-    /// {@code clientId} is surfaced as {@code userId} (field reuse — both represent the acting principal).
-    /// {@code applicationId} and {@code userAgent} are not tracked for M2M events.
+    /**
+     * Maps a {@link ManagedClientAuditEventEntity} to an {@link AuditEventTO}.
+     * {@code clientId} is surfaced as {@code userId} (field reuse — both represent the acting principal).
+     * {@code applicationId} and {@code userAgent} are not tracked for M2M events.
+     */
     private AuditEventTO toAuditEventTO(ManagedClientAuditEventEntity entity) {
         return new AuditEventTO(
                 entity.getId(),
@@ -148,8 +154,10 @@ public class AuditEventServiceImpl implements AuditEventService {
         );
     }
 
-    /// Applies the most specific filter combination available and falls back to
-    /// progressively less specific queries when filter parameters are absent.
+    /**
+     * Applies the most specific filter combination available and falls back to
+     * progressively less specific queries when filter parameters are absent.
+     */
     private List<AuditEventEntity> resolveQuery(UUID userId, UUID applicationId,
                                                  AuditEventType eventType,
                                                  LocalDateTime from, LocalDateTime to,

@@ -26,7 +26,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-/// REST controller for managing applications.
+/**
+ * REST controller for managing applications.
+ */
 @RestController
 @CrossOrigin(origins = "*")
 @RequestMapping("/api/v1/applications")
@@ -34,9 +36,11 @@ public class ApplicationController implements ApplicationApi {
 
     private final ApplicationService applicationService;
 
-    /// Constructor for ApplicationController.
-    ///
-    /// @param applicationService the application service
+    /**
+     * Constructor for ApplicationController.
+     *
+     * @param applicationService the application service
+     */
     public ApplicationController(ApplicationService applicationService) {
         this.applicationService = applicationService;
     }

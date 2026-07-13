@@ -16,18 +16,22 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.UUID;
 
-/// Service interface for MCAM client secret rotation operations.
+/**
+ * Service interface for MCAM client secret rotation operations.
+ */
 public interface ManagedClientRotationService {
 
-    /// Rotates the secret for the specified managed client.
-    /// <p>
-    /// The old secret hash is stored in Redis for the configured grace period so that
-    /// in-flight token requests using the previous secret continue to succeed.
-    /// Returns the new plaintext secret exactly once in the response body.
-    /// </p>
-    ///
-    /// @param clientId    the UUID of the managed client
-    /// @param requestorIp the IP address of the caller (recorded in the audit trail)
-    /// @return HTTP 200 with {@code ManagedClientSecretRotateResponse}, or HTTP 404 if client not found
+    /**
+     * Rotates the secret for the specified managed client.
+     * <p>
+     * The old secret hash is stored in Redis for the configured grace period so that
+     * in-flight token requests using the previous secret continue to succeed.
+     * Returns the new plaintext secret exactly once in the response body.
+     * </p>
+     *
+     * @param clientId    the UUID of the managed client
+     * @param requestorIp the IP address of the caller (recorded in the audit trail)
+     * @return HTTP 200 with {@code ManagedClientSecretRotateResponse}, or HTTP 404 if client not found
+     */
     ResponseEntity<?> rotateSecret(UUID clientId, String requestorIp);
 }

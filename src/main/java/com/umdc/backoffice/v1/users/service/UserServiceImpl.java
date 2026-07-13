@@ -44,12 +44,14 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
-/// Implementation of the UserService interface for managing users.
-/// Provides methods for creating, updating, deleting, and finding users.
-/// Use various mappers and services to handle user-related operations.
-///
-/// @author <a href="mailto:luis.antonio.mata@gmail.com">Luis Antonio Mata</a>
-/// @version 1.0.1.20200904-01, 2019-10-14
+/**
+ * Implementation of the UserService interface for managing users.
+ * Provides methods for creating, updating, deleting, and finding users.
+ * Use various mappers and services to handle user-related operations.
+ *
+ * @author <a href="mailto:luis.antonio.mata@gmail.com">Luis Antonio Mata</a>
+ * @version 1.0.1.20200904-01, 2019-10-14
+ */
 @Service
 @SuppressWarnings("PMD.GodClass") // Class has many responsibilities; decomposed some logic but further refactor is recommended
 public class UserServiceImpl implements UserService {
@@ -67,18 +69,20 @@ public class UserServiceImpl implements UserService {
     private final AuditEventService auditEventService;
     private final PasswordPolicyService passwordPolicyService;
 
-    /// Constructs a new UserServiceImpl with the provided dependencies.
-    ///
-    /// @param userRepository the repository to manage user data
-    /// @param applicationRoleUserRepository the repository to manage application role-user mappings
-    /// @param applicationService the service to manage application operations
-    /// @param userMapper the mapper to convert between user entities and DTOs
-    /// @param contactMapper the mapper for contacts
-    /// @param contactTypeMapper the mapper for contact types
-    /// @param userApplicationRoleService the service to manage user-application-role relationships
-    /// @param passwordEncoder the encoder for BCrypt password hashing
-    /// @param auditEventService the service for recording security audit events
-    /// @param passwordPolicyService the service that validates password complexity rules
+    /**
+     * Constructs a new UserServiceImpl with the provided dependencies.
+     *
+     * @param userRepository the repository to manage user data
+     * @param applicationRoleUserRepository the repository to manage application role-user mappings
+     * @param applicationService the service to manage application operations
+     * @param userMapper the mapper to convert between user entities and DTOs
+     * @param contactMapper the mapper for contacts
+     * @param contactTypeMapper the mapper for contact types
+     * @param userApplicationRoleService the service to manage user-application-role relationships
+     * @param passwordEncoder the encoder for BCrypt password hashing
+     * @param auditEventService the service for recording security audit events
+     * @param passwordPolicyService the service that validates password complexity rules
+     */
     public UserServiceImpl(UserRepository userRepository,
                            ApplicationRoleUserRepository applicationRoleUserRepository,
                            ApplicationService applicationService,
@@ -120,12 +124,14 @@ public class UserServiceImpl implements UserService {
         return responseEntity.get();
     }
 
-    /// Updates a user with the given user ID and user data.
-    /// Supports partial updates - only non-null fields will be updated.
-    ///
-    /// @param userId the user ID
-    /// @param user   the user data
-    /// @return the response entity containing the updated user data
+    /**
+     * Updates a user with the given user ID and user data.
+     * Supports partial updates - only non-null fields will be updated.
+     *
+     * @param userId the user ID
+     * @param user   the user data
+     * @return the response entity containing the updated user data
+     */
     @Transactional
     @Override
     public ResponseEntity<UserTO> update(UUID userId, UserTO user) {
@@ -246,12 +252,14 @@ public class UserServiceImpl implements UserService {
         return String.join("; ", violations.stream().map(PasswordPolicyViolation::message).toList());
     }
 
-    /// Converts Contact POJOs to ContactEntity objects.
-    /// Handles cases where only ContactType ID is provided (common in updates).
-    ///
-    /// @param contacts the list of Contact POJOs
-    /// @param personEntity the person entity to link contacts to
-    /// @return the list of ContactEntity objects
+    /**
+     * Converts Contact POJOs to ContactEntity objects.
+     * Handles cases where only ContactType ID is provided (common in updates).
+     *
+     * @param contacts the list of Contact POJOs
+     * @param personEntity the person entity to link contacts to
+     * @return the list of ContactEntity objects
+     */
     private List<ContactEntity> convertContacts(List<Contact> contacts, PersonEntity personEntity) {
         if (contacts == null || contacts.isEmpty()) {
             return Collections.emptyList();
@@ -286,19 +294,23 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    /// Finds a user with the given ID by delegating to {@link #findUserById(UUID)}.
-    ///
-    /// @param id the user ID
-    /// @return the response entity containing the user data
+    /**
+     * Finds a user with the given ID by delegating to {@link #findUserById(UUID)}.
+     *
+     * @param id the user ID
+     * @return the response entity containing the user data
+     */
     @Override
     public ResponseEntity<UserTO> find(UUID id) {
         return findUserById(id);
     }
 
-    /// Finds a user by the given user ID.
-    ///
-    /// @param userId the user ID
-    /// @return the response entity containing the user data
+    /**
+     * Finds a user by the given user ID.
+     *
+     * @param userId the user ID
+     * @return the response entity containing the user data
+     */
     @Override
     public ResponseEntity<UserTO> findUserById(UUID userId) {
         ResponseEntity<UserTO> responseEntity;
@@ -314,10 +326,12 @@ public class UserServiceImpl implements UserService {
         return userRepository.findById(userId).orElseThrow(() -> new StandardException(UserMessageKey.USER_NOT_FOUND));
     }
 
-    /// Finds a user by the given alias.
-    ///
-    /// @param alias the user alias
-    /// @return the response entity containing the user data
+    /**
+     * Finds a user by the given alias.
+     *
+     * @param alias the user alias
+     * @return the response entity containing the user data
+     */
     @Override
     public ResponseEntity<UserTO> findUserByAlias(final String alias, final UUID applicationId) {
         var userTO = findByAlias(alias, applicationId);
@@ -328,12 +342,14 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    /// Finds all users for the given application ID.
-    /// Returns 400 Bad Request if {@code applicationId} is null to prevent
-    /// cross-tenant data leakage.
-    ///
-    /// @param applicationId the application ID (must not be null)
-    /// @return the response entity containing the list of users, or 400 if applicationId is null
+    /**
+     * Finds all users for the given application ID.
+     * Returns 400 Bad Request if {@code applicationId} is null to prevent
+     * cross-tenant data leakage.
+     *
+     * @param applicationId the application ID (must not be null)
+     * @return the response entity containing the list of users, or 400 if applicationId is null
+     */
     @Override
     public ResponseEntity<List<UserTO>> findAll(UUID applicationId) {
         if (Objects.isNull(applicationId)) {
@@ -348,11 +364,13 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    /// Creates a new user with the given user creation request.
-    /// The password is BCrypt-encoded before persisting.
-    ///
-    /// @param userCreateRequest the user creation request
-    /// @return the response entity containing the created user data
+    /**
+     * Creates a new user with the given user creation request.
+     * The password is BCrypt-encoded before persisting.
+     *
+     * @param userCreateRequest the user creation request
+     * @return the response entity containing the created user data
+     */
     @Override
     @Transactional
     public ResponseEntity<UserCreateResponse> create(UserCreateRequest userCreateRequest) {
@@ -418,13 +436,15 @@ public class UserServiceImpl implements UserService {
         return ResponseEntity.status(HttpStatus.CREATED).body(userResult);
     }
 
-    /// Unlinks a role from a user.
-    /// Removes the matching {@link ApplicationRoleUserEntity} from the user's
-    /// collection by role ID, then saves the updated entity.
-    ///
-    /// @param userId the user ID
-    /// @param roleId the role ID to remove
-    /// @return 200 with updated UserTO; 404 if user or role not found; 400 on null params
+    /**
+     * Unlinks a role from a user.
+     * Removes the matching {@link ApplicationRoleUserEntity} from the user's
+     * collection by role ID, then saves the updated entity.
+     *
+     * @param userId the user ID
+     * @param roleId the role ID to remove
+     * @return 200 with updated UserTO; 404 if user or role not found; 400 on null params
+     */
     @Override
     @Transactional
     public ResponseEntity<UserTO> unlink(UUID userId, UUID roleId) {
@@ -450,10 +470,12 @@ public class UserServiceImpl implements UserService {
         return ResponseEntity.ok(userMapper.toTarget(saved));
     }
 
-    /// Finds a user by the given alias.
-    ///
-    /// @param alias the user alias
-    /// @return the user data
+    /**
+     * Finds a user by the given alias.
+     *
+     * @param alias the user alias
+     * @return the user data
+     */
     private UserTO findByAlias(String alias, UUID applicationId) {
         Optional<UserEntity> userEntityOptional;
         UserEntity userEntity;

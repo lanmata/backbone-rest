@@ -35,12 +35,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-/// {@code OncePerRequestFilter} that validates M2M Bearer tokens issued by the MCAM subsystem.
-/// <p>
-/// Only intercepts tokens whose JWT payload contains {@code "type":"M2M"}.
-/// If the token is invalid or revoked, the filter returns HTTP 401 immediately.
-/// All other tokens (no M2M type claim) are passed through to the next filter.
-/// </p>
+/**
+ * {@code OncePerRequestFilter} that validates M2M Bearer tokens issued by the MCAM subsystem.
+ * <p>
+ * Only intercepts tokens whose JWT payload contains {@code "type":"M2M"}.
+ * If the token is invalid or revoked, the filter returns HTTP 401 immediately.
+ * All other tokens (no M2M type claim) are passed through to the next filter.
+ * </p>
+ */
 @Component
 public class ManagedClientTokenFilter extends OncePerRequestFilter {
 
@@ -57,10 +59,12 @@ public class ManagedClientTokenFilter extends OncePerRequestFilter {
     private final ManagedClientTokenService tokenService;
     private final ObjectMapper objectMapper;
 
-    /// Constructs a new {@code ManagedClientTokenFilter}.
-    ///
-    /// @param tokenService the M2M token validation service
-    /// @param objectMapper the Jackson mapper for JWT payload parsing
+    /**
+     * Constructs a new {@code ManagedClientTokenFilter}.
+     *
+     * @param tokenService the M2M token validation service
+     * @param objectMapper the Jackson mapper for JWT payload parsing
+     */
     public ManagedClientTokenFilter(ManagedClientTokenService tokenService, ObjectMapper objectMapper) {
         super();
         this.tokenService = tokenService;

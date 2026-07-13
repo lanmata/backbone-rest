@@ -31,8 +31,10 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
-/// Implementation of {@link ManagedClientRotationService} providing secret rotation
-/// with a Redis-backed grace period for the MCAM feature (Phase 4).
+/**
+ * Implementation of {@link ManagedClientRotationService} providing secret rotation
+ * with a Redis-backed grace period for the MCAM feature (Phase 4).
+ */
 @Service
 public class ManagedClientRotationServiceImpl implements ManagedClientRotationService {
 
@@ -45,13 +47,15 @@ public class ManagedClientRotationServiceImpl implements ManagedClientRotationSe
     private final SecurityProperties securityProperties;
     private final SecureRandom secureRandom = new SecureRandom();
 
-    /// Constructs a new {@code ManagedClientRotationServiceImpl}.
-    ///
-    /// @param repository         the managed client JPA repository
-    /// @param secretHashService  the BCrypt hashing service
-    /// @param redisService       the Redis token lifecycle service
-    /// @param auditService       the audit event recording service
-    /// @param securityProperties the security configuration properties
+    /**
+     * Constructs a new {@code ManagedClientRotationServiceImpl}.
+     *
+     * @param repository         the managed client JPA repository
+     * @param secretHashService  the BCrypt hashing service
+     * @param redisService       the Redis token lifecycle service
+     * @param auditService       the audit event recording service
+     * @param securityProperties the security configuration properties
+     */
     public ManagedClientRotationServiceImpl(ManagedClientRepository repository,
                                             ManagedClientSecretHashService secretHashService,
                                             ManagedClientRedisService redisService,

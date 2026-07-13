@@ -18,21 +18,27 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 import java.util.UUID;
 
-/// Spring Data JPA repository for {@link ServiceTypeEntity}.
-/// <p>
-/// Provides standard CRUD operations plus service-type-specific derived query methods.
-/// </p>
+/**
+ * Spring Data JPA repository for {@link ServiceTypeEntity}.
+ * <p>
+ * Provides standard CRUD operations plus service-type-specific derived query methods.
+ * </p>
+ */
 public interface ServiceTypeRepository extends JpaRepository<ServiceTypeEntity, UUID> {
 
-    /// Returns all service types matching the given active flag.
-    ///
-    /// @param active {@code true} for active service types, {@code false} for inactive
-    /// @return list of matching entities
+    /**
+     * Returns all service types matching the given active flag.
+     *
+     * @param active {@code true} for active service types, {@code false} for inactive
+     * @return list of matching entities
+     */
     List<ServiceTypeEntity> findByActive(boolean active);
 
-    /// Checks whether a service type with the given name already exists.
-    ///
-    /// @param name the candidate service type name
-    /// @return {@code true} if a record with matching name already exists
+    /**
+     * Checks whether a service type with the given name already exists.
+     *
+     * @param name the candidate service type name
+     * @return {@code true} if a record with matching name already exists
+     */
     boolean existsByName(String name);
 }

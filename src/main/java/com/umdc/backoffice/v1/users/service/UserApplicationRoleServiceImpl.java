@@ -30,11 +30,13 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.UUID;
 
-/// Service implementation for managing user-application-role relationships.
-/// Delegates to ApplicationService and RoleService for data retrieval.
-/// Uses ApplicationMapper and RoleMapper for entity conversions.
-///
-/// @version 1.0.0, 2026-04-08
+/**
+ * Service implementation for managing user-application-role relationships.
+ * Delegates to ApplicationService and RoleService for data retrieval.
+ * Uses ApplicationMapper and RoleMapper for entity conversions.
+ *
+ * @version 1.0.0, 2026-04-08
+ */
 @Service
 public class UserApplicationRoleServiceImpl implements UserApplicationRoleService {
 

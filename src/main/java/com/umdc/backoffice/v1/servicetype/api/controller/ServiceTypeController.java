@@ -23,8 +23,10 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.UUID;
 
-/// REST controller for managing service types.
-/// Provides endpoints for CRUD operations on service types.
+/**
+ * REST controller for managing service types.
+ * Provides endpoints for CRUD operations on service types.
+ */
 @RestController
 @CrossOrigin(origins = "*")
 @RequestMapping("/api/v1/service-types")
@@ -32,9 +34,11 @@ public class ServiceTypeController implements ServiceTypeApi {
 
     private final ServiceTypeService serviceTypeService;
 
-    /// Constructor for ServiceTypeController.
-    ///
-    /// @param serviceTypeService the service type service
+    /**
+     * Constructor for ServiceTypeController.
+     *
+     * @param serviceTypeService the service type service
+     */
     public ServiceTypeController(ServiceTypeService serviceTypeService) {
         this.serviceTypeService = serviceTypeService;
     }

@@ -31,9 +31,11 @@ import java.util.UUID;
 
 import static com.umdc.backoffice.util.MessageUtil.MESSAGE_HEADER_STR;
 
-/// Service implementation for service type operations.
-///
-/// @version 1.0.0, 11-07-2026
+/**
+ * Service implementation for service type operations.
+ *
+ * @version 1.0.0, 11-07-2026
+ */
 @Service
 public class ServiceTypeServiceImpl implements ServiceTypeService {
 
@@ -49,17 +51,21 @@ public class ServiceTypeServiceImpl implements ServiceTypeService {
     private final ServiceTypeRepository serviceTypeRepository;
     private final ServiceTypeMapper serviceTypeMapper;
 
-    /// Constructor for ServiceTypeServiceImpl.
-    ///
-    /// @param serviceTypeRepository the service type repository
-    /// @param serviceTypeMapper     the service type mapper
+    /**
+     * Constructor for ServiceTypeServiceImpl.
+     *
+     * @param serviceTypeRepository the service type repository
+     * @param serviceTypeMapper     the service type mapper
+     */
     public ServiceTypeServiceImpl(ServiceTypeRepository serviceTypeRepository,
                                   ServiceTypeMapper serviceTypeMapper) {
         this.serviceTypeRepository = serviceTypeRepository;
         this.serviceTypeMapper = serviceTypeMapper;
     }
 
-    /// {@inheritDoc}
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public ResponseEntity<List<ServiceType>> listAll() {
         log.debug("Listing all service types");
@@ -72,7 +78,9 @@ public class ServiceTypeServiceImpl implements ServiceTypeService {
         return ResponseEntity.ok().header(MESSAGE_HEADER_STR, FOUND_MSG).body(result);
     }
 
-    /// {@inheritDoc}
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public ResponseEntity<List<ServiceType>> listByStatus(boolean active) {
         log.debug("Listing service types by active={}", active);
@@ -85,7 +93,9 @@ public class ServiceTypeServiceImpl implements ServiceTypeService {
         return ResponseEntity.ok().header(MESSAGE_HEADER_STR, FOUND_MSG).body(result);
     }
 
-    /// {@inheritDoc}
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public ResponseEntity<ServiceType> find(UUID id) {
         if (Objects.isNull(id)) {
@@ -99,7 +109,9 @@ public class ServiceTypeServiceImpl implements ServiceTypeService {
                 .orElseGet(() -> ResponseEntity.notFound().header(MESSAGE_HEADER_STR, NOT_FOUND_MSG).build());
     }
 
-    /// {@inheritDoc}
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @Transactional
     public ResponseEntity<ServiceType> create(ServiceType serviceType) {
@@ -123,7 +135,9 @@ public class ServiceTypeServiceImpl implements ServiceTypeService {
                 .body(serviceTypeMapper.toTarget(saved));
     }
 
-    /// {@inheritDoc}
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @Transactional
     public ResponseEntity<ServiceType> update(UUID id, ServiceType serviceType) {

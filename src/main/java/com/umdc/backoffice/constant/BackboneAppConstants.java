@@ -7,10 +7,14 @@ public final class BackboneAppConstants {
     public static final String ENTITY_PACKAGE = "com.umdc.persistence.general.domains";
     public static final String REPOSITORY_PACKAGE = "com.umdc.persistence.general.repositories";
 
-    /// Local entity package for audit infrastructure (backbone-rest-owned JPA entities).
+    /**
+     * Local entity package for audit infrastructure (backbone-rest-owned JPA entities).
+     */
     public static final String BACKBONE_ENTITY_PACKAGE = "com.umdc.backoffice.jpa.domain";
 
-    /// Local repository package for audit infrastructure (backbone-rest-owned Spring Data repos).
+    /**
+     * Local repository package for audit infrastructure (backbone-rest-owned Spring Data repos).
+     */
     public static final String BACKBONE_REPOSITORY_PACKAGE = "com.umdc.backoffice.jpa.repository";
 
     public static final String IMAGE_JPEG = "image/jpeg";

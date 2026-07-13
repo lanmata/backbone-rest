@@ -35,20 +35,26 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.util.List;
 import java.util.UUID;
 
-/// Interface for the Application API.
+/**
+ * Interface for the Application API.
+ */
 @Tag(name = "applications", description = "Application (service) management")
 public interface ApplicationApi {
 
-    /// Gets the application service.
-    ///
-    /// @return the application service
+    /**
+     * Gets the application service.
+     *
+     * @return the application service
+     */
     default ApplicationService getService() {
         return new ApplicationService() {};
     }
 
-    /// Returns all registered applications.
-    ///
-    /// @return all applications wrapped in a ResponseEntity
+    /**
+     * Returns all registered applications.
+     *
+     * @return all applications wrapped in a ResponseEntity
+     */
     @Operation(summary = "List all applications", description = "Returns every registered application.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "Application list returned."),
@@ -59,10 +65,12 @@ public interface ApplicationApi {
         return this.getService().listAll();
     }
 
-    /// Returns applications matching the given IDs.
-    ///
-    /// @param ids comma-separated list of application UUIDs
-    /// @return matched applications wrapped in a ResponseEntity
+    /**
+     * Returns applications matching the given IDs.
+     *
+     * @param ids comma-separated list of application UUIDs
+     * @return matched applications wrapped in a ResponseEntity
+     */
     @Operation(summary = "List applications by IDs", description = "Returns applications matching the provided UUIDs.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "Applications returned."),
@@ -73,10 +81,12 @@ public interface ApplicationApi {
         return this.getService().list(ids.toArray(new UUID[0]));
     }
 
-    /// Creates a new application.
-    ///
-    /// @param applicationCreateRequest the application creation request
-    /// @return the created application wrapped in a ResponseEntity
+    /**
+     * Creates a new application.
+     *
+     * @param applicationCreateRequest the application creation request
+     * @return the created application wrapped in a ResponseEntity
+     */
     @Operation(description = "Creates a new application.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = HttpStatusUtil.CREATED_STR, description = "Application created successfully."),
@@ -88,10 +98,12 @@ public interface ApplicationApi {
         return this.getService().create(applicationCreateRequest.getApplication());
     }
 
-    /// Finds an application by its ID.
-    ///
-    /// @param id the application UUID
-    /// @return the application wrapped in a ResponseEntity
+    /**
+     * Finds an application by its ID.
+     *
+     * @param id the application UUID
+     * @return the application wrapped in a ResponseEntity
+     */
     @Operation(summary = "Find application by ID", description = "Returns the application matching the given UUID.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "Application found."),
@@ -103,11 +115,13 @@ public interface ApplicationApi {
         return this.getService().find(id);
     }
 
-    /// Updates an existing application.
-    ///
-    /// @param id      the application UUID
-    /// @param request the update request body
-    /// @return the updated application wrapped in a ResponseEntity
+    /**
+     * Updates an existing application.
+     *
+     * @param id      the application UUID
+     * @param request the update request body
+     * @return the updated application wrapped in a ResponseEntity
+     */
     @Operation(summary = "Update an application", description = "Updates the application identified by the given UUID.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "Application updated successfully."),
@@ -120,10 +134,12 @@ public interface ApplicationApi {
         return this.getService().update(id, request.getApplication());
     }
 
-    /// Deletes an application by its ID.
-    ///
-    /// @param id the application UUID
-    /// @return empty response with status header
+    /**
+     * Deletes an application by its ID.
+     *
+     * @param id the application UUID
+     * @return empty response with status header
+     */
     @Operation(summary = "Delete an application", description = "Deletes the application identified by the given UUID.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "Application deleted successfully."),

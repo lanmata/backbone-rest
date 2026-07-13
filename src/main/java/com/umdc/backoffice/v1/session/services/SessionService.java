@@ -67,16 +67,18 @@ public interface SessionService extends SessionJwtService {
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
 
-    /// Exchanges a valid or recently-expired refresh token for a new access token
-    /// and a new refresh token.
-    /// <p>
-    /// The refresh token must carry {@code type=refresh-token} (or {@code type=session-token}
-    /// for backward compatibility). A grace period of 7 days beyond expiry is honoured.
-    /// </p>
-    ///
-    /// @param refreshToken the refresh token string
-    /// @return a {@link ResponseEntity} with a new {@link SessionResponse}; 401 if the token
-    ///         is invalid, revoked, or beyond the grace period; 404 if the user is not found
+    /**
+     * Exchanges a valid or recently-expired refresh token for a new access token
+     * and a new refresh token.
+     * <p>
+     * The refresh token must carry {@code type=refresh-token} (or {@code type=session-token}
+     * for backward compatibility). A grace period of 7 days beyond expiry is honoured.
+     * </p>
+     *
+     * @param refreshToken the refresh token string
+     * @return a {@link ResponseEntity} with a new {@link SessionResponse}; 401 if the token
+     *         is invalid, revoked, or beyond the grace period; 404 if the user is not found
+     */
     default ResponseEntity<SessionResponse> refreshSession(String refreshToken) {
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }

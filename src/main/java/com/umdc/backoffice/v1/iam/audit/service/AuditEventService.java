@@ -20,18 +20,22 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-/// Service contract for persisting and querying security audit events.
+/**
+ * Service contract for persisting and querying security audit events.
+ */
 public interface AuditEventService {
 
-    /// Records a new audit event asynchronously so that the caller's transaction
-    /// is not delayed.
-    ///
-    /// @param userId        the user who triggered the event (must not be {@code null})
-    /// @param applicationId the application context (may be {@code null})
-    /// @param eventType     the event discriminator (must not be {@code null})
-    /// @param ipAddress     client IP address (may be {@code null})
-    /// @param userAgent     client user-agent string (may be {@code null})
-    /// @param details       JSON string with additional details (may be {@code null})
+    /**
+     * Records a new audit event asynchronously so that the caller's transaction
+     * is not delayed.
+     *
+     * @param userId        the user who triggered the event (must not be {@code null})
+     * @param applicationId the application context (may be {@code null})
+     * @param eventType     the event discriminator (must not be {@code null})
+     * @param ipAddress     client IP address (may be {@code null})
+     * @param userAgent     client user-agent string (may be {@code null})
+     * @param details       JSON string with additional details (may be {@code null})
+     */
     void saveRecord(UUID userId, UUID applicationId, AuditEventType eventType,
                     String ipAddress, String userAgent, String details);
 

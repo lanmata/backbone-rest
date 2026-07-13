@@ -12,14 +12,18 @@
  */
 package com.umdc.backoffice.v1.managedclient.service;
 
-/// Service interface for scheduled MCAM maintenance tasks.
+/**
+ * Service interface for scheduled MCAM maintenance tasks.
+ */
 public interface ManagedClientMaintenanceService {
 
-    /// Clears stale {@code prevSecretHash} values from managed-client rows where
-    /// the rotation grace period has expired.
-    /// <p>
-    /// Run periodically to prevent stale previous-secret hashes from persisting
-    /// in the database after the Redis grace-period key has already expired.
-    /// </p>
+    /**
+     * Clears stale {@code prevSecretHash} values from managed-client rows where
+     * the rotation grace period has expired.
+     * <p>
+     * Run periodically to prevent stale previous-secret hashes from persisting
+     * in the database after the Redis grace-period key has already expired.
+     * </p>
+     */
     void clearExpiredPrevSecretHashes();
 }

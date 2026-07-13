@@ -18,21 +18,25 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
-/// Async and scheduling configuration for the MCAM feature.
-/// <p>
-/// Provides a dedicated thread pool for BCrypt hashing so that blocking
-/// operations do not exhaust Tomcat I/O threads under load (NFR-P-03).
-/// {@code @EnableScheduling} activates the maintenance cleanup task.
-/// </p>
+/**
+ * Async and scheduling configuration for the MCAM feature.
+ * <p>
+ * Provides a dedicated thread pool for BCrypt hashing so that blocking
+ * operations do not exhaust Tomcat I/O threads under load (NFR-P-03).
+ * {@code @EnableScheduling} activates the maintenance cleanup task.
+ * </p>
+ */
 @Configuration
 @EnableAsync
 @EnableScheduling
 public class ManagedClientAsyncConfig {
 
-    /// Thread pool for BCrypt hashing operations.
-    /// Prevents BCrypt from blocking Tomcat I/O threads under load (NFR-P-03).
-    ///
-    /// @return the configured {@link ThreadPoolTaskExecutor}
+    /**
+     * Thread pool for BCrypt hashing operations.
+     * Prevents BCrypt from blocking Tomcat I/O threads under load (NFR-P-03).
+     *
+     * @return the configured {@link ThreadPoolTaskExecutor}
+     */
     @Bean("mcamHashExecutor")
     public ThreadPoolTaskExecutor mcamHashExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();

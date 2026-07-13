@@ -17,9 +17,11 @@ public interface SessionJwtService {
 
     String SESSION_TOKEN_KEY = "session-token";
 
-    /// Token type claim value for refresh tokens.
-    /// Refresh tokens carry a longer TTL and are used exclusively by
-    /// {@code POST /api/v1/session/refresh} to obtain new access tokens.
+    /**
+     * Token type claim value for refresh tokens.
+     * Refresh tokens carry a longer TTL and are used exclusively by
+     * {@code POST /api/v1/session/refresh} to obtain new access tokens.
+     */
     String REFRESH_TOKEN_KEY = "refresh-token";
 
     String AUTHORIZATION_HEADER = "Authorization";
