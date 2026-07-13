@@ -69,7 +69,7 @@ Every response includes:
 |---|--------|-----------|------|-----------|
 | 1 | Sessions & Auth | `/api/v1/session` | [session.md](./session.md) | 5 |
 | 2 | Users | `/api/v1/users` | [users.md](./users.md) | 12 |
-| 3 | Applications | `/api/v1/applications` | [applications.md](./applications.md) | 2 |
+| 3 | Applications | `/api/v1/applications` | [applications.md](./applications.md) | 6 |
 | 4 | Roles | `/api/v1/roles` | [roles.md](./roles.md) | 7 |
 | 5 | Features | `/api/v1/features` | [features.md](./features.md) | 5 |
 | 6 | Contacts | `/api/v1/contacts` | [contacts.md](./contacts.md) | 7 |
@@ -83,7 +83,7 @@ Every response includes:
 | 14 | Report / Document | `/api/v1/report` | [report.md](./report.md) | 2 |
 | 15 | Service Types | `/api/v1/service-types` | [service-types.md](./service-types.md) | 5 |
 
-**Total: 71 endpoints**
+**Total: 75 endpoints**
 
 ---
 

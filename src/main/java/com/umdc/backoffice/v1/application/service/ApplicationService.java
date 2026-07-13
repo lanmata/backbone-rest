@@ -15,7 +15,7 @@ package com.umdc.backoffice.v1.application.service;
 
 import com.umdc.commons.general.pojo.Application;
 import com.umdc.commons.services.CrudService;
-import org.apache.commons.lang.NotImplementedException;
+import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;

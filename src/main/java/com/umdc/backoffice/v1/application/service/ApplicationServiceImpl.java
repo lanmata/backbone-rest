@@ -38,11 +38,13 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationServiceImpl.class);
 
-    private static final String NOT_FOUND_MSG = "Application not found.";
-    private static final String FOUND_MSG = "Application found.";
-    private static final String CREATED_MSG = "Application created successfully.";
+    private static final String NOT_FOUND_MSG  = "Application not found.";
+    private static final String FOUND_MSG      = "Application found.";
+    private static final String CREATED_MSG    = "Application created successfully.";
+    private static final String UPDATED_MSG    = "Application updated successfully.";
+    private static final String DELETED_MSG    = "Application deleted successfully.";
     private static final String BAD_REQUEST_MSG = "Invalid request. The 'application' body is required and must include a non-blank 'name'.";
-    private static final String NO_DATA_MSG = "No applications found.";
+    private static final String NO_DATA_MSG    = "No applications found.";
 
     private final ApplicationRepository applicationRepository;
     private final ApplicationMapper applicationMapper;
@@ -76,28 +78,60 @@ public class ApplicationServiceImpl implements ApplicationService {
     /** {@inheritDoc} */
     @Override
     public ResponseEntity<Application> find(UUID id) {
-        Optional<Application> result = applicationRepository.findById(id)
-                .map(applicationMapper::toTarget);
+        Optional<Application> result = applicationRepository.findById(id).map(applicationMapper::toTarget);
         return result.map(app -> ResponseEntity.ok().header(MESSAGE_HEADER_STR, FOUND_MSG).body(app))
                      .orElseGet(() -> ResponseEntity.notFound().header(MESSAGE_HEADER_STR, NOT_FOUND_MSG).build());
     }
 
     /** {@inheritDoc} */
     @Override
+    @Transactional
     public ResponseEntity<Application> update(UUID id, Application application) {
-        return ApplicationService.super.update(id, application);
+        if (Objects.isNull(application) || Objects.isNull(application.getName()) || application.getName().isBlank()) {
+            LOGGER.debug("update called with null or nameless application: id={}", id);
+            return ResponseEntity.badRequest().header(MESSAGE_HEADER_STR, BAD_REQUEST_MSG).build();
+        }
+        var existing = applicationRepository.findById(id);
+        if (existing.isEmpty()) {
+            LOGGER.debug("Application not found for update: id={}", id);
+            return ResponseEntity.notFound().header(MESSAGE_HEADER_STR, NOT_FOUND_MSG).build();
+        }
+        var entity = existing.get();
+        entity.setName(application.getName());
+        entity.setDescription(application.getDescription());
+        if (!Objects.isNull(application.getActive())) {
+            entity.setActive(application.getActive());
+        }
+        String raw = application.getName().toLowerCase(java.util.Locale.ROOT).replaceAll("[^a-z0-9]+", "_");
+        entity.setCodeName(raw.length() > 8 ? raw.substring(0, 8) : raw);
+        var saved = applicationRepository.save(entity);
+        LOGGER.debug("Application updated: id={}", saved.getId());
+        return ResponseEntity.ok().header(MESSAGE_HEADER_STR, UPDATED_MSG).body(applicationMapper.toTarget(saved));
     }
 
     /** {@inheritDoc} */
     @Override
+    @Transactional
     public ResponseEntity<Application> delete(UUID id, Application application) {
-        return ApplicationService.super.delete(id, application);
+        if (!applicationRepository.existsById(id)) {
+            LOGGER.debug("Application not found for delete: id={}", id);
+            return ResponseEntity.notFound().header(MESSAGE_HEADER_STR, NOT_FOUND_MSG).build();
+        }
+        applicationRepository.deleteById(id);
+        LOGGER.debug("Application deleted: id={}", id);
+        return ResponseEntity.ok().<Application>header(MESSAGE_HEADER_STR, DELETED_MSG).build();
     }
 
     /** {@inheritDoc} */
     @Override
-    public ResponseEntity<List<Application>> list(UUID... id) {
-        return ApplicationService.super.list(id);
+    public ResponseEntity<List<Application>> list(UUID... ids) {
+        List<Application> result = new ArrayList<>();
+        applicationRepository.findAllById(List.of(ids)).forEach(entity -> result.add(applicationMapper.toTarget(entity)));
+        if (result.isEmpty()) {
+            LOGGER.debug("No applications found for provided IDs");
+            return ResponseEntity.notFound().header(MESSAGE_HEADER_STR, NO_DATA_MSG).build();
+        }
+        return ResponseEntity.ok().header(MESSAGE_HEADER_STR, FOUND_MSG).body(result);
     }
 
     /** {@inheritDoc} */

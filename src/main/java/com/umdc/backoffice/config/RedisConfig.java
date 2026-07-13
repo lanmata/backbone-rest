@@ -22,6 +22,7 @@ import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import java.net.URI;
 import java.time.Duration;
 /**
  * Source-aware Lettuce Redis connection configuration.
@@ -80,11 +81,13 @@ public class RedisConfig {
             RedisURI redisURI = RedisURI.create(properties.getUrl().trim());
             server = new RedisStandaloneConfiguration(redisURI.getHost(), redisURI.getPort());
             server.setDatabase(redisURI.getDatabase());
-            if (hasText(redisURI.getUsername())) {
-                server.setUsername(redisURI.getUsername());
+            String urlUsername = extractUsernameFromUrl(properties.getUrl());
+            if (hasText(urlUsername)) {
+                server.setUsername(urlUsername);
             }
-            if (redisURI.getPassword() != null && redisURI.getPassword().length > 0) {
-                server.setPassword(RedisPassword.of(redisURI.getPassword()));
+            String urlPassword = extractPasswordFromUrl(properties.getUrl());
+            if (hasText(urlPassword)) {
+                server.setPassword(RedisPassword.of(urlPassword));
             }
             clientBuilder = LettuceClientConfiguration.builder().commandTimeout(timeout);
             if (redisURI.isSsl()) {
@@ -134,9 +137,8 @@ public class RedisConfig {
         }
         String host = hasText(redisURI.getHost()) ? redisURI.getHost() : DEFAULT_HOST;
         int port = redisURI.getPort() > 0 ? redisURI.getPort() : DEFAULT_PORT;
-        String username = redisURI.getUsername();
-        String password = redisURI.getPassword() != null && redisURI.getPassword().length > 0
-                ? new String(redisURI.getPassword()) : null;
+        String username = extractUsernameFromUrl(rawUrl);
+        String password = extractPasswordFromUrl(rawUrl);
         int database = clampDatabase(redisURI.getDatabase());
         boolean sslEnabled = redisURI.isSsl();
         return new RedisEndpoint(host, port, username, password, database, sslEnabled, "url");
@@ -148,6 +150,28 @@ public class RedisConfig {
         boolean sslEnabled = properties.getSsl().isEnabled();
         return new RedisEndpoint(host, port, properties.getUsername(), properties.getPassword(),
             database, sslEnabled, "properties");
+    }
+    private static String extractUsernameFromUrl(String rawUrl) {
+        try {
+            String userInfo = new URI(rawUrl.trim()).getUserInfo();
+            if (userInfo != null) {
+                return userInfo.split(":", 2)[0];
+            }
+        } catch (Exception ignored) {
+            // RedisURI.create() has already validated the URL; silent fallback is safe
+        }
+        return null;
+    }
+    private static String extractPasswordFromUrl(String rawUrl) {
+        try {
+            String userInfo = new URI(rawUrl.trim()).getUserInfo();
+            if (userInfo != null && userInfo.contains(":")) {
+                return userInfo.split(":", 2)[1];
+            }
+        } catch (Exception ignored) {
+            // RedisURI.create() has already validated the URL; silent fallback is safe
+        }
+        return null;
     }
     private static int clampDatabase(int database) {
         if (database < 0 || database > MAX_REDIS_DATABASE) {

@@ -14,7 +14,7 @@
 package com.umdc.backoffice.v1.features.service;
 
 import com.umdc.commons.general.pojo.Feature;
-import org.apache.commons.lang.NotImplementedException;
+import org.apache.commons.lang3.NotImplementedException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

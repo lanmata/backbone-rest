@@ -4,7 +4,46 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [Unreleased] - 2026-07-13
+
+### Added
+- **Application CRUD — complete REST endpoint set** (`/api/v1/applications`)
+  - `GET    /api/v1/applications/{id}`   — Find application by UUID; returns `200` with `Message-header: Application found.` or `404`
+  - `PUT    /api/v1/applications/{id}`   — Update name / description / active; `codeName` recalculated automatically; returns `200` or `400` / `404`
+  - `DELETE /api/v1/applications/{id}`   — Existence-check then hard delete; returns `200` or `404`
+  - `GET    /api/v1/applications?ids=`   — Bulk lookup by comma-separated UUIDs via `findAllById`; returns `200` or `404`
+- `ApplicationUpdateRequest` DTO (`api/to/`) — mirrors `ApplicationCreateRequest`
+- `ApplicationMessageKey` entries: `APPLICATION_UPDATED`, `APPLICATION_DELETED`
+- `ApplicationMessageKeyTest` — enum coverage test (matches pattern of other `*MessageKeyTest` classes)
+- **`codeName` auto-derivation** in `ApplicationServiceImpl.create()` and `.update()`:
+  - Slugifies `name` to lowercase alphanumeric + `_`, truncated to **8 characters**
+  - e.g. `"Backoffice Portal"` → `"backoffi"`
+- `@Transactional` on `create`, `update`, and `delete` service methods
+- `Message-header` response header on every Application endpoint (success and error paths)
+- Input validation in `create` and `update`: null body or blank `name` returns `400` with descriptive header
+
+### Fixed
+- `ObjectOptimisticLockingFailureException` on `POST /api/v1/applications` — callers supplying an existing `id` in the request body caused Hibernate to call `merge()` on a detached entity; fix: `application.setId(null)` before mapping, forcing a fresh `INSERT`
+- `DataIntegrityViolationException` on `POST /api/v1/applications` — `code_name NOT NULL` constraint violated because `Application` POJO has no `codeName` field and the mapper left it null; fix: auto-derive `codeName` from `name` after mapping
+- `RedisConfig` compilation error — `RedisURI.getPassword()` and `RedisURI.getUsername()` were removed in Lettuce `7.5.2`; replaced with `java.net.URI.getUserInfo()` parsing (credentials extracted before `RedisURI.create()` hands control to Lettuce for host/port/database/TLS)
+
+### Changed
+- `POST /api/v1/applications` now returns **`201 Created`** instead of `200 OK`
+- `ApplicationMessageKey` messages translated from Spanish to English; `APPLICATION_CREATE_ERROR` HTTP code corrected from `404` to `400`
+- `ApplicationServiceImpl` response pattern aligned with `ServiceTypeServiceImpl` (inline message constants, `Objects.isNull` guards, `ResponseEntity` builder chain)
+- `ApplicationApi` interface: tag changed from `"service"` to `"applications"` to match OpenAPI spec
+- `ApplicationController.delete(UUID)` — no longer requires a body; delegates `null` application to service
+- Spring Boot upgraded from `3.4.1` to **`4.1.0`** (`spring-boot-starter-parent` BOM)
+- Spring Cloud upgraded to **`2025.1.2`** (`spring-cloud.version` property)
+
+### Documentation
+- `docs/api/applications.md` — full rewrite: 6 endpoints documented with request/response tables, `Message-header` column, `curl` examples, and error reference
+- `docs/api/README.md` — Applications endpoint count updated `2 → 6`; total updated `71 → 75`
+- `docs/v1/01-getting-started.md` — Quick Reference table updated with 4 new application rows
+- `docs/v1/README.md` — Quick Reference table updated with 4 new application rows
+- `docs/v1/04-application-client.md` — full rewrite: 6 endpoint sections each with colored Mermaid sequence diagrams; `codeName` derivation rule documented; `Message-header` on every operation
+- `docs/v1/10-api-reference.md` — Applications section updated with 6-row endpoint table, `ApplicationUpdateRequest` body, and `Application` response field reference
+- All Mermaid diagrams use a consistent color scheme: emerald for Application nodes, blue for Client, amber for roles/warnings, purple for PostgreSQL; sequence `rect` blocks: light-blue for requests, light-green for success, light-yellow for 404, light-red for 400/401
 
 ### Added
 - Management Client Authentication Manager (MCAM) — M2M OAuth2 client credential lifecycle

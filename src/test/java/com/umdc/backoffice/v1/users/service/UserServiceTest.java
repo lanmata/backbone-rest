@@ -14,7 +14,7 @@
 package com.umdc.backoffice.v1.users.service;
 
 import com.umdc.backoffice.v1.users.api.to.UserTO;
-import org.apache.commons.lang.NotImplementedException;
+import org.apache.commons.lang3.NotImplementedException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
