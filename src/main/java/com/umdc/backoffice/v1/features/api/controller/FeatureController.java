@@ -16,7 +16,6 @@ import com.umdc.backoffice.v1.features.api.to.FeatureRequest;
 import com.umdc.backoffice.v1.features.service.FeatureService;
 import com.umdc.commons.general.pojo.Feature;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -30,7 +29,6 @@ import java.util.UUID;
  * @version 1.0.0, 14-02-2021
  */
 @RestController
-@CrossOrigin(origins = "*")
 @RequestMapping(value = "/api/v1/features")
 public class FeatureController implements FeatureApi {
 

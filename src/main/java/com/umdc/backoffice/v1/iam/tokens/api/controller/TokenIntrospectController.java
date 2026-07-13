@@ -16,7 +16,6 @@ import com.umdc.backoffice.v1.iam.tokens.api.to.TokenIntrospectRequest;
 import com.umdc.backoffice.v1.iam.tokens.api.to.TokenIntrospectResponse;
 import com.umdc.backoffice.v1.iam.tokens.service.TokenIntrospectService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -24,7 +23,6 @@ import org.springframework.web.bind.annotation.RestController;
  * Delegates all business logic to {@link TokenIntrospectService}.
  */
 @RestController
-@CrossOrigin(origins = "*")
 public class TokenIntrospectController implements TokenIntrospectApi {
 
     private final TokenIntrospectService tokenIntrospectService;

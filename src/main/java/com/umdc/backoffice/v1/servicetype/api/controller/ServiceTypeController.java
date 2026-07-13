@@ -16,7 +16,6 @@ import com.umdc.backoffice.v1.servicetype.api.to.ServiceTypeRequest;
 import com.umdc.backoffice.v1.servicetype.service.ServiceTypeService;
 import com.umdc.commons.general.pojo.ServiceType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -28,7 +27,6 @@ import java.util.UUID;
  * Provides endpoints for CRUD operations on service types.
  */
 @RestController
-@CrossOrigin(origins = "*")
 @RequestMapping("/api/v1/service-types")
 public class ServiceTypeController implements ServiceTypeApi {
 

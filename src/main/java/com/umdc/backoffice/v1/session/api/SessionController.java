@@ -31,7 +31,6 @@ import static com.umdc.backoffice.v1.session.services.SessionJwtService.AUTHORIZ
  */
 @RestController
 @RequestMapping("/api/v1/session")
-@CrossOrigin(origins = "*")
 public class SessionController implements SessionApi {
 
     /**

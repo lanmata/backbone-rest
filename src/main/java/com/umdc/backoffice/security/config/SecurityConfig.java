@@ -62,11 +62,12 @@ public class SecurityConfig {
      *
      * @param sessionJwtAuthenticationFilter the filter that validates the session-token header
      * @param managedClientTokenFilter       the filter that validates M2M Bearer tokens
-     * @param allowedOrigins                 comma-separated allowed CORS origins (defaults to {@code *})
+     * @param allowedOrigins                 comma-separated allowed CORS origins; must be set explicitly in
+     *                                       production via {@code umdc.cors.allowed-origins} — no wildcard default
      */
     public SecurityConfig(SessionJwtAuthenticationFilter sessionJwtAuthenticationFilter,
                           ManagedClientTokenFilter managedClientTokenFilter,
-                          @Value("${umdc.cors.allowed-origins:*}") String allowedOrigins) {
+                          @Value("${umdc.cors.allowed-origins:}") String allowedOrigins) {
         this.sessionJwtAuthenticationFilter = sessionJwtAuthenticationFilter;
         this.managedClientTokenFilter = managedClientTokenFilter;
         this.allowedOrigins = allowedOrigins;
@@ -129,10 +130,18 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of(allowedOrigins.split(",")));
+        List<String> origins = allowedOrigins.isBlank()
+                ? List.of()
+                : List.of(allowedOrigins.split(","));
+        if (origins.isEmpty()) {
+            LOGGER.warn("umdc.cors.allowed-origins is not set — CORS will block all cross-origin requests. " +
+                    "Set this property to the front-end origin(s) in your environment config.");
+        }
+        configuration.setAllowedOriginPatterns(origins);
         configuration.setAllowedMethods(List.of(HttpMethod.GET.name(), HttpMethod.POST.name(), HttpMethod.PUT.name(),
                 HttpMethod.DELETE.name(), HttpMethod.OPTIONS.name(), HttpMethod.PATCH.name()));
         configuration.setAllowedHeaders(List.of("*"));
+        configuration.setExposedHeaders(List.of("Message-header"));
         configuration.setAllowCredentials(false);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

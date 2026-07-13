@@ -13,7 +13,6 @@
 package com.umdc.backoffice.v1.iam.audit.api.controller;
 
 import com.umdc.backoffice.v1.iam.audit.service.AuditEventService;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -23,7 +22,6 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/api/v1/iam/audit")
-@CrossOrigin(origins = "*")
 public class AuditController implements AuditApi {
 
     private final AuditEventService auditEventService;

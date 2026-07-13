@@ -18,7 +18,6 @@ import com.umdc.backoffice.v1.application.api.to.ApplicationUpdateRequest;
 import com.umdc.backoffice.v1.application.service.ApplicationService;
 import com.umdc.commons.general.pojo.Application;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -30,7 +29,6 @@ import java.util.UUID;
  * REST controller for managing applications.
  */
 @RestController
-@CrossOrigin(origins = "*")
 @RequestMapping("/api/v1/applications")
 public class ApplicationController implements ApplicationApi {
 

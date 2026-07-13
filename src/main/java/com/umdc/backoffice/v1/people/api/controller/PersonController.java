@@ -16,7 +16,6 @@ import com.umdc.backoffice.v1.people.api.to.PersonRequest;
 import com.umdc.backoffice.v1.people.service.PersonService;
 import com.umdc.commons.general.pojo.Person;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -30,7 +29,6 @@ import java.util.UUID;
  * @version 1.0.1.20200904-01, 04-11-2020
  */
 @RestController
-@CrossOrigin(origins = "*")
 @RequestMapping("/api/v1/people")
 public class PersonController implements PersonApi {
     /**
