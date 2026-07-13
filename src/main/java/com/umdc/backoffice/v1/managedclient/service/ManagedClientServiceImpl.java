@@ -34,8 +34,10 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
-/// Implementation of {@link ManagedClientService} providing admin CRUD operations
-/// for managed clients (MCAM feature).
+/**
+ * Implementation of {@link ManagedClientService} providing admin CRUD operations
+ * for managed clients (MCAM feature).
+ */
 @Service
 public class ManagedClientServiceImpl implements ManagedClientService {
 
@@ -50,13 +52,15 @@ public class ManagedClientServiceImpl implements ManagedClientService {
     private final ManagedClientSecretHashService secretHashService;
     private final ManagedClientTokenService managedClientTokenService;
 
-    /// Constructs a new {@code ManagedClientServiceImpl}.
-    ///
-    /// @param repository                the managed client JPA repository
-    /// @param mapper                    the MapStruct mapper for entity ↔ DTO conversion
-    /// @param auditService              the audit service for recording lifecycle events
-    /// @param secretHashService         the service for BCrypt hashing of client secrets
-    /// @param managedClientTokenService the token service for revoking active tokens
+    /**
+     * Constructs a new {@code ManagedClientServiceImpl}.
+     *
+     * @param repository                the managed client JPA repository
+     * @param mapper                    the MapStruct mapper for entity ↔ DTO conversion
+     * @param auditService              the audit service for recording lifecycle events
+     * @param secretHashService         the service for BCrypt hashing of client secrets
+     * @param managedClientTokenService the token service for revoking active tokens
+     */
     public ManagedClientServiceImpl(ManagedClientRepository repository,
                                     ManagedClientMapper mapper,
                                     ManagedClientAuditService auditService,
@@ -69,7 +73,9 @@ public class ManagedClientServiceImpl implements ManagedClientService {
         this.managedClientTokenService = managedClientTokenService;
     }
 
-    /// {@inheritDoc}
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public ResponseEntity<?> registerClient(ManagedClientCreateRequest request) {
         LOGGER.debug("Registering managed client — name='{}', applicationId='{}'",
@@ -123,7 +129,9 @@ public class ManagedClientServiceImpl implements ManagedClientService {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    /// {@inheritDoc}
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public ResponseEntity<?> listClients(UUID applicationId, Boolean active, int page, int size) {
         PageRequest pageable = PageRequest.of(page, size);
@@ -145,7 +153,9 @@ public class ManagedClientServiceImpl implements ManagedClientService {
         return ResponseEntity.ok(mapper.toTOList(result.getContent()));
     }
 
-    /// {@inheritDoc}
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public ResponseEntity<?> getClient(UUID clientId) {
         Optional<ManagedClientEntity> found = repository.findById(clientId);
@@ -159,7 +169,9 @@ public class ManagedClientServiceImpl implements ManagedClientService {
         return ResponseEntity.ok(mapper.toTO(found.get()));
     }
 
-    /// {@inheritDoc}
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public ResponseEntity<?> updateClient(UUID clientId, ManagedClientUpdateRequest request) {
         Optional<ManagedClientEntity> found = repository.findById(clientId);
@@ -186,7 +198,9 @@ public class ManagedClientServiceImpl implements ManagedClientService {
         return ResponseEntity.ok(mapper.toTO(entity));
     }
 
-    /// {@inheritDoc}
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public ResponseEntity<?> deleteClient(UUID clientId) {
         Optional<ManagedClientEntity> found = repository.findById(clientId);

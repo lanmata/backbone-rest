@@ -12,11 +12,13 @@
  */
 package com.umdc.backoffice.v1.iam.permissions.api.to;
 
-/// Response payload for the IAM permission-check endpoint.
-///
-/// @param granted    {@code true} if the session token carries the requested permission
-/// @param permission the permission string that was evaluated
-/// @param reason     human-readable explanation of the result
+/**
+ * Response payload for the IAM permission-check endpoint.
+ *
+ * @param granted    {@code true} if the session token carries the requested permission
+ * @param permission the permission string that was evaluated
+ * @param reason     human-readable explanation of the result
+ */
 public record PermissionCheckResponse(boolean granted, String permission, String reason) {
 }
 

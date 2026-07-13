@@ -14,24 +14,30 @@ package com.umdc.backoffice.v1.managedclient.service;
 
 import java.util.concurrent.CompletableFuture;
 
-/// Service interface for hashing and comparing M2M client secrets.
+/**
+ * Service interface for hashing and comparing M2M client secrets.
+ */
 public interface ManagedClientSecretHashService {
 
-    /// Hashes a raw secret asynchronously using BCrypt on the dedicated
-    /// {@code mcamHashExecutor} thread pool (NFR-P-03).
-    ///
-    /// @param rawSecret the plaintext secret to hash
-    /// @return a {@link CompletableFuture} resolving to the BCrypt hash string
+    /**
+     * Hashes a raw secret asynchronously using BCrypt on the dedicated
+     * {@code mcamHashExecutor} thread pool (NFR-P-03).
+     *
+     * @param rawSecret the plaintext secret to hash
+     * @return a {@link CompletableFuture} resolving to the BCrypt hash string
+     */
     CompletableFuture<String> hashSecret(String rawSecret);
 
-    /// Performs a constant-time comparison of a raw secret against a stored BCrypt hash.
-    /// <p>
-    /// Delegates to {@code BCryptPasswordEncoder.matches()}, which is inherently
-    /// constant-time and prevents timing-oracle attacks (AC-TOK-02).
-    /// </p>
-    ///
-    /// @param rawSecret   the candidate plaintext secret
-    /// @param storedHash  the persisted BCrypt hash
-    /// @return {@code true} if the raw secret matches the hash
+    /**
+     * Performs a constant-time comparison of a raw secret against a stored BCrypt hash.
+     * <p>
+     * Delegates to {@code BCryptPasswordEncoder.matches()}, which is inherently
+     * constant-time and prevents timing-oracle attacks (AC-TOK-02).
+     * </p>
+     *
+     * @param rawSecret   the candidate plaintext secret
+     * @param storedHash  the persisted BCrypt hash
+     * @return {@code true} if the raw secret matches the hash
+     */
     boolean matchesWithConstantTime(String rawSecret, String storedHash);
 }

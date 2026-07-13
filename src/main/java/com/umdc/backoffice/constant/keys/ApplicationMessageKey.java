@@ -61,7 +61,17 @@ public enum ApplicationMessageKey implements MessageType {
     /**
      * Application name already in use.
      */
-    APPLICATION_PREVIOUS_EXIST(409,"Application name is already in use. Please choose a different name.");
+    APPLICATION_PREVIOUS_EXIST(409,"Application name is already in use. Please choose a different name."),
+
+    /**
+     * Application updated successfully.
+     */
+    APPLICATION_UPDATED(200,"Application updated successfully."),
+
+    /**
+     * Application deleted successfully.
+     */
+    APPLICATION_DELETED(200,"Application deleted successfully.");
 
     private final int code;
     private final String status;

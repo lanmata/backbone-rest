@@ -22,12 +22,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-/// Implementation of {@link PasswordPolicyService}.
-/// <p>
-/// Checks a raw password against each rule configured in {@link PasswordPolicyConfig}
-/// and collects all violations found. Each failing rule contributes one
-/// {@link PasswordPolicyViolation} entry with a clear, human-readable message.
-/// </p>
+/**
+ * Implementation of {@link PasswordPolicyService}.
+ * <p>
+ * Checks a raw password against each rule configured in {@link PasswordPolicyConfig}
+ * and collects all violations found. Each failing rule contributes one
+ * {@link PasswordPolicyViolation} entry with a clear, human-readable message.
+ * </p>
+ */
 @Service
 public class PasswordPolicyServiceImpl implements PasswordPolicyService {
 
@@ -57,14 +59,18 @@ public class PasswordPolicyServiceImpl implements PasswordPolicyService {
 
     private final PasswordPolicyConfig config;
 
-    /// Constructs a new {@code PasswordPolicyServiceImpl}.
-    ///
-    /// @param config the password policy configuration properties
+    /**
+     * Constructs a new {@code PasswordPolicyServiceImpl}.
+     *
+     * @param config the password policy configuration properties
+     */
     public PasswordPolicyServiceImpl(PasswordPolicyConfig config) {
         this.config = config;
     }
 
-    /// {@inheritDoc}
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<PasswordPolicyViolation> validate(String rawPassword) {
         List<PasswordPolicyViolation> violations = new ArrayList<>();
@@ -116,7 +122,9 @@ public class PasswordPolicyServiceImpl implements PasswordPolicyService {
         return violations;
     }
 
-    /// {@inheritDoc}
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isValid(String rawPassword) {
         return validate(rawPassword).isEmpty();

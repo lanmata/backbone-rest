@@ -35,7 +35,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.UUID;
 
-/// REST API interface for the Management Client Authentication Manager (MCAM) CRUD operations.
+/**
+ * REST API interface for the Management Client Authentication Manager (MCAM) CRUD operations.
+ */
 @Tag(name = "managed-clients", description = "Management Client Authentication Manager — M2M credential lifecycle")
 @RequestMapping("/api/v1/managed-clients")
 public interface ManagedClientApi {

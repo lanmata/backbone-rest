@@ -27,25 +27,31 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import jakarta.validation.Valid;
 
-/// REST API interface for IAM token introspection.
-/// <p>
-/// Requires a valid session-token JWT — this endpoint is <em>not</em> in {@code umdc.api.excludes}.
-/// </p>
+/**
+ * REST API interface for IAM token introspection.
+ * <p>
+ * Requires a valid session-token JWT — this endpoint is <em>not</em> in {@code umdc.api.excludes}.
+ * </p>
+ */
 @Tag(name = "iam-tokens", description = "IAM Token Introspection API")
 @RequestMapping("/api/v1/iam/tokens")
 public interface TokenIntrospectApi {
 
-    /// Returns the {@link TokenIntrospectService} used by this API.
-    ///
-    /// @return the service instance
+    /**
+     * Returns the {@link TokenIntrospectService} used by this API.
+     *
+     * @return the service instance
+     */
     default TokenIntrospectService getService() {
         return request -> ResponseEntity.status(HttpStatusUtil.NOT_IMPLEMENTED).build();
     }
 
-    /// Introspects the provided JWT token and returns its decoded metadata.
-    ///
-    /// @param request the introspection request containing the raw JWT token
-    /// @return a {@link ResponseEntity} wrapping {@link TokenIntrospectResponse}
+    /**
+     * Introspects the provided JWT token and returns its decoded metadata.
+     *
+     * @param request the introspection request containing the raw JWT token
+     * @return a {@link ResponseEntity} wrapping {@link TokenIntrospectResponse}
+     */
     @Operation(summary = "Introspect token", description = "Decodes and validates an application session-token JWT, returning its metadata")
     @ApiResponses(value = {
             @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "Token introspection result returned (active=false for invalid tokens)"),

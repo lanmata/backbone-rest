@@ -12,10 +12,12 @@
  */
 package com.umdc.backoffice.v1.iam.passwords.api.to;
 
-/// Represents a single password policy rule violation.
-///
-/// @param rule    the identifier of the violated rule (e.g. {@code "MIN_LENGTH"})
-/// @param message a human-readable description of the violation
+/**
+ * Represents a single password policy rule violation.
+ *
+ * @param rule    the identifier of the violated rule (e.g. {@code "MIN_LENGTH"})
+ * @param message a human-readable description of the violation
+ */
 public record PasswordPolicyViolation(String rule, String message) {
 }
 

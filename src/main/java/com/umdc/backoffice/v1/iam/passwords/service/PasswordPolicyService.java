@@ -16,19 +16,25 @@ import com.umdc.backoffice.v1.iam.passwords.api.to.PasswordPolicyViolation;
 
 import java.util.List;
 
-/// Service for validating raw passwords against the configured password policy.
+/**
+ * Service for validating raw passwords against the configured password policy.
+ */
 public interface PasswordPolicyService {
 
-    /// Validates the given raw password against all configured policy rules.
-    ///
-    /// @param rawPassword the plain-text password to validate
-    /// @return an empty list if the password satisfies all rules; otherwise a list of violations
+    /**
+     * Validates the given raw password against all configured policy rules.
+     *
+     * @param rawPassword the plain-text password to validate
+     * @return an empty list if the password satisfies all rules; otherwise a list of violations
+     */
     List<PasswordPolicyViolation> validate(String rawPassword);
 
-    /// Returns {@code true} if the password passes all policy rules.
-    ///
-    /// @param rawPassword the plain-text password to check
-    /// @return {@code true} when valid; {@code false} when one or more violations exist
+    /**
+     * Returns {@code true} if the password passes all policy rules.
+     *
+     * @param rawPassword the plain-text password to check
+     * @return {@code true} when valid; {@code false} when one or more violations exist
+     */
     boolean isValid(String rawPassword);
 }
 

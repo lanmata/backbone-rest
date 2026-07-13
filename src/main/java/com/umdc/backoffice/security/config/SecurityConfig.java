@@ -32,11 +32,13 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
-/// Security configuration for the backbone-rest application.
-/// <p>
-/// Uses the application's own session-token JWT as the sole authentication mechanism.
-/// OAuth2 / Keycloak / Supabase are intentionally excluded.
-/// </p>
+/**
+ * Security configuration for the backbone-rest application.
+ * <p>
+ * Uses the application's own session-token JWT as the sole authentication mechanism.
+ * OAuth2 / Keycloak / Supabase are intentionally excluded.
+ * </p>
+ */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -55,32 +57,37 @@ public class SecurityConfig {
     private final ManagedClientTokenFilter managedClientTokenFilter;
     private final String allowedOrigins;
 
-    /// Constructs a new {@code SecurityConfig}.
-    ///
-    /// @param sessionJwtAuthenticationFilter the filter that validates the session-token header
-    /// @param managedClientTokenFilter       the filter that validates M2M Bearer tokens
-    /// @param allowedOrigins                 comma-separated allowed CORS origins (defaults to {@code *})
+    /**
+     * Constructs a new {@code SecurityConfig}.
+     *
+     * @param sessionJwtAuthenticationFilter the filter that validates the session-token header
+     * @param managedClientTokenFilter       the filter that validates M2M Bearer tokens
+     * @param allowedOrigins                 comma-separated allowed CORS origins; must be set explicitly in
+     *                                       production via {@code umdc.cors.allowed-origins} — no wildcard default
+     */
     public SecurityConfig(SessionJwtAuthenticationFilter sessionJwtAuthenticationFilter,
                           ManagedClientTokenFilter managedClientTokenFilter,
-                          @Value("${umdc.cors.allowed-origins:*}") String allowedOrigins) {
+                          @Value("${umdc.cors.allowed-origins:}") String allowedOrigins) {
         this.sessionJwtAuthenticationFilter = sessionJwtAuthenticationFilter;
         this.managedClientTokenFilter = managedClientTokenFilter;
         this.allowedOrigins = allowedOrigins;
     }
 
-    /// Configures the application security filter chain.
-    /// <p>
-    /// CSRF is intentionally disabled: this is a fully stateless REST API whose only
-    /// authentication mechanisms are custom request headers ({@code session-token} and
-    /// {@code Authorization: Bearer}). Browsers never auto-attach custom headers on
-    /// cross-site requests, so the pre-condition for a CSRF attack — automatically
-    /// forwarded credentials — cannot be met. {@link SessionCreationPolicy#STATELESS}
-    /// ensures no session cookie is ever created, which further eliminates the risk.
-    /// </p>
-    ///
-    /// @param http the {@link HttpSecurity} to configure
-    /// @return the configured {@link SecurityFilterChain}
-    /// @throws IllegalStateException if Spring Security fails to build the filter chain
+    /**
+     * Configures the application security filter chain.
+     * <p>
+     * CSRF is intentionally disabled: this is a fully stateless REST API whose only
+     * authentication mechanisms are custom request headers ({@code session-token} and
+     * {@code Authorization: Bearer}). Browsers never auto-attach custom headers on
+     * cross-site requests, so the pre-condition for a CSRF attack — automatically
+     * forwarded credentials — cannot be met. {@link SessionCreationPolicy#STATELESS}
+     * ensures no session cookie is ever created, which further eliminates the risk.
+     * </p>
+     *
+     * @param http the {@link HttpSecurity} to configure
+     * @return the configured {@link SecurityFilterChain}
+     * @throws IllegalStateException if Spring Security fails to build the filter chain
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws IllegalStateException { // lgtm[java/spring-disabled-csrf-protection]
         try {
@@ -114,17 +121,27 @@ public class SecurityConfig {
         }
     }
 
-    /// Produces a CORS configuration source that applies to all paths.
-    /// Allowed origins are controlled by the {@code umdc.cors.allowed-origins} property.
-    ///
-    /// @return the configured {@link CorsConfigurationSource}
+    /**
+     * Produces a CORS configuration source that applies to all paths.
+     * Allowed origins are controlled by the {@code umdc.cors.allowed-origins} property.
+     *
+     * @return the configured {@link CorsConfigurationSource}
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of(allowedOrigins.split(",")));
+        List<String> origins = allowedOrigins.isBlank()
+                ? List.of()
+                : List.of(allowedOrigins.split(","));
+        if (origins.isEmpty()) {
+            LOGGER.warn("umdc.cors.allowed-origins is not set — CORS will block all cross-origin requests. " +
+                    "Set this property to the front-end origin(s) in your environment config.");
+        }
+        configuration.setAllowedOriginPatterns(origins);
         configuration.setAllowedMethods(List.of(HttpMethod.GET.name(), HttpMethod.POST.name(), HttpMethod.PUT.name(),
                 HttpMethod.DELETE.name(), HttpMethod.OPTIONS.name(), HttpMethod.PATCH.name()));
         configuration.setAllowedHeaders(List.of("*"));
+        configuration.setExposedHeaders(List.of("Message-header"));
         configuration.setAllowCredentials(false);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

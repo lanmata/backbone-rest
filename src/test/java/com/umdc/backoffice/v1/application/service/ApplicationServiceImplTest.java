@@ -17,7 +17,6 @@ import com.umdc.backoffice.v1.application.mapper.ApplicationMapper;
 import com.umdc.commons.general.pojo.Application;
 import com.umdc.persistence.general.domains.ApplicationEntity;
 import com.umdc.persistence.general.repositories.ApplicationRepository;
-import org.apache.commons.lang.NotImplementedException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -199,6 +198,160 @@ class ApplicationServiceImplTest {
         verifyNoInteractions(applicationMapper);
     }
 
+    // ── update ──────────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("update: existing application returns 200 with updated body and Message-header")
+    void updateApplicationSuccessfully() {
+        UUID appId = UUID.randomUUID();
+        Application incoming = new Application();
+        incoming.setName("Updated Name");
+        incoming.setActive(true);
+
+        ApplicationEntity entity = new ApplicationEntity();
+        entity.setId(appId);
+        Application updated = new Application();
+        updated.setId(appId);
+        updated.setName("Updated Name");
+
+        when(applicationRepository.findById(appId)).thenReturn(Optional.of(entity));
+        when(applicationRepository.save(entity)).thenReturn(entity);
+        when(applicationMapper.toTarget(entity)).thenReturn(updated);
+
+        ResponseEntity<Application> response = applicationService.update(appId, incoming);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(updated, response.getBody());
+        assertNotNull(response.getHeaders().getFirst(MESSAGE_HEADER_STR));
+        verify(applicationRepository).save(entity);
+    }
+
+    @Test
+    @DisplayName("update: non-existent ID returns 404 with Message-header")
+    void updateApplicationNotFoundReturns404() {
+        UUID appId = UUID.randomUUID();
+        Application incoming = new Application();
+        incoming.setName("Updated Name");
+
+        when(applicationRepository.findById(appId)).thenReturn(Optional.empty());
+
+        ResponseEntity<Application> response = applicationService.update(appId, incoming);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertNotNull(response.getHeaders().getFirst(MESSAGE_HEADER_STR));
+        verify(applicationRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("update: null application returns 400 with Message-header")
+    void updateApplicationWithNullBodyReturnsBadRequest() {
+        ResponseEntity<Application> response = applicationService.update(UUID.randomUUID(), null);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertNotNull(response.getHeaders().getFirst(MESSAGE_HEADER_STR));
+        verifyNoInteractions(applicationRepository);
+    }
+
+    @Test
+    @DisplayName("update: blank name returns 400 with Message-header")
+    void updateApplicationWithBlankNameReturnsBadRequest() {
+        Application incoming = new Application();
+        incoming.setName("");
+
+        ResponseEntity<Application> response = applicationService.update(UUID.randomUUID(), incoming);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertNotNull(response.getHeaders().getFirst(MESSAGE_HEADER_STR));
+        verifyNoInteractions(applicationRepository);
+    }
+
+    @Test
+    @DisplayName("update: codeName is recalculated and truncated to 8 chars")
+    void updateApplicationRecalculatesCodeName() {
+        UUID appId = UUID.randomUUID();
+        Application incoming = new Application();
+        incoming.setName("New Long App Name");
+
+        ApplicationEntity entity = new ApplicationEntity();
+        entity.setId(appId);
+        Application result = new Application();
+
+        when(applicationRepository.findById(appId)).thenReturn(Optional.of(entity));
+        when(applicationRepository.save(entity)).thenReturn(entity);
+        when(applicationMapper.toTarget(entity)).thenReturn(result);
+
+        applicationService.update(appId, incoming);
+
+        assertNotNull(entity.getCodeName());
+        assertTrue(entity.getCodeName().length() <= 8);
+        assertEquals("new_long", entity.getCodeName());
+    }
+
+    // ── delete ──────────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("delete: existing application returns 200 with Message-header")
+    void deleteApplicationSuccessfully() {
+        UUID appId = UUID.randomUUID();
+        when(applicationRepository.existsById(appId)).thenReturn(true);
+
+        ResponseEntity<Application> response = applicationService.delete(appId, null);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getHeaders().getFirst(MESSAGE_HEADER_STR));
+        verify(applicationRepository).deleteById(appId);
+    }
+
+    @Test
+    @DisplayName("delete: non-existent ID returns 404 with Message-header")
+    void deleteApplicationNotFoundReturns404() {
+        UUID appId = UUID.randomUUID();
+        when(applicationRepository.existsById(appId)).thenReturn(false);
+
+        ResponseEntity<Application> response = applicationService.delete(appId, null);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertNotNull(response.getHeaders().getFirst(MESSAGE_HEADER_STR));
+        verify(applicationRepository, never()).deleteById(any());
+    }
+
+    // ── list(ids) ────────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("list: returns 200 with matched applications and Message-header")
+    void listApplicationsByIdsSuccessfully() {
+        UUID id1 = UUID.randomUUID();
+        UUID id2 = UUID.randomUUID();
+        ApplicationEntity entity1 = new ApplicationEntity();
+        ApplicationEntity entity2 = new ApplicationEntity();
+        Application app1 = new Application();
+        Application app2 = new Application();
+
+        when(applicationRepository.findAllById(List.of(id1, id2))).thenReturn(List.of(entity1, entity2));
+        when(applicationMapper.toTarget(entity1)).thenReturn(app1);
+        when(applicationMapper.toTarget(entity2)).thenReturn(app2);
+
+        ResponseEntity<List<Application>> response = applicationService.list(id1, id2);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(2, response.getBody().size());
+        assertNotNull(response.getHeaders().getFirst(MESSAGE_HEADER_STR));
+    }
+
+    @Test
+    @DisplayName("list: returns 404 with Message-header when no IDs match")
+    void listApplicationsByIdsNoMatchReturns404() {
+        UUID id1 = UUID.randomUUID();
+        when(applicationRepository.findAllById(List.of(id1))).thenReturn(List.of());
+
+        ResponseEntity<List<Application>> response = applicationService.list(id1);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertNotNull(response.getHeaders().getFirst(MESSAGE_HEADER_STR));
+        verifyNoInteractions(applicationMapper);
+    }
+
     // ── listAll ─────────────────────────────────────────────────────────────────
 
     @Test
@@ -234,50 +387,5 @@ class ApplicationServiceImplTest {
         assertNotNull(response.getHeaders().getFirst(MESSAGE_HEADER_STR));
         verify(applicationRepository).findAll();
         verifyNoInteractions(applicationMapper);
-    }
-
-    // ── update ──────────────────────────────────────────────────────────────────
-
-    @Test
-    @DisplayName("update: delegates to default interface method and throws NotImplementedException")
-    void updateApplicationThrowsNotImplemented() {
-        assertThrows(NotImplementedException.class,
-                () -> applicationService.update(UUID.randomUUID(), new Application()));
-    }
-
-    @Test
-    @DisplayName("update: with non-existent ID still throws NotImplementedException")
-    void updateApplicationWithNonExistentIdThrowsNotImplemented() {
-        when(applicationRepository.findById(any())).thenReturn(Optional.empty());
-
-        assertThrows(NotImplementedException.class,
-                () -> applicationService.update(UUID.randomUUID(), new Application()));
-    }
-
-    // ── delete ──────────────────────────────────────────────────────────────────
-
-    @Test
-    @DisplayName("delete: delegates to default interface method and throws NotImplementedException")
-    void deleteApplicationThrowsNotImplemented() {
-        assertThrows(NotImplementedException.class,
-                () -> applicationService.delete(UUID.randomUUID(), new Application()));
-    }
-
-    @Test
-    @DisplayName("delete: with non-existent ID still throws NotImplementedException")
-    void deleteApplicationWithNonExistentIdThrowsNotImplemented() {
-        when(applicationRepository.findById(any())).thenReturn(Optional.empty());
-
-        assertThrows(NotImplementedException.class,
-                () -> applicationService.delete(UUID.randomUUID(), new Application()));
-    }
-
-    // ── list ────────────────────────────────────────────────────────────────────
-
-    @Test
-    @DisplayName("list: delegates to default interface method and throws NotImplementedException")
-    void listApplicationsByIdThrowsNotImplemented() {
-        assertThrows(NotImplementedException.class,
-                () -> applicationService.list(UUID.randomUUID()));
     }
 }

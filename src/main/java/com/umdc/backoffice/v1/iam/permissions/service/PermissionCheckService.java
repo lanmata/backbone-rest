@@ -16,13 +16,17 @@ import com.umdc.backoffice.v1.iam.permissions.api.to.PermissionCheckRequest;
 import com.umdc.backoffice.v1.iam.permissions.api.to.PermissionCheckResponse;
 import org.springframework.http.ResponseEntity;
 
-/// Service contract for evaluating whether a session token carries a given permission.
+/**
+ * Service contract for evaluating whether a session token carries a given permission.
+ */
 public interface PermissionCheckService {
 
-    /// Evaluates the permission check request.
-    ///
-    /// @param request the check request containing the session token and the permission to evaluate
-    /// @return a {@link ResponseEntity} wrapping a {@link PermissionCheckResponse}
+    /**
+     * Evaluates the permission check request.
+     *
+     * @param request the check request containing the session token and the permission to evaluate
+     * @return a {@link ResponseEntity} wrapping a {@link PermissionCheckResponse}
+     */
     ResponseEntity<PermissionCheckResponse> check(PermissionCheckRequest request);
 }
 

@@ -16,24 +16,28 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-/// Utility for parsing the {@code roles} claim from a session JWT payload.
-/// The claim is stored as the string representation of a Java collection,
-/// e.g. {@code [ROLE_ADMIN, ROLE_USER]}.  This class provides a single
-/// canonical parser so the logic is not duplicated across filters and services.
-///
-/// @version 1.0
-/// @since 1.0
+/**
+ * Utility for parsing the {@code roles} claim from a session JWT payload.
+ * The claim is stored as the string representation of a Java collection,
+ * e.g. {@code [ROLE_ADMIN, ROLE_USER]}.  This class provides a single
+ * canonical parser so the logic is not duplicated across filters and services.
+ *
+ * @version 1.0
+ * @since 1.0
+ */
 public final class RolesClaimParser {
 
     private RolesClaimParser() {
         // utility class — no instances
     }
 
-    /// Parses the {@code roles} claim object into a list of trimmed role strings.
-    ///
-    /// @param rolesObj the raw claim value (may be {@code null}, a {@link java.util.List},
-    ///                 or a string representation such as {@code "[ROLE_A, ROLE_B]"})
-    /// @return a non-null, possibly-empty list of role strings
+    /**
+     * Parses the {@code roles} claim object into a list of trimmed role strings.
+     *
+     * @param rolesObj the raw claim value (may be {@code null}, a {@link java.util.List},
+     *                 or a string representation such as {@code "[ROLE_A, ROLE_B]"})
+     * @return a non-null, possibly-empty list of role strings
+     */
     public static List<String> parseRoles(Object rolesObj) {
         if (rolesObj == null) {
             return List.of();

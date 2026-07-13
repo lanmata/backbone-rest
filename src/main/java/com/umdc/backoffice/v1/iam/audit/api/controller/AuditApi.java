@@ -31,19 +31,23 @@ import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
-/// REST API interface for querying security audit events.
-/// <p>
-/// All endpoints require a valid bearer token. Callers without the
-/// appropriate role will receive a {@code 403 Forbidden} response from
-/// the security filter chain before reaching this controller.
-/// </p>
+/**
+ * REST API interface for querying security audit events.
+ * <p>
+ * All endpoints require a valid bearer token. Callers without the
+ * appropriate role will receive a {@code 403 Forbidden} response from
+ * the security filter chain before reaching this controller.
+ * </p>
+ */
 @Tag(name = "iam-audit", description = "IAM Audit Event API")
 @RequestMapping("/api/v1/iam/audit")
 public interface AuditApi {
 
-    /// Returns the {@link AuditEventService} used by this API.
-    ///
-    /// @return the service instance
+    /**
+     * Returns the {@link AuditEventService} used by this API.
+     *
+     * @return the service instance
+     */
     default AuditEventService getService() {
         return new AuditEventService() {
             @Override

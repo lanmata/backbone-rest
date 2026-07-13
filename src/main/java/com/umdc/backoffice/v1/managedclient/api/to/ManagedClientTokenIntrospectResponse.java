@@ -14,154 +14,206 @@ package com.umdc.backoffice.v1.managedclient.api.to;
 
 import java.util.List;
 
-/// Response DTO for the M2M token introspection endpoint.
-/// <p>
-/// Returned by {@code POST /api/v1/managed-clients/introspect}.
-/// Per RFC 7662, this endpoint always returns HTTP 200. When the token is
-/// invalid, expired, or revoked, {@code active} is {@code false} and all
-/// other fields are {@code null}.
-/// </p>
-///
-/// @author Luis Antonio Mata
+/**
+ * Response DTO for the M2M token introspection endpoint.
+ * <p>
+ * Returned by {@code POST /api/v1/managed-clients/introspect}.
+ * Per RFC 7662, this endpoint always returns HTTP 200. When the token is
+ * invalid, expired, or revoked, {@code active} is {@code false} and all
+ * other fields are {@code null}.
+ * </p>
+ *
+ * @author Luis Antonio Mata
+ */
 public class ManagedClientTokenIntrospectResponse {
 
-    /// Whether the token is currently active (valid, not expired, not revoked).
+    /**
+     * Whether the token is currently active (valid, not expired, not revoked).
+     */
     private boolean active;
 
-    /// Subject claim — the managed client UUID (null when active=false).
+    /**
+     * Subject claim — the managed client UUID (null when active=false).
+     */
     private String clientId;
 
-    /// Human-readable client name (null when active=false).
+    /**
+     * Human-readable client name (null when active=false).
+     */
     private String clientName;
 
-    /// Granted scopes for the token (null when active=false).
+    /**
+     * Granted scopes for the token (null when active=false).
+     */
     private List<String> scopes;
 
-    /// Issuer claim from the token (null when active=false).
+    /**
+     * Issuer claim from the token (null when active=false).
+     */
     private String issuer;
 
-    /// Expiry time as Unix epoch seconds (null when active=false).
+    /**
+     * Expiry time as Unix epoch seconds (null when active=false).
+     */
     private Long exp;
 
-    /// Issued-at time as Unix epoch seconds (null when active=false).
+    /**
+     * Issued-at time as Unix epoch seconds (null when active=false).
+     */
     private Long iat;
 
-    /// Unique token identifier (null when active=false).
+    /**
+     * Unique token identifier (null when active=false).
+     */
     private String jti;
 
-    /// Default constructor.
+    /**
+     * Default constructor.
+     */
     public ManagedClientTokenIntrospectResponse() {
         // Default constructor
     }
 
-    /// Returns whether the token is active.
-    ///
-    /// @return {@code true} if the token is valid, not expired, and not revoked
+    /**
+     * Returns whether the token is active.
+     *
+     * @return {@code true} if the token is valid, not expired, and not revoked
+     */
     public boolean isActive() {
         return active;
     }
 
-    /// Sets the active flag.
-    ///
-    /// @param active the active flag
+    /**
+     * Sets the active flag.
+     *
+     * @param active the active flag
+     */
     public void setActive(boolean active) {
         this.active = active;
     }
 
-    /// Returns the client UUID (subject claim).
-    ///
-    /// @return the clientId
+    /**
+     * Returns the client UUID (subject claim).
+     *
+     * @return the clientId
+     */
     public String getClientId() {
         return clientId;
     }
 
-    /// Sets the client UUID.
-    ///
-    /// @param clientId the clientId
+    /**
+     * Sets the client UUID.
+     *
+     * @param clientId the clientId
+     */
     public void setClientId(String clientId) {
         this.clientId = clientId;
     }
 
-    /// Returns the client name.
-    ///
-    /// @return the clientName
+    /**
+     * Returns the client name.
+     *
+     * @return the clientName
+     */
     public String getClientName() {
         return clientName;
     }
 
-    /// Sets the client name.
-    ///
-    /// @param clientName the clientName
+    /**
+     * Sets the client name.
+     *
+     * @param clientName the clientName
+     */
     public void setClientName(String clientName) {
         this.clientName = clientName;
     }
 
-    /// Returns the granted scopes.
-    ///
-    /// @return the scopes
+    /**
+     * Returns the granted scopes.
+     *
+     * @return the scopes
+     */
     public List<String> getScopes() {
         return scopes;
     }
 
-    /// Sets the granted scopes.
-    ///
-    /// @param scopes the scopes
+    /**
+     * Sets the granted scopes.
+     *
+     * @param scopes the scopes
+     */
     public void setScopes(List<String> scopes) {
         this.scopes = scopes;
     }
 
-    /// Returns the issuer claim.
-    ///
-    /// @return the issuer
+    /**
+     * Returns the issuer claim.
+     *
+     * @return the issuer
+     */
     public String getIssuer() {
         return issuer;
     }
 
-    /// Sets the issuer claim.
-    ///
-    /// @param issuer the issuer
+    /**
+     * Sets the issuer claim.
+     *
+     * @param issuer the issuer
+     */
     public void setIssuer(String issuer) {
         this.issuer = issuer;
     }
 
-    /// Returns the expiry time as Unix epoch seconds.
-    ///
-    /// @return the exp
+    /**
+     * Returns the expiry time as Unix epoch seconds.
+     *
+     * @return the exp
+     */
     public Long getExp() {
         return exp;
     }
 
-    /// Sets the expiry time as Unix epoch seconds.
-    ///
-    /// @param exp the exp
+    /**
+     * Sets the expiry time as Unix epoch seconds.
+     *
+     * @param exp the exp
+     */
     public void setExp(Long exp) {
         this.exp = exp;
     }
 
-    /// Returns the issued-at time as Unix epoch seconds.
-    ///
-    /// @return the iat
+    /**
+     * Returns the issued-at time as Unix epoch seconds.
+     *
+     * @return the iat
+     */
     public Long getIat() {
         return iat;
     }
 
-    /// Sets the issued-at time as Unix epoch seconds.
-    ///
-    /// @param iat the iat
+    /**
+     * Sets the issued-at time as Unix epoch seconds.
+     *
+     * @param iat the iat
+     */
     public void setIat(Long iat) {
         this.iat = iat;
     }
 
-    /// Returns the unique token identifier.
-    ///
-    /// @return the jti
+    /**
+     * Returns the unique token identifier.
+     *
+     * @return the jti
+     */
     public String getJti() {
         return jti;
     }
 
-    /// Sets the unique token identifier.
-    ///
-    /// @param jti the jti
+    /**
+     * Sets the unique token identifier.
+     *
+     * @param jti the jti
+     */
     public void setJti(String jti) {
         this.jti = jti;
     }

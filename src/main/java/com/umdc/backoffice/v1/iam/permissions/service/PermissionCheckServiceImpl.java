@@ -24,11 +24,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-/// Implementation of {@link PermissionCheckService}.
-/// <p>
-/// Validates the provided session token and checks whether the {@code roles} claim
-/// contains the requested permission string.
-/// </p>
+/**
+ * Implementation of {@link PermissionCheckService}.
+ * <p>
+ * Validates the provided session token and checks whether the {@code roles} claim
+ * contains the requested permission string.
+ * </p>
+ */
 @Service
 public class PermissionCheckServiceImpl implements PermissionCheckService {
 
@@ -42,14 +44,18 @@ public class PermissionCheckServiceImpl implements PermissionCheckService {
 
     private final SessionService sessionService;
 
-    /// Constructs a new {@code PermissionCheckServiceImpl}.
-    ///
-    /// @param sessionService the session service used for token validation and claims extraction
+    /**
+     * Constructs a new {@code PermissionCheckServiceImpl}.
+     *
+     * @param sessionService the session service used for token validation and claims extraction
+     */
     public PermissionCheckServiceImpl(SessionService sessionService) {
         this.sessionService = sessionService;
     }
 
-    /// {@inheritDoc}
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public ResponseEntity<PermissionCheckResponse> check(PermissionCheckRequest request) {
         String token = request.sessionToken();

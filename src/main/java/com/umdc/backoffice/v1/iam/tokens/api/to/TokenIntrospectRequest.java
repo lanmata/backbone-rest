@@ -14,9 +14,11 @@ package com.umdc.backoffice.v1.iam.tokens.api.to;
 
 import jakarta.validation.constraints.NotBlank;
 
-/// Request body for the token introspection endpoint.
-///
-/// @param token the JWT session token to introspect
+/**
+ * Request body for the token introspection endpoint.
+ *
+ * @param token the JWT session token to introspect
+ */
 public record TokenIntrospectRequest(
         @NotBlank String token
 ) {

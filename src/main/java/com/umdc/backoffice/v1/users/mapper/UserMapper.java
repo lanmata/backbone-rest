@@ -24,13 +24,15 @@ import org.mapstruct.Mapping;
 
 import java.util.UUID;
 
-/// UserMapper interface for mapping between UserEntity and UserTO objects.
-/// Utilizes MapStruct for automatic mapping.
-/// Configured with MapperAppConfig and uses RoleMapper, PersonMapper, and UserRoleMapper.
-///
-/// @version 1.0.0, 20-10-2020
-///
-/// @author Luis Antonio Mata
+/**
+ * UserMapper interface for mapping between UserEntity and UserTO objects.
+ * Utilizes MapStruct for automatic mapping.
+ * Configured with MapperAppConfig and uses RoleMapper, PersonMapper, and UserRoleMapper.
+ *
+ * @version 1.0.0, 20-10-2020
+ *
+ * @author Luis Antonio Mata
+ */
 @Mapper(
         // Specifies the configuration class to use for this mapper.
         config = MapperAppConfig.class,
@@ -38,10 +40,12 @@ import java.util.UUID;
 )
 public interface UserMapper {
 
-    /// Maps a UserEntity object to a UserTO object.
-    ///
-    /// @param userEntity the UserEntity object to map from
-    /// @return the mapped UserTO object
+    /**
+     * Maps a UserEntity object to a UserTO object.
+     *
+     * @param userEntity the UserEntity object to map from
+     * @return the mapped UserTO object
+     */
     @Mapping(target = "roles", source = "applicationRoleUser")
     @Mapping(target = "applications", source = "applicationRoleUser")
     @Mapping(target = "email", source = "email")
@@ -50,11 +54,13 @@ public interface UserMapper {
     @Mapping(target = "privacyDataOutActive", source = "privacyDataOutActive")
     UserTO toTarget(UserEntity userEntity);
 
-    /// Maps a UserTO object to a UserEntity object.
-    /// Inherits the inverse configuration from the toTarget method.
-    ///
-    /// @param user the UserTO object to map from
-    /// @return the mapped UserEntity object
+    /**
+     * Maps a UserTO object to a UserEntity object.
+     * Inherits the inverse configuration from the toTarget method.
+     *
+     * @param user the UserTO object to map from
+     * @return the mapped UserEntity object
+     */
     @Mapping(target = "applicationRoleUser", expression = "java(ApplicationRoleUserMapper.getApplicationRoleUser(user))")
     @Mapping(target = "id", source = "id")
     @Mapping(target = "alias", source = "alias")

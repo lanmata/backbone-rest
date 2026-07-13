@@ -22,11 +22,13 @@ import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
-/// Implementation of {@link ManagedClientAuditService}.
-/// <p>
-/// {@link #record} is annotated with {@link Async} so that audit writes never
-/// block the MCAM critical path.
-/// </p>
+/**
+ * Implementation of {@link ManagedClientAuditService}.
+ * <p>
+ * {@link #record} is annotated with {@link Async} so that audit writes never
+ * block the MCAM critical path.
+ * </p>
+ */
 @Service
 public class ManagedClientAuditServiceImpl implements ManagedClientAuditService {
 
@@ -34,18 +36,22 @@ public class ManagedClientAuditServiceImpl implements ManagedClientAuditService 
 
     private final ManagedClientAuditEventRepository auditEventRepository;
 
-    /// Constructs a new {@code ManagedClientAuditServiceImpl}.
-    ///
-    /// @param auditEventRepository the repository used to persist MCAM audit events
+    /**
+     * Constructs a new {@code ManagedClientAuditServiceImpl}.
+     *
+     * @param auditEventRepository the repository used to persist MCAM audit events
+     */
     public ManagedClientAuditServiceImpl(ManagedClientAuditEventRepository auditEventRepository) {
         this.auditEventRepository = auditEventRepository;
     }
 
-    /// {@inheritDoc}
-    /// <p>
-    /// Executed on a separate thread from the Spring async executor so that
-    /// database I/O does not delay the API response.
-    /// </p>
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Executed on a separate thread from the Spring async executor so that
+     * database I/O does not delay the API response.
+     * </p>
+     */
     @Async
     @Override
     public void record(UUID clientId, AuditEventType eventType, String ipAddress,

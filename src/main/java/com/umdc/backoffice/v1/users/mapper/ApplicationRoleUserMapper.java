@@ -29,8 +29,10 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-/// Mapper interface for converting between ApplicationRoleUserEntity and various target objects.
-/// Uses MapStruct for automatic mapping.
+/**
+ * Mapper interface for converting between ApplicationRoleUserEntity and various target objects.
+ * Uses MapStruct for automatic mapping.
+ */
 @Mapper(
         // Specifies the configuration class to use for this mapper.
         config = MapperAppConfig.class,
@@ -38,30 +40,36 @@ import java.util.UUID;
 )
 public interface ApplicationRoleUserMapper {
 
-    /// Maps an ApplicationRoleUserEntity to a Role object.
-    ///
-    /// @param userRoleEntity the entity to map from
-    /// @return the mapped Role object
+    /**
+     * Maps an ApplicationRoleUserEntity to a Role object.
+     *
+     * @param userRoleEntity the entity to map from
+     * @return the mapped Role object
+     */
     @Mapping(target="id", source = "role.id")
     @Mapping(target="name", source = "role.name")
     @Mapping(target="description", source = "role.description")
     @Mapping(target="active", source = "role.active")
     Role toRoleTarget(ApplicationRoleUserEntity userRoleEntity);
 
-    /// Maps an ApplicationRoleUserEntity to a User object.
-    ///
-    /// @param userRoleEntity the entity to map from
-    /// @return the mapped User object
+    /**
+     * Maps an ApplicationRoleUserEntity to a User object.
+     *
+     * @param userRoleEntity the entity to map from
+     * @return the mapped User object
+     */
     @Mapping(target="id", source = "user.id")
     @Mapping(target="alias", source = "user.alias")
     @Mapping(target="password", source = "user.password")
     @Mapping(target="active", source = "user.active")
     User toUserTarget(ApplicationRoleUserEntity userRoleEntity);
 
-    /// Maps an ApplicationRoleUserEntity to an Application object.
-    ///
-    /// @param applicationRoleUserEntity the entity to map from
-    /// @return the mapped Application object
+    /**
+     * Maps an ApplicationRoleUserEntity to an Application object.
+     *
+     * @param applicationRoleUserEntity the entity to map from
+     * @return the mapped Application object
+     */
     @Mapping(target="id", source = "application.id")
     @Mapping(target="name", source = "application.name")
     @Mapping(target="description", source = "application.description")
@@ -69,10 +77,12 @@ public interface ApplicationRoleUserMapper {
     @Mapping(target="serviceTypeId", source = "application.serviceTypeId")
     Application toApplicationTarget(ApplicationRoleUserEntity applicationRoleUserEntity);
 
-    /// Maps a UserTO to a list of ApplicationRoleUserEntity objects.
-    ///
-    /// @param userTO the UserTO to map from
-    /// @return the set of ApplicationRoleUserEntity objects
+    /**
+     * Maps a UserTO to a list of ApplicationRoleUserEntity objects.
+     *
+     * @param userTO the UserTO to map from
+     * @return the set of ApplicationRoleUserEntity objects
+     */
     static Set<ApplicationRoleUserEntity> getApplicationRoleUser(UserTO userTO) {
         if (userTO == null || userTO.getRoles() == null) {
             return java.util.Collections.emptySet();

@@ -10,13 +10,19 @@ public class ManagementAuthenticatorProperties {
     private StoreProperties keystore;
     private StoreProperties truststore;
 
-    /// M2M access token TTL in seconds. Defaults to 3600 (1 hour).
+    /**
+     * M2M access token TTL in seconds. Defaults to 3600 (1 hour).
+     */
     private long tokenTtlSeconds;
 
-    /// Grace period in seconds during which the old secret remains valid after rotation.
+    /**
+     * Grace period in seconds during which the old secret remains valid after rotation.
+     */
     private long rotationGracePeriodSeconds;
 
-    /// Maximum token issuance requests per minute per clientId (sliding window).
+    /**
+     * Maximum token issuance requests per minute per clientId (sliding window).
+     */
     private int rateLimitRpm;
 
     /**
@@ -81,44 +87,56 @@ public class ManagementAuthenticatorProperties {
         this.truststore = truststore;
     }
 
-    /// Gets the M2M token TTL in seconds.
-    ///
-    /// @return the tokenTtlSeconds
+    /**
+     * Gets the M2M token TTL in seconds.
+     *
+     * @return the tokenTtlSeconds
+     */
     public long getTokenTtlSeconds() {
         return tokenTtlSeconds;
     }
 
-    /// Sets the M2M token TTL in seconds.
-    ///
-    /// @param tokenTtlSeconds the tokenTtlSeconds to set
+    /**
+     * Sets the M2M token TTL in seconds.
+     *
+     * @param tokenTtlSeconds the tokenTtlSeconds to set
+     */
     public void setTokenTtlSeconds(long tokenTtlSeconds) {
         this.tokenTtlSeconds = tokenTtlSeconds;
     }
 
-    /// Gets the rotation grace period in seconds.
-    ///
-    /// @return the rotationGracePeriodSeconds
+    /**
+     * Gets the rotation grace period in seconds.
+     *
+     * @return the rotationGracePeriodSeconds
+     */
     public long getRotationGracePeriodSeconds() {
         return rotationGracePeriodSeconds;
     }
 
-    /// Sets the rotation grace period in seconds.
-    ///
-    /// @param rotationGracePeriodSeconds the rotationGracePeriodSeconds to set
+    /**
+     * Sets the rotation grace period in seconds.
+     *
+     * @param rotationGracePeriodSeconds the rotationGracePeriodSeconds to set
+     */
     public void setRotationGracePeriodSeconds(long rotationGracePeriodSeconds) {
         this.rotationGracePeriodSeconds = rotationGracePeriodSeconds;
     }
 
-    /// Gets the rate limit in requests per minute.
-    ///
-    /// @return the rateLimitRpm
+    /**
+     * Gets the rate limit in requests per minute.
+     *
+     * @return the rateLimitRpm
+     */
     public int getRateLimitRpm() {
         return rateLimitRpm;
     }
 
-    /// Sets the rate limit in requests per minute.
-    ///
-    /// @param rateLimitRpm the rateLimitRpm to set
+    /**
+     * Sets the rate limit in requests per minute.
+     *
+     * @param rateLimitRpm the rateLimitRpm to set
+     */
     public void setRateLimitRpm(int rateLimitRpm) {
         this.rateLimitRpm = rateLimitRpm;
     }

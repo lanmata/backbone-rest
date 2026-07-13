@@ -14,7 +14,7 @@ package com.umdc.backoffice.v1.roles.service;
 
 import com.umdc.commons.services.CrudService;
 import com.umdc.commons.general.pojo.Role;
-import org.apache.commons.lang.NotImplementedException;
+import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;

@@ -19,70 +19,92 @@ import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import java.util.UUID;
 
-/// Request DTO for issuing an M2M access token (client credentials grant).
-/// <p>
-/// Used as the request body for {@code POST /api/v1/managed-clients/token}.
-/// This is a public endpoint — no bearer token required for this request.
-/// </p>
-///
-/// @author Luis Antonio Mata
+/**
+ * Request DTO for issuing an M2M access token (client credentials grant).
+ * <p>
+ * Used as the request body for {@code POST /api/v1/managed-clients/token}.
+ * This is a public endpoint — no bearer token required for this request.
+ * </p>
+ *
+ * @author Luis Antonio Mata
+ */
 public class ManagedClientTokenRequest {
 
-    /// UUID of the managed client requesting a token. Required.
+    /**
+     * UUID of the managed client requesting a token. Required.
+     */
     @NotNull
     private UUID clientId;
 
-    /// Plaintext client secret. Required. Never log or store this value.
+    /**
+     * Plaintext client secret. Required. Never log or store this value.
+     */
     @NotBlank
     private String clientSecret;
 
-    /// Requested OAuth2 scopes. Required. Must be a subset of registered scopes.
+    /**
+     * Requested OAuth2 scopes. Required. Must be a subset of registered scopes.
+     */
     @NotEmpty
     private List<@NotBlank String> scopes;
 
-    /// Default constructor.
+    /**
+     * Default constructor.
+     */
     public ManagedClientTokenRequest() {
         // Default constructor
     }
 
-    /// Returns the client UUID.
-    ///
-    /// @return the clientId
+    /**
+     * Returns the client UUID.
+     *
+     * @return the clientId
+     */
     public UUID getClientId() {
         return clientId;
     }
 
-    /// Sets the client UUID.
-    ///
-    /// @param clientId the clientId
+    /**
+     * Sets the client UUID.
+     *
+     * @param clientId the clientId
+     */
     public void setClientId(UUID clientId) {
         this.clientId = clientId;
     }
 
-    /// Returns the plaintext client secret.
-    ///
-    /// @return the clientSecret
+    /**
+     * Returns the plaintext client secret.
+     *
+     * @return the clientSecret
+     */
     public String getClientSecret() {
         return clientSecret;
     }
 
-    /// Sets the plaintext client secret.
-    ///
-    /// @param clientSecret the clientSecret
+    /**
+     * Sets the plaintext client secret.
+     *
+     * @param clientSecret the clientSecret
+     */
     public void setClientSecret(String clientSecret) {
         this.clientSecret = clientSecret;
     }
 
-    /// Returns the requested scopes list.
-    ///
-    /// @return the scopes
+    /**
+     * Returns the requested scopes list.
+     *
+     * @return the scopes
+     */
     public List<String> getScopes() {
         return scopes;
     }
 
-    /// Sets the requested scopes list.
-    ///
-    /// @param scopes the scopes
+    /**
+     * Sets the requested scopes list.
+     *
+     * @param scopes the scopes
+     */
     public void setScopes(List<String> scopes) {
         this.scopes = scopes;
     }

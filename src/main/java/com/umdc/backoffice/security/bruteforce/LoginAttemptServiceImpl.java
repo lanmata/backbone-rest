@@ -20,12 +20,14 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.util.UUID;
 
-/// Redis-backed implementation of {@link LoginAttemptService}.
-/// <p>
-/// Uses the key pattern {@code login:attempts:<alias>:<applicationId>} to store
-/// the failure counter. A TTL of {@link LoginAttemptService#LOCK_TTL_MINUTES} minutes
-/// is applied on the first failure so that the counter is evicted automatically.
-/// </p>
+/**
+ * Redis-backed implementation of {@link LoginAttemptService}.
+ * <p>
+ * Uses the key pattern {@code login:attempts:<alias>:<applicationId>} to store
+ * the failure counter. A TTL of {@link LoginAttemptService#LOCK_TTL_MINUTES} minutes
+ * is applied on the first failure so that the counter is evicted automatically.
+ * </p>
+ */
 @Service
 public class LoginAttemptServiceImpl implements LoginAttemptService {
 
@@ -34,14 +36,18 @@ public class LoginAttemptServiceImpl implements LoginAttemptService {
 
     private final StringRedisTemplate redisTemplate;
 
-    /// Constructs a new {@code LoginAttemptServiceImpl}.
-    ///
-    /// @param redisTemplate the Spring Data Redis string template
+    /**
+     * Constructs a new {@code LoginAttemptServiceImpl}.
+     *
+     * @param redisTemplate the Spring Data Redis string template
+     */
     public LoginAttemptServiceImpl(StringRedisTemplate redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
 
-    /// {@inheritDoc}
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void recordFailure(String alias, UUID applicationId) {
         String key = buildKey(alias, applicationId);
@@ -60,7 +66,9 @@ public class LoginAttemptServiceImpl implements LoginAttemptService {
         }
     }
 
-    /// {@inheritDoc}
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void recordSuccess(String alias, UUID applicationId) {
         String key = buildKey(alias, applicationId);
@@ -68,7 +76,9 @@ public class LoginAttemptServiceImpl implements LoginAttemptService {
         LOGGER.debug("Failure counter cleared for alias='{}', applicationId='{}'", alias, applicationId);
     }
 
-    /// {@inheritDoc}
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isLocked(String alias, UUID applicationId) {
         String key = buildKey(alias, applicationId);
@@ -84,11 +94,13 @@ public class LoginAttemptServiceImpl implements LoginAttemptService {
         }
     }
 
-    /// Builds the Redis key for the given alias and applicationId.
-    ///
-    /// @param alias         the user alias
-    /// @param applicationId the application identifier; may be {@code null}
-    /// @return the Redis key string
+    /**
+     * Builds the Redis key for the given alias and applicationId.
+     *
+     * @param alias         the user alias
+     * @param applicationId the application identifier; may be {@code null}
+     * @return the Redis key string
+     */
     private String buildKey(String alias, UUID applicationId) {
         return KEY_PREFIX + alias + ":" + applicationId;
     }

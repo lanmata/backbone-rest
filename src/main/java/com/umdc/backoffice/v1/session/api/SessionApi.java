@@ -53,10 +53,12 @@ public interface SessionApi {
         };
     }
 
-    /// Endpoint to generate a session token.
-    ///
-    /// @param sessionRequest the session request containing user credentials
-    /// @return a ResponseEntity containing the session response with the generated token
+    /**
+     * Endpoint to generate a session token.
+     *
+     * @param sessionRequest the session request containing user credentials
+     * @return a ResponseEntity containing the session response with the generated token
+     */
     @Operation(summary = "Generate session token", description = "Generates a session token based on user credentials")
     @ApiResponses(value = {
             @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "Session token generated successfully"),
@@ -68,10 +70,12 @@ public interface SessionApi {
         return this.getSessionService().loadSession(sessionRequest);
     }
 
-    /// Endpoint to generate a session token.
-    ///
-    /// @param sessionEmailRequest the session email request containing user credentials
-    /// @return a ResponseEntity containing the session response with the generated token
+    /**
+     * Endpoint to generate a session token.
+     *
+     * @param sessionEmailRequest the session email request containing user credentials
+     * @return a ResponseEntity containing the session response with the generated token
+     */
     @Operation(summary = "Generate session token with email", description = "Generates a session token based on user email credentials")
     @ApiResponses(value = {
             @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "Session token generated successfully"),
@@ -83,10 +87,12 @@ public interface SessionApi {
         return this.getSessionService().loadSession(sessionEmailRequest);
     }
 
-    /// Endpoint to validate a session token.
-    ///
-    /// @param sessionToken the session token to be validated
-    /// @return a ResponseEntity containing a boolean indicating whether the token is valid
+    /**
+     * Endpoint to validate a session token.
+     *
+     * @param sessionToken the session token to be validated
+     * @return a ResponseEntity containing a boolean indicating whether the token is valid
+     */
     @Operation(summary = "Validate session token", description = "Validates the provided session token")
     @ApiResponses(value = {
             @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "Session token is valid"),
@@ -97,10 +103,12 @@ public interface SessionApi {
         return ResponseEntity.status(HttpStatusUtil.NOT_IMPLEMENTED).body(Boolean.FALSE);
     }
 
-    /// Endpoint to renew a session token.
-    ///
-    /// @param sessionToken the current session token to be renewed
-    /// @return a ResponseEntity containing the session response with the new token
+    /**
+     * Endpoint to renew a session token.
+     *
+     * @param sessionToken the current session token to be renewed
+     * @return a ResponseEntity containing the session response with the new token
+     */
     @Operation(summary = "Renew session token", description = "Renews the provided session token by validating it and generating a new one")
     @ApiResponses(value = {
             @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "Session token renewed successfully"),
@@ -114,15 +122,17 @@ public interface SessionApi {
         return ResponseEntity.status(HttpStatusUtil.NOT_IMPLEMENTED).body(new SessionResponse());
     }
 
-    /// Endpoint to exchange a refresh token for a new access token and a new refresh token.
-    /// <p>
-    /// This endpoint is intentionally <strong>public</strong> (no active session required) —
-    /// it is the mechanism by which a client obtains a new session after the access token
-    /// has expired, using the longer-lived refresh token issued at login.
-    /// </p>
-    ///
-    /// @param request the refresh request containing the refresh token
-    /// @return a ResponseEntity containing a new access token and a new refresh token
+    /**
+     * Endpoint to exchange a refresh token for a new access token and a new refresh token.
+     * <p>
+     * This endpoint is intentionally <strong>public</strong> (no active session required) —
+     * it is the mechanism by which a client obtains a new session after the access token
+     * has expired, using the longer-lived refresh token issued at login.
+     * </p>
+     *
+     * @param request the refresh request containing the refresh token
+     * @return a ResponseEntity containing a new access token and a new refresh token
+     */
     @Operation(
             summary = "Refresh session token",
             description = "Exchanges a valid or recently-expired refresh token for a new access token and refresh token. "

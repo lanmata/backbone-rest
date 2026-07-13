@@ -14,38 +14,50 @@ package com.umdc.backoffice.security.bruteforce;
 
 import java.util.UUID;
 
-/// Service for tracking failed login attempts and enforcing brute-force protection.
-/// <p>
-/// After {@link #MAX_FAILURES} consecutive failures the account is locked for
-/// {@link #LOCK_TTL_MINUTES} minutes. A successful login clears the counter immediately.
-/// </p>
+/**
+ * Service for tracking failed login attempts and enforcing brute-force protection.
+ * <p>
+ * After {@link #MAX_FAILURES} consecutive failures the account is locked for
+ * {@link #LOCK_TTL_MINUTES} minutes. A successful login clears the counter immediately.
+ * </p>
+ */
 public interface LoginAttemptService {
 
-    /// Maximum number of consecutive failures before the account is locked.
+    /**
+     * Maximum number of consecutive failures before the account is locked.
+     */
     int MAX_FAILURES = 5;
 
-    /// Lock duration in minutes applied after {@link #MAX_FAILURES} failures.
+    /**
+     * Lock duration in minutes applied after {@link #MAX_FAILURES} failures.
+     */
     long LOCK_TTL_MINUTES = 15L;
 
-    /// Records a failed login attempt for the given alias and application.
-    /// Increments the failure counter and sets the lock TTL if not already present.
-    ///
-    /// @param alias         the user alias (login identifier)
-    /// @param applicationId the application identifier; may be {@code null} for alias-only logins
+    /**
+     * Records a failed login attempt for the given alias and application.
+     * Increments the failure counter and sets the lock TTL if not already present.
+     *
+     * @param alias         the user alias (login identifier)
+     * @param applicationId the application identifier; may be {@code null} for alias-only logins
+     */
     void recordFailure(String alias, UUID applicationId);
 
-    /// Clears the failure counter for the given alias and application after a successful login.
-    ///
-    /// @param alias         the user alias
-    /// @param applicationId the application identifier; may be {@code null}
+    /**
+     * Clears the failure counter for the given alias and application after a successful login.
+     *
+     * @param alias         the user alias
+     * @param applicationId the application identifier; may be {@code null}
+     */
     void recordSuccess(String alias, UUID applicationId);
 
-    /// Returns {@code true} if the alias+application combination is currently locked
-    /// due to too many consecutive failures.
-    ///
-    /// @param alias         the user alias
-    /// @param applicationId the application identifier; may be {@code null}
-    /// @return {@code true} if the account is locked; {@code false} otherwise
+    /**
+     * Returns {@code true} if the alias+application combination is currently locked
+     * due to too many consecutive failures.
+     *
+     * @param alias         the user alias
+     * @param applicationId the application identifier; may be {@code null}
+     * @return {@code true} if the account is locked; {@code false} otherwise
+     */
     boolean isLocked(String alias, UUID applicationId);
 }
 

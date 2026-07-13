@@ -26,70 +26,162 @@ import org.hibernate.type.SqlTypes;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-/// JPA entity that maps to the {@code general.audit_event} PostgreSQL table.
-/// <p>
-/// Audit events are append-only records. Once persisted they are never updated.
-/// The {@code details} column stores free-form JSON data as a {@code String};
-/// Hibernate writes it using the {@code jsonb} column type via
-/// {@link JdbcTypeCode} with {@link SqlTypes#JSON}.
-/// </p>
+/**
+ * Entity representing an audit event for logging and security purposes.
+ * This class maps to the {@code general.audit_event} table in the database.
+ *
+ * Each instance of this entity records information about a specific security-
+ * related event triggered by a user or within an application context.
+ * It includes details such as the type of event, the user and application
+ * involved, the client's IP address, and a timestamp when the event occurred.
+ *
+ * Key Features:
+ * - Stores a caller-generated UUID as the primary key.
+ * - Includes information about the user, application, and type of event.
+ * - Captures client metadata such as IP address and user-agent.
+ * - Provides a JSON field for event-specific details.
+ * - Automatically sets timestamps for event occurrence and record creation.
+ *
+ * This class leverages JPA annotations for ORM and Hibernate-specific
+ * annotations for JSON support.
+ */
 @Entity
 @Table(schema = "general", name = "audit_event")
 public class AuditEventEntity {
 
-    /// Primary key — caller-generated UUID.
+    /**
+     * Unique identifier for the entity.
+     *
+     * This field is annotated with {@code @Id} to mark it as the primary key
+     * and with {@code @Column} to specify database column constraints. It is
+     * of type {@code UUID} to ensure globally unique identification.
+     *
+     * Characteristics:
+     * - Non-nullable: This field must always have a value.
+     * - Non-updatable: The value cannot be changed after insertion.
+     */
     @Id
     @Column(name = "id", nullable = false, updatable = false)
     private UUID id;
 
-    /// ID of the user who triggered the event.
+    /**
+     * Represents the unique identifier for a user in the system.
+     * <ul>
+     *   <li>Mapped to the "user_id" column in the database.</li>
+     *   <li>Cannot be null, ensuring every user is associated with a unique identifier.</li>
+     *   <li>Immutable after creation; the value cannot be updated once set.</li>
+     * </ul>
+     */
     @Column(name = "user_id", nullable = false, updatable = false)
     private UUID userId;
 
-    /// ID of the application context in which the event occurred.
+    /**
+     * Represents the unique identifier of the application to which an audit event is associated.
+     *
+     * This field is used as a foreign key in database operations to link audit events to a specific application.
+     * It is marked as non-updatable to ensure the integrity of the relationship between audit events and applications.
+     */
     @Column(name = "application_id", updatable = false)
     private UUID applicationId;
 
-    /// Discriminator for the type of security event.
+    /**
+     * The type of audit event associated with the entity.
+     *
+     * This variable represents a specific type of event that is being audited,
+     * such as CREATE, UPDATE, DELETE, or any other event applicable to the business domain.
+     * It is stored as a String in the database with constraints on length and immutability.
+     *
+     * Constraints:
+     * - Column name: "event_type".
+     * - Cannot be null.
+     * - Maximum length: 64 characters.
+     * - Non-updatable after entity creation.
+     *
+     * Mapped using JPA's @Enumerated annotation to ensure
+     * that the enumeration constant is stored as a string value in the database.
+     */
     @Enumerated(EnumType.STRING)
     @Column(name = "event_type", nullable = false, length = 64, updatable = false)
     private AuditEventType eventType;
 
-    /// IPv4 or IPv6 address of the client (max 45 chars to support IPv6).
+    /**
+     * Represents the IP address associated with an audit event.
+     *
+     * This field is stored in the "ip_address" column of the database,
+     * has a maximum length of 45 characters, and is not updatable
+     * once the entity is persisted.
+     */
     @Column(name = "ip_address", length = 45, updatable = false)
     private String ipAddress;
 
-    /// User-Agent header provided by the client (max 512 chars).
+    /**
+     * Represents the user agent string associated with a specific audit event.
+     * The user agent string typically contains information about the client
+     * application making the request, such as the browser type and version,
+     * operating system, and device details.
+     *
+     * <ul>
+     * - Mapped to the "user_agent" column in the database.
+     * - Restricted to a maximum length of 512 characters.
+     * - Field is non-updatable once it has been set.
+     * </ul>
+     */
     @Column(name = "user_agent", length = 512, updatable = false)
     private String userAgent;
 
-    /// Timestamp when the event actually occurred.
+    /**
+     * The date and time when the event occurred.
+     *
+     * <ul>
+     *     <li>Mapped to the {@code occurred_at} column in the database.</li>
+     *     <li>Cannot be null.</li>
+     *     <li>Immutable after creation (not updatable).</li>
+     * </ul>
+     */
     @Column(name = "occurred_at", nullable = false, updatable = false)
     private LocalDateTime occurredAt;
 
-    /// Arbitrary JSON details about the event stored as {@code jsonb}.
+    /**
+     * Represents a JSON-formatted string storing additional details for the entity.
+     *
+     * This field is mapped to a database column of type JSONB and is not updatable
+     * after the entity is persisted. It uses a Hibernate-specific annotation to indicate
+     * the JSON data type for database interactions.
+     */
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "details", columnDefinition = "jsonb", updatable = false)
     private String details;
 
-    /// Timestamp when the record was inserted.
+    /**
+     * Records the timestamp when the entity was created.
+     * This field is automatically populated and is immutable once set.
+     * It is useful for auditing purposes to determine the creation time of the entity.
+     */
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    /// Default no-arg constructor required by JPA.
+    /**
+     * Represents an entity for auditing events in the system.
+     *
+     * This no-argument constructor is provided to support JPA requirements.
+     * It allows the persistence framework to create instances of this class
+     * through reflection.
+     */
     public AuditEventEntity() {
         // JPA
     }
 
-    /// Full constructor for programmatic creation.
-    ///
-    /// @param id            the UUID primary key
-    /// @param userId        the user who triggered the event
-    /// @param applicationId the application context (may be {@code null})
-    /// @param eventType     the event discriminator
-    /// @param ipAddress     client IP address (may be {@code null})
-    /// @param userAgent     client user-agent string (may be {@code null})
-    /// @param details       JSON string with extra details (may be {@code null})
+    /**
+     * Represents an audit event entity with details about a specific action or occurrence.
+     *
+     * @param id            the unique identifier for the audit event
+     * @param userId        the unique identifier of the user associated with the audit event
+     * @param applicationId the unique identifier of the application associated with the audit event
+     * @param eventType     the type of audit event
+     * @param ipAddress     the IP address from where the audit event originated
+     * @param userAgent     the user agent information from the client triggering the audit event
+     * @param details       additional details or metadata about the audit event
+     */
     public AuditEventEntity(UUID id, UUID userId, UUID applicationId,
                              AuditEventType eventType,
                              String ipAddress, String userAgent, String details) {
@@ -102,8 +194,19 @@ public class AuditEventEntity {
         this.details = details;
     }
 
-    /// Sets {@code occurredAt} and {@code createdAt} to the current timestamp
-    /// before the entity is first persisted, if they have not already been set.
+    /**
+     * Callback method invoked before the entity is persisted.
+     *
+     * This method is annotated with {@code @PrePersist}, which ensures it is executed
+     * automatically by the persistence provider before the entity is inserted into the database.
+     * It is used to initialize the following timestamps:
+     *
+     * - {@code occurredAt}: Set to the current timestamp if it is not already populated.
+     * - {@code createdAt}: Set to the current timestamp if it is not already populated.
+     *
+     * This method ensures that these timestamp fields are properly initialized
+     * if they have not already been set prior to persistence.
+     */
     @PrePersist
     public void prePersist() {
         LocalDateTime now = LocalDateTime.now();
@@ -119,128 +222,164 @@ public class AuditEventEntity {
     // Getters and setters
     // -------------------------------------------------------------------------
 
-    /// Returns the primary key.
-    ///
-    /// @return the UUID id
+    /**
+     * Retrieves the unique identifier associated with this entity.
+     *
+     * @return the UUID representing the unique identifier
+     */
     public UUID getId() {
         return id;
     }
 
-    /// Sets the primary key.
-    ///
-    /// @param id the UUID id
+    /**
+     * Sets the primary key.
+     *
+     * @param id the UUID id
+     */
     public void setId(UUID id) {
         this.id = id;
     }
 
-    /// Returns the user ID.
-    ///
-    /// @return the userId
+    /**
+     * Returns the user ID.
+     *
+     * @return the userId
+     */
     public UUID getUserId() {
         return userId;
     }
 
-    /// Sets the user ID.
-    ///
-    /// @param userId the userId
+    /**
+     * Sets the user ID.
+     *
+     * @param userId the userId
+     */
     public void setUserId(UUID userId) {
         this.userId = userId;
     }
 
-    /// Returns the application ID.
-    ///
-    /// @return the applicationId
+    /**
+     * Returns the application ID.
+     *
+     * @return the applicationId
+     */
     public UUID getApplicationId() {
         return applicationId;
     }
 
-    /// Sets the application ID.
-    ///
-    /// @param applicationId the applicationId
+    /**
+     * Sets the application ID.
+     *
+     * @param applicationId the applicationId
+     */
     public void setApplicationId(UUID applicationId) {
         this.applicationId = applicationId;
     }
 
-    /// Returns the event type.
-    ///
-    /// @return the eventType
+    /**
+     * Returns the event type.
+     *
+     * @return the eventType
+     */
     public AuditEventType getEventType() {
         return eventType;
     }
 
-    /// Sets the event type.
-    ///
-    /// @param eventType the eventType
+    /**
+     * Sets the event type.
+     *
+     * @param eventType the eventType
+     */
     public void setEventType(AuditEventType eventType) {
         this.eventType = eventType;
     }
 
-    /// Returns the client IP address.
-    ///
-    /// @return the ipAddress
+    /**
+     * Returns the client IP address.
+     *
+     * @return the ipAddress
+     */
     public String getIpAddress() {
         return ipAddress;
     }
 
-    /// Sets the client IP address.
-    ///
-    /// @param ipAddress the ipAddress
+    /**
+     * Sets the client IP address.
+     *
+     * @param ipAddress the ipAddress
+     */
     public void setIpAddress(String ipAddress) {
         this.ipAddress = ipAddress;
     }
 
-    /// Returns the client user-agent string.
-    ///
-    /// @return the userAgent
+    /**
+     * Returns the client user-agent string.
+     *
+     * @return the userAgent
+     */
     public String getUserAgent() {
         return userAgent;
     }
 
-    /// Sets the client user-agent string.
-    ///
-    /// @param userAgent the userAgent
+    /**
+     * Sets the client user-agent string.
+     *
+     * @param userAgent the userAgent
+     */
     public void setUserAgent(String userAgent) {
         this.userAgent = userAgent;
     }
 
-    /// Returns the timestamp when the event occurred.
-    ///
-    /// @return the occurredAt
+    /**
+     * Returns the timestamp when the event occurred.
+     *
+     * @return the occurredAt
+     */
     public LocalDateTime getOccurredAt() {
         return occurredAt;
     }
 
-    /// Sets the timestamp when the event occurred.
-    ///
-    /// @param occurredAt the occurredAt
+    /**
+     * Sets the timestamp when the event occurred.
+     *
+     * @param occurredAt the occurredAt
+     */
     public void setOccurredAt(LocalDateTime occurredAt) {
         this.occurredAt = occurredAt;
     }
 
-    /// Returns the JSON details string.
-    ///
-    /// @return the details
+    /**
+     * Returns the JSON details string.
+     *
+     * @return the details
+     */
     public String getDetails() {
         return details;
     }
 
-    /// Sets the JSON details string.
-    ///
-    /// @param details the details
+    /**
+     * Sets the JSON details string.
+     *
+     * @param details the details
+     */
     public void setDetails(String details) {
         this.details = details;
     }
 
-    /// Returns the record creation timestamp.
-    ///
-    /// @return the createdAt
+    /**
+     * Returns the record creation timestamp.
+     *
+     * @return the createdAt
+     */
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    /// Sets the record creation timestamp.
-    ///
-    /// @param createdAt the createdAt
+    /**
+     * Sets the record creation timestamp.
+     *
+     * @param createdAt the createdAt
+     */
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }

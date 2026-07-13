@@ -29,7 +29,6 @@ import java.util.UUID;
  * @since 11
  */
 @RestController
-@CrossOrigin(origins = "*")
 @RequestMapping("/api/v1/contact-types")
 public class ContactTypeController implements ContactTypeApi {
     private final ContactTypeService contactTypeService;

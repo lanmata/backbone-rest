@@ -24,56 +24,70 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-/// Spring Data JPA repository for {@link ManagedClientEntity}.
-/// <p>
-/// Provides standard CRUD operations plus MCAM-specific derived query methods
-/// used by {@code ManagedClientServiceImpl} and {@code ManagedClientTokenServiceImpl}.
-/// </p>
+/**
+ * Spring Data JPA repository for {@link ManagedClientEntity}.
+ * <p>
+ * Provides standard CRUD operations plus MCAM-specific derived query methods
+ * used by {@code ManagedClientServiceImpl} and {@code ManagedClientTokenServiceImpl}.
+ * </p>
+ */
 public interface ManagedClientRepository extends JpaRepository<ManagedClientEntity, UUID> {
 
-    /// Finds an active managed client by its primary key.
-    ///
-    /// @param id the client UUID
-    /// @return an {@link Optional} containing the entity if found and active
+    /**
+     * Finds an active managed client by its primary key.
+     *
+     * @param id the client UUID
+     * @return an {@link Optional} containing the entity if found and active
+     */
     Optional<ManagedClientEntity> findByIdAndActiveTrue(UUID id);
 
-    /// Checks whether a client with the given name already exists for an application.
-    /// Used to enforce the UNIQUE (name, application_id) constraint at the service layer
-    /// before persisting.
-    ///
-    /// @param name          the candidate client name
-    /// @param applicationId the owning application UUID
-    /// @return {@code true} if a record with matching name and application_id already exists
+    /**
+     * Checks whether a client with the given name already exists for an application.
+     * Used to enforce the UNIQUE (name, application_id) constraint at the service layer
+     * before persisting.
+     *
+     * @param name          the candidate client name
+     * @param applicationId the owning application UUID
+     * @return {@code true} if a record with matching name and application_id already exists
+     */
     boolean existsByNameAndApplicationId(String name, UUID applicationId);
 
-    /// Returns a paginated list of clients for a given application, regardless of active status.
-    ///
-    /// @param applicationId the owning application UUID
-    /// @param pageable      pagination and sort parameters
-    /// @return a page of matching entities
+    /**
+     * Returns a paginated list of clients for a given application, regardless of active status.
+     *
+     * @param applicationId the owning application UUID
+     * @param pageable      pagination and sort parameters
+     * @return a page of matching entities
+     */
     Page<ManagedClientEntity> findByApplicationId(UUID applicationId, Pageable pageable);
 
-    /// Returns a paginated list of clients filtered by active status.
-    ///
-    /// @param active   {@code true} for active clients, {@code false} for inactive
-    /// @param pageable pagination and sort parameters
-    /// @return a page of matching entities
+    /**
+     * Returns a paginated list of clients filtered by active status.
+     *
+     * @param active   {@code true} for active clients, {@code false} for inactive
+     * @param pageable pagination and sort parameters
+     * @return a page of matching entities
+     */
     Page<ManagedClientEntity> findByActive(boolean active, Pageable pageable);
 
-    /// Returns a paginated list of clients filtered by both application and active status.
-    ///
-    /// @param applicationId the owning application UUID
-    /// @param active        {@code true} for active clients, {@code false} for inactive
-    /// @param pageable      pagination and sort parameters
-    /// @return a page of matching entities
+    /**
+     * Returns a paginated list of clients filtered by both application and active status.
+     *
+     * @param applicationId the owning application UUID
+     * @param active        {@code true} for active clients, {@code false} for inactive
+     * @param pageable      pagination and sort parameters
+     * @return a page of matching entities
+     */
     Page<ManagedClientEntity> findByApplicationIdAndActive(UUID applicationId, boolean active, Pageable pageable);
 
-    /// Returns clients with a non-null {@code prevSecretHash} whose
-    /// {@code secretLastRotatedAt} is before the given cutoff timestamp.
-    /// Used by the maintenance task to clear stale grace-period hashes.
-    ///
-    /// @param cutoff the timestamp threshold: clients rotated before this time are stale
-    /// @return list of entities with an expired grace period hash
+    /**
+     * Returns clients with a non-null {@code prevSecretHash} whose
+     * {@code secretLastRotatedAt} is before the given cutoff timestamp.
+     * Used by the maintenance task to clear stale grace-period hashes.
+     *
+     * @param cutoff the timestamp threshold: clients rotated before this time are stale
+     * @return list of entities with an expired grace period hash
+     */
     @Query("SELECT e FROM ManagedClientEntity e WHERE e.prevSecretHash IS NOT NULL " +
            "AND e.secretLastRotatedAt < :cutoff")
     List<ManagedClientEntity> findWithExpiredPrevSecretHash(@Param("cutoff") LocalDateTime cutoff);

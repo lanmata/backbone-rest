@@ -15,7 +15,7 @@ package com.umdc.backoffice.v1.contacttypes.service;
 
 import com.umdc.backoffice.v1.contacttypes.api.to.ContactTypeRequest;
 import com.umdc.commons.general.pojo.ContactType;
-import org.apache.commons.lang.NotImplementedException;
+import org.apache.commons.lang3.NotImplementedException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

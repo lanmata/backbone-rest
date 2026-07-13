@@ -23,21 +23,26 @@ import org.springframework.web.bind.annotation.*;
 
 import static com.umdc.backoffice.v1.session.services.SessionJwtService.AUTHORIZATION_HEADER;
 
-/// REST controller for managing session-related operations.
-/// Provides endpoints for generating and validating session tokens.
-///
-/// @version 1.0.0, 12-02-2021
+/**
+ * REST controller for managing session-related operations.
+ * Provides endpoints for generating and validating session tokens.
+ *
+ * @version 1.0.0, 12-02-2021
+ */
 @RestController
 @RequestMapping("/api/v1/session")
-@CrossOrigin(origins = "*")
 public class SessionController implements SessionApi {
 
-    ///  The session service to be used by this controller.
+    /**
+     *  The session service to be used by this controller.
+     */
     private final SessionService sessionService;
 
-    /// Constructor for SessionController.
-    ///
-    /// @param sessionService the session service to be used by this controller
+    /**
+     * Constructor for SessionController.
+     *
+     * @param sessionService the session service to be used by this controller
+     */
     public SessionController(SessionService sessionService) {
         this.sessionService = sessionService;
     }

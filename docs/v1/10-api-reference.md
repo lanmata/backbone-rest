@@ -142,12 +142,35 @@ sequenceDiagram
 | Method | Path | Summary | Request | Responses |
 |--------|------|---------|---------|-----------|
 | `GET` | `/api/v1/applications` | List all applications | — | `200` list · `404` none |
-| `POST` | `/api/v1/applications` | Create application | `ApplicationCreateRequest` body | `200` created · `400` bad request · `500` error |
+| `GET` | `/api/v1/applications?ids=` | List applications by IDs | `ids` query param (comma-separated UUIDs) | `200` list · `404` none |
+| `POST` | `/api/v1/applications` | Create application | `ApplicationCreateRequest` body | `201` created · `400` bad request · `500` error |
+| `GET` | `/api/v1/applications/{id}` | Find application by ID | `id` path param | `200` found · `404` not found · `401` |
+| `PUT` | `/api/v1/applications/{id}` | Update application | `id` path param + `ApplicationUpdateRequest` body | `200` updated · `400` bad request · `404` not found · `401` |
+| `DELETE` | `/api/v1/applications/{id}` | Delete application | `id` path param | `200` deleted · `404` not found · `401` |
 
 **`ApplicationCreateRequest` body:**
 ```json
-{ "application": { "name": "my-app", "description": "My application" } }
+{ "application": { "name": "my-app", "description": "My application", "active": true } }
 ```
+
+**`ApplicationUpdateRequest` body:**
+```json
+{ "application": { "name": "my-app-v2", "description": "Updated description", "active": true } }
+```
+
+**`Application` response fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `UUID` | Auto-generated identifier |
+| `name` | `string` | Display name |
+| `codeName` | `string` | Auto-derived short code — max 8 chars, alphanumeric + `_` |
+| `description` | `string` | Human-readable description |
+| `active` | `boolean` | Active status |
+| `createdDate` | `datetime` | UTC timestamp set on creation (POST only) |
+
+> [!NOTE]
+> All responses include a `Message-header` header with a human-readable status description (e.g. `Application created successfully.`, `Application not found.`).
 
 ---
 

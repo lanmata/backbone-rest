@@ -32,7 +32,6 @@ import java.util.Map;
  * @since 11
  */
 @RestController
-@CrossOrigin(origins = "*")
 @RequestMapping("/api/v1/report")
 public class DocumentController {
 

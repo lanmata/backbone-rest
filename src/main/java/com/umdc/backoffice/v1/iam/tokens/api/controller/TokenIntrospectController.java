@@ -16,20 +16,22 @@ import com.umdc.backoffice.v1.iam.tokens.api.to.TokenIntrospectRequest;
 import com.umdc.backoffice.v1.iam.tokens.api.to.TokenIntrospectResponse;
 import com.umdc.backoffice.v1.iam.tokens.service.TokenIntrospectService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
 
-/// Thin REST controller for IAM token-introspection operations.
-/// Delegates all business logic to {@link TokenIntrospectService}.
+/**
+ * Thin REST controller for IAM token-introspection operations.
+ * Delegates all business logic to {@link TokenIntrospectService}.
+ */
 @RestController
-@CrossOrigin(origins = "*")
 public class TokenIntrospectController implements TokenIntrospectApi {
 
     private final TokenIntrospectService tokenIntrospectService;
 
-    /// Constructs a new {@code TokenIntrospectController}.
-    ///
-    /// @param tokenIntrospectService the service that handles token introspection
+    /**
+     * Constructs a new {@code TokenIntrospectController}.
+     *
+     * @param tokenIntrospectService the service that handles token introspection
+     */
     public TokenIntrospectController(TokenIntrospectService tokenIntrospectService) {
         this.tokenIntrospectService = tokenIntrospectService;
     }

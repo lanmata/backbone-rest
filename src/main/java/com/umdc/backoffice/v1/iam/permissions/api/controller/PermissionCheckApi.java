@@ -27,25 +27,31 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import jakarta.validation.Valid;
 
-/// REST API interface for IAM permission checks.
-/// <p>
-/// Requires a valid session-token JWT — this endpoint is <em>not</em> in {@code umdc.api.excludes}.
-/// </p>
+/**
+ * REST API interface for IAM permission checks.
+ * <p>
+ * Requires a valid session-token JWT — this endpoint is <em>not</em> in {@code umdc.api.excludes}.
+ * </p>
+ */
 @Tag(name = "iam-permissions", description = "IAM Permission Check API")
 @RequestMapping("/api/v1/iam/permissions")
 public interface PermissionCheckApi {
 
-    /// Returns the {@link PermissionCheckService} used by this API.
-    ///
-    /// @return the service instance
+    /**
+     * Returns the {@link PermissionCheckService} used by this API.
+     *
+     * @return the service instance
+     */
     default PermissionCheckService getService() {
         return request -> ResponseEntity.status(HttpStatusUtil.NOT_IMPLEMENTED).build();
     }
 
-    /// Checks whether the session token in the request carries the requested permission.
-    ///
-    /// @param request the permission check request
-    /// @return a {@link ResponseEntity} wrapping {@link PermissionCheckResponse}
+    /**
+     * Checks whether the session token in the request carries the requested permission.
+     *
+     * @param request the permission check request
+     * @return a {@link ResponseEntity} wrapping {@link PermissionCheckResponse}
+     */
     @Operation(summary = "Check permission", description = "Validates a session token and checks whether it carries the requested permission")
     @ApiResponses(value = {
             @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "Permission check result returned"),

@@ -14,16 +14,18 @@ package com.umdc.backoffice.v1.iam.tokens.api.to;
 
 import java.util.List;
 
-/// Response payload for the IAM token-introspection endpoint.
-///
-/// @param active     {@code true} if the token is valid and not expired
-/// @param subject    the JWT {@code sub} claim (user identifier)
-/// @param issuer     the JWT {@code iss} claim
-/// @param audience   the JWT {@code aud} claim
-/// @param expiresAt  token expiry as epoch-milliseconds ({@code exp} * 1000)
-/// @param issuedAt   token issuance as epoch-milliseconds ({@code iat} * 1000)
-/// @param tokenType  the value of the {@code type} claim
-/// @param roles      parsed list of role strings from the {@code roles} claim
+/**
+ * Response payload for the IAM token-introspection endpoint.
+ *
+ * @param active     {@code true} if the token is valid and not expired
+ * @param subject    the JWT {@code sub} claim (user identifier)
+ * @param issuer     the JWT {@code iss} claim
+ * @param audience   the JWT {@code aud} claim
+ * @param expiresAt  token expiry as epoch-milliseconds ({@code exp} * 1000)
+ * @param issuedAt   token issuance as epoch-milliseconds ({@code iat} * 1000)
+ * @param tokenType  the value of the {@code type} claim
+ * @param roles      parsed list of role strings from the {@code roles} claim
+ */
 public record TokenIntrospectResponse(
         boolean active,
         String subject,

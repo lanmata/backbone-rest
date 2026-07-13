@@ -16,171 +16,229 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-/// Read-only Transfer Object for a managed client.
-/// <p>
-/// Used in GET responses. This DTO intentionally omits all secret material
-/// ({@code secretHash}, {@code prevSecretHash}). The MapStruct mapper must
-/// never map those fields to this class.
-/// </p>
-///
-/// @author Luis Antonio Mata
+/**
+ * Read-only Transfer Object for a managed client.
+ * <p>
+ * Used in GET responses. This DTO intentionally omits all secret material
+ * ({@code secretHash}, {@code prevSecretHash}). The MapStruct mapper must
+ * never map those fields to this class.
+ * </p>
+ *
+ * @author Luis Antonio Mata
+ */
 public class ManagedClientTO {
 
-    /// UUID of the managed client.
+    /**
+     * UUID of the managed client.
+     */
     private UUID clientId;
 
-    /// Human-readable name of the client.
+    /**
+     * Human-readable name of the client.
+     */
     private String name;
 
-    /// Optional description.
+    /**
+     * Optional description.
+     */
     private String description;
 
-    /// UUID of the owning application.
+    /**
+     * UUID of the owning application.
+     */
     private UUID applicationId;
 
-    /// Authorised OAuth2 scopes for this client.
+    /**
+     * Authorised OAuth2 scopes for this client.
+     */
     private List<String> scopes;
 
-    /// Whether the client is active.
+    /**
+     * Whether the client is active.
+     */
     private boolean active;
 
-    /// UTC timestamp when the client was created.
+    /**
+     * UTC timestamp when the client was created.
+     */
     private LocalDateTime createdAt;
 
-    /// UTC timestamp of the last metadata update.
+    /**
+     * UTC timestamp of the last metadata update.
+     */
     private LocalDateTime lastUpdatedAt;
 
-    /// UTC timestamp of the most recent secret rotation.
+    /**
+     * UTC timestamp of the most recent secret rotation.
+     */
     private LocalDateTime secretLastRotatedAt;
 
-    /// Default constructor.
+    /**
+     * Default constructor.
+     */
     public ManagedClientTO() {
         // Default constructor
     }
 
     // CPD-OFF - DTO getter/setter boilerplate intentionally mirrors entity and sibling DTOs
-    /// Returns the client UUID.
-    ///
-    /// @return the clientId
+    /**
+     * Returns the client UUID.
+     *
+     * @return the clientId
+     */
     public UUID getClientId() {
         return clientId;
     }
 
-    /// Sets the client UUID.
-    ///
-    /// @param clientId the clientId
+    /**
+     * Sets the client UUID.
+     *
+     * @param clientId the clientId
+     */
     public void setClientId(UUID clientId) {
         this.clientId = clientId;
     }
 
-    /// Returns the client name.
-    ///
-    /// @return the name
+    /**
+     * Returns the client name.
+     *
+     * @return the name
+     */
     public String getName() {
         return name;
     }
 
-    /// Sets the client name.
-    ///
-    /// @param name the name
+    /**
+     * Sets the client name.
+     *
+     * @param name the name
+     */
     public void setName(String name) {
         this.name = name;
     }
 
-    /// Returns the description.
-    ///
-    /// @return the description
+    /**
+     * Returns the description.
+     *
+     * @return the description
+     */
     public String getDescription() {
         return description;
     }
 
-    /// Sets the description.
-    ///
-    /// @param description the description
+    /**
+     * Sets the description.
+     *
+     * @param description the description
+     */
     public void setDescription(String description) {
         this.description = description;
     }
 
-    /// Returns the owning application UUID.
-    ///
-    /// @return the applicationId
+    /**
+     * Returns the owning application UUID.
+     *
+     * @return the applicationId
+     */
     public UUID getApplicationId() {
         return applicationId;
     }
 
-    /// Sets the owning application UUID.
-    ///
-    /// @param applicationId the applicationId
+    /**
+     * Sets the owning application UUID.
+     *
+     * @param applicationId the applicationId
+     */
     public void setApplicationId(UUID applicationId) {
         this.applicationId = applicationId;
     }
 
-    /// Returns the authorised scopes list.
-    ///
-    /// @return the scopes
+    /**
+     * Returns the authorised scopes list.
+     *
+     * @return the scopes
+     */
     public List<String> getScopes() {
         return scopes;
     }
 
-    /// Sets the authorised scopes list.
-    ///
-    /// @param scopes the scopes
+    /**
+     * Sets the authorised scopes list.
+     *
+     * @param scopes the scopes
+     */
     public void setScopes(List<String> scopes) {
         this.scopes = scopes;
     }
 
-    /// Returns whether the client is active.
-    ///
-    /// @return {@code true} if active
+    /**
+     * Returns whether the client is active.
+     *
+     * @return {@code true} if active
+     */
     public boolean isActive() {
         return active;
     }
 
-    /// Sets the active flag.
-    ///
-    /// @param active {@code true} if active
+    /**
+     * Sets the active flag.
+     *
+     * @param active {@code true} if active
+     */
     public void setActive(boolean active) {
         this.active = active;
     }
 
-    /// Returns the creation timestamp.
-    ///
-    /// @return the createdAt
+    /**
+     * Returns the creation timestamp.
+     *
+     * @return the createdAt
+     */
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    /// Sets the creation timestamp.
-    ///
-    /// @param createdAt the createdAt
+    /**
+     * Sets the creation timestamp.
+     *
+     * @param createdAt the createdAt
+     */
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
-    /// Returns the last-updated timestamp.
-    ///
-    /// @return the lastUpdatedAt
+    /**
+     * Returns the last-updated timestamp.
+     *
+     * @return the lastUpdatedAt
+     */
     public LocalDateTime getLastUpdatedAt() {
         return lastUpdatedAt;
     }
 
-    /// Sets the last-updated timestamp.
-    ///
-    /// @param lastUpdatedAt the lastUpdatedAt
+    /**
+     * Sets the last-updated timestamp.
+     *
+     * @param lastUpdatedAt the lastUpdatedAt
+     */
     public void setLastUpdatedAt(LocalDateTime lastUpdatedAt) {
         this.lastUpdatedAt = lastUpdatedAt;
     }
 
-    /// Returns the timestamp of the most recent secret rotation.
-    ///
-    /// @return the secretLastRotatedAt
+    /**
+     * Returns the timestamp of the most recent secret rotation.
+     *
+     * @return the secretLastRotatedAt
+     */
     public LocalDateTime getSecretLastRotatedAt() {
         return secretLastRotatedAt;
     }
 
-    /// Sets the timestamp of the most recent secret rotation.
-    ///
-    /// @param secretLastRotatedAt the secretLastRotatedAt
+    /**
+     * Sets the timestamp of the most recent secret rotation.
+     *
+     * @param secretLastRotatedAt the secretLastRotatedAt
+     */
     public void setSecretLastRotatedAt(LocalDateTime secretLastRotatedAt) {
         this.secretLastRotatedAt = secretLastRotatedAt;
     }

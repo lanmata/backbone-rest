@@ -16,16 +16,20 @@ import com.umdc.backoffice.constant.types.AuditEventType;
 
 import java.util.UUID;
 
-/// Service interface for recording managed client audit events.
+/**
+ * Service interface for recording managed client audit events.
+ */
 public interface ManagedClientAuditService {
 
-    /// Records an audit event for a managed client lifecycle action.
-    ///
-    /// @param clientId  the UUID of the managed client
-    /// @param eventType the type of audit event
-    /// @param ipAddress the source IP address, or {@code null} if not applicable
-    /// @param outcome   the result — {@code "SUCCESS"} or {@code "FAILURE"}
-    /// @param details   optional JSON detail payload, or {@code null}
+    /**
+     * Records an audit event for a managed client lifecycle action.
+     *
+     * @param clientId  the UUID of the managed client
+     * @param eventType the type of audit event
+     * @param ipAddress the source IP address, or {@code null} if not applicable
+     * @param outcome   the result — {@code "SUCCESS"} or {@code "FAILURE"}
+     * @param details   optional JSON detail payload, or {@code null}
+     */
     void record(UUID clientId, AuditEventType eventType, String ipAddress,
                 String outcome, String details);
 }

@@ -19,25 +19,31 @@ import org.mapstruct.Mapper;
 
 import java.util.List;
 
-/// MapStruct mapper that converts {@link AuditEventEntity} instances to
-/// {@link AuditEventTO} transfer objects.
-/// <p>
-/// All fields share the same names so no explicit {@code @Mapping} annotations
-/// are required. The mapper is Spring-managed via {@link MapperAppConfig}.
-/// </p>
+/**
+ * MapStruct mapper that converts {@link AuditEventEntity} instances to
+ * {@link AuditEventTO} transfer objects.
+ * <p>
+ * All fields share the same names so no explicit {@code @Mapping} annotations
+ * are required. The mapper is Spring-managed via {@link MapperAppConfig}.
+ * </p>
+ */
 @Mapper(config = MapperAppConfig.class)
 public interface AuditEventMapper {
 
-    /// Converts a single {@link AuditEventEntity} to an {@link AuditEventTO}.
-    ///
-    /// @param entity the source entity
-    /// @return the mapped transfer object
+    /**
+     * Converts a single {@link AuditEventEntity} to an {@link AuditEventTO}.
+     *
+     * @param entity the source entity
+     * @return the mapped transfer object
+     */
     AuditEventTO toTO(AuditEventEntity entity);
 
-    /// Converts a list of {@link AuditEventEntity} to a list of {@link AuditEventTO}.
-    ///
-    /// @param entities the source entity list
-    /// @return the mapped transfer object list
+    /**
+     * Converts a list of {@link AuditEventEntity} to a list of {@link AuditEventTO}.
+     *
+     * @param entities the source entity list
+     * @return the mapped transfer object list
+     */
     List<AuditEventTO> toTOList(List<AuditEventEntity> entities);
 }
 

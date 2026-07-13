@@ -16,11 +16,13 @@ import jakarta.validation.constraints.NotBlank;
 
 import java.util.UUID;
 
-/// Request body for the permission check endpoint.
-///
-/// @param permission    the permission string to check (e.g. {@code ROLE_ADMIN})
-/// @param applicationId the application context for the check; may be {@code null}
-/// @param sessionToken  the session-token JWT of the requesting user
+/**
+ * Request body for the permission check endpoint.
+ *
+ * @param permission    the permission string to check (e.g. {@code ROLE_ADMIN})
+ * @param applicationId the application context for the check; may be {@code null}
+ * @param sessionToken  the session-token JWT of the requesting user
+ */
 public record PermissionCheckRequest(
         @NotBlank String permission,
         UUID applicationId,

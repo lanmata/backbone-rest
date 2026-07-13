@@ -16,20 +16,22 @@ import com.umdc.backoffice.v1.iam.permissions.api.to.PermissionCheckRequest;
 import com.umdc.backoffice.v1.iam.permissions.api.to.PermissionCheckResponse;
 import com.umdc.backoffice.v1.iam.permissions.service.PermissionCheckService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
 
-/// Thin REST controller for IAM permission-check operations.
-/// Delegates all business logic to {@link PermissionCheckService}.
+/**
+ * Thin REST controller for IAM permission-check operations.
+ * Delegates all business logic to {@link PermissionCheckService}.
+ */
 @RestController
-@CrossOrigin(origins = "*")
 public class PermissionCheckController implements PermissionCheckApi {
 
     private final PermissionCheckService permissionCheckService;
 
-    /// Constructs a new {@code PermissionCheckController}.
-    ///
-    /// @param permissionCheckService the service that handles permission evaluation
+    /**
+     * Constructs a new {@code PermissionCheckController}.
+     *
+     * @param permissionCheckService the service that handles permission evaluation
+     */
     public PermissionCheckController(PermissionCheckService permissionCheckService) {
         this.permissionCheckService = permissionCheckService;
     }
