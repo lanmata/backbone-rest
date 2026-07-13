@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static com.umdc.backoffice.util.MessageUtil.MESSAGE_HEADER_STR;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -53,9 +54,10 @@ class ApplicationServiceImplTest {
     // ── create ──────────────────────────────────────────────────────────────────
 
     @Test
-    @DisplayName("create: persists application and returns 200 with createdDate populated")
+    @DisplayName("create: valid request returns 201 with Message-header")
     void createApplicationSuccessfully() {
         Application application = new Application();
+        application.setName("My App");
         ApplicationEntity entity = new ApplicationEntity();
 
         when(applicationMapper.toSource(application)).thenReturn(entity);
@@ -64,14 +66,15 @@ class ApplicationServiceImplTest {
 
         ResponseEntity<Application> response = applicationService.create(application);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertNotNull(response.getBody());
         assertNotNull(response.getBody().getCreatedDate());
+        assertNotNull(response.getHeaders().getFirst(MESSAGE_HEADER_STR));
         verify(applicationRepository).save(entity);
     }
 
     @Test
-    @DisplayName("create: with complete application data returns 200 and correct body")
+    @DisplayName("create: with complete application data returns 201 and correct body")
     void createApplicationWithCompleteData() {
         Application application = new Application();
         application.setId(UUID.randomUUID());
@@ -80,7 +83,6 @@ class ApplicationServiceImplTest {
         application.setActive(true);
 
         ApplicationEntity entity = new ApplicationEntity();
-        entity.setId(application.getId());
         entity.setName(application.getName());
 
         when(applicationMapper.toSource(application)).thenReturn(entity);
@@ -89,21 +91,82 @@ class ApplicationServiceImplTest {
 
         ResponseEntity<Application> response = applicationService.create(application);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals(application, response.getBody());
         verify(applicationRepository, times(1)).save(entity);
     }
 
     @Test
-    @DisplayName("create: null application throws NullPointerException")
-    void createApplicationWithNullApplicationThrowsNullPointerException() {
-        assertThrows(NullPointerException.class, () -> applicationService.create(null));
+    @DisplayName("create: derives codeName from name when codeName is null")
+    void createApplicationDerivesCodeNameFromName() {
+        Application application = new Application();
+        application.setName("My App");
+        ApplicationEntity entity = new ApplicationEntity();
+
+        when(applicationMapper.toSource(application)).thenReturn(entity);
+        when(applicationRepository.save(entity)).thenReturn(entity);
+        when(applicationMapper.toTarget(entity)).thenReturn(application);
+
+        applicationService.create(application);
+
+        assertEquals("my_app", entity.getCodeName());
+    }
+
+    @Test
+    @DisplayName("create: codeName is truncated to 8 characters when name is long")
+    void createApplicationTruncatesCodeNameToEightChars() {
+        Application application = new Application();
+        application.setName("My Very Long Application Name");
+        ApplicationEntity entity = new ApplicationEntity();
+
+        when(applicationMapper.toSource(application)).thenReturn(entity);
+        when(applicationRepository.save(entity)).thenReturn(entity);
+        when(applicationMapper.toTarget(entity)).thenReturn(application);
+
+        applicationService.create(application);
+
+        assertNotNull(entity.getCodeName());
+        assertTrue(entity.getCodeName().length() <= 8);
+        assertEquals("my_very_", entity.getCodeName());
+    }
+
+    @Test
+    @DisplayName("create: null application returns 400 with Message-header")
+    void createApplicationWithNullApplicationReturnsBadRequest() {
+        ResponseEntity<Application> response = applicationService.create(null);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertNotNull(response.getHeaders().getFirst(MESSAGE_HEADER_STR));
+        verifyNoInteractions(applicationRepository);
+    }
+
+    @Test
+    @DisplayName("create: blank name returns 400 with Message-header")
+    void createApplicationWithBlankNameReturnsBadRequest() {
+        Application application = new Application();
+        application.setName("   ");
+
+        ResponseEntity<Application> response = applicationService.create(application);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertNotNull(response.getHeaders().getFirst(MESSAGE_HEADER_STR));
+        verifyNoInteractions(applicationRepository);
+    }
+
+    @Test
+    @DisplayName("create: null name returns 400 with Message-header")
+    void createApplicationWithNullNameReturnsBadRequest() {
+        ResponseEntity<Application> response = applicationService.create(new Application());
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertNotNull(response.getHeaders().getFirst(MESSAGE_HEADER_STR));
+        verifyNoInteractions(applicationRepository);
     }
 
     // ── find ────────────────────────────────────────────────────────────────────
 
     @Test
-    @DisplayName("find: existing ID returns 200 with application body")
+    @DisplayName("find: existing ID returns 200 with Message-header and body")
     void findApplicationByIdSuccessfully() {
         UUID appId = UUID.randomUUID();
         ApplicationEntity entity = new ApplicationEntity();
@@ -118,11 +181,12 @@ class ApplicationServiceImplTest {
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(application, response.getBody());
+        assertNotNull(response.getHeaders().getFirst(MESSAGE_HEADER_STR));
         verify(applicationRepository).findById(appId);
     }
 
     @Test
-    @DisplayName("find: non-existent ID returns 404")
+    @DisplayName("find: non-existent ID returns 404 with Message-header")
     void findApplicationByNonExistentIdReturnsNotFound() {
         UUID appId = UUID.randomUUID();
         when(applicationRepository.findById(appId)).thenReturn(Optional.empty());
@@ -130,6 +194,7 @@ class ApplicationServiceImplTest {
         ResponseEntity<Application> response = applicationService.find(appId);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertNotNull(response.getHeaders().getFirst(MESSAGE_HEADER_STR));
         verify(applicationRepository).findById(appId);
         verifyNoInteractions(applicationMapper);
     }
@@ -137,7 +202,7 @@ class ApplicationServiceImplTest {
     // ── listAll ─────────────────────────────────────────────────────────────────
 
     @Test
-    @DisplayName("listAll: returns 200 with all applications when records exist")
+    @DisplayName("listAll: returns 200 with Message-header and all applications")
     void listAllApplicationsSuccessfully() {
         ApplicationEntity entity1 = new ApplicationEntity();
         ApplicationEntity entity2 = new ApplicationEntity();
@@ -154,17 +219,19 @@ class ApplicationServiceImplTest {
         assertNotNull(response.getBody());
         assertEquals(2, response.getBody().size());
         assertTrue(response.getBody().containsAll(List.of(app1, app2)));
+        assertNotNull(response.getHeaders().getFirst(MESSAGE_HEADER_STR));
         verify(applicationRepository).findAll();
     }
 
     @Test
-    @DisplayName("listAll: returns 404 when no applications exist")
+    @DisplayName("listAll: returns 404 with Message-header when no applications exist")
     void listAllApplicationsWhenNoneExistReturnsNotFound() {
         when(applicationRepository.findAll()).thenReturn(List.of());
 
         ResponseEntity<List<Application>> response = applicationService.listAll();
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertNotNull(response.getHeaders().getFirst(MESSAGE_HEADER_STR));
         verify(applicationRepository).findAll();
         verifyNoInteractions(applicationMapper);
     }
