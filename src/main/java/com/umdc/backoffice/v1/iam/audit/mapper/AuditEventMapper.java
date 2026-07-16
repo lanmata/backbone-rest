@@ -13,8 +13,8 @@
 package com.umdc.backoffice.v1.iam.audit.mapper;
 
 import com.umdc.backoffice.v1.iam.audit.api.to.AuditEventTO;
-import com.umdc.backoffice.jpa.domain.AuditEventEntity;
 import com.umdc.commons.services.config.mapper.MapperAppConfig;
+import com.umdc.persistence.general.domains.AuditEventEntity;
 import org.mapstruct.Mapper;
 
 import java.util.List;

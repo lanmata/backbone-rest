@@ -73,11 +73,11 @@
         <!--        OPEN API -->
         <springdoc.version>2.6.0</springdoc.version>
         <!--        SPRING -->
-        <spring-boot.version>4.0.6</spring-boot.version>
+        <spring-boot.version>4.1.0</spring-boot.version>
         <spring-cloud.version>2025.1.2</spring-cloud.version>
 
         <!-- Centralized versions for previously hardcoded dependency/plugin versions -->
-        <postgresql.version>42.7.7</postgresql.version>
+        <postgresql.version>42.7.10</postgresql.version>
         <aws.sdk.version>2.21.0</aws.sdk.version>
         <google.gson.version>2.13.2</google.gson.version>
         <mapstruct.version>1.6.3</mapstruct.version>
@@ -88,11 +88,11 @@
         <rewrite.plugin.version>5.42.0</rewrite.plugin.version>
         <rewrite.recipe.version>5.21.0</rewrite.recipe.version>
         <asm.version>9.7</asm.version>
-        <commons-lang3.version>3.18.0</commons-lang3.version>
+        <commons-lang3.version>3.20.0</commons-lang3.version>
 
         <!--        Test Dependencies-->
-        <!--        JUnit 5.x-->
-        <junit.jupiter.version>5.14.1</junit.jupiter.version>
+        <!--        JUnit 6.x-->
+        <junit.jupiter.version>6.0.3</junit.jupiter.version>
         <!--        Mockito-->
         <mockito.version>5.21.0</mockito.version>
         <mockserver.junit.jupiter.version>5.15.0</mockserver.junit.jupiter.version>
@@ -137,10 +137,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>org.springframework.boot</groupId>-->
-<!--            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>-->
-<!--        </dependency>-->
         <dependency>
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
@@ -423,10 +419,6 @@
             <version>${junit.jupiter.version}</version>
             <scope>test</scope>
             <type>pom</type>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
     </dependencies>
 

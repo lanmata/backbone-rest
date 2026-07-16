@@ -16,13 +16,13 @@ import com.umdc.backoffice.property.ManagementAuthenticatorProperties;
 import com.umdc.backoffice.property.SecurityProperties;
 import com.umdc.backoffice.security.exception.CertificateSecurityException;
 import com.umdc.backoffice.util.KeystoreUtil;
-import com.umdc.backoffice.constant.types.AuditEventType;
 import com.umdc.backoffice.v1.managedclient.api.to.ManagedClientErrorResponse;
 import com.umdc.backoffice.v1.managedclient.api.to.ManagedClientTokenIntrospectResponse;
 import com.umdc.backoffice.v1.managedclient.api.to.ManagedClientTokenRequest;
 import com.umdc.backoffice.v1.managedclient.api.to.ManagedClientTokenResponse;
-import com.umdc.backoffice.jpa.domain.ManagedClientEntity;
-import com.umdc.backoffice.jpa.repository.ManagedClientRepository;
+import com.umdc.commons.general.pojo.AuditEventType;
+import com.umdc.persistence.general.domains.ManagedClientEntity;
+import com.umdc.persistence.general.repositories.ManagedClientRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -55,6 +55,8 @@ public class ManagedClientTokenServiceImpl implements ManagedClientTokenService 
     private static final String ISSUER = "backbone-rest";
     private static final String CLAIM_SCOPES = "scopes";
     private static final String CLAIM_TYPE = "type";
+    private static final String CLAIM_SUCCESS = "SUCCESS";
+
 
     private final ManagedClientRepository repository;
     private final ManagedClientSecretHashService secretHashService;
@@ -114,7 +116,7 @@ public class ManagedClientTokenServiceImpl implements ManagedClientTokenService 
 
         Optional<ManagedClientEntity> found = repository.findById(clientId);
         if (found.isEmpty() || !found.get().isActive()) {
-            auditService.record(clientId, AuditEventType.CLIENT_TOKEN_ISSUE_FAILED, null, "INVALID_CLIENT", null);
+            auditService.save(clientId, AuditEventType.CLIENT_TOKEN_ISSUE_FAILED, null, "INVALID_CLIENT", null);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new ManagedClientErrorResponse("invalid_client", "Client not found or inactive.", null));
         }
@@ -128,7 +130,7 @@ public class ManagedClientTokenServiceImpl implements ManagedClientTokenService 
             graceMatch = secretHashService.matchesWithConstantTime(request.getClientSecret(), graceHash.get());
         }
         if (!currentMatch && !graceMatch) {
-            auditService.record(clientId, AuditEventType.CLIENT_TOKEN_ISSUE_FAILED, null, "INVALID_SECRET", null);
+            auditService.save(clientId, AuditEventType.CLIENT_TOKEN_ISSUE_FAILED, null, "INVALID_SECRET", null);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new ManagedClientErrorResponse("invalid_client", "Invalid client credentials.", null));
         }
@@ -136,7 +138,7 @@ public class ManagedClientTokenServiceImpl implements ManagedClientTokenService 
         List<String> registeredScopes = entity.getScopes();
         List<String> requestedScopes = request.getScopes();
         if (registeredScopes == null || !registeredScopes.containsAll(requestedScopes)) {
-            auditService.record(clientId, AuditEventType.CLIENT_TOKEN_ISSUE_FAILED, null, "INVALID_SCOPE", null);
+            auditService.save(clientId, AuditEventType.CLIENT_TOKEN_ISSUE_FAILED, null, "INVALID_SCOPE", null);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new ManagedClientErrorResponse("invalid_scope",
                             "Requested scopes exceed registered scopes.", null));
@@ -144,7 +146,7 @@ public class ManagedClientTokenServiceImpl implements ManagedClientTokenService 
 
         ManagementAuthenticatorProperties mcam = securityProperties.getManagementAuthenticator();
         if (!redisService.checkAndIncrementRateLimit(clientId, mcam.getRateLimitRpm())) {
-            auditService.record(clientId, AuditEventType.CLIENT_TOKEN_ISSUE_FAILED, null, "RATE_LIMITED", null);
+            auditService.save(clientId, AuditEventType.CLIENT_TOKEN_ISSUE_FAILED, null, "RATE_LIMITED", null);
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                     .body(new ManagedClientErrorResponse("rate_limit_exceeded",
                             "Token issuance rate limit exceeded.", null));
@@ -168,7 +170,7 @@ public class ManagedClientTokenServiceImpl implements ManagedClientTokenService 
 
         redisService.storeToken(jti, clientId, requestedScopes, ttlSeconds);
         redisService.addClientTokenJti(jti, clientId);
-        auditService.record(clientId, AuditEventType.CLIENT_TOKEN_ISSUED, null, "SUCCESS", null);
+        auditService.save(clientId, AuditEventType.CLIENT_TOKEN_ISSUED, null, CLAIM_SUCCESS, null);
 
         ManagedClientTokenResponse response = new ManagedClientTokenResponse();
         response.setAccessToken(rawToken);
@@ -196,7 +198,7 @@ public class ManagedClientTokenServiceImpl implements ManagedClientTokenService 
         for (String jti : jtis) {
             redisService.revokeToken(jti, ttl);
         }
-        auditService.record(clientId, AuditEventType.CLIENT_TOKEN_REVOKED, null, "SUCCESS", null);
+        auditService.save(clientId, AuditEventType.CLIENT_TOKEN_REVOKED, null, CLAIM_SUCCESS, null);
         LOGGER.debug("Revoked {} tokens for clientId='{}'", jtis.size(), clientId);
         return ResponseEntity.noContent().build();
     }
@@ -248,8 +250,8 @@ public class ManagedClientTokenServiceImpl implements ManagedClientTokenService 
         active.setIat(iatDate != null ? iatDate.toInstant().getEpochSecond() : null);
         active.setJti(jti);
 
-        auditService.record(UUID.fromString(clientIdStr), AuditEventType.CLIENT_INTROSPECTION_CALLED,
-                null, "SUCCESS", null);
+        auditService.save(UUID.fromString(clientIdStr), AuditEventType.CLIENT_INTROSPECTION_CALLED,
+                null, CLAIM_SUCCESS, null);
 
         return ResponseEntity.ok(active);
     }

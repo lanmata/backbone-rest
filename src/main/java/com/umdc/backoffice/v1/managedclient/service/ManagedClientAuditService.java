@@ -12,7 +12,9 @@
  */
 package com.umdc.backoffice.v1.managedclient.service;
 
-import com.umdc.backoffice.constant.types.AuditEventType;
+
+import com.umdc.commons.general.pojo.AuditEventType;
+import org.springframework.scheduling.annotation.Async;
 
 import java.util.UUID;
 
@@ -30,6 +32,7 @@ public interface ManagedClientAuditService {
      * @param outcome   the result — {@code "SUCCESS"} or {@code "FAILURE"}
      * @param details   optional JSON detail payload, or {@code null}
      */
-    void record(UUID clientId, AuditEventType eventType, String ipAddress,
-                String outcome, String details);
+    @Async
+    void save(UUID clientId, AuditEventType eventType, String ipAddress,
+              String outcome, String details);
 }

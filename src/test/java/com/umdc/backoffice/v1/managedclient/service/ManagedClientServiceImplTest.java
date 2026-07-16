@@ -1,14 +1,14 @@
 package com.umdc.backoffice.v1.managedclient.service;
 
-import com.umdc.backoffice.constant.types.AuditEventType;
-import com.umdc.backoffice.jpa.domain.ManagedClientEntity;
-import com.umdc.backoffice.jpa.repository.ManagedClientRepository;
 import com.umdc.backoffice.v1.managedclient.api.to.ManagedClientCreateRequest;
 import com.umdc.backoffice.v1.managedclient.api.to.ManagedClientCreateResponse;
 import com.umdc.backoffice.v1.managedclient.api.to.ManagedClientErrorResponse;
 import com.umdc.backoffice.v1.managedclient.api.to.ManagedClientTO;
 import com.umdc.backoffice.v1.managedclient.api.to.ManagedClientUpdateRequest;
 import com.umdc.backoffice.v1.managedclient.mapper.ManagedClientMapper;
+import com.umdc.commons.general.pojo.AuditEventType;
+import com.umdc.persistence.general.domains.ManagedClientEntity;
+import com.umdc.persistence.general.repositories.ManagedClientRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -75,7 +75,7 @@ class ManagedClientServiceImplTest {
 
     @Test
     @DisplayName("registerClient — valid request returns 201 with clientSecret (AC-REG-01)")
-    void registerClient_happyPath_returns201WithSecret() throws Exception {
+    void registerClient_happyPath_returns201WithSecret() {
         UUID appId = UUID.randomUUID();
         ManagedClientCreateRequest request = buildCreateRequest(TEST_NAME, appId);
         ManagedClientEntity entity = buildEntity(UUID.randomUUID(), TEST_NAME, appId);
@@ -92,7 +92,7 @@ class ManagedClientServiceImplTest {
         assertNotNull(body.getClientSecret());
         assertNotNull(body.getClientId());
         verify(repository, times(1)).save(any(ManagedClientEntity.class));
-        verify(auditService, times(1)).record(any(UUID.class), eq(AuditEventType.CLIENT_REGISTERED),
+        verify(auditService, times(1)).save(any(UUID.class), eq(AuditEventType.CLIENT_REGISTERED),
                 any(), any(), any());
     }
 
@@ -198,7 +198,7 @@ class ManagedClientServiceImplTest {
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         verify(repository, times(1)).save(entity);
-        verify(auditService, times(1)).record(eq(clientId), eq(AuditEventType.CLIENT_UPDATED),
+        verify(auditService, times(1)).save(eq(clientId), eq(AuditEventType.CLIENT_UPDATED),
                 any(), any(), any());
     }
 
@@ -217,7 +217,7 @@ class ManagedClientServiceImplTest {
         service.updateClient(clientId, request);
 
         verify(managedClientTokenService, times(1)).revokeAllTokens(clientId);
-        verify(auditService).record(eq(clientId), eq(AuditEventType.CLIENT_DEACTIVATED), any(), any(), any());
+        verify(auditService).save(eq(clientId), eq(AuditEventType.CLIENT_DEACTIVATED), any(), any(), any());
     }
 
     @Test
@@ -246,7 +246,7 @@ class ManagedClientServiceImplTest {
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
         verify(managedClientTokenService, times(1)).revokeAllTokens(clientId);
         verify(repository, times(1)).delete(entity);
-        verify(auditService).record(eq(clientId), eq(AuditEventType.CLIENT_DELETED), any(), any(), any());
+        verify(auditService).save(eq(clientId), eq(AuditEventType.CLIENT_DELETED), any(), any(), any());
     }
 
     @Test

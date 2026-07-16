@@ -12,9 +12,9 @@
  */
 package com.umdc.backoffice.v1.servicetype.mapper;
 
-import com.umdc.backoffice.jpa.domain.ServiceTypeEntity;
 import com.umdc.commons.general.pojo.ServiceType;
 import com.umdc.commons.services.config.mapper.MapperAppConfig;
+import com.umdc.persistence.general.domains.ServiceTypeEntity;
 import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.MapperConfig;

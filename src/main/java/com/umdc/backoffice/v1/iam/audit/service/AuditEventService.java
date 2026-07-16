@@ -13,7 +13,7 @@
 package com.umdc.backoffice.v1.iam.audit.service;
 
 import com.umdc.backoffice.v1.iam.audit.api.to.AuditEventTO;
-import com.umdc.backoffice.constant.types.AuditEventType;
+import com.umdc.commons.general.pojo.AuditEventType;
 import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;

@@ -1,8 +1,5 @@
 package com.umdc.backoffice.v1.managedclient.service;
 
-import com.umdc.backoffice.constant.types.AuditEventType;
-import com.umdc.backoffice.jpa.domain.ManagedClientEntity;
-import com.umdc.backoffice.jpa.repository.ManagedClientRepository;
 import com.umdc.backoffice.property.ManagementAuthenticatorProperties;
 import com.umdc.backoffice.property.SecurityProperties;
 import com.umdc.backoffice.security.exception.CertificateSecurityException;
@@ -10,6 +7,9 @@ import com.umdc.backoffice.util.KeystoreUtil;
 import com.umdc.backoffice.v1.managedclient.api.to.ManagedClientTokenIntrospectResponse;
 import com.umdc.backoffice.v1.managedclient.api.to.ManagedClientTokenRequest;
 import com.umdc.backoffice.v1.managedclient.api.to.ManagedClientTokenResponse;
+import com.umdc.commons.general.pojo.AuditEventType;
+import com.umdc.persistence.general.domains.ManagedClientEntity;
+import com.umdc.persistence.general.repositories.ManagedClientRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import org.junit.jupiter.api.BeforeEach;
@@ -146,7 +146,7 @@ class ManagedClientTokenServiceImplTest {
         ResponseEntity<?> response = service.issueToken(request);
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-        verify(auditService).record(eq(clientId), eq(AuditEventType.CLIENT_TOKEN_ISSUE_FAILED),
+        verify(auditService).save(eq(clientId), eq(AuditEventType.CLIENT_TOKEN_ISSUE_FAILED),
                 any(), eq("INVALID_SECRET"), any());
     }
 
@@ -163,7 +163,7 @@ class ManagedClientTokenServiceImplTest {
         ResponseEntity<?> response = service.issueToken(request);
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-        verify(auditService).record(eq(clientId), eq(AuditEventType.CLIENT_TOKEN_ISSUE_FAILED),
+        verify(auditService).save(eq(clientId), eq(AuditEventType.CLIENT_TOKEN_ISSUE_FAILED),
                 any(), eq("INVALID_CLIENT"), any());
     }
 
@@ -181,7 +181,7 @@ class ManagedClientTokenServiceImplTest {
         ResponseEntity<?> response = service.issueToken(request);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        verify(auditService).record(eq(clientId), eq(AuditEventType.CLIENT_TOKEN_ISSUE_FAILED),
+        verify(auditService).save(eq(clientId), eq(AuditEventType.CLIENT_TOKEN_ISSUE_FAILED),
                 any(), eq("INVALID_SCOPE"), any());
     }
 
@@ -239,7 +239,7 @@ class ManagedClientTokenServiceImplTest {
 
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
         verify(redisService, times(jtis.size())).revokeToken(any(), eq(TOKEN_TTL));
-        verify(auditService).record(eq(clientId), eq(AuditEventType.CLIENT_TOKEN_REVOKED),
+        verify(auditService).save(eq(clientId), eq(AuditEventType.CLIENT_TOKEN_REVOKED),
                 any(), eq("SUCCESS"), any());
     }
 

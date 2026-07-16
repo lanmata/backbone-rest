@@ -12,13 +12,13 @@
  */
 package com.umdc.backoffice.v1.iam.audit.service;
 
-import com.umdc.backoffice.constant.types.AuditEventType;
-import com.umdc.backoffice.jpa.domain.AuditEventEntity;
-import com.umdc.backoffice.jpa.domain.ManagedClientAuditEventEntity;
-import com.umdc.backoffice.jpa.repository.AuditEventRepository;
-import com.umdc.backoffice.jpa.repository.ManagedClientAuditEventRepository;
 import com.umdc.backoffice.v1.iam.audit.api.to.AuditEventTO;
 import com.umdc.backoffice.v1.iam.audit.mapper.AuditEventMapper;
+import com.umdc.commons.general.pojo.AuditEventType;
+import com.umdc.persistence.general.domains.AuditEventEntity;
+import com.umdc.persistence.general.domains.ManagedClientAuditEventEntity;
+import com.umdc.persistence.general.repositories.AuditEventRepository;
+import com.umdc.persistence.general.repositories.ManagedClientAuditEventRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;

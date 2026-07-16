@@ -1,12 +1,12 @@
 package com.umdc.backoffice.v1.managedclient.service;
 
-import com.umdc.backoffice.constant.types.AuditEventType;
-import com.umdc.backoffice.jpa.domain.ManagedClientEntity;
-import com.umdc.backoffice.jpa.repository.ManagedClientRepository;
 import com.umdc.backoffice.property.ManagementAuthenticatorProperties;
 import com.umdc.backoffice.property.SecurityProperties;
 import com.umdc.backoffice.v1.managedclient.api.to.ManagedClientErrorResponse;
 import com.umdc.backoffice.v1.managedclient.api.to.ManagedClientSecretRotateResponse;
+import com.umdc.commons.general.pojo.AuditEventType;
+import com.umdc.persistence.general.domains.ManagedClientEntity;
+import com.umdc.persistence.general.repositories.ManagedClientRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -78,7 +78,7 @@ class ManagedClientRotationServiceImplTest {
 
     @Test
     @DisplayName("rotateSecret — found active client returns 200 with new clientSecret (AC-ROT-01)")
-    void rotateSecret_found_returns200WithNewSecret() throws Exception {
+    void rotateSecret_found_returns200WithNewSecret() {
         UUID clientId = UUID.randomUUID();
         ManagedClientEntity entity = buildEntity(clientId);
         when(repository.findByIdAndActiveTrue(clientId)).thenReturn(Optional.of(entity));
@@ -97,7 +97,7 @@ class ManagedClientRotationServiceImplTest {
 
     @Test
     @DisplayName("rotateSecret — stores old hash in Redis with grace TTL (AC-ROT-01 grace)")
-    void rotateSecret_found_storesGraceSecretInRedis() throws Exception {
+    void rotateSecret_found_storesGraceSecretInRedis() {
         UUID clientId = UUID.randomUUID();
         ManagedClientEntity entity = buildEntity(clientId);
         when(repository.findByIdAndActiveTrue(clientId)).thenReturn(Optional.of(entity));
@@ -111,7 +111,7 @@ class ManagedClientRotationServiceImplTest {
 
     @Test
     @DisplayName("rotateSecret — updates entity secretHash and prevSecretHash and saves")
-    void rotateSecret_found_updatesEntitySecretHash() throws Exception {
+    void rotateSecret_found_updatesEntitySecretHash() {
         UUID clientId = UUID.randomUUID();
         ManagedClientEntity entity = buildEntity(clientId);
         when(repository.findByIdAndActiveTrue(clientId)).thenReturn(Optional.of(entity));
@@ -130,7 +130,7 @@ class ManagedClientRotationServiceImplTest {
 
     @Test
     @DisplayName("rotateSecret — emits CLIENT_SECRET_ROTATED audit event")
-    void rotateSecret_found_emitsAuditEvent() throws Exception {
+    void rotateSecret_found_emitsAuditEvent() {
         UUID clientId = UUID.randomUUID();
         ManagedClientEntity entity = buildEntity(clientId);
         when(repository.findByIdAndActiveTrue(clientId)).thenReturn(Optional.of(entity));
@@ -139,7 +139,7 @@ class ManagedClientRotationServiceImplTest {
 
         service.rotateSecret(clientId, "127.0.0.1");
 
-        verify(auditService, times(1)).record(
+        verify(auditService, times(1)).save(
                 eq(clientId), eq(AuditEventType.CLIENT_SECRET_ROTATED), any(), eq("SUCCESS"), any());
     }
 
@@ -159,7 +159,7 @@ class ManagedClientRotationServiceImplTest {
 
     @Test
     @DisplayName("rotateSecret — new clientSecret differs from stored hash (plaintext vs hash)")
-    void rotateSecret_newSecretDiffersFromOld() throws Exception {
+    void rotateSecret_newSecretDiffersFromOld() {
         UUID clientId = UUID.randomUUID();
         ManagedClientEntity entity = buildEntity(clientId);
         when(repository.findByIdAndActiveTrue(clientId)).thenReturn(Optional.of(entity));

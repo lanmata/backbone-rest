@@ -13,8 +13,8 @@
 package com.umdc.backoffice.v1.iam.audit.api.controller;
 
 import com.umdc.backoffice.v1.iam.audit.api.to.AuditEventTO;
-import com.umdc.backoffice.constant.types.AuditEventType;
 import com.umdc.backoffice.v1.iam.audit.service.AuditEventService;
+import com.umdc.commons.general.pojo.AuditEventType;
 import com.umdc.commons.util.HttpStatusUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

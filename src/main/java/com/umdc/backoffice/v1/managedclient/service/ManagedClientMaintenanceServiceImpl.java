@@ -12,15 +12,16 @@
  */
 package com.umdc.backoffice.v1.managedclient.service;
 
-import com.umdc.backoffice.jpa.domain.ManagedClientEntity;
-import com.umdc.backoffice.jpa.repository.ManagedClientRepository;
 import com.umdc.backoffice.property.SecurityProperties;
+import com.umdc.persistence.general.domains.ManagedClientEntity;
+import com.umdc.persistence.general.repositories.ManagedClientRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 /**
@@ -59,7 +60,7 @@ public class ManagedClientMaintenanceServiceImpl implements ManagedClientMainten
     public void clearExpiredPrevSecretHashes() {
         long gracePeriodSeconds = securityProperties.getManagementAuthenticator()
                 .getRotationGracePeriodSeconds();
-        LocalDateTime graceCutoff = LocalDateTime.now().minusSeconds(gracePeriodSeconds);
+        LocalDateTime graceCutoff = LocalDateTime.now(ZoneId.systemDefault()).minusSeconds(gracePeriodSeconds);
         List<ManagedClientEntity> staleEntities = repository.findWithExpiredPrevSecretHash(graceCutoff);
         int count = staleEntities.size();
         for (ManagedClientEntity entity : staleEntities) {

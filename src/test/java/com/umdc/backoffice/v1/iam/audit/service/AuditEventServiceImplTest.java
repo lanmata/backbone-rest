@@ -1,11 +1,11 @@
 package com.umdc.backoffice.v1.iam.audit.service;
 
 import com.umdc.backoffice.v1.iam.audit.api.to.AuditEventTO;
-import com.umdc.backoffice.jpa.domain.AuditEventEntity;
-import com.umdc.backoffice.constant.types.AuditEventType;
 import com.umdc.backoffice.v1.iam.audit.mapper.AuditEventMapper;
-import com.umdc.backoffice.jpa.repository.AuditEventRepository;
-import com.umdc.backoffice.jpa.repository.ManagedClientAuditEventRepository;
+import com.umdc.commons.general.pojo.AuditEventType;
+import com.umdc.persistence.general.domains.AuditEventEntity;
+import com.umdc.persistence.general.repositories.AuditEventRepository;
+import com.umdc.persistence.general.repositories.ManagedClientAuditEventRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
