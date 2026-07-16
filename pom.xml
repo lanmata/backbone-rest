@@ -77,7 +77,7 @@
         <spring-cloud.version>2025.1.2</spring-cloud.version>
 
         <!-- Centralized versions for previously hardcoded dependency/plugin versions -->
-        <postgresql.version>42.7.10</postgresql.version>
+        <postgresql.version>42.7.11</postgresql.version>
         <aws.sdk.version>2.21.0</aws.sdk.version>
         <google.gson.version>2.13.2</google.gson.version>
         <mapstruct.version>1.6.3</mapstruct.version>
