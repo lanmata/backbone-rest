@@ -12,14 +12,14 @@
  */
 package com.umdc.backoffice.v1.managedclient.service;
 
-import com.umdc.backoffice.constant.types.AuditEventType;
-import com.umdc.backoffice.jpa.domain.ManagedClientEntity;
-import com.umdc.backoffice.jpa.repository.ManagedClientRepository;
 import com.umdc.backoffice.v1.managedclient.api.to.ManagedClientCreateRequest;
 import com.umdc.backoffice.v1.managedclient.api.to.ManagedClientCreateResponse;
 import com.umdc.backoffice.v1.managedclient.api.to.ManagedClientErrorResponse;
 import com.umdc.backoffice.v1.managedclient.api.to.ManagedClientUpdateRequest;
 import com.umdc.backoffice.v1.managedclient.mapper.ManagedClientMapper;
+import com.umdc.commons.general.pojo.AuditEventType;
+import com.umdc.persistence.general.domains.ManagedClientEntity;
+import com.umdc.persistence.general.repositories.ManagedClientRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -45,6 +45,8 @@ public class ManagedClientServiceImpl implements ManagedClientService {
 
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
     private static final String OUTCOME_SUCCESS = "SUCCESS";
+    private static final String NOT_FOUND_STR = "not_found";
+    private static final String MANAGED_CLIENT_NOT_FOUND = "Managed client not found.";
 
     private final ManagedClientRepository repository;
     private final ManagedClientMapper mapper;
@@ -114,7 +116,7 @@ public class ManagedClientServiceImpl implements ManagedClientService {
 
         repository.save(entity);
 
-        auditService.record(clientId, AuditEventType.CLIENT_REGISTERED, null, OUTCOME_SUCCESS, null);
+        auditService.save(clientId, AuditEventType.CLIENT_REGISTERED, null, OUTCOME_SUCCESS, null);
 
         ManagedClientCreateResponse response = new ManagedClientCreateResponse();
         response.setClientId(clientId);
@@ -162,8 +164,8 @@ public class ManagedClientServiceImpl implements ManagedClientService {
         if (found.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new ManagedClientErrorResponse(
-                            "not_found",
-                            "Managed client not found.",
+                            NOT_FOUND_STR,
+                            MANAGED_CLIENT_NOT_FOUND,
                             clientId.toString()));
         }
         return ResponseEntity.ok(mapper.toTO(found.get()));
@@ -178,8 +180,8 @@ public class ManagedClientServiceImpl implements ManagedClientService {
         if (found.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new ManagedClientErrorResponse(
-                            "not_found",
-                            "Managed client not found.",
+                            NOT_FOUND_STR,
+                            MANAGED_CLIENT_NOT_FOUND,
                             clientId.toString()));
         }
 
@@ -188,12 +190,12 @@ public class ManagedClientServiceImpl implements ManagedClientService {
         // If deactivating: revoke all active tokens before applying the change (FR-17)
         if (Boolean.FALSE.equals(request.getActive()) && entity.isActive()) {
             managedClientTokenService.revokeAllTokens(entity.getId());
-            auditService.record(entity.getId(), AuditEventType.CLIENT_DEACTIVATED, null, OUTCOME_SUCCESS, null);
+            auditService.save(entity.getId(), AuditEventType.CLIENT_DEACTIVATED, null, OUTCOME_SUCCESS, null);
         }
 
         mapper.updateEntityFromRequest(request, entity);
         repository.save(entity);
-        auditService.record(clientId, AuditEventType.CLIENT_UPDATED, null, OUTCOME_SUCCESS, null);
+        auditService.save(clientId, AuditEventType.CLIENT_UPDATED, null, OUTCOME_SUCCESS, null);
 
         return ResponseEntity.ok(mapper.toTO(entity));
     }
@@ -216,7 +218,7 @@ public class ManagedClientServiceImpl implements ManagedClientService {
         managedClientTokenService.revokeAllTokens(found.get().getId());
 
         repository.delete(found.get());
-        auditService.record(clientId, AuditEventType.CLIENT_DELETED, null, OUTCOME_SUCCESS, null);
+        auditService.save(clientId, AuditEventType.CLIENT_DELETED, null, OUTCOME_SUCCESS, null);
 
         return ResponseEntity.noContent().build();
     }

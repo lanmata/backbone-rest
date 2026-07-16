@@ -12,9 +12,9 @@
  */
 package com.umdc.backoffice.v1.managedclient.service;
 
-import com.umdc.backoffice.constant.types.AuditEventType;
-import com.umdc.backoffice.jpa.domain.ManagedClientAuditEventEntity;
-import com.umdc.backoffice.jpa.repository.ManagedClientAuditEventRepository;
+import com.umdc.commons.general.pojo.AuditEventType;
+import com.umdc.persistence.general.domains.ManagedClientAuditEventEntity;
+import com.umdc.persistence.general.repositories.ManagedClientAuditEventRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
@@ -25,7 +25,7 @@ import java.util.UUID;
 /**
  * Implementation of {@link ManagedClientAuditService}.
  * <p>
- * {@link #record} is annotated with {@link Async} so that audit writes never
+ * {@link #save} is annotated with {@link Async} so that audit writes never
  * block the MCAM critical path.
  * </p>
  */
@@ -54,8 +54,8 @@ public class ManagedClientAuditServiceImpl implements ManagedClientAuditService 
      */
     @Async
     @Override
-    public void record(UUID clientId, AuditEventType eventType, String ipAddress,
-                       String outcome, String details) {
+    public void save(UUID clientId, AuditEventType eventType, String ipAddress,
+                     String outcome, String details) {
         LOGGER.debug("Recording MCAM audit event — clientId='{}', eventType='{}'", clientId, eventType);
         try {
             ManagedClientAuditEventEntity entity = new ManagedClientAuditEventEntity();

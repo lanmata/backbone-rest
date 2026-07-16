@@ -12,11 +12,11 @@
  */
 package com.umdc.backoffice.v1.servicetype;
 
-import com.umdc.backoffice.jpa.domain.ServiceTypeEntity;
-import com.umdc.backoffice.jpa.repository.ServiceTypeRepository;
 import com.umdc.backoffice.v1.servicetype.mapper.ServiceTypeMapper;
 import com.umdc.backoffice.v1.servicetype.service.ServiceTypeServiceImpl;
 import com.umdc.commons.general.pojo.ServiceType;
+import com.umdc.persistence.general.domains.ServiceTypeEntity;
+import com.umdc.persistence.general.repositories.ServiceTypeRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -12,7 +12,7 @@
  */
 package com.umdc.backoffice.v1.iam.audit.api.to;
 
-import com.umdc.backoffice.constant.types.AuditEventType;
+import com.umdc.commons.general.pojo.AuditEventType;
 
 import java.time.LocalDateTime;
 import java.util.UUID;

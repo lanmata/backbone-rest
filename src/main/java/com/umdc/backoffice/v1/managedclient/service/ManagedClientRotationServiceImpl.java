@@ -12,12 +12,12 @@
  */
 package com.umdc.backoffice.v1.managedclient.service;
 
-import com.umdc.backoffice.constant.types.AuditEventType;
-import com.umdc.backoffice.jpa.domain.ManagedClientEntity;
-import com.umdc.backoffice.jpa.repository.ManagedClientRepository;
 import com.umdc.backoffice.property.SecurityProperties;
 import com.umdc.backoffice.v1.managedclient.api.to.ManagedClientErrorResponse;
 import com.umdc.backoffice.v1.managedclient.api.to.ManagedClientSecretRotateResponse;
+import com.umdc.commons.general.pojo.AuditEventType;
+import com.umdc.persistence.general.domains.ManagedClientEntity;
+import com.umdc.persistence.general.repositories.ManagedClientRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Base64;
 import java.util.Optional;
 import java.util.UUID;
@@ -108,17 +109,17 @@ public class ManagedClientRotationServiceImpl implements ManagedClientRotationSe
 
         entity.setSecretHash(newHash);
         entity.setPrevSecretHash(currentSecretHash);
-        entity.setSecretLastRotatedAt(LocalDateTime.now());
+        entity.setSecretLastRotatedAt(LocalDateTime.now(ZoneId.systemDefault()));
         repository.save(entity);
 
         String details = "{\"gracePeriodSeconds\":" + gracePeriodSeconds + "}";
-        auditService.record(clientId, AuditEventType.CLIENT_SECRET_ROTATED, requestorIp, "SUCCESS", details);
+        auditService.save(clientId, AuditEventType.CLIENT_SECRET_ROTATED, requestorIp, "SUCCESS", details);
 
         ManagedClientSecretRotateResponse response = new ManagedClientSecretRotateResponse();
         response.setClientId(clientId);
         response.setClientSecret(newRawSecret);
         response.setGracePeriodSeconds(gracePeriodSeconds);
-        response.setRotatedAt(LocalDateTime.now());
+        response.setRotatedAt(LocalDateTime.now(ZoneId.systemDefault()));
 
         LOGGER.debug("Secret rotated for clientId='{}'", clientId);
         return ResponseEntity.ok(response);

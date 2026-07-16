@@ -1,9 +1,9 @@
 package com.umdc.backoffice.v1.managedclient.mapper;
 
-import com.umdc.backoffice.jpa.domain.ManagedClientEntity;
 import com.umdc.backoffice.v1.managedclient.api.to.ManagedClientCreateRequest;
 import com.umdc.backoffice.v1.managedclient.api.to.ManagedClientTO;
 import com.umdc.backoffice.v1.managedclient.api.to.ManagedClientUpdateRequest;
+import com.umdc.persistence.general.domains.ManagedClientEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

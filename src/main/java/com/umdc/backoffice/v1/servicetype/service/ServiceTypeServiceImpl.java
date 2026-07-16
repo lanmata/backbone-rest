@@ -12,10 +12,10 @@
  */
 package com.umdc.backoffice.v1.servicetype.service;
 
-import com.umdc.backoffice.jpa.domain.ServiceTypeEntity;
-import com.umdc.backoffice.jpa.repository.ServiceTypeRepository;
 import com.umdc.backoffice.v1.servicetype.mapper.ServiceTypeMapper;
 import com.umdc.commons.general.pojo.ServiceType;
+import com.umdc.persistence.general.domains.ServiceTypeEntity;
+import com.umdc.persistence.general.repositories.ServiceTypeRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
