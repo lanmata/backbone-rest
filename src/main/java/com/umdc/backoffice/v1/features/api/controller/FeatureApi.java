@@ -129,5 +129,22 @@ public interface FeatureApi {
     default ResponseEntity<Feature> update(@PathVariable UUID featureId, @RequestBody FeatureRequest featureRequest){
         return getService().update(featureId, featureRequest.getFeature());
     }
+
+    /**
+     * Retrieves the list of features linked to a role.
+     *
+     * @param roleId the unique identifier of the role
+     * @return a {@link ResponseEntity} containing a list of {@link Feature} objects
+     */
+    @Operation(description = "Get the list of features linked to a role.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "OK"),
+            @ApiResponse(responseCode = HttpStatusUtil.NOT_FOUND_STR, description = "NOT FOUND")
+    })
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/role/{roleId}")
+    default ResponseEntity<List<Feature>> listByRole(@Parameter(description = "Id de rol", required = true)
+                                                     @PathVariable UUID roleId) {
+        return getService().listByRole(roleId);
+    }
 }
 

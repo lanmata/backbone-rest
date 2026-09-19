@@ -14,15 +14,17 @@ package com.umdc.backoffice.v1.roles.service;
 
 import com.umdc.backoffice.v1.features.mapper.decorator.FeatureMapperUtil;
 import com.umdc.backoffice.v1.features.service.FeatureService;
+import com.umdc.backoffice.v1.rolefeatures.service.RoleFeatureLinkService;
 import com.umdc.backoffice.v1.roles.mapper.RoleMapper;
 import com.umdc.commons.general.pojo.Feature;
 import com.umdc.commons.general.pojo.Role;
+import com.umdc.persistence.general.domains.ApplicationEntity;
 import com.umdc.persistence.general.domains.FeatureEntity;
 import com.umdc.persistence.general.domains.RoleEntity;
 import com.umdc.persistence.general.domains.RoleFeatureEntity;
 import com.umdc.persistence.general.domains.RoleFeaturePK;
+import com.umdc.persistence.general.repositories.ApplicationRepository;
 import com.umdc.persistence.general.repositories.FeatureRepository;
-import com.umdc.persistence.general.repositories.RoleFeatureRepository;
 import com.umdc.persistence.general.repositories.RoleRepository;
 import jakarta.validation.constraints.NotNull;
 import org.junit.jupiter.api.Assertions;
@@ -58,7 +60,7 @@ class RoleServiceImplTest {
     private FeatureService featureService;
 
     @Mock
-    private RoleFeatureRepository roleFeatureRepository;
+    private RoleFeatureLinkService roleFeatureLinkService;
 
     @Mock
     private RoleMapper roleMapper;
@@ -71,6 +73,9 @@ class RoleServiceImplTest {
 
     @Mock
     private FeatureMapperUtil featureMapperUtil;
+
+    @Mock
+    private ApplicationRepository applicationRepository;
 
     @BeforeEach
     void setUp() {
@@ -294,6 +299,7 @@ class RoleServiceImplTest {
         Mockito.when(featureRepository.findById(ArgumentMatchers.any(UUID.class))).thenReturn(Optional.of(featureEntity));
         Mockito.doReturn(roleEntity.getRoleFeatures()).when(featureMapperUtil).toRoleFeatureEntity(ArgumentMatchers.anyList());
         Mockito.doReturn(roleEntity).when(roleMapper).toSource(ArgumentMatchers.any(Role.class));
+        Mockito.when(applicationRepository.findById(ArgumentMatchers.any(UUID.class))).thenReturn(Optional.of(new ApplicationEntity()));
         Mockito.when(roleRepository.save(ArgumentMatchers.any(RoleEntity.class))).thenReturn(roleEntity);
         final var responseEntity = roleServiceImpl.create(getRole());
         Assertions.assertNotNull(responseEntity);
@@ -449,6 +455,61 @@ class RoleServiceImplTest {
         assertTrue(Objects.isNull(response.getBody()));
     }
 
+    /**
+     * Method under test: {@link RoleServiceImpl#listByApplication(UUID)}
+     */
+    @Test
+    @DisplayName("Test listing roles by application ID")
+    void testListByApplication() {
+        final var roleId = UUID.randomUUID();
+        final var applicationId = UUID.randomUUID();
+        RoleEntity roleEntity = new RoleEntity();
+        roleEntity.setActive(true);
+        roleEntity.setDescription("The characteristics of someone or something");
+        roleEntity.setId(roleId);
+        roleEntity.setName("Name");
+
+        Role role = new Role();
+        role.setActive(true);
+        role.setDescription("The characteristics of someone or something");
+        role.setFeatures(new ArrayList<>());
+        role.setId(roleId);
+        role.setName("Name");
+        role.setApplicationId(applicationId);
+
+        when(roleRepository.findByApplicationId(applicationId)).thenReturn(Optional.of(List.of(roleEntity)));
+        when(roleMapper.toTarget(Mockito.<RoleEntity>any())).thenReturn(role);
+        final var response = roleServiceImpl.listByApplication(applicationId);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(Objects.nonNull(response.getBody()));
+        assertEquals(1, response.getBody().size());
+        assertEquals(applicationId, response.getBody().getFirst().getApplicationId());
+        verify(roleRepository).findByApplicationId(applicationId);
+    }
+
+    /**
+     * Method under test: {@link RoleServiceImpl#listByApplication(UUID)}
+     */
+    @Test
+    @DisplayName("Test listing roles by application ID not found")
+    void testListByApplication_not_found() {
+        when(roleRepository.findByApplicationId(Mockito.<UUID>any())).thenReturn(Optional.empty());
+        final var response = roleServiceImpl.listByApplication(UUID.randomUUID());
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertTrue(Objects.isNull(response.getBody()));
+    }
+
+    /**
+     * Method under test: {@link RoleServiceImpl#listByApplication(UUID)}
+     */
+    @Test
+    @DisplayName("Test listing roles by application with null id")
+    void testListByApplication_nullId() {
+        final var response = roleServiceImpl.listByApplication(null);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertTrue(Objects.isNull(response.getBody()));
+    }
+
     @Test
     @DisplayName("Test listing roles not found")
     void testList_not_found() {
@@ -527,6 +588,7 @@ class RoleServiceImplTest {
         role.setFeatures(new ArrayList<>());
         role.getFeatures().add(feature);
         role.setDescription("Role description");
+        role.setApplicationId(UUID.randomUUID());
         return role;
     }
 
@@ -564,6 +626,7 @@ class RoleServiceImplTest {
         role.setDescription("Test Description");
         role.setActive(true);
         role.setFeatures(new ArrayList<>());
+        role.setApplicationId(UUID.randomUUID());
 
         RoleEntity roleEntity = new RoleEntity();
         roleEntity.setName("Test Role");
@@ -571,6 +634,7 @@ class RoleServiceImplTest {
         roleEntity.setActive(true);
 
         when(roleMapper.toSource(role)).thenReturn(roleEntity);
+        when(applicationRepository.findById(role.getApplicationId())).thenReturn(Optional.of(new ApplicationEntity()));
         when(roleRepository.save(roleEntity)).thenReturn(roleEntity);
         when(roleMapper.toTarget(roleEntity)).thenReturn(role);
 
@@ -579,6 +643,160 @@ class RoleServiceImplTest {
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals("Test Role", response.getBody().getName());
+    }
+
+    @Test
+    @DisplayName("Create role without applicationId returns bad request")
+    void createRoleWithoutApplicationId() {
+        Role role = new Role();
+        role.setName("Test Role");
+        role.setDescription("Test Description");
+        role.setActive(true);
+        role.setFeatures(new ArrayList<>());
+
+        RoleEntity roleEntity = new RoleEntity();
+        when(roleMapper.toSource(role)).thenReturn(roleEntity);
+
+        ResponseEntity<Role> response = roleServiceImpl.create(role);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    @DisplayName("Create role with non-existent applicationId returns not found")
+    void createRoleWithNonExistentApplicationId() {
+        Role role = new Role();
+        role.setName("Test Role");
+        role.setDescription("Test Description");
+        role.setActive(true);
+        role.setFeatures(new ArrayList<>());
+        role.setApplicationId(UUID.randomUUID());
+
+        RoleEntity roleEntity = new RoleEntity();
+        when(roleMapper.toSource(role)).thenReturn(roleEntity);
+        when(applicationRepository.findById(role.getApplicationId())).thenReturn(Optional.empty());
+
+        ResponseEntity<Role> response = roleServiceImpl.create(role);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    @DisplayName("Create role with an existing feature links it")
+    void createRoleWithExistingFeatureLinksIt() {
+        var applicationId = UUID.randomUUID();
+        var featureId = UUID.randomUUID();
+        var existingFeature = new Feature();
+        existingFeature.setId(featureId);
+
+        var role = new Role();
+        role.setName("Test Role");
+        role.setDescription("Test Description");
+        role.setActive(true);
+        role.setApplicationId(applicationId);
+        role.setFeatures(List.of(existingFeature));
+
+        var roleEntity = new RoleEntity();
+        var featureEntity = new FeatureEntity();
+        featureEntity.setId(featureId);
+
+        when(roleMapper.toSource(role)).thenReturn(roleEntity);
+        when(applicationRepository.findById(applicationId)).thenReturn(Optional.of(new ApplicationEntity()));
+        when(featureRepository.findById(featureId)).thenReturn(Optional.of(featureEntity));
+        when(roleRepository.save(roleEntity)).thenReturn(roleEntity);
+        when(roleMapper.toTarget(roleEntity)).thenReturn(role);
+
+        ResponseEntity<Role> response = roleServiceImpl.create(role);
+
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        verify(featureService, never()).create(any());
+        verify(roleFeatureLinkService).replaceRoleFeatures(roleEntity, List.of(featureEntity));
+    }
+
+    @Test
+    @DisplayName("Create role with a new inline feature creates and links it")
+    void createRoleWithNewFeatureCreatesAndLinksIt() {
+        var applicationId = UUID.randomUUID();
+        var newFeature = new Feature();
+        newFeature.setName("New Feature");
+
+        var role = new Role();
+        role.setName("Test Role");
+        role.setDescription("Test Description");
+        role.setActive(true);
+        role.setApplicationId(applicationId);
+        role.setFeatures(List.of(newFeature));
+
+        var roleEntity = new RoleEntity();
+        var createdFeatureId = UUID.randomUUID();
+        var createdFeature = new Feature();
+        createdFeature.setId(createdFeatureId);
+        var createdFeatureEntity = new FeatureEntity();
+        createdFeatureEntity.setId(createdFeatureId);
+
+        when(roleMapper.toSource(role)).thenReturn(roleEntity);
+        when(applicationRepository.findById(applicationId)).thenReturn(Optional.of(new ApplicationEntity()));
+        when(featureService.create(newFeature)).thenReturn(new ResponseEntity<>(createdFeature, HttpStatus.CREATED));
+        when(featureRepository.findById(createdFeatureId)).thenReturn(Optional.of(createdFeatureEntity));
+        when(roleRepository.save(roleEntity)).thenReturn(roleEntity);
+        when(roleMapper.toTarget(roleEntity)).thenReturn(role);
+
+        ResponseEntity<Role> response = roleServiceImpl.create(role);
+
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        verify(featureService).create(newFeature);
+        verify(roleFeatureLinkService).replaceRoleFeatures(roleEntity, List.of(createdFeatureEntity));
+    }
+
+    @Test
+    @DisplayName("Create role with a non-existent feature id returns not found")
+    void createRoleWithNonExistentFeatureIdReturnsNotFound() {
+        var applicationId = UUID.randomUUID();
+        var featureId = UUID.randomUUID();
+        var missingFeature = new Feature();
+        missingFeature.setId(featureId);
+
+        var role = new Role();
+        role.setName("Test Role");
+        role.setDescription("Test Description");
+        role.setActive(true);
+        role.setApplicationId(applicationId);
+        role.setFeatures(List.of(missingFeature));
+
+        var roleEntity = new RoleEntity();
+        when(roleMapper.toSource(role)).thenReturn(roleEntity);
+        when(applicationRepository.findById(applicationId)).thenReturn(Optional.of(new ApplicationEntity()));
+        when(featureRepository.findById(featureId)).thenReturn(Optional.empty());
+
+        ResponseEntity<Role> response = roleServiceImpl.create(role);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        verify(roleRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Create role with a duplicate-name inline feature returns conflict")
+    void createRoleWithDuplicateInlineFeatureReturnsConflict() {
+        var applicationId = UUID.randomUUID();
+        var newFeature = new Feature();
+        newFeature.setName("Duplicated Feature");
+
+        var role = new Role();
+        role.setName("Test Role");
+        role.setDescription("Test Description");
+        role.setActive(true);
+        role.setApplicationId(applicationId);
+        role.setFeatures(List.of(newFeature));
+
+        var roleEntity = new RoleEntity();
+        when(roleMapper.toSource(role)).thenReturn(roleEntity);
+        when(applicationRepository.findById(applicationId)).thenReturn(Optional.of(new ApplicationEntity()));
+        when(featureService.create(newFeature)).thenReturn(new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE));
+
+        ResponseEntity<Role> response = roleServiceImpl.create(role);
+
+        assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
+        verify(roleRepository, never()).save(any());
     }
 
     @Test

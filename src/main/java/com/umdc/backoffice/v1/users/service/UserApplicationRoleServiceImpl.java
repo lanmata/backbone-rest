@@ -20,12 +20,13 @@ import com.umdc.backoffice.v1.roles.mapper.RoleMapper;
 import com.umdc.backoffice.v1.roles.service.RoleService;
 import com.umdc.backoffice.v1.users.api.to.UserTO;
 import com.umdc.commons.exception.StandardException;
-import com.umdc.commons.general.pojo.Application;
 import com.umdc.persistence.general.domains.*;
+import com.umdc.persistence.general.repositories.ApplicationRoleUserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.UUID;
@@ -46,15 +47,18 @@ public class UserApplicationRoleServiceImpl implements UserApplicationRoleServic
     private final RoleService roleService;
     private final ApplicationMapper applicationMapper;
     private final RoleMapper roleMapper;
+    private final ApplicationRoleUserRepository applicationRoleUserRepository;
 
     public UserApplicationRoleServiceImpl(ApplicationService applicationService,
                                           RoleService roleService,
                                           ApplicationMapper applicationMapper,
-                                          RoleMapper roleMapper) {
+                                          RoleMapper roleMapper,
+                                          ApplicationRoleUserRepository applicationRoleUserRepository) {
         this.applicationService = applicationService;
         this.roleService = roleService;
         this.applicationMapper = applicationMapper;
         this.roleMapper = roleMapper;
+        this.applicationRoleUserRepository = applicationRoleUserRepository;
     }
 
     @Override
@@ -77,6 +81,9 @@ public class UserApplicationRoleServiceImpl implements UserApplicationRoleServic
             throw new StandardException(ApplicationMessageKey.APPLICATION_NOT_FOUND);
         }
         var applicationEntity = applicationMapper.toSource(applicationResponse.getBody());
+        // UserEntity.application is a required (@NotNull) direct relation, separate from the
+        // ApplicationRoleUserEntity join below — it must be set explicitly or persist fails.
+        userEntity.setApplication(applicationEntity);
 
         // Use roleService and mapper to get role entity
         var roleResponse = roleService.find(optRole.get().getId());
@@ -96,9 +103,10 @@ public class UserApplicationRoleServiceImpl implements UserApplicationRoleServic
                 !applicationRoleUserPrevious.get().getId().getRoleId().equals(roleEntity.getId());
 
         if (roleChanged && applicationRoleUserPrevious.isPresent()) {
-            var application = new Application();
-            application.setId(applicationEntity.getId());
-            applicationService.delete(userTO.getId(), application);
+            // Remove the stale application-role-user link (not the Application itself) before
+            // inserting the new one, otherwise the unique (user_id, application_id) constraint
+            // is violated: Hibernate flushes inserts before deletes within the same transaction.
+            applicationRoleUserRepository.deleteByUserIdAndApplicationId(userTO.getId(), applicationEntity.getId());
         }
 
         LOGGER.info("Updating roles from {} to {}", roleEntity.getName(), userTO.getLastUpdate());
@@ -129,6 +137,7 @@ public class UserApplicationRoleServiceImpl implements UserApplicationRoleServic
         applicationRoleUserEntity.setUser(userEntity);
         applicationRoleUserEntity.setRole(roleEntity);
         applicationRoleUserEntity.setActive(true);
+        applicationRoleUserEntity.setCreatedDate(LocalDateTime.now());
         return applicationRoleUserEntity;
     }
 }

@@ -85,4 +85,14 @@ public interface FeatureService extends CrudService <UUID, Feature> {
     default ResponseEntity<List<Feature>> list(UUID... id) {
         throw new NotImplementedException();
     }
+
+    /**
+     * Get a feature collection linked to a role id.
+     *
+     * @param roleId {@link UUID} object type.
+     * @return {@link ResponseEntity}<{@link List}<{@link Feature}>> object type.
+     */
+    default ResponseEntity<List<Feature>> listByRole(UUID roleId) {
+        throw new NotImplementedException();
+    }
 }

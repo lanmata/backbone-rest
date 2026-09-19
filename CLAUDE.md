@@ -41,7 +41,8 @@ com.umdc.backoffice.constant.keys/ → *MessageKey enums
 6. **MapStruct** with `config = MapperAppConfig.class` from `com.umdc.commons.services`.
 7. **SLF4J logging** via `LoggerFactory.getLogger`.
 8. **PMD zero violations** — `ruleset.xml` is enforced at test phase.
-9. **OpenAPI YAML** at `src/main/resources/META-INF/api.yaml` — update
+9. **OpenAPI YAML** at `src/main/resources/static/api.yaml` (served statically at
+   `/api.yaml`, per `springdoc.swagger-ui.url` in `application.yml`) — update
    it when any `*Api.java` contract changes.
 
 ## Security Architecture
@@ -61,7 +62,7 @@ com.umdc.backoffice.constant.keys/ → *MessageKey enums
 | File | Purpose |
 |------|---------|
 | `src/main/resources/bootstrap.yml` | Central config — Vault, Config Server, OAuth |
-| `src/main/resources/META-INF/api.yaml` | OpenAPI 3.1 spec |
+| `src/main/resources/static/api.yaml` | OpenAPI 3.1 spec (served at `/api.yaml`) |
 | `src/main/resources/default.env` | Runtime env stubs (no real secrets in git) |
 | `ruleset.xml` | PMD rules — check before committing |
 | `pom.xml` | Dependencies + JaCoCo + PMD plugin config |

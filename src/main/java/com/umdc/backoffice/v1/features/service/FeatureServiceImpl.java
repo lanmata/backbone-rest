@@ -12,11 +12,16 @@
  */
 package com.umdc.backoffice.v1.features.service;
 
+import com.umdc.backoffice.constant.keys.RoleMessageKey;
 import com.umdc.backoffice.util.MessageUtil;
 import com.umdc.backoffice.v1.features.mapper.FeatureMapper;
+import com.umdc.backoffice.v1.rolefeatures.service.RoleFeatureLinkService;
+import com.umdc.commons.exception.StandardException;
 import com.umdc.commons.general.pojo.Feature;
 import com.umdc.persistence.general.domains.FeatureEntity;
+import com.umdc.persistence.general.domains.RoleEntity;
 import com.umdc.persistence.general.repositories.FeatureRepository;
+import com.umdc.persistence.general.repositories.RoleRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -43,9 +48,16 @@ public class FeatureServiceImpl implements FeatureService {
 
 	private final FeatureMapper featureMapper;
 
-	public FeatureServiceImpl(FeatureRepository featureRepository, FeatureMapper featureMapper) {
+	private final RoleRepository roleRepository;
+
+	private final RoleFeatureLinkService roleFeatureLinkService;
+
+	public FeatureServiceImpl(FeatureRepository featureRepository, FeatureMapper featureMapper,
+							   RoleRepository roleRepository, RoleFeatureLinkService roleFeatureLinkService) {
 		this.featureRepository = featureRepository;
 		this.featureMapper = featureMapper;
+		this.roleRepository = roleRepository;
+		this.roleFeatureLinkService = roleFeatureLinkService;
 	}
 
 	/** {@inheritDoc} */
@@ -55,15 +67,41 @@ public class FeatureServiceImpl implements FeatureService {
 		ResponseEntity<Feature> responseEntity;
 		LOGGER.info("Feature name duplication validation.");
 		final var optFeature = featureRepository.findByName(feature.getName());
-		//TODO Falta manejo de casos bordes en el metodo
 		if (optFeature.isPresent()) {
 			responseEntity = new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
 		} else {
-			responseEntity = new ResponseEntity<>(featureMapper.toTarget(featureRepository
-					.save(featureMapper.toSource(feature))), HttpStatus.CREATED);
+			final List<RoleEntity> resolvedRoles;
+			try {
+				resolvedRoles = resolveRoles(feature.getRoleIds());
+			} catch (StandardException ex) {
+				LOGGER.warn("Error resolving roles for feature creation: {}", ex.getStatus().getStatus());
+				return ResponseEntity.status(ex.getCode()).build();
+			}
+			final var featureEntityResult = featureRepository.save(featureMapper.toSource(feature));
+			roleFeatureLinkService.linkFeatureToRoles(featureEntityResult, resolvedRoles);
+			responseEntity = new ResponseEntity<>(featureMapper.toTarget(featureEntityResult), HttpStatus.CREATED);
 		}
 		LOGGER.info(responseEntity.getStatusCode() + MessageUtil.LOG_PATH_SEPARATOR + feature);
 		return responseEntity;
+	}
+
+	/**
+	 * Resolves the existing roles a new feature should be linked to.
+	 *
+	 * @param roleIds the role ids coming from the request payload
+	 * @return the resolved {@link RoleEntity} list
+	 * @throws StandardException if a role id does not correspond to an existing role
+	 */
+	private List<RoleEntity> resolveRoles(List<UUID> roleIds) {
+		if (Objects.isNull(roleIds) || roleIds.isEmpty()) {
+			return List.of();
+		}
+		final List<RoleEntity> resolved = new ArrayList<>();
+		for (UUID roleId : roleIds) {
+			resolved.add(roleRepository.findById(roleId)
+					.orElseThrow(() -> new StandardException(RoleMessageKey.ROL_NOT_FOUND)));
+		}
+		return resolved;
 	}
 
 	/** {@inheritDoc} */
@@ -106,6 +144,21 @@ public class FeatureServiceImpl implements FeatureService {
 		} else {
 			return ResponseEntity.ok(sort(featureListResult));
 		}
+	}
+
+	/** {@inheritDoc} */
+	@Override
+	public ResponseEntity<List<Feature>> listByRole(UUID roleId) {
+		LOGGER.info("STARTED - Find features by role id {}", roleId);
+		if (Objects.isNull(roleId)) {
+			return ResponseEntity.badRequest().build();
+		}
+		final var optFeatures = featureRepository.findByRoleId(roleId);
+		if (optFeatures.isEmpty() || optFeatures.get().isEmpty()) {
+			return ResponseEntity.notFound().build();
+		}
+		final var features = optFeatures.get().stream().map(featureMapper::toTarget).toList();
+		return ResponseEntity.ok(sort(features));
 	}
 
 	/** {@inheritDoc} */

@@ -12,10 +12,12 @@ WORKDIR /usr/local/runme
 COPY ${TARGET_FILE}${JAR_FILE} ${JAR_FILE}
 COPY ${RESOURCE_PATH}${KEYSTORE_FILE}.jks ${KEYSTORE_FILE}.jks
 COPY ${RESOURCE_PATH}${TRUSTSTORE_FILE}.jks ${TRUSTSTORE_FILE}.jks
+COPY docker-entrypoint.sh docker-entrypoint.sh
 
 RUN addgroup -S appmng && adduser -S jvapps -G appmng \
 && chown -R jvapps:appmng . \
-&& chmod -R 740 .
+&& chmod -R 740 . \
+&& chmod 750 docker-entrypoint.sh
 
 USER jvapps:appmng
 
@@ -25,12 +27,4 @@ ENV SSL_KEYSTORE_LOCATION=backbone.jks \
     SSL_TRUSTSTORE_TYPE=JKS
 
 EXPOSE 8084
-CMD exec java \
-    -Dspring.cloud.vault.enabled="${VAULT_ENABLED:-false}" \
-    -Dapi.info.version=1.0.0 \
-    -Dspring.application.name=backbone-rest \
-    -DSSL_KEYSTORE_LOCATION="${SSL_KEYSTORE_LOCATION}" \
-    -DSSL_KEYSTORE_TYPE="${SSL_KEYSTORE_TYPE}" \
-    -DSSL_TRUSTSTORE_LOCATION="${SSL_TRUSTSTORE_LOCATION}" \
-    -DSSL_TRUSTSTORE_TYPE="${SSL_TRUSTSTORE_TYPE}" \
-    -jar backbone-rest.jar
+CMD ["./docker-entrypoint.sh"]

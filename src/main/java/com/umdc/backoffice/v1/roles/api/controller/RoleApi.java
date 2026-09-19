@@ -145,5 +145,20 @@ public interface RoleApi {
     default ResponseEntity<List<Role>> listByUser(@PathVariable UUID userId) {
         return getService().listByUser(userId);
     }
+
+    /**
+     * List roles by application id.
+     * @param applicationId Application identifier
+     * @return ResponseEntity with list of Role
+     */
+    @Operation(description = "List Roles by application id")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = ""),
+            @ApiResponse(responseCode = HttpStatusUtil.NOT_FOUND_STR, description = "")
+    })
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/application/{applicationId}")
+    default ResponseEntity<List<Role>> listByApplication(@PathVariable UUID applicationId) {
+        return getService().listByApplication(applicationId);
+    }
 }
 
