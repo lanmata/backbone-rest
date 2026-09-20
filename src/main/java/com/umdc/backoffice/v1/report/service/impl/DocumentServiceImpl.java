@@ -21,6 +21,7 @@ import org.apache.poi.xwpf.usermodel.XWPFRun;
 import org.apache.poi.xwpf.usermodel.XWPFTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -28,13 +29,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
@@ -47,16 +51,18 @@ import java.util.regex.Pattern;
 @Service
 public class DocumentServiceImpl implements DocumentService {
     private static final Logger LOGGER = LoggerFactory.getLogger(DocumentServiceImpl.class);
-    private static final String BACKUP_PATH = "\\ambients\\tempo\\templates\\backup\\";
     private static final String CURLY_BRACE_OPEN = "{";
     private static final String CURLY_BRACE_CLOSE = "}";
     private static final String REGEX = "~\\{\\w+\\}~";
 
+    private final String outputDir;
+
     /**
-     * Default constructor
+     * @param outputDir directory generated .docx files are written to, resolved from
+     *                  {@code umdc.report.output-dir} (defaults to the JVM temp dir).
      */
-    public DocumentServiceImpl() {
-        // Default constructor
+    public DocumentServiceImpl(@Value("${umdc.report.output-dir}") String outputDir) {
+        this.outputDir = outputDir.endsWith(File.separator) ? outputDir : outputDir + File.separator;
     }
 
     @Override
@@ -64,12 +70,37 @@ public class DocumentServiceImpl implements DocumentService {
         try {
             var filenameResult = writeDocument(documentTemplate, values);
             if(null != filenameResult && !filenameResult.isEmpty()){
-                return ResponseEntity.ok(new FileSystemResource(BACKUP_PATH + filenameResult));
+                return ResponseEntity.ok(new FileSystemResource(resolveWithinOutputDir(filenameResult)));
             }
         } catch (Exception e) {
             LOGGER.warn("Fail read file.", e);
         }
         return ResponseEntity.badRequest().build();
+    }
+
+    /**
+     * Resolves {@code filename} against {@link #outputDir}, rejecting any result that
+     * escapes it. {@code filename} is expected to already be a bare name (see
+     * {@link #sanitizeFileName}) — this is a second, independent containment check so
+     * neither this method nor its caller has to be trusted alone.
+     */
+    private Path resolveWithinOutputDir(String filename) throws IOException {
+        Path base = Path.of(outputDir).normalize();
+        Path target = base.resolve(sanitizeFileName(filename)).normalize();
+        if (!target.startsWith(base)) {
+            throw new IOException("Resolved path escapes the configured output directory");
+        }
+        return target;
+    }
+
+    /**
+     * Strips any directory components from a user-supplied file name, keeping only
+     * the final path segment. Neutralizes path-traversal sequences (e.g. {@code ../})
+     * in {@link MultipartFile#getOriginalFilename()}, which is attacker-controlled.
+     */
+    private String sanitizeFileName(String originalFilename) {
+        String name = Objects.requireNonNullElse(originalFilename, "template.docx");
+        return Path.of(name).getFileName().toString();
     }
 
     @Override
@@ -89,7 +120,12 @@ public class DocumentServiceImpl implements DocumentService {
                 if(iBodyElement instanceof XWPFParagraph) {
                     var runs = ((XWPFParagraph) iBodyElement).getRuns();
                     if(null != runs) {
-                        runs.forEach(xwpfRun -> placeholdersResult.add(find(xwpfRun)));
+                        runs.forEach(xwpfRun -> {
+                            var found = find(xwpfRun);
+                            if (!found.isEmpty()) {
+                                placeholdersResult.add(found);
+                            }
+                        });
                     }
                 } else if(iBodyElement instanceof XWPFTable) {
                     var rows = ((XWPFTable)  iBodyElement).getRows();
@@ -122,8 +158,9 @@ public class DocumentServiceImpl implements DocumentService {
                                     .forEach(xwpfParagraph -> replace(xwpfParagraph, placeholders))));
                 }
             });
-            filenameResult =  dateFormatValue + documentTemplate.getOriginalFilename();
-            try(var fileOutputStream = new FileOutputStream(BACKUP_PATH + filenameResult)){
+            filenameResult = dateFormatValue + sanitizeFileName(documentTemplate.getOriginalFilename());
+            Path targetPath = resolveWithinOutputDir(filenameResult);
+            try(var fileOutputStream = new FileOutputStream(targetPath.toFile())){
                 xwpfDocument.write(fileOutputStream);
             }
         } catch (IOException e) {

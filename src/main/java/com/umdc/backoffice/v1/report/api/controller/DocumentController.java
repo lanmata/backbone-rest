@@ -16,9 +16,9 @@ package com.umdc.backoffice.v1.report.api.controller;
 import com.umdc.backoffice.v1.report.api.to.TemplateDocumentModel;
 import com.umdc.backoffice.v1.report.service.DocumentService;
 import org.springframework.core.io.Resource;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -33,7 +33,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/api/v1/report")
-public class DocumentController {
+public class DocumentController implements DocumentApi {
 
     private final DocumentService documentService;
 
@@ -41,16 +41,14 @@ public class DocumentController {
         this.documentService = documentService;
     }
 
-    @GetMapping(consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE},
-            produces = {MediaType.APPLICATION_OCTET_STREAM_VALUE}, path = "/template")
-    public ResponseEntity<Resource> createWordDocument(@RequestParam Map<String, String> values, @RequestParam("documentTemplate") MultipartFile documentTemplate){
+    @Override
+    public ResponseEntity<Resource> createWordDocument(Map<String, String> values, MultipartFile documentTemplate) {
         return documentService.process(values, documentTemplate);
     }
 
-    @GetMapping(consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE},
-            produces = {MediaType.APPLICATION_OCTET_STREAM_VALUE}, path = "/placeholdervalues")
-    public ResponseEntity<List<String>> placeholderValues(@RequestParam("templateDocumentModel") TemplateDocumentModel templateDocumentModel, @RequestParam("documentTemplate") MultipartFile documentTemplate){
-        if(null == templateDocumentModel) {
+    @Override
+    public ResponseEntity<List<String>> placeholderValues(TemplateDocumentModel templateDocumentModel, MultipartFile documentTemplate) {
+        if (null == templateDocumentModel) {
             return ResponseEntity.badRequest().build();
         }
         return documentService.findPlaceholderValues(documentTemplate);
