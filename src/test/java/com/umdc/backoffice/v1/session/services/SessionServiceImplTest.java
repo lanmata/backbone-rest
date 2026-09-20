@@ -64,6 +64,7 @@ class SessionServiceImplTest {
     private AuditEventService auditEventService;
 
     private SessionServiceImpl sessionService;
+    private SessionTokenServiceImpl sessionTokenService;
 
     private static final String TEST_SECRET = "dGVzdC1zZWNyZXQta2V5LWZvci1qd3QtdG9rZW4tdGVzdGluZy1wdXJwb3Nlcy1vbmx5LW1pbmltdW0tMjU2LWJpdHM=";
     private static final Long EXPIRATION_MS = 3600000L;
@@ -73,8 +74,9 @@ class SessionServiceImplTest {
         MockitoAnnotations.openMocks(this);
         when(jwtConfigProperties.getSecret()).thenReturn(TEST_SECRET);
         when(jwtConfigProperties.getExpirationMs()).thenReturn(EXPIRATION_MS);
-        sessionService = new SessionServiceImpl(jwtConfigProperties, messageUtil, userMapper, userAliasMapper,
-                userRepository, passwordEncoder, jtiDenyListService, loginAttemptService, auditEventService);
+        sessionTokenService = new SessionTokenServiceImpl(jwtConfigProperties, jtiDenyListService);
+        sessionService = new SessionServiceImpl(messageUtil, userMapper, userAliasMapper,
+                userRepository, passwordEncoder, loginAttemptService, auditEventService, sessionTokenService);
     }
 
     // ── loadSession(SessionRequest) ──────────────────────────────────────────

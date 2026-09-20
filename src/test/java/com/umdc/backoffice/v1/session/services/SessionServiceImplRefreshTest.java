@@ -70,16 +70,18 @@ class SessionServiceImplRefreshTest {
     private AuditEventService auditEventService;
 
     private SessionServiceImpl sessionService;
+    private SessionTokenServiceImpl sessionTokenService;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
         when(jwtConfigProperties.getSecret()).thenReturn(TEST_SECRET);
         when(jwtConfigProperties.getExpirationMs()).thenReturn(EXPIRATION_MS);
+        sessionTokenService = new SessionTokenServiceImpl(jwtConfigProperties, jtiDenyListService);
         sessionService = new SessionServiceImpl(
-                jwtConfigProperties, messageUtil, userMapper, userAliasMapper,
-                userRepository, passwordEncoder, jtiDenyListService,
-                loginAttemptService, auditEventService);
+                messageUtil, userMapper, userAliasMapper,
+                userRepository, passwordEncoder, loginAttemptService,
+                auditEventService, sessionTokenService);
     }
 
     // ── null / blank token ─────────────────────────────────────────────────────

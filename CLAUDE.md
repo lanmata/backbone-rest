@@ -54,6 +54,13 @@ service, no REST surface), `roles`, `servicetype`, `session`, `users`
 - **Session JWT** (JJWT 0.12.3): minted in `SessionServiceImpl`, transmitted via
   `session-token` header. Separate from OAuth2 validation.
 - Endpoints `/v1/sessions/token` and `/v1/sessions/validate` bypass OAuth2 filter.
+- **JTI deny-list**: `JtiDenyListServiceImpl` stores revoked JTIs in Redis under
+  `jti:<value>` with the token's remaining TTL — Redis expires them natively,
+  no scheduled cleanup job needed.
+- **`APP_TOKEN_SECRET`**: sourced from `${APP_TOKEN_SECRET}` (no default/fallback),
+  injected via Vault + Spring Cloud Config in `bootstrap.yml`. Never hardcoded.
+  Rotation is an operational Vault procedure, not application code — the
+  rotation cadence/runbook is not documented here; owner to fill in.
 
 ## Supabase Integration (Current Branch: ds-196-include-supabase-storage)
 - Auth: `AUTH_SERVER_URI=https://jygwixrpoxcrltmeshyl.supabase.co`
