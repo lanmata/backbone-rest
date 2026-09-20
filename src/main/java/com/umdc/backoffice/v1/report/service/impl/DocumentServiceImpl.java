@@ -32,11 +32,13 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
@@ -68,12 +70,37 @@ public class DocumentServiceImpl implements DocumentService {
         try {
             var filenameResult = writeDocument(documentTemplate, values);
             if(null != filenameResult && !filenameResult.isEmpty()){
-                return ResponseEntity.ok(new FileSystemResource(outputDir + filenameResult));
+                return ResponseEntity.ok(new FileSystemResource(resolveWithinOutputDir(filenameResult)));
             }
         } catch (Exception e) {
             LOGGER.warn("Fail read file.", e);
         }
         return ResponseEntity.badRequest().build();
+    }
+
+    /**
+     * Resolves {@code filename} against {@link #outputDir}, rejecting any result that
+     * escapes it. {@code filename} is expected to already be a bare name (see
+     * {@link #sanitizeFileName}) — this is a second, independent containment check so
+     * neither this method nor its caller has to be trusted alone.
+     */
+    private Path resolveWithinOutputDir(String filename) throws IOException {
+        Path base = Path.of(outputDir).normalize();
+        Path target = base.resolve(sanitizeFileName(filename)).normalize();
+        if (!target.startsWith(base)) {
+            throw new IOException("Resolved path escapes the configured output directory");
+        }
+        return target;
+    }
+
+    /**
+     * Strips any directory components from a user-supplied file name, keeping only
+     * the final path segment. Neutralizes path-traversal sequences (e.g. {@code ../})
+     * in {@link MultipartFile#getOriginalFilename()}, which is attacker-controlled.
+     */
+    private String sanitizeFileName(String originalFilename) {
+        String name = Objects.requireNonNullElse(originalFilename, "template.docx");
+        return Path.of(name).getFileName().toString();
     }
 
     @Override
@@ -131,8 +158,9 @@ public class DocumentServiceImpl implements DocumentService {
                                     .forEach(xwpfParagraph -> replace(xwpfParagraph, placeholders))));
                 }
             });
-            filenameResult =  dateFormatValue + documentTemplate.getOriginalFilename();
-            try(var fileOutputStream = new FileOutputStream(outputDir + filenameResult)){
+            filenameResult = dateFormatValue + sanitizeFileName(documentTemplate.getOriginalFilename());
+            Path targetPath = resolveWithinOutputDir(filenameResult);
+            try(var fileOutputStream = new FileOutputStream(targetPath.toFile())){
                 xwpfDocument.write(fileOutputStream);
             }
         } catch (IOException e) {

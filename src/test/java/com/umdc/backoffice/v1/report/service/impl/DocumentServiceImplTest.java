@@ -87,6 +87,23 @@ class DocumentServiceImplTest {
     }
 
     @Test
+    @DisplayName("process strips path-traversal segments from the uploaded file name")
+    void processSanitizesPathTraversalInOriginalFilename() throws IOException {
+        Path outsideDir = tempDir.getParent().resolve("outside-" + System.nanoTime());
+        java.nio.file.Files.createDirectories(outsideDir);
+        MockMultipartFile template = docxWithParagraphAndName("no placeholders",
+                "../" + outsideDir.getFileName() + "/evil.docx");
+
+        ResponseEntity<org.springframework.core.io.Resource> response =
+                documentService.process(Map.of(), template);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        // The generated file must land inside tempDir, never in the traversal target.
+        assertTrue(response.getBody().getFile().toPath().normalize().startsWith(tempDir));
+        assertTrue(java.nio.file.Files.list(outsideDir).findAny().isEmpty());
+    }
+
+    @Test
     @DisplayName("findPlaceholderValues finds a ~{placeholder}~ in a paragraph")
     void findPlaceholderValuesFindsParagraphPlaceholder() throws IOException {
         MockMultipartFile template = docxWithParagraph("Dear ~{firstname}~,");
@@ -127,6 +144,18 @@ class DocumentServiceImplTest {
             XWPFRun run = paragraph.createRun();
             run.setText(text);
             return toMultipartFile(document);
+        }
+    }
+
+    private MockMultipartFile docxWithParagraphAndName(String text, String originalFilename) throws IOException {
+        try (XWPFDocument document = new XWPFDocument()) {
+            XWPFParagraph paragraph = document.createParagraph();
+            XWPFRun run = paragraph.createRun();
+            run.setText(text);
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            document.write(out);
+            return new MockMultipartFile("documentTemplate", originalFilename,
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document", out.toByteArray());
         }
     }
 
