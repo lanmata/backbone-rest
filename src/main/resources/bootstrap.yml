@@ -40,6 +40,11 @@ umdc:
     # The environments for the application
   api:
     endpoint: /v1
+  report:
+    # Directory DocumentServiceImpl writes generated .docx files to. Defaults to
+    # the JVM temp dir so it works out of the box in the Linux container; override
+    # via REPORT_OUTPUT_DIR if a persistent/shared location is needed.
+    output-dir: ${REPORT_OUTPUT_DIR:${java.io.tmpdir}}
 # Application specific configurations
 log:
   debug: ${LOGGING_TRACE_ENABLED}

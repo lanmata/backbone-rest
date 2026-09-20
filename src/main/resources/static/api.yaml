@@ -2064,6 +2064,76 @@ paths:
         "404":
           description: "Service type not found"
 
+  # ── Report ──────────────────────────────────────────────────────────────────
+
+  /api/v1/report/template:
+    post:
+      tags: ["report"]
+      operationId: "createWordDocument"
+      summary: "Create a Word document from a template"
+      description: "Replaces every {placeholder} in the uploaded .docx template with the given values."
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: "object"
+              properties:
+                values:
+                  type: "object"
+                  additionalProperties:
+                    type: "string"
+                  description: "Placeholder name to replacement value"
+                documentTemplate:
+                  type: "string"
+                  format: "binary"
+                  description: "Word (.docx) template file"
+              required: ["documentTemplate"]
+      responses:
+        "200":
+          description: "Document generated"
+          content:
+            application/octet-stream:
+              schema:
+                type: "string"
+                format: "binary"
+        "400":
+          description: "Template could not be processed"
+
+  /api/v1/report/placeholdervalues:
+    post:
+      tags: ["report"]
+      operationId: "listTemplatePlaceholders"
+      summary: "List placeholders in a template"
+      description: "Scans the uploaded .docx template and returns every ~{placeholder}~ found."
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: "object"
+              properties:
+                templateDocumentModel:
+                  $ref: "#/components/schemas/TemplateDocumentModel"
+                documentTemplate:
+                  type: "string"
+                  format: "binary"
+                  description: "Word (.docx) template file"
+              required: ["templateDocumentModel", "documentTemplate"]
+      responses:
+        "302":
+          description: "Placeholders found"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  type: "string"
+        "404":
+          description: "No placeholders found in the template"
+        "400":
+          description: "Missing template metadata"
+
 # ── Components ──────────────────────────────────────────────────────────────────
 
 components:
@@ -2903,3 +2973,27 @@ components:
       properties:
         serviceType:
           $ref: "#/components/schemas/ServiceType"
+
+    # ── Report ──────────────────────────────────────────────────────────────
+
+    TemplateDocumentModel:
+      type: object
+      description: "Metadata describing a Word document template"
+      properties:
+        versionId:
+          type: integer
+          format: int64
+        templateName:
+          type: string
+        description:
+          type: string
+        createdBy:
+          type: string
+        createdTimestamp:
+          type: string
+          format: date
+        lastModifiedBy:
+          type: string
+        lastModifiedTimestamp:
+          type: string
+          format: date
