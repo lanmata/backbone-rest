@@ -16,7 +16,6 @@ package com.umdc.backoffice.v1.session.services;
 import com.umdc.backoffice.constant.keys.AuthKey;
 import com.umdc.backoffice.messages.JWTMessage;
 import com.umdc.backoffice.security.bruteforce.LoginAttemptService;
-import com.umdc.backoffice.security.jwt.JwtConfigProperties;
 import com.umdc.backoffice.util.MessageUtil;
 import com.umdc.backoffice.v1.iam.audit.service.AuditEventService;
 import com.umdc.backoffice.v1.session.mapper.UserAliasMapper;
@@ -32,77 +31,73 @@ import com.umdc.persistence.general.domains.UserEntity;
 import com.umdc.persistence.general.repositories.UserRepository;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
-import javax.crypto.SecretKey;
-import java.util.*;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Service class for handling JWT operations related to sessions.
+ * Orchestrates login, token renewal, and refresh flows for sessions.
+ * <p>
+ * All JJWT mechanics (signing, parsing, validity, revocation) are delegated
+ * to {@link SessionTokenServiceImpl} — this class owns only the business
+ * flows: credential verification, brute-force checks, audit logging, and
+ * resolving which user a token belongs to.
+ * </p>
  */
 @Service
-@SuppressWarnings("PMD.GodClass") // Class has grown during Phase 1 security hardening; refactor recommended
 public class SessionServiceImpl implements SessionService {
 
-    private final JwtConfigProperties jwtConfigProperties;
     private final MessageUtil messageUtil;
     private final UserMapper userMapper;
     private final UserAliasMapper userAliasMapper;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JtiDenyListService jtiDenyListService;
     private final LoginAttemptService loginAttemptService;
     private final AuditEventService auditEventService;
-    private final SecretKey key;
+    private final SessionTokenServiceImpl sessionTokenService;
 
     private static final String INVALID_APPLICATION_ID_MSG = "Invalid application ID";
     private static final String ACCOUNT_LOCKED_MSG = "Account temporarily locked due to too many failed attempts";
     private static final String INVALID_TOKEN_TYPE_MSG = "Token type is not valid for refresh";
     private static final String USER_INACTIVE_MSG = "User not found or account is inactive";
-    private static final long REFRESH_TOKEN_MULTIPLIER = 7L;
-    private static final long REFRESH_GRACE_SECONDS = 604_800L; // 7 days
 
     /**
      * Constructs a new SessionServiceImpl with the specified dependencies.
      *
-     * @param jwtConfigProperties the JWT configuration properties
      * @param messageUtil         the message utility
      * @param userMapper          the user mapper
      * @param userAliasMapper     the user alias mapper
      * @param userRepository      the user repository
      * @param passwordEncoder     the password encoder for BCrypt verification
-     * @param jtiDenyListService  the JTI deny-list service for token revocation
      * @param loginAttemptService the brute-force login attempt tracking service
      * @param auditEventService   the audit event service for recording security events
+     * @param sessionTokenService the JWT mechanics collaborator (signing, parsing, revocation)
      */
-    public SessionServiceImpl(JwtConfigProperties jwtConfigProperties, MessageUtil messageUtil,
+    public SessionServiceImpl(MessageUtil messageUtil,
                               UserMapper userMapper, UserAliasMapper userAliasMapper,
                               UserRepository userRepository, PasswordEncoder passwordEncoder,
-                              JtiDenyListService jtiDenyListService,
                               LoginAttemptService loginAttemptService,
-                              AuditEventService auditEventService) {
-        this.jwtConfigProperties = jwtConfigProperties;
+                              AuditEventService auditEventService,
+                              SessionTokenServiceImpl sessionTokenService) {
         this.userMapper = userMapper;
         this.userAliasMapper = userAliasMapper;
         this.userRepository = userRepository;
         this.messageUtil = messageUtil;
         this.passwordEncoder = passwordEncoder;
-        this.jtiDenyListService = jtiDenyListService;
         this.loginAttemptService = loginAttemptService;
         this.auditEventService = auditEventService;
-        this.key = generateKey();
+        this.sessionTokenService = sessionTokenService;
     }
 
     /**
@@ -177,11 +172,11 @@ public class SessionServiceImpl implements SessionService {
                 parameters.put(AuthKey.ROLES_ID.value, userAlias.getRoles().toString());
                 parameters.put(AuthKey.FIRSTNAME.value, userAlias.getFirstname());
                 parameters.put(AuthKey.LASTNAME.value, userAlias.getLastname());
-                sessionToken = generateSessionToken(sessionId, parameters);
+                sessionToken = sessionTokenService.generateSessionToken(sessionId, parameters);
                 loginAttemptService.recordSuccess(sessionRequest.alias(), sessionRequest.applicationId());
                 auditEventService.saveRecord(userEntity.getId(), sessionRequest.applicationId(), AuditEventType.LOGIN_SUCCESS,
                         ipAddress, userAgent, buildDescription("Login successful", sessionRequest.alias()));
-                String refreshToken = generateRefreshToken(userEntity.getId());
+                String refreshToken = sessionTokenService.generateRefreshToken(userEntity.getId());
                 return ResponseEntity.ok(new SessionResponse(sessionToken, refreshToken));
             }
         }
@@ -254,7 +249,7 @@ public class SessionServiceImpl implements SessionService {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                         .body(new SessionResponse(messageUtil.getSinDatos()));
             }
-            String newRefreshToken = generateRefreshToken(userEntity.getId());
+            String newRefreshToken = sessionTokenService.generateRefreshToken(userEntity.getId());
             return ResponseEntity.ok(new SessionResponse(newToken, newRefreshToken));
         }
         loginAttemptService.recordFailure(sessionEmailRequest.email(), sessionEmailRequest.applicationId());
@@ -264,59 +259,19 @@ public class SessionServiceImpl implements SessionService {
     }
 
     /**
-     * Generates a session token with the specified username and parameters.
-     * Adds {@code iss} and {@code aud} claims when configured.
-     *
-     * @param username   the username
-     * @param parameters the parameters
-     * @return the generated session token
+     * {@inheritDoc}
      */
+    @Override
     public String generateSessionToken(String username, Map<String, String> parameters) {
-        Map<String, Object> claims = new ConcurrentHashMap<>();
-        // Required
-        claims.put(AuthKey.JTI.value, UUID.randomUUID().toString());
-        claims.put(AuthKey.TYPE.value, SESSION_TOKEN_KEY);
-        claims.put(AuthKey.IAT.value, new Date());
-        // Optional
-        if (Objects.nonNull(parameters) && !parameters.isEmpty()) {
-            claims.putAll(parameters);
-        }
-
-        var builder = Jwts.builder()
-                .claims(claims)
-                .subject(username)
-                .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + jwtConfigProperties.getExpirationMs()));
-
-        String issuer = jwtConfigProperties.getIssuer();
-        if (Objects.nonNull(issuer) && !issuer.isEmpty()) {
-            builder.issuer(issuer);
-        }
-        String audience = jwtConfigProperties.getAudience();
-        if (Objects.nonNull(audience) && !audience.isEmpty()) {
-            builder.audience().add(audience).and();
-        }
-
-        return builder.signWith(key).compact();
+        return sessionTokenService.generateSessionToken(username, parameters);
     }
 
     /**
      * {@inheritDoc}
-     * Overrides the default to also reject tokens whose JTI is in the deny-list.
      */
     @Override
     public boolean isValid(String token) {
-        try {
-            Claims claims = getTokenClaims(token);
-            String jti = (String) claims.get(AuthKey.JTI.value);
-            if (Objects.nonNull(jti) && jtiDenyListService.isDenied(jti)) {
-                return false;
-            }
-            return SESSION_TOKEN_KEY.equals(claims.get(AuthKey.TYPE.value))
-                    && new Date().before(claims.getExpiration());
-        } catch (Exception e) {
-            return false;
-        }
+        return sessionTokenService.isValid(token);
     }
 
     /**
@@ -332,15 +287,7 @@ public class SessionServiceImpl implements SessionService {
             if (ValidatorCommonsUtil.esVacio(token)) {
                 return ResponseEntity.badRequest().build();
             }
-            Claims claims = getTokenClaims(token);
-            String jti = (String) claims.get(AuthKey.JTI.value);
-            if (Objects.isNull(jti)) {
-                return ResponseEntity.badRequest().build();
-            }
-            long remainingTtlSeconds = (claims.getExpiration().getTime() - System.currentTimeMillis()) / 1000L;
-            if (remainingTtlSeconds > 0) {
-                jtiDenyListService.denyJti(jti, remainingTtlSeconds);
-            }
+            sessionTokenService.denyToken(token);
             return ResponseEntity.noContent().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
@@ -348,57 +295,19 @@ public class SessionServiceImpl implements SessionService {
     }
 
     /**
-     * Retrieves the claims from the specified token.
-     *
-     * @param token the token
-     * @return the claims
+     * {@inheritDoc}
      */
     @Override
     public Claims getTokenClaims(String token) {
-        Claims claims;
-        try {
-            claims = Jwts.parser()
-                    .verifyWith(key)
-                    .build()
-                    .parseSignedClaims(token)
-                    .getPayload();
-        } catch (ExpiredJwtException e) {
-            // Allow a grace window beyond the expiry time
-            long expMs = e.getClaims().getExpiration().getTime();
-            long graceMs = REFRESH_GRACE_SECONDS * 1000L;
-            if (System.currentTimeMillis() > expMs + graceMs) {
-                throw new StandardException(JWTMessage.TOKEN_EXPIRED, e);
-            }
-            claims = e.getClaims();
-        } catch (Exception e) {
-            throw new StandardException(JWTMessage.TOKEN_INVALID, e);
-        }
-        return claims;
+        return sessionTokenService.getTokenClaims(token);
     }
 
     /**
-     * Retrieves the username from the specified token.
-     *
-     * @param token the token
-     * @return the username
+     * {@inheritDoc}
      */
+    @Override
     public String getUsernameFromToken(String token) {
-        return Jwts.parser()
-                .verifyWith(key)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .getSubject();
-    }
-
-    /**
-     * Generates a SecretKey from the JWT configuration properties.
-     *
-     * @return the generated SecretKey
-     */
-    private SecretKey generateKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(jwtConfigProperties.getSecret());
-        return Keys.hmacShaKeyFor(keyBytes);
+        return sessionTokenService.getUsernameFromToken(token);
     }
 
     /**
@@ -423,7 +332,7 @@ public class SessionServiceImpl implements SessionService {
             parameters.put(AuthKey.ROLES_ID.value, userAlias.getRoles().toString());
             parameters.put(AuthKey.FIRSTNAME.value, userAlias.getFirstname());
             parameters.put(AuthKey.LASTNAME.value, userAlias.getLastname());
-            return generateSessionToken(sessionId, parameters);
+            return sessionTokenService.generateSessionToken(sessionId, parameters);
         }
         return null;
     }
@@ -510,10 +419,9 @@ public class SessionServiceImpl implements SessionService {
      * and a new refresh token.
      * <p>
      * Tokens of type {@code refresh-token} are accepted. Tokens of type {@code session-token}
-     * are also accepted for backward compatibility. A grace window of
-     * {@value #REFRESH_GRACE_SECONDS} seconds (7 days) beyond the {@code exp} claim is
-     * allowed so that a client with a just-expired refresh token can still obtain new tokens
-     * without forcing a full re-login.
+     * are also accepted for backward compatibility. A grace window of 7 days (604,800 seconds)
+     * beyond the {@code exp} claim is allowed so that a client with a just-expired refresh
+     * token can still obtain new tokens without forcing a full re-login.
      * </p>
      *
      * @param refreshToken the refresh token string
@@ -553,7 +461,7 @@ public class SessionServiceImpl implements SessionService {
         }
 
         String newAccessToken = generateSessionToken(userId);
-        String newRefreshToken = generateRefreshToken(userId);
+        String newRefreshToken = sessionTokenService.generateRefreshToken(userId);
 
         if (Objects.isNull(newAccessToken)) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -623,39 +531,4 @@ public class SessionServiceImpl implements SessionService {
     private String buildDescription(String action, String alias) {
         return "{\"action\":\"" + action + "\",\"alias\":\"" + alias + "\"}";
     }
-
-    /**
-     * Generates a refresh token for the given user ID.
-     * The refresh token carries {@code type=refresh-token} and has a TTL of
-     * {@value #REFRESH_TOKEN_MULTIPLIER}× the configured access-token expiry.
-     *
-     * @param userId the user whose ID is set as subject and {@code uid} claim
-     * @return the compact refresh token string
-     */
-    private String generateRefreshToken(UUID userId) {
-        long refreshTtlMs = jwtConfigProperties.getExpirationMs() * REFRESH_TOKEN_MULTIPLIER;
-        Map<String, Object> refreshClaims = new ConcurrentHashMap<>();
-        refreshClaims.put(AuthKey.JTI.value, UUID.randomUUID().toString());
-        refreshClaims.put(AuthKey.TYPE.value, REFRESH_TOKEN_KEY);
-        refreshClaims.put(AuthKey.USER_ID.value, userId.toString());
-        refreshClaims.put(AuthKey.IAT.value, new Date());
-
-        var builder = Jwts.builder()
-                .claims(refreshClaims)
-                .subject(userId.toString())
-                .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + refreshTtlMs));
-
-        String issuer = jwtConfigProperties.getIssuer();
-        if (Objects.nonNull(issuer) && !issuer.isEmpty()) {
-            builder.issuer(issuer);
-        }
-        String audience = jwtConfigProperties.getAudience();
-        if (Objects.nonNull(audience) && !audience.isEmpty()) {
-            builder.audience().add(audience).and();
-        }
-
-        return builder.signWith(key).compact();
-    }
 }
-
