@@ -40,3 +40,13 @@ build/
 /default.env
 
 /src/main/resources/backbone.jks
+
+### OS ###
+.DS_Store
+
+### Python (.ai/bin tooling scripts) ###
+__pycache__/
+*.pyc
+
+### Secrets / certs — never commit (see CLAUDE.md "What Not To Do") ###
+*.crt

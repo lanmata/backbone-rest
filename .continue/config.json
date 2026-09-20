@@ -1,0 +1,143 @@
+{
+  "models": [
+    {
+      "title": "Gemma 4 backbone-rest",
+      "provider": "openai",
+      "model": "docker.io/ai/gemma4:E4B",
+      "apiBase": "http://192.168.50.49:11434/v1",
+      "apiKey": "dummy",
+      "systemMessage": "You are a coding assistant for backbone-rest — a Spring Boot 3.4.1 / Java 21 backoffice REST service (package root: com.umdc.backoffice, API surface: /api/v1/*). You can read, create, and edit files in this project.\n\nHARD RULES:\n- Interface-first: *Api.java carries @RequestMapping + OpenAPI annotations + default method → service. *Controller.java: @RestController, constructor injection, @Override, NO logic.\n- Services return ResponseEntity<?> — status decisions live in *ServiceImpl only.\n- Constructor injection ONLY — never @Autowired field injection.\n- MapStruct mappers use config = MapperAppConfig.class from com.umdc.commons.services.\n- SLF4J logging via LoggerFactory.getLogger — never System.out.\n- MessageUtil for user-facing messages; keys in *MessageKey enums.\n- PMD zero violations (ruleset.xml enforced at test phase).\n- OpenAPI 3.1 spec at src/main/resources/META-INF/api.yaml is the API contract — update it on every *Api.java change.\n- Maven only (`mvn`) — there is NO mvnw.\n- Never commit secrets, certs, or modify keystore.jks.\n\nFull context: .ai/GEMINI.md | Agents: .ai/agents/ | Skills: .ai/skills/ | Prompts: .ai/prompts/"
+    },
+    {
+      "title": "Gemma 4 26B backbone-rest",
+      "provider": "openai",
+      "model": "docker.io/ai/gemma4:26B",
+      "apiBase": "http://192.168.50.49:11434/v1",
+      "apiKey": "dummy",
+      "systemMessage": "You are a coding assistant for backbone-rest — a Spring Boot 3.4.1 / Java 21 backoffice REST service (package root: com.umdc.backoffice, API surface: /api/v1/*). You can read, create, and edit files in this project.\n\nHARD RULES:\n- Interface-first: *Api.java carries @RequestMapping + OpenAPI annotations + default method → service. *Controller.java: @RestController, constructor injection, @Override, NO logic.\n- Services return ResponseEntity<?> — status decisions live in *ServiceImpl only.\n- Constructor injection ONLY — never @Autowired field injection.\n- MapStruct mappers use config = MapperAppConfig.class from com.umdc.commons.services.\n- SLF4J logging via LoggerFactory.getLogger — never System.out.\n- MessageUtil for user-facing messages; keys in *MessageKey enums.\n- PMD zero violations (ruleset.xml enforced at test phase).\n- OpenAPI 3.1 spec at src/main/resources/META-INF/api.yaml is the API contract — update it on every *Api.java change.\n- Maven only (`mvn`) — there is NO mvnw.\n- Never commit secrets, certs, or modify keystore.jks.\n\nFull context: .ai/GEMINI.md | Agents: .ai/agents/ | Skills: .ai/skills/ | Prompts: .ai/prompts/"
+    }
+  ],
+  "tabAutocompleteModel": {
+    "title": "Gemma 4 Autocomplete",
+    "provider": "openai",
+    "model": "docker.io/ai/gemma4:E4B",
+    "apiBase": "http://192.168.50.49:11434/v1",
+    "apiKey": "dummy"
+  },
+  "contextProviders": [
+    { "name": "file" },
+    { "name": "code" },
+    { "name": "codebase" },
+    { "name": "diff" },
+    { "name": "terminal" },
+    { "name": "problems" },
+    { "name": "open" },
+    { "name": "tree" },
+    { "name": "search" },
+    { "name": "url" }
+  ],
+  "customCommands": [
+    {
+      "name": "orchestrate",
+      "description": "[Agent] Orchestrator — decompose request across all agents",
+      "prompt": "Adopt the Orchestrator agent persona. Decompose the following request into subtasks, assign each to the correct specialist agent (developer, test-writer, api-reviewer, security-reviewer, devops-engineer, etc.), and produce a step-by-step execution plan with owner and deliverable per step. Full persona: @file .ai/agents/orchestrator.agent.md\n\nRequest: {{{ input }}}"
+    },
+    {
+      "name": "dev",
+      "description": "[Agent] Developer — implement Spring Boot 3.4 / Java 21 features",
+      "prompt": "Adopt the Developer agent persona for backbone-rest. Apply the interface-first controller pattern, return ResponseEntity<?> from services, use constructor injection, MapStruct with MapperAppConfig, PMD zero. Full persona and skills: @file .ai/agents/developer.agent.md | @file .ai/skills/developer/SKILL.md\n\nTask: {{{ input }}}"
+    },
+    {
+      "name": "test",
+      "description": "[Agent] Test Writer — JUnit 5 + Mockito unit/integration tests",
+      "prompt": "Adopt the Test Writer agent persona. Write JUnit 5 + Mockito tests that match existing patterns, achieve JaCoCo targets, and pass PMD. Full persona: @file .ai/agents/test-writer.agent.md | @file .ai/skills/test-writer/SKILL.md\n\nTask: {{{ input }}}"
+    },
+    {
+      "name": "review-api",
+      "description": "[Agent] API Reviewer — validate *Api.java vs META-INF/api.yaml",
+      "prompt": "Adopt the API Reviewer agent persona. Validate that the *Api.java interface surface matches src/main/resources/META-INF/api.yaml. Report every mismatch as: path | Java vs YAML | severity. Full checklist: @file .ai/agents/api-reviewer.agent.md\n\nReview scope: {{{ input }}}"
+    },
+    {
+      "name": "security",
+      "description": "[Agent] Security Reviewer — OWASP + CVE + JWT/Supabase audit",
+      "prompt": "Adopt the Security Reviewer agent persona. Audit for OWASP Top 10, dependency CVEs, JWT validation gaps, Supabase auth misuse, and session token exposure. Full checklist: @file .ai/agents/security-reviewer.agent.md\n\nAudit scope: {{{ input }}}"
+    },
+    {
+      "name": "code-review",
+      "description": "[Agent] Code Reviewer — PMD + Spring Boot conventions audit",
+      "prompt": "Adopt the Code Reviewer agent persona. Audit the diff for PMD violations, broken interface-first convention, @Autowired field injection, logic in controllers, or missing ResponseEntity. Report as a table: file | line | rule | severity | fix. Full checklist: @file .ai/agents/code-reviewer.agent.md\n\nScope: {{{ input }}}"
+    },
+    {
+      "name": "db",
+      "description": "[Agent] Database Architect — JPA entity/query advice",
+      "prompt": "Adopt the Database Architect agent persona. Provide JPA entity design, query optimisation, and repository advice. Entities live in external module com.umdc.persistence. Full persona: @file .ai/agents/database-architect.agent.md\n\nQuestion: {{{ input }}}"
+    },
+    {
+      "name": "devops",
+      "description": "[Agent] DevOps Engineer — Docker / Maven / Repsy / CI",
+      "prompt": "Adopt the DevOps Engineer agent persona. Handle Docker builds (amazoncorretto:21-alpine3.20, port 8082), Maven lifecycle, Repsy registry, and CI/CD setup. Full persona: @file .ai/agents/devops-engineer.agent.md | @file .ai/tools/docker-build.tool.md | @file .ai/tools/maven-build.tool.md\n\nTask: {{{ input }}}"
+    },
+    {
+      "name": "po",
+      "description": "[Agent] Product Owner — user stories + acceptance criteria",
+      "prompt": "Adopt the Product Owner agent persona. Define a user story with: goal, acceptance criteria (Given/When/Then), API contract notes, and definition of done. Full persona: @file .ai/agents/product-owner.agent.md\n\nFeature: {{{ input }}}"
+    },
+    {
+      "name": "endpoint",
+      "description": "[Prompt] Scaffold a new REST endpoint end-to-end",
+      "prompt": "Scaffold a complete REST endpoint for backbone-rest. Deliverables: *Api.java interface, *Controller.java, *Service.java, *ServiceImpl.java, request/response DTOs, MapStruct mapper, *MessageKey enum entry, and update src/main/resources/META-INF/api.yaml. Full checklist: @file .ai/prompts/add-endpoint.prompt.md\n\nEndpoint details: {{{ input }}}"
+    },
+    {
+      "name": "pmd",
+      "description": "[Prompt] Fix all PMD violations (ruleset.xml, zero-violation policy)",
+      "prompt": "Run `mvn pmd:check -Dpmd.failOnViolation=true` and fix every violation to reach zero. For each fix: show file, line, rule, and the corrected code. Tool guide: @file .ai/tools/pmd-check.tool.md\n\nScope (leave blank for full project): {{{ input }}}"
+    },
+    {
+      "name": "coverage",
+      "description": "[Prompt] Improve JaCoCo test coverage",
+      "prompt": "Identify the classes/methods with lowest JaCoCo coverage, then write JUnit 5 + Mockito tests to bring each above the project minimum. Full guide: @file .ai/prompts/improve-coverage.prompt.md\n\nScope: {{{ input }}}"
+    },
+    {
+      "name": "release",
+      "description": "[Prompt] Prepare release — quality gates + CHANGELOG + version bump",
+      "prompt": "Run the full release preparation checklist: verify PMD, JaCoCo, and API contract; produce a CHANGELOG entry; bump version in pom.xml. Full guide: @file .ai/prompts/prepare-release.prompt.md | Gate: @file .ai/hooks/pre-release-gate.hook.md\n\nRelease details: {{{ input }}}"
+    },
+    {
+      "name": "story",
+      "description": "[Prompt] Define a feature story (Product Owner mode)",
+      "prompt": "Act as Product Owner. Define a full user story: narrative, acceptance criteria, API contract notes, out-of-scope boundaries, and definition of done. Guide: @file .ai/prompts/define-story.prompt.md\n\nFeature: {{{ input }}}"
+    },
+    {
+      "name": "fix-bug",
+      "description": "[Prompt] Diagnose and fix a bug",
+      "prompt": "Diagnose the reported bug, trace the root cause through the controller → service → repository chain, and apply a targeted fix. Guide: @file .ai/prompts/fix-bug.prompt.md\n\nBug report: {{{ input }}}"
+    },
+    {
+      "name": "ai-help",
+      "description": "List all available slash commands and agents",
+      "prompt": "List every available custom slash command in this project, grouped by category (agents / prompts / tools), with a one-line description of each. Reference: @file .ai/agents/agents.md | @file .ai/prompts/prompts.md"
+    }
+  ],
+  "docs": [
+    {
+      "title": "Spring Boot 3.4 Reference",
+      "startUrl": "https://docs.spring.io/spring-boot/docs/3.4.x/reference/html/"
+    },
+    {
+      "title": "Spring Security Reference",
+      "startUrl": "https://docs.spring.io/spring-security/reference/"
+    },
+    {
+      "title": "Supabase Docs",
+      "startUrl": "https://supabase.com/docs"
+    },
+    {
+      "title": "MapStruct Reference",
+      "startUrl": "https://mapstruct.org/documentation/stable/reference/html/"
+    },
+    {
+      "title": "PMD Java Rules",
+      "startUrl": "https://pmd.github.io/pmd/pmd_rules_java.html"
+    }
+  ]
+}
