@@ -27,8 +27,11 @@ com.umdc.backoffice.constant.keys/ → *MessageKey enums
 ```
 
 ## Domain Modules (`v1/`)
-`application`, `contacts`, `contacttypes`, `features`, `people`, `profileimage`,
-`report`, `roles`, `session`, `users`
+`addresses`, `application`, `contacts`, `contacttypes`, `features`, `iam`
+(audit / permissions / tokens / passwords), `identificationdocuments`,
+`managedclient` (MCAM — M2M client-credential auth), `notices`, `noticetypes`,
+`people`, `profileimage`, `report`, `rolefeatures` (shared Role↔Feature link
+service, no REST surface), `roles`, `servicetype`, `session`, `users`
 
 ## Mandatory Conventions — Always Follow
 1. **Interface-first**: `*Api.java` carries `@RequestMapping`, `@Operation`, `@ApiResponses` +
