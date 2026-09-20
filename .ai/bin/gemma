@@ -1,0 +1,325 @@
+#!/usr/bin/env python3
+"""
+gemma — CLI chat + code-generation assistant for backbone-rest
+Using Gemma 4 (E4B) via Docker Model Runner (OpenAI-compatible API)
+
+USAGE
+  gemma                                          # interactive chat
+  gemma --agent developer                        # load Developer agent persona
+  gemma --agent test-writer --ctx Foo.java       # add file context
+  gemma --agent developer -p "add null check"    # one-shot, non-interactive
+  gemma --list-agents                            # list available agents
+
+FILE WRITING (auto-detected in any mode)
+  When the model outputs a fenced code block whose first line is a comment
+  in the form  // File: relative/path/to/File.java  (or #, ---, /* */),
+  the CLI will automatically write that file to the project tree.
+
+  You can also type  :write  in interactive mode to re-apply file blocks
+  from the last response, or  :ctx path/to/File.java  to add more context.
+
+REPL COMMANDS (interactive mode only)
+  :write           re-apply file blocks from last response
+  :ctx <path>      add a file to the conversation context
+  :agent <name>    switch agent persona mid-session
+  :clear           reset conversation (keep system prompt)
+  exit / quit      end session
+"""
+
+import argparse
+import json
+import os
+import re
+import sys
+import urllib.request
+import urllib.error
+from pathlib import Path
+
+# ─── configuration ────────────────────────────────────────────────────────────
+API_BASE  = os.environ.get("GEMMA_API_BASE", "http://192.168.50.49:12434/v1")
+MODEL     = os.environ.get("GEMMA_MODEL",    "docker.io/ai/gemma4:E4B")
+API_KEY   = os.environ.get("GEMMA_API_KEY",  "dummy")
+MAX_TOKENS = int(os.environ.get("GEMMA_MAX_TOKENS", "4096"))
+TEMPERATURE = float(os.environ.get("GEMMA_TEMPERATURE", "0.2"))
+
+# Locate project root (.ai/bin/gemma → project root)
+_SCRIPT_DIR  = Path(__file__).resolve().parent          # .ai/bin/
+AI_DIR       = _SCRIPT_DIR.parent                       # .ai/
+PROJECT_ROOT = AI_DIR.parent                            # project root
+
+# ─── helpers ──────────────────────────────────────────────────────────────────
+
+def _strip_frontmatter(text: str) -> str:
+    """Remove YAML frontmatter block (--- … ---) from a markdown string."""
+    if not text.startswith("---"):
+        return text
+    end = text.find("\n---", 3)
+    return text[end + 4:].lstrip("\n") if end != -1 else text
+
+
+def load_agent(name: str) -> tuple[str, str]:
+    """
+    Resolve agent name → (.agent.md path, system-prompt text).
+    Tries exact match first, then prefix match.
+    """
+    agents_dir = AI_DIR / "agents"
+    exact = agents_dir / f"{name}.agent.md"
+    if exact.exists():
+        return str(exact), _strip_frontmatter(exact.read_text())
+
+    matches = list(agents_dir.glob(f"{name}*.md"))
+    if matches:
+        path = matches[0]
+        return str(path), _strip_frontmatter(path.read_text())
+
+    print(f"[gemma] Agent '{name}' not found. Run --list-agents to see options.",
+          file=sys.stderr)
+    sys.exit(1)
+
+
+def load_file_context(paths: list[str]) -> str:
+    """Read files and return a single context block."""
+    parts = []
+    for p in paths:
+        fp = Path(p)
+        if not fp.is_absolute():
+            fp = PROJECT_ROOT / p
+        if fp.exists():
+            parts.append(f"=== {fp.relative_to(PROJECT_ROOT)} ===\n{fp.read_text()}")
+        else:
+            print(f"[gemma] File not found: {p}", file=sys.stderr)
+    return "\n\n".join(parts)
+
+
+# ─── file-write detection ─────────────────────────────────────────────────────
+
+# Matches a fenced code block whose first content line is a file-path comment.
+# Supported comment styles: //, #, --, /* */
+_FILE_BLOCK_RE = re.compile(
+    r"```(?:\w+)?\n"                              # opening fence  (```java, ``` etc.)
+    r"(?://|#|--|/\*)\s*[Ff]ile:\s*(.+?)\s*\*?/?\n"  # // File: path
+    r"(.*?)"                                       # file content
+    r"```",                                        # closing fence
+    re.DOTALL,
+)
+
+# Explicit === FILE: path === / === END === blocks
+_FILE_TAG_RE = re.compile(
+    r"===\s*FILE:\s*(.+?)\s*===\n(.*?)\n===\s*END\s*===",
+    re.DOTALL,
+)
+
+
+def apply_file_changes(response: str) -> list[str]:
+    """Detect file blocks in the response and write them to disk."""
+    written = []
+    for pattern in (_FILE_BLOCK_RE, _FILE_TAG_RE):
+        for m in pattern.finditer(response):
+            rel = m.group(1).strip()
+            content = m.group(2)
+            dest = PROJECT_ROOT / rel
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            dest.write_text(content)
+            written.append(rel)
+    if written:
+        print(f"\n[gemma] ✓ Wrote: {', '.join(written)}", file=sys.stderr)
+    return written
+
+
+# ─── API call ─────────────────────────────────────────────────────────────────
+
+def chat_completion(messages: list[dict], stream: bool = True) -> str:
+    payload = json.dumps({
+        "model": MODEL,
+        "messages": messages,
+        "stream": stream,
+        "temperature": TEMPERATURE,
+        "max_tokens": MAX_TOKENS,
+    }).encode()
+
+    req = urllib.request.Request(
+        f"{API_BASE}/chat/completions",
+        data=payload,
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {API_KEY}",
+        },
+    )
+
+    try:
+        with urllib.request.urlopen(req, timeout=120) as resp:
+            if not stream:
+                data = json.load(resp)
+                return data["choices"][0]["message"]["content"]
+
+            content = ""
+            for raw_line in resp:
+                line = raw_line.decode().strip()
+                if not line.startswith("data: "):
+                    continue
+                payload_str = line[6:]
+                if payload_str == "[DONE]":
+                    break
+                try:
+                    chunk = json.loads(payload_str)
+                    delta = chunk["choices"][0]["delta"].get("content", "")
+                    print(delta, end="", flush=True)
+                    content += delta
+                except (json.JSONDecodeError, KeyError):
+                    pass
+            print()
+            return content
+
+    except urllib.error.URLError as e:
+        print(f"\n[gemma] ✗ API error: {e}", file=sys.stderr)
+        print(f"  Endpoint: {API_BASE}", file=sys.stderr)
+        print("  Is Docker Model Runner running on the Alienware host?", file=sys.stderr)
+        sys.exit(1)
+
+
+# ─── REPL ────────────────────────────────────────────────────────────────────
+
+def repl(messages: list[dict]):
+    print("[gemma] Interactive mode — Ctrl-C or 'exit' to quit")
+    print("        :ctx <file>   add file context")
+    print("        :agent <name> switch agent persona")
+    print("        :write        re-apply file blocks from last response")
+    print("        :clear        reset conversation\n")
+
+    last_response = ""
+    system_prompt = messages[0]["content"] if messages and messages[0]["role"] == "system" else ""
+
+    while True:
+        try:
+            user_input = input("You> ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print("\n[gemma] Bye!")
+            break
+
+        if not user_input:
+            continue
+
+        if user_input.lower() in ("exit", "quit"):
+            break
+
+        if user_input == ":write":
+            if last_response:
+                applied = apply_file_changes(last_response)
+                if not applied:
+                    print("[gemma] No file blocks found in last response.")
+            continue
+
+        if user_input.startswith(":ctx "):
+            path = user_input[5:].strip()
+            ctx = load_file_context([path])
+            if ctx:
+                messages.append({"role": "user",
+                                  "content": f"Added file context:\n\n{ctx}"})
+                messages.append({"role": "assistant",
+                                  "content": "Got it — file added to context."})
+                print(f"[gemma] Context added: {path}")
+            continue
+
+        if user_input.startswith(":agent "):
+            name = user_input[7:].strip()
+            _, agent_prompt = load_agent(name)
+            new_sys = f"{system_prompt}\n\n---\n\n{agent_prompt}" if system_prompt else agent_prompt
+            if messages and messages[0]["role"] == "system":
+                messages[0]["content"] = new_sys
+            else:
+                messages.insert(0, {"role": "system", "content": new_sys})
+            print(f"[gemma] Switched to agent: {name}")
+            continue
+
+        if user_input == ":clear":
+            messages.clear()
+            if system_prompt:
+                messages.append({"role": "system", "content": system_prompt})
+            last_response = ""
+            print("[gemma] Conversation cleared.")
+            continue
+
+        messages.append({"role": "user", "content": user_input})
+        print("Gemma> ", end="", flush=True)
+        last_response = chat_completion(messages)
+        messages.append({"role": "assistant", "content": last_response})
+        apply_file_changes(last_response)
+
+
+# ─── main ─────────────────────────────────────────────────────────────────────
+
+def main():
+    parser = argparse.ArgumentParser(
+        prog="gemma",
+        description="Gemma 4 CLI — backbone-rest chat + code generation",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=__doc__,
+    )
+    parser.add_argument("--agent", "-a", metavar="NAME",
+        help="Agent persona (developer, test-writer, security-reviewer, ...)")
+    parser.add_argument("--ctx", "-c", metavar="FILE", nargs="+",
+        help="File(s) to include as context")
+    parser.add_argument("--prompt", "-p", metavar="TEXT",
+        help="One-shot prompt — prints response and exits (non-interactive)")
+    parser.add_argument("--no-stream", action="store_true",
+        help="Disable streaming (wait for full response)")
+    parser.add_argument("--list-agents", action="store_true",
+        help="List available agent names and exit")
+    args = parser.parse_args()
+
+    # ── list agents
+    if args.list_agents:
+        print("Available agents (.ai/agents/):\n")
+        for f in sorted((AI_DIR / "agents").glob("*.agent.md")):
+            name = f.stem.replace(".agent", "")
+            # grab description from frontmatter if present
+            raw = f.read_text()
+            desc_match = re.search(r"^description:\s*(.+)$", raw, re.MULTILINE)
+            desc = desc_match.group(1) if desc_match else ""
+            print(f"  {name:<30}  {desc}")
+        return
+
+    # ── build system message
+    base_system = (
+        "You are a coding assistant for backbone-rest — a Spring Boot 3.4.1 / Java 21 "
+        "backoffice REST service (package: com.umdc.backoffice, API: /api/v1/*).\n\n"
+        "You can create and edit files. When outputting file content, start the code "
+        "block with a comment on the very first line:\n"
+        "  // File: relative/path/to/File.java\n"
+        "The CLI will automatically detect and write those files.\n\n"
+        "Hard rules: interface-first controllers, ResponseEntity<?> from services, "
+        "constructor injection only, MapStruct with MapperAppConfig, SLF4J logging, "
+        "PMD zero violations, no mvnw (use mvn). Full context: .ai/GEMINI.md"
+    )
+
+    system_parts = [base_system]
+
+    if args.agent:
+        _, agent_prompt = load_agent(args.agent)
+        system_parts.append(agent_prompt)
+
+    messages: list[dict] = [
+        {"role": "system", "content": "\n\n---\n\n".join(system_parts)}
+    ]
+
+    # ── inject file context
+    if args.ctx:
+        ctx = load_file_context(args.ctx)
+        if ctx:
+            messages.append({"role": "user",
+                              "content": f"File context for this session:\n\n{ctx}"})
+            messages.append({"role": "assistant",
+                              "content": "Got it — I have read the file context."})
+
+    # ── one-shot or interactive
+    if args.prompt:
+        messages.append({"role": "user", "content": args.prompt})
+        print("Gemma> ", end="", flush=True)
+        response = chat_completion(messages, stream=not args.no_stream)
+        apply_file_changes(response)
+    else:
+        repl(messages)
+
+
+if __name__ == "__main__":
+    main()
