@@ -186,8 +186,8 @@ public interface UserApi {
             @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "Role unlinked from user")
     })
     @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/unlink/user/{userId}/role/{roleId}")
-    default ResponseEntity<UserTO> unlink(@Parameter(description = STR_ID_USER) @PathVariable @NotBlank UUID userId,
-                                          @Parameter(description = "Role ID") @PathVariable @NotBlank UUID roleId) {
+    default ResponseEntity<UserTO> unlink(@Parameter(description = STR_ID_USER) @PathVariable @NotNull UUID userId,
+                                          @Parameter(description = "Role ID") @PathVariable @NotNull UUID roleId) {
         return getService().unlink(userId, roleId);
     }
 
@@ -203,8 +203,8 @@ public interface UserApi {
             @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "Role linked to user")
     })
     @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/link/user/{userId}/role/{roleId}")
-    default ResponseEntity<UserTO> link(@Parameter(description = STR_ID_USER) @PathVariable @NotBlank UUID userId,
-                                        @Parameter(description = "Role ID") @PathVariable @NotBlank UUID roleId) {
+    default ResponseEntity<UserTO> link(@Parameter(description = STR_ID_USER) @PathVariable @NotNull UUID userId,
+                                        @Parameter(description = "Role ID") @PathVariable @NotNull UUID roleId) {
         return getService().roleLink(userId, roleId);
     }
 

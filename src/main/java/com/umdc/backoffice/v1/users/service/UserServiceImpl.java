@@ -348,7 +348,7 @@ public class UserServiceImpl implements UserService {
      * cross-tenant data leakage.
      *
      * @param applicationId the application ID (must not be null)
-     * @return the response entity containing the list of users, or 400 if applicationId is null
+     * @return the response entity containing the list of users (empty if none found), or 400 if applicationId is null
      */
     @Override
     public ResponseEntity<List<UserTO>> findAll(UUID applicationId) {
@@ -357,11 +357,7 @@ public class UserServiceImpl implements UserService {
         }
         final List<UserTO> userEntityList = new ArrayList<>();
         userRepository.findByApplication(applicationId).forEach(userEntity -> userEntityList.add(userMapper.toTarget(userEntity)));
-        if (userEntityList.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        } else {
-            return new ResponseEntity<>(userEntityList, HttpStatus.OK);
-        }
+        return new ResponseEntity<>(userEntityList, HttpStatus.OK);
     }
 
     /**
@@ -467,6 +463,54 @@ public class UserServiceImpl implements UserService {
         UserEntity saved = userRepository.save(userEntity);
         auditEventService.saveRecord(userId, null, AuditEventType.ROLE_REVOKED, null, null, null);
         LOGGER.info("Role {} unlinked from user {}", roleId, userId);
+        return ResponseEntity.ok(userMapper.toTarget(saved));
+    }
+
+    /**
+     * Links a role to a user.
+     * The application is inferred from the user's current application, since the
+     * endpoint only receives the user and role IDs.
+     *
+     * @param userId the user ID
+     * @param roleId the role ID to link
+     * @return 200 with updated UserTO; 404 if user not found; 400 on null params or if the
+     *         user has no application, or the role/application cannot be resolved
+     */
+    @Override
+    @Transactional
+    public ResponseEntity<UserTO> roleLink(UUID userId, UUID roleId) {
+        if (Objects.isNull(userId) || Objects.isNull(roleId)) {
+            return ResponseEntity.badRequest().build();
+        }
+        Optional<UserEntity> optionalUser = userRepository.findById(userId);
+        if (optionalUser.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        UserEntity userEntity = optionalUser.get();
+        if (Objects.isNull(userEntity.getApplication())) {
+            return ResponseEntity.badRequest().header(HttpHeaders.WARNING, "User has no application to link the role to").build();
+        }
+
+        var role = new Role();
+        role.setId(roleId);
+        var application = new Application();
+        application.setId(userEntity.getApplication().getId());
+
+        var userTO = new UserTO();
+        userTO.setId(userId);
+        userTO.setRoles(Set.of(role));
+        userTO.setApplications(Set.of(application));
+
+        try {
+            userApplicationRoleService.refreshRoleByApplication(userEntity, userTO);
+        } catch (StandardException ex) {
+            LOGGER.error("Error linking role {} to user {}", roleId, userId, ex);
+            return ResponseEntity.badRequest().header(HttpHeaders.WARNING, "Application or Role not found").build();
+        }
+
+        UserEntity saved = userRepository.save(userEntity);
+        auditEventService.saveRecord(userId, null, AuditEventType.ROLE_ASSIGNED, null, null, null);
+        LOGGER.info("Role {} linked to user {}", roleId, userId);
         return ResponseEntity.ok(userMapper.toTarget(saved));
     }
 

@@ -14,9 +14,12 @@
 package com.umdc.backoffice.v1.features.service;
 
 import com.umdc.backoffice.v1.features.mapper.FeatureMapper;
+import com.umdc.backoffice.v1.rolefeatures.service.RoleFeatureLinkService;
 import com.umdc.commons.general.pojo.Feature;
 import com.umdc.persistence.general.domains.FeatureEntity;
+import com.umdc.persistence.general.domains.RoleEntity;
 import com.umdc.persistence.general.repositories.FeatureRepository;
+import com.umdc.persistence.general.repositories.RoleRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -45,6 +48,12 @@ class FeatureServiceImplTest {
 
     @Mock
     private FeatureRepository featureRepository;
+
+    @Mock
+    private RoleRepository roleRepository;
+
+    @Mock
+    private RoleFeatureLinkService roleFeatureLinkService;
 
     @BeforeEach
     void setUp() {
@@ -390,6 +399,102 @@ class FeatureServiceImplTest {
         assertFalse(response.hasBody());
         assertTrue(response.getHeaders().isEmpty());
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    /**
+     * Method under test: {@link FeatureServiceImpl#listByRole(UUID)}
+     */
+    @Test
+    @DisplayName("Test listing features by role id")
+    void testListByRole() {
+        final var roleId = UUID.randomUUID();
+        final var featureEntities = getFeatureEntities(UUID.randomUUID(), UUID.randomUUID());
+        final var featureList = getFeatureList(featureEntities);
+
+        when(featureRepository.findByRoleId(roleId)).thenReturn(Optional.of(featureEntities));
+        when(featureMapper.toTarget(Mockito.<FeatureEntity>any()))
+                .thenReturn(featureList.get(0), featureList.get(1));
+
+        ResponseEntity<List<Feature>> response = featureServiceImpl.listByRole(roleId);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(Objects.nonNull(response.getBody()));
+        assertEquals(2, response.getBody().size());
+        verify(featureRepository).findByRoleId(roleId);
+    }
+
+    /**
+     * Method under test: {@link FeatureServiceImpl#listByRole(UUID)}
+     */
+    @Test
+    @DisplayName("Test listing features by role id not found")
+    void testListByRole_not_found() {
+        final var roleId = UUID.randomUUID();
+        when(featureRepository.findByRoleId(roleId)).thenReturn(Optional.empty());
+
+        ResponseEntity<List<Feature>> response = featureServiceImpl.listByRole(roleId);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertNull(response.getBody());
+    }
+
+    /**
+     * Method under test: {@link FeatureServiceImpl#listByRole(UUID)}
+     */
+    @Test
+    @DisplayName("Test listing features by null role id")
+    void testListByRole_nullId() {
+        ResponseEntity<List<Feature>> response = featureServiceImpl.listByRole(null);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    /**
+     * Method under test: {@link FeatureServiceImpl#create(Feature)}
+     */
+    @Test
+    @DisplayName("Create feature with roleIds links it to the existing roles")
+    void createFeatureWithRoleIdsLinksExistingRoles() {
+        var roleId = UUID.randomUUID();
+        var feature = new Feature();
+        feature.setName("Name");
+        feature.setRoleIds(List.of(roleId));
+
+        var featureEntity = new FeatureEntity();
+        featureEntity.setId(UUID.randomUUID());
+        var roleEntity = new RoleEntity();
+        roleEntity.setId(roleId);
+
+        when(featureRepository.findByName("Name")).thenReturn(Optional.empty());
+        when(featureMapper.toSource(feature)).thenReturn(featureEntity);
+        when(featureRepository.save(featureEntity)).thenReturn(featureEntity);
+        when(featureMapper.toTarget(featureEntity)).thenReturn(feature);
+        when(roleRepository.findById(roleId)).thenReturn(Optional.of(roleEntity));
+
+        ResponseEntity<Feature> response = featureServiceImpl.create(feature);
+
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        verify(roleFeatureLinkService).linkFeatureToRoles(featureEntity, List.of(roleEntity));
+    }
+
+    /**
+     * Method under test: {@link FeatureServiceImpl#create(Feature)}
+     */
+    @Test
+    @DisplayName("Create feature with a non-existent roleId returns not found")
+    void createFeatureWithNonExistentRoleIdReturnsNotFound() {
+        var roleId = UUID.randomUUID();
+        var feature = new Feature();
+        feature.setName("Name");
+        feature.setRoleIds(List.of(roleId));
+
+        when(featureRepository.findByName("Name")).thenReturn(Optional.empty());
+        when(roleRepository.findById(roleId)).thenReturn(Optional.empty());
+
+        ResponseEntity<Feature> response = featureServiceImpl.create(feature);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        verify(featureRepository, never()).save(any());
     }
 
     private static ArrayList<FeatureEntity> getFeatureEntities(UUID... featureIds) {

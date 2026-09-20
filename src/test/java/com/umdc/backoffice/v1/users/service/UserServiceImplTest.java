@@ -146,8 +146,9 @@ class UserServiceImplTest {
 
         ResponseEntity<List<UserTO>> result = userService.findAll(applicationId);
         assertNotNull(result);
-        assertEquals(HttpStatus.NOT_FOUND, result.getStatusCode());
-        assertNull(result.getBody());
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertNotNull(result.getBody());
+        assertTrue(result.getBody().isEmpty());
         verify(userRepository, times(1)).findByApplication(applicationId);
     }
 

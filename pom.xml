@@ -19,7 +19,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.1.0</version>
+        <version>4.1.1</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
@@ -73,11 +73,14 @@
         <!--        OPEN API -->
         <springdoc.version>2.6.0</springdoc.version>
         <!--        SPRING -->
-        <spring-boot.version>4.1.0</spring-boot.version>
+        <spring-boot.version>4.1.1</spring-boot.version>
         <spring-cloud.version>2025.1.2</spring-cloud.version>
+        <!-- Overrides Spring Boot BOM's tomcat.version (11.0.24) to close CVEs GHSA-h3x4-894j-xpx5,
+             GHSA-9xv2-5v5q-p794, GHSA-gcx9-497g-6cp6 (fixed in 11.0.25) -->
+        <tomcat.version>11.0.26</tomcat.version>
 
         <!-- Centralized versions for previously hardcoded dependency/plugin versions -->
-        <postgresql.version>42.7.11</postgresql.version>
+        <postgresql.version>42.7.13</postgresql.version>
         <aws.sdk.version>2.21.0</aws.sdk.version>
         <google.gson.version>2.13.2</google.gson.version>
         <mapstruct.version>1.6.3</mapstruct.version>
@@ -88,6 +91,10 @@
         <rewrite.plugin.version>5.42.0</rewrite.plugin.version>
         <rewrite.recipe.version>5.21.0</rewrite.recipe.version>
         <asm.version>9.7</asm.version>
+        <!-- Transitive via spring-cloud-starter (bcprov, compile) and mockserver-core (bcpkix, test);
+             overridden to close CVEs GHSA-9pwp-9qqc-pr26, GHSA-qp49-qgx5-5m26, GHSA-c3fc-8qff-9hwx,
+             GHSA-wg6q-6289-32hp, GHSA-4cx2-fc23-5wg6, GHSA-wjxj-5m7g-mg7q -->
+        <bouncycastle.version>1.86</bouncycastle.version>
         <commons-lang3.version>3.20.0</commons-lang3.version>
 
         <!--        Test Dependencies-->
@@ -96,6 +103,16 @@
         <!--        Mockito-->
         <mockito.version>5.21.0</mockito.version>
         <mockserver.junit.jupiter.version>5.15.0</mockserver.junit.jupiter.version>
+        <!-- Transitive test-scope CVEs pulled in by mockserver-junit-jupiter / spring-cloud-contract-verifier;
+             overridden to close GHSA-7g45-4rm6-3mm3, GHSA-5mg8-w23w-74h3 (guava), GHSA-gvpg-vgmx-xg6w,
+             GHSA-xwmg-2g98-w7v9 (nimbus-jose-jwt), GHSA-r4gv-qr8j-p3pg (handlebars), GHSA-3w8q-xq97-5j7x (rhino) -->
+        <guava.version>33.7.1-jre</guava.version>
+        <nimbus-jose-jwt.version>10.10</nimbus-jose-jwt.version>
+        <handlebars.version>4.5.5</handlebars.version>
+        <rhino.version>1.9.1</rhino.version>
+        <!-- Transitive via eureka-client-jersey3 (compile scope, ships in the runtime jar);
+             overridden to close GHSA-7r82-7xv7-xcpj (fixed in 4.5.13) -->
+        <httpclient.version>4.5.14</httpclient.version>
 
         <!--        Coverage and Sonar-->
         <sonar.organization>umdevc</sonar.organization>
@@ -487,6 +504,50 @@
                 <artifactId>postgresql</artifactId>
                 <version>${postgresql.version}</version>
                 <scope>runtime</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk18on</artifactId>
+                <version>${bouncycastle.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcpkix-jdk18on</artifactId>
+                <version>${bouncycastle.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcutil-jdk18on</artifactId>
+                <version>${bouncycastle.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.nimbusds</groupId>
+                <artifactId>nimbus-jose-jwt</artifactId>
+                <version>${nimbus-jose-jwt.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.github.jknack</groupId>
+                <artifactId>handlebars</artifactId>
+                <version>${handlebars.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mozilla</groupId>
+                <artifactId>rhino</artifactId>
+                <version>${rhino.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpclient</artifactId>
+                <version>${httpclient.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

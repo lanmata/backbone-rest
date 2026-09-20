@@ -60,6 +60,7 @@ public interface RoleMapper {
     @Mapping(target = "name", source = "name")
     @Mapping(target = "description", source = "description")
     @Mapping(target = "active", source = "active")
+    @Mapping(target = "applicationId", source = "application.id")
     Role toTarget(RoleEntity roleEntity);
 
     /**
@@ -69,6 +70,7 @@ public interface RoleMapper {
      * @return the mapped RoleEntity object
      */
     @InheritInverseConfiguration
+    @Mapping(target = "application", ignore = true)
     RoleEntity toSource(Role role);
 
     /**

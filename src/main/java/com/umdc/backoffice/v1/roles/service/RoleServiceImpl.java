@@ -12,14 +12,17 @@
  */
 package com.umdc.backoffice.v1.roles.service;
 
+import com.umdc.backoffice.constant.keys.FeatureMessageKey;
+import com.umdc.backoffice.v1.features.service.FeatureService;
 import com.umdc.backoffice.v1.roles.mapper.RoleMapper;
+import com.umdc.backoffice.v1.rolefeatures.service.RoleFeatureLinkService;
+import com.umdc.commons.exception.StandardException;
+import com.umdc.persistence.general.repositories.ApplicationRepository;
 import com.umdc.persistence.general.repositories.FeatureRepository;
 import com.umdc.commons.general.pojo.Feature;
 import com.umdc.commons.general.pojo.Role;
+import com.umdc.persistence.general.domains.FeatureEntity;
 import com.umdc.persistence.general.domains.RoleEntity;
-import com.umdc.persistence.general.domains.RoleFeatureEntity;
-import com.umdc.persistence.general.domains.RoleFeaturePK;
-import com.umdc.persistence.general.repositories.RoleFeatureRepository;
 import com.umdc.persistence.general.repositories.RoleRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,16 +44,21 @@ public class RoleServiceImpl implements RoleService {
     private static final Logger LOGGER = LoggerFactory.getLogger(RoleServiceImpl.class);
 
     private final RoleRepository roleRepository;
-    private final RoleFeatureRepository roleFeatureRepository;
     private final RoleMapper roleMapper;
     private final FeatureRepository featureRepository;
+    private final FeatureService featureService;
+    private final ApplicationRepository applicationRepository;
+    private final RoleFeatureLinkService roleFeatureLinkService;
 
-    public RoleServiceImpl(RoleRepository roleRepository, RoleFeatureRepository roleFeatureRepository,
-                           RoleMapper roleMapper, FeatureRepository featureRepository) {
+    public RoleServiceImpl(RoleRepository roleRepository, RoleMapper roleMapper, FeatureRepository featureRepository,
+                           FeatureService featureService, ApplicationRepository applicationRepository,
+                           RoleFeatureLinkService roleFeatureLinkService) {
         this.roleRepository = roleRepository;
-        this.roleFeatureRepository = roleFeatureRepository;
         this.roleMapper = roleMapper;
         this.featureRepository = featureRepository;
+        this.featureService = featureService;
+        this.applicationRepository = applicationRepository;
+        this.roleFeatureLinkService = roleFeatureLinkService;
     }
 
     /**
@@ -111,8 +119,26 @@ public class RoleServiceImpl implements RoleService {
             LOGGER.warn("Role with content bad.");
             return ResponseEntity.unprocessableContent().build();
         }
+        if (null == role.getApplicationId()) {
+            LOGGER.warn("Role without applicationId.");
+            return ResponseEntity.badRequest().build();
+        }
+        var optionApplicationEntity = applicationRepository.findById(role.getApplicationId());
+        if (optionApplicationEntity.isEmpty()) {
+            LOGGER.warn("Application {} not found for role creation.", role.getApplicationId());
+            return ResponseEntity.notFound().build();
+        }
+        final List<FeatureEntity> resolvedFeatures;
+        try {
+            resolvedFeatures = resolveFeatures(role.getFeatures());
+        } catch (StandardException ex) {
+            LOGGER.warn("Error resolving features for role creation: {}", ex.getStatus().getStatus());
+            return ResponseEntity.status(ex.getCode()).build();
+        }
+        roleEntity.setApplication(optionApplicationEntity.get());
         roleEntity.setRoleFeatures(null);
         var roleEntityResult = roleRepository.save(roleEntity);
+        roleFeatureLinkService.replaceRoleFeatures(roleEntityResult, resolvedFeatures);
         LOGGER.info("Role created.");
         return new ResponseEntity<>(roleMapper.toTarget(roleEntityResult), HttpStatus.CREATED);
     }
@@ -131,7 +157,14 @@ public class RoleServiceImpl implements RoleService {
             roleEntity.setName(role.getName());
             roleEntity.setDescription(role.getDescription());
             roleEntity.setActive(role.getActive());
-            updateRoleFeature(role.getFeatures(), roleEntity);
+            final List<FeatureEntity> resolvedFeatures;
+            try {
+                resolvedFeatures = resolveFeatures(role.getFeatures());
+            } catch (StandardException ex) {
+                LOGGER.warn("Error resolving features for role update {}: {}", roleId, ex.getStatus().getStatus());
+                return ResponseEntity.status(ex.getCode()).build();
+            }
+            roleFeatureLinkService.replaceRoleFeatures(roleEntity, resolvedFeatures);
             roleResponseEntity = ResponseEntity.accepted().body(roleMapper.toTarget(roleRepository.save(roleEntity)));
         } else {
             roleResponseEntity = ResponseEntity.notFound().build();
@@ -152,25 +185,47 @@ public class RoleServiceImpl implements RoleService {
                 .map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    private void updateRoleFeature(List<Feature> featuresToLink, RoleEntity roleEntity) {
-        roleFeatureRepository.deleteAll(roleEntity.getRoleFeatures());
-        roleEntity.setRoleFeatures(null);
-        if (Objects.nonNull(featuresToLink) && !featuresToLink.isEmpty()) {
-            var roleFeatureEntities = new HashSet<RoleFeatureEntity>();
-            featuresToLink.forEach(feature -> {
-                var roleFeatureEntity = new RoleFeatureEntity();
-                var roleFeaturePk = new RoleFeaturePK();
-                roleFeaturePk.setFeatureId(feature.getId());
-                roleFeaturePk.setRoleId(roleEntity.getId());
-                roleFeatureEntity.setRoleFeaturePK(roleFeaturePk);
-                roleFeatureEntity.setFeature(featureRepository.findById(feature.getId()).orElseThrow());
-                roleFeatureEntity.setRole(roleEntity);
-                roleFeatureEntity.setActive(true);
-                roleFeatureEntities.add(roleFeatureEntity);
-            });
-            roleFeatureRepository.saveAll(roleFeatureEntities);
-            roleEntity.setRoleFeatures(roleFeatureEntities);
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ResponseEntity<List<Role>> listByApplication(UUID applicationId) {
+        LOGGER.info("STARTED - Find role by application id {}", applicationId);
+        return Objects.isNull(applicationId) ?
+                ResponseEntity.badRequest().build()
+                : getRoleList(roleRepository.findByApplicationId(applicationId))
+                .map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    /**
+     * Resolves the list of features to link to a role: features with an id are
+     * looked up (must already exist), and features without an id are created
+     * through {@link FeatureService#create} so its business rules (e.g. duplicate
+     * name checks) are applied consistently.
+     *
+     * @param features the features coming from the request payload
+     * @return the resolved, persisted {@link FeatureEntity} list
+     * @throws StandardException if an existing feature id is not found, or a new feature fails to be created
+     */
+    private List<FeatureEntity> resolveFeatures(List<Feature> features) {
+        if (Objects.isNull(features) || features.isEmpty()) {
+            return List.of();
         }
+        final List<FeatureEntity> resolved = new ArrayList<>();
+        for (Feature feature : features) {
+            if (Objects.nonNull(feature.getId())) {
+                resolved.add(featureRepository.findById(feature.getId())
+                        .orElseThrow(() -> new StandardException(FeatureMessageKey.FEATURE_NOT_FOUND)));
+            } else {
+                var createdFeature = featureService.create(feature);
+                if (!createdFeature.getStatusCode().is2xxSuccessful() || Objects.isNull(createdFeature.getBody())) {
+                    throw new StandardException(FeatureMessageKey.FEATURE_PREVIOUS_EXIST);
+                }
+                resolved.add(featureRepository.findById(createdFeature.getBody().getId())
+                        .orElseThrow(() -> new StandardException(FeatureMessageKey.FEATURE_NOT_FOUND)));
+            }
+        }
+        return resolved;
     }
 
     private Optional<List<Role>> getRoleList(Optional<List<RoleEntity>> optionalRoleEntityList) {

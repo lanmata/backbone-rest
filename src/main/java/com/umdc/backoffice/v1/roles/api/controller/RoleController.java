@@ -77,4 +77,9 @@ class RoleController implements RoleApi {
     public ResponseEntity<List<Role>> listByUser(UUID userId) {
         return roleService.listByUser(userId);
     }
+
+    @Override
+    public ResponseEntity<List<Role>> listByApplication(UUID applicationId) {
+        return roleService.listByApplication(applicationId);
+    }
 }

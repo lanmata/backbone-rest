@@ -67,4 +67,9 @@ public class FeatureController implements FeatureApi {
     public ResponseEntity<Feature> update(UUID featureId, FeatureRequest featureRequest) {
         return featureService.update(featureId, featureRequest.getFeature());
     }
+
+    @Override
+    public ResponseEntity<List<Feature>> listByRole(UUID roleId) {
+        return featureService.listByRole(roleId);
+    }
 }

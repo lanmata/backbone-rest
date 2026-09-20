@@ -70,6 +70,15 @@ public interface RoleService extends CrudService<UUID, Role> {
         throw new NotImplementedException();
     }
 
+    /**
+     * Lista un conjunto de roles vinculados a un id de aplicación.
+     * @param applicationId {@link UUID}
+     * @return Objeto de tipo {@link ResponseEntity}
+     */
+    default ResponseEntity<List<Role>> listByApplication(UUID applicationId) {
+        throw new NotImplementedException();
+    }
+
 
     /**
      * Lista un conjunto de roles.
