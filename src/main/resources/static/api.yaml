@@ -45,6 +45,14 @@ tags:
     description: "Management Client Authentication Manager — M2M OAuth2 client credential lifecycle"
   - name: "service-type"
     description: "Service type catalog management"
+  - name: "addresses"
+    description: "Address management"
+  - name: "notices"
+    description: "Notice acknowledgement tracking — user, application, notice type"
+  - name: "notice-types"
+    description: "Notice type management"
+  - name: "identification-documents"
+    description: "Identification document management"
 
 paths:
 
@@ -2134,6 +2142,437 @@ paths:
         "400":
           description: "Missing template metadata"
 
+  # ── Addresses ───────────────────────────────────────────────────────────────
+
+  /api/v1/addresses:
+    post:
+      tags: ["addresses"]
+      operationId: "createAddress"
+      summary: "Create an address"
+      description: "Creates a new address."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddressRequest"
+      responses:
+        "201":
+          description: "Address created"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Address"
+        "400":
+          description: "Invalid request body"
+
+  /api/v1/addresses/{addressId}:
+    get:
+      tags: ["addresses"]
+      operationId: "findAddressById"
+      summary: "Find address by ID"
+      description: "Returns the address matching the given UUID."
+      parameters:
+        - name: "addressId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: "Address found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Address"
+        "404":
+          description: "Address not found"
+    put:
+      tags: ["addresses"]
+      operationId: "updateAddress"
+      summary: "Update an address"
+      description: "Updates the address identified by the given UUID."
+      parameters:
+        - name: "addressId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddressRequest"
+      responses:
+        "200":
+          description: "Address updated"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Address"
+        "404":
+          description: "Address not found"
+    delete:
+      tags: ["addresses"]
+      operationId: "deleteAddress"
+      summary: "Delete an address"
+      description: "Deletes the address identified by the given UUID."
+      parameters:
+        - name: "addressId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: "Address deleted"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Address"
+        "404":
+          description: "Address not found"
+
+  /api/v1/addresses/person/{personId}:
+    get:
+      tags: ["addresses"]
+      operationId: "listAddressesByPerson"
+      summary: "List addresses by person"
+      description: "Business rule: a person has one or more addresses."
+      parameters:
+        - name: "personId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: "Address list returned"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Address"
+        "404":
+          description: "Person not found"
+
+  # ── Notices ─────────────────────────────────────────────────────────────────
+
+  /api/v1/notices:
+    post:
+      tags: ["notices"]
+      operationId: "createNotice"
+      summary: "Create a notice"
+      description: "Creates a new notice."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NoticeRequest"
+      responses:
+        "201":
+          description: "Notice created"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notice"
+        "400":
+          description: "Invalid request body"
+
+  /api/v1/notices/application/{applicationId}:
+    get:
+      tags: ["notices"]
+      operationId: "listNoticesByApplication"
+      summary: "List notices by application"
+      description: "Returns every notice registered for the given application."
+      parameters:
+        - name: "applicationId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: "Notice list returned"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Notice"
+        "404":
+          description: "Application not found"
+
+  /api/v1/notices/user/{userId}/application/{applicationId}/notice-type/{noticeTypeId}:
+    delete:
+      tags: ["notices"]
+      operationId: "deleteNotice"
+      summary: "Delete a notice"
+      description: "Addressed by its composite key — there is no surrogate id."
+      parameters:
+        - name: "userId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+        - name: "applicationId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+        - name: "noticeTypeId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: "Notice deleted"
+        "404":
+          description: "Notice not found"
+
+  # ── Notice Types ────────────────────────────────────────────────────────────
+
+  /api/v1/notice-types/:
+    post:
+      tags: ["notice-types"]
+      operationId: "createNoticeType"
+      summary: "Create a notice type"
+      description: "Creates a new notice type."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NoticeTypeRequest"
+      responses:
+        "201":
+          description: "Notice type created"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NoticeType"
+        "400":
+          description: "Invalid request body"
+
+  /api/v1/notice-types/list-all:
+    get:
+      tags: ["notice-types"]
+      operationId: "listAllNoticeTypes"
+      summary: "List all notice types"
+      description: "Returns every registered notice type."
+      responses:
+        "200":
+          description: "Notice type list returned"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/NoticeType"
+
+  /api/v1/notice-types/{noticeTypeId}:
+    get:
+      tags: ["notice-types"]
+      operationId: "findNoticeTypeById"
+      summary: "Find notice type by ID"
+      description: "Returns a single notice type by its UUID."
+      parameters:
+        - name: "noticeTypeId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: "Notice type found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NoticeType"
+        "404":
+          description: "Notice type not found"
+    put:
+      tags: ["notice-types"]
+      operationId: "updateNoticeType"
+      summary: "Update a notice type"
+      description: "Updates an existing notice type by its UUID."
+      parameters:
+        - name: "noticeTypeId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NoticeTypeRequest"
+      responses:
+        "200":
+          description: "Notice type updated"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NoticeType"
+        "404":
+          description: "Notice type not found"
+    delete:
+      tags: ["notice-types"]
+      operationId: "deleteNoticeType"
+      summary: "Delete a notice type"
+      description: "Deletes the notice type identified by the given UUID."
+      parameters:
+        - name: "noticeTypeId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: "Notice type deleted"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NoticeType"
+        "404":
+          description: "Notice type not found"
+
+  # ── Identification Documents ────────────────────────────────────────────────
+
+  /api/v1/identification-documents:
+    post:
+      tags: ["identification-documents"]
+      operationId: "createIdentificationDocument"
+      summary: "Create an identification document"
+      description: "Creates a new identification document."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IdentificationDocumentRequest"
+      responses:
+        "201":
+          description: "Identification document created."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IdentificationDocument"
+        "400":
+          description: "Invalid request body."
+
+  /api/v1/identification-documents/{identificationDocumentId}:
+    get:
+      tags: ["identification-documents"]
+      operationId: "findIdentificationDocumentById"
+      summary: "Find identification document by ID"
+      description: "Returns a single identification document by its UUID."
+      parameters:
+        - name: "identificationDocumentId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: "Identification document found."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IdentificationDocument"
+        "404":
+          description: "Identification document not found."
+    put:
+      tags: ["identification-documents"]
+      operationId: "updateIdentificationDocument"
+      summary: "Update an identification document"
+      description: "Updates an existing identification document by its UUID."
+      parameters:
+        - name: "identificationDocumentId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IdentificationDocumentRequest"
+      responses:
+        "200":
+          description: "Identification document updated."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IdentificationDocument"
+        "404":
+          description: "Identification document not found."
+    delete:
+      tags: ["identification-documents"]
+      operationId: "deleteIdentificationDocument"
+      summary: "Delete an identification document"
+      description: "Deletes the identification document identified by the given UUID."
+      parameters:
+        - name: "identificationDocumentId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: "Identification document deleted."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IdentificationDocument"
+        "404":
+          description: "Identification document not found."
+
+  /api/v1/identification-documents/person/{personId}:
+    get:
+      tags: ["identification-documents"]
+      operationId: "listIdentificationDocumentsByPerson"
+      summary: "List identification documents by person"
+      description: "Business rule: a person has a document (11); a document belongs to one person in this instance-level model."
+      parameters:
+        - name: "personId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            format: "uuid"
+      responses:
+        "200":
+          description: "Identification document list returned."
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/IdentificationDocument"
+        "404":
+          description: "Person not found."
+
 # ── Components ──────────────────────────────────────────────────────────────────
 
 components:
@@ -2997,3 +3436,102 @@ components:
         lastModifiedTimestamp:
           type: string
           format: date
+
+    # ── Addresses ───────────────────────────────────────────────────────────
+
+    Address:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        personId:
+          type: string
+          format: uuid
+        content:
+          type: string
+        zipcode:
+          type: string
+
+    AddressRequest:
+      type: object
+      properties:
+        address:
+          $ref: "#/components/schemas/Address"
+
+    # ── Notices ─────────────────────────────────────────────────────────────
+
+    Notice:
+      type: object
+      description: "No surrogate id — identified by the (userId, applicationId, noticeTypeId) composite key."
+      properties:
+        createdAt:
+          type: string
+          format: date-time
+        userId:
+          type: string
+          format: uuid
+        applicationId:
+          type: string
+          format: uuid
+        noticeTypeId:
+          type: string
+          format: uuid
+
+    NoticeRequest:
+      type: object
+      properties:
+        notice:
+          $ref: "#/components/schemas/Notice"
+
+    # ── Notice Types ────────────────────────────────────────────────────────
+
+    NoticeType:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        active:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    NoticeTypeRequest:
+      type: object
+      properties:
+        noticeType:
+          $ref: "#/components/schemas/NoticeType"
+
+    # ── Identification Documents ─────────────────────────────────────────────
+
+    IdentificationDocument:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        number:
+          type: string
+        expirationDate:
+          type: string
+          format: date
+        identificationType:
+          type: integer
+        personId:
+          type: string
+          format: uuid
+
+    IdentificationDocumentRequest:
+      type: object
+      properties:
+        identificationDocument:
+          $ref: "#/components/schemas/IdentificationDocument"
