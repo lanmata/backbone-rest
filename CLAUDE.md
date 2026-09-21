@@ -62,6 +62,27 @@ service, no REST surface), `roles`, `servicetype`, `session`, `users`
   Rotation is an operational Vault procedure, not application code — the
   rotation cadence/runbook is not documented here; owner to fill in.
 
+## Dependency Security (Dependabot)
+- **Review cadence**: check open alerts at the start of any work session that
+  touches `pom.xml`, and at least weekly otherwise —
+  `gh api repos/lanmata/backbone-rest/dependabot/alerts --paginate -q '.[] | select(.state=="open")'`.
+  Don't rely on discovering them only via the warning GitHub prints on `git push`.
+- **Remediation pattern**: when a CVE is in a *transitive* dependency (no direct
+  `<dependency>` entry to bump), add a `<properties>` entry named `<lib>.version`
+  next to the other centralized versions, then an explicit override in
+  `<dependencyManagement>` pinning that artifact to it — see `tomcat.version`,
+  `bouncycastle.version`, `guava.version`, `nimbus-jose-jwt.version`,
+  `handlebars.version`, `rhino.version`, `httpclient.version` in `pom.xml` for
+  worked examples (added to close 39 alerts in one pass — see PR #59).
+  Always verify with `mvn dependency:tree -Dincludes=<groupId>:<artifactId>`
+  that the override actually took effect before assuming a CVE is closed.
+- **Test-scope-only CVEs** (pulled in by `mockserver-junit-jupiter` /
+  `spring-cloud-contract-verifier`) still get the same override treatment for
+  hygiene, even though they never ship in the runtime JAR — see the same PR.
+- After merging a remediation, GitHub's dependency graph re-scans on the next
+  `submit-maven` Action run and typically auto-closes the alerts within minutes;
+  no manual "resolve" step is needed.
+
 ## Supabase Integration (Current Branch: ds-196-include-supabase-storage)
 - Auth: `AUTH_SERVER_URI=https://jygwixrpoxcrltmeshyl.supabase.co`
 - DB: PostgreSQL pooler at `aws-1-us-east-2.pooler.supabase.com:6543`
