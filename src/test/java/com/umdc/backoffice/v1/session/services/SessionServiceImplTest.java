@@ -63,6 +63,9 @@ class SessionServiceImplTest {
     @Mock
     private AuditEventService auditEventService;
 
+    @Mock
+    private SessionUserLookupService sessionUserLookupService;
+
     private SessionServiceImpl sessionService;
     private SessionTokenServiceImpl sessionTokenService;
 
@@ -76,7 +79,18 @@ class SessionServiceImplTest {
         when(jwtConfigProperties.getExpirationMs()).thenReturn(EXPIRATION_MS);
         sessionTokenService = new SessionTokenServiceImpl(jwtConfigProperties, jtiDenyListService);
         sessionService = new SessionServiceImpl(messageUtil, userMapper, userAliasMapper,
-                userRepository, passwordEncoder, loginAttemptService, auditEventService, sessionTokenService);
+                userRepository, passwordEncoder, loginAttemptService, auditEventService, sessionTokenService,
+                sessionUserLookupService);
+    }
+
+    /**
+     * Stubs the {@link SessionUserLookupService} lookup that {@code SessionServiceImpl} uses
+     * in place of {@link UserRepository#findByAliasAndApplication} /
+     * {@link UserRepository#findByEmailAndApplication}.
+     */
+    private void mockUserLookup(Optional<UserEntity> result) {
+        when(sessionUserLookupService.findByAliasAndApplication(anyString(), any())).thenReturn(result);
+        when(sessionUserLookupService.findByEmailAndApplication(anyString(), any())).thenReturn(result);
     }
 
     // ── loadSession(SessionRequest) ──────────────────────────────────────────
@@ -134,7 +148,7 @@ class SessionServiceImplTest {
         UUID appId = UUID.randomUUID();
         SessionRequest request = new SessionRequest("testAlias", "password", appId);
 
-        when(userRepository.findByAliasAndApplication("testAlias", appId)).thenReturn(Optional.empty());
+        mockUserLookup(Optional.empty());
 
         ResponseEntity<SessionResponse> response = sessionService.loadSession(request);
 
@@ -151,7 +165,7 @@ class SessionServiceImplTest {
         userEntity.setPassword("password");
         userEntity.setActive(false);
 
-        when(userRepository.findByAliasAndApplication("testAlias", appId)).thenReturn(Optional.of(userEntity));
+        mockUserLookup(Optional.of(userEntity));
 
         ResponseEntity<SessionResponse> response = sessionService.loadSession(request);
 
@@ -175,7 +189,7 @@ class SessionServiceImplTest {
         userEntity.setActive(true);
         userEntity.setApplicationRoleUser(Set.of(applicationRoleUser));
 
-        when(userRepository.findByAliasAndApplication("testAlias", appId)).thenReturn(Optional.of(userEntity));
+        mockUserLookup(Optional.of(userEntity));
 
         ResponseEntity<SessionResponse> response = sessionService.loadSession(request);
 
@@ -207,7 +221,7 @@ class SessionServiceImplTest {
         userAliasTO.setFirstname("John");
         userAliasTO.setLastname("Doe");
 
-        when(userRepository.findByAliasAndApplication("testAlias", appId)).thenReturn(Optional.of(userEntity));
+        mockUserLookup(Optional.of(userEntity));
         when(userRepository.findUserInfo(userId)).thenReturn(userInfo);
         when(userMapper.toTarget(userInfo)).thenReturn(userTO);
         when(userAliasMapper.toTarget(userTO)).thenReturn(userAliasTO);
@@ -238,7 +252,7 @@ class SessionServiceImplTest {
         userEntity.setActive(true);
         userEntity.setApplicationRoleUser(Set.of(applicationRoleUser));
 
-        when(userRepository.findByAliasAndApplication("testAlias", appId)).thenReturn(Optional.of(userEntity));
+        mockUserLookup(Optional.of(userEntity));
         when(passwordEncoder.matches("password", "encodedPassword")).thenReturn(true);
         when(userRepository.findUserInfo(userId)).thenReturn(null);
 
@@ -272,7 +286,7 @@ class SessionServiceImplTest {
         userAliasTO.setFirstname("John");
         userAliasTO.setLastname("Doe");
 
-        when(userRepository.findByAliasAndApplication("testAlias", appId)).thenReturn(Optional.of(userEntity));
+        mockUserLookup(Optional.of(userEntity));
         when(passwordEncoder.matches("password", "encodedPassword")).thenReturn(true);
         when(userRepository.findUserInfo(userId)).thenReturn(userInfo);
         when(userMapper.toTarget(userInfo)).thenReturn(userTO);
@@ -338,7 +352,7 @@ class SessionServiceImplTest {
         UUID appId = UUID.randomUUID();
         SessionEmailRequest request = new SessionEmailRequest("test@example.com", "password", appId);
 
-        when(userRepository.findByEmailAndApplication("test@example.com", appId)).thenReturn(Optional.empty());
+        mockUserLookup(Optional.empty());
 
         ResponseEntity<SessionResponse> response = sessionService.loadSession(request);
 
@@ -355,7 +369,7 @@ class SessionServiceImplTest {
         userEntity.setPassword("password");
         userEntity.setActive(false);
 
-        when(userRepository.findByEmailAndApplication("test@example.com", appId)).thenReturn(Optional.of(userEntity));
+        mockUserLookup(Optional.of(userEntity));
 
         ResponseEntity<SessionResponse> response = sessionService.loadSession(request);
 
@@ -390,7 +404,7 @@ class SessionServiceImplTest {
         userAliasTO.setAlias("testAlias");
         userAliasTO.setUserId(userId);
 
-        when(userRepository.findByEmailAndApplication("test@example.com", appId)).thenReturn(Optional.of(userEntity));
+        mockUserLookup(Optional.of(userEntity));
         when(userRepository.findUserInfo(userId)).thenReturn(userInfo);
         when(userMapper.toTarget(userInfo)).thenReturn(userTO);
         when(userAliasMapper.toTarget(userTO)).thenReturn(userAliasTO);
@@ -422,7 +436,7 @@ class SessionServiceImplTest {
         userEntity.setActive(true);
         userEntity.setApplicationRoleUser(Set.of(applicationRoleUser));
 
-        when(userRepository.findByEmailAndApplication("test@example.com", appId)).thenReturn(Optional.of(userEntity));
+        mockUserLookup(Optional.of(userEntity));
 
         ResponseEntity<SessionResponse> response = sessionService.loadSession(request);
 
@@ -582,7 +596,7 @@ class SessionServiceImplTest {
         UUID appId = UUID.randomUUID();
         SessionEmailRequest request = new SessionEmailRequest("wrong@example.com", "password", appId);
 
-        when(userRepository.findByEmailAndApplication("wrong@example.com", appId)).thenReturn(Optional.empty());
+        mockUserLookup(Optional.empty());
 
         ResponseEntity<SessionResponse> response = sessionService.loadSession(request);
 
@@ -609,7 +623,7 @@ class SessionServiceImplTest {
         userEntity.setActive(true);
         userEntity.setApplicationRoleUser(Set.of(applicationRoleUser));
 
-        when(userRepository.findByEmailAndApplication("test@example.com", appId)).thenReturn(Optional.of(userEntity));
+        mockUserLookup(Optional.of(userEntity));
 
         ResponseEntity<SessionResponse> response = sessionService.loadSession(request);
 
