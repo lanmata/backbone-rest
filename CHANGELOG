@@ -4,6 +4,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] - 2026-09-28
+
+### Fixed
+- **`POST /api/v1/iam/permissions/check` silently ignored its own `applicationId`
+  field** — `PermissionCheckServiceImpl` only ever checked the requested
+  `permission` against the token's flattened, cross-application `roles` claim,
+  regardless of whether `applicationId` was supplied. Now, when `applicationId` is
+  present and the token carries a resolvable `uid` claim, the check is
+  application-scoped: resolves the caller's single `general.application_role_user`
+  row for that `(user, application)` pair (the existing ACL — no new table) and
+  grants only if it's active and its role name, or one of the role's active
+  granted features, matches `permission` (case-insensitive). Falls back to the
+  prior global-claim behavior when `applicationId` is absent or the token has no
+  `uid` (e.g. one minted before the fix below).
+- The alias/password login flow (`SessionServiceImpl.loadSession(SessionRequest)`)
+  never embedded the `uid` claim in the issued session token — only the
+  email/password flow did — which meant the fix above had no caller identity to
+  resolve for tokens minted via the more common alias/password path. Now sets it,
+  matching the other login flow.
+
+### Documentation
+- `docs/api/iam-permissions.md` — documented `applicationId` in the request table
+  (was entirely missing), the two-path (application-scoped vs. global) "How It
+  Works" flow, and `reason` in the example responses.
+- `src/main/resources/static/api.yaml` — updated `checkPermission` operation and
+  `PermissionCheckRequest.applicationId` descriptions to match.
+
 ## [Unreleased] - 2026-07-13
 
 ### Added
