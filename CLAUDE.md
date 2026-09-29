@@ -58,7 +58,7 @@ service, no REST surface), `roles`, `servicetype`, `session`, `users`
   `jti:<value>` with the token's remaining TTL — Redis expires them natively,
   no scheduled cleanup job needed.
 - **`APP_TOKEN_SECRET`**: sourced from `${APP_TOKEN_SECRET}` (no default/fallback),
-  injected via Vault + Spring Cloud Config in `bootstrap.yml`. Never hardcoded.
+  injected via Vault + Spring Cloud Config (`spring.config.import` in `application.yml`). Never hardcoded.
   Rotation is an operational Vault procedure, not application code — the
   rotation cadence/runbook is not documented here; owner to fill in.
 
@@ -92,7 +92,7 @@ service, no REST surface), `roles`, `servicetype`, `session`, `users`
 ## Key Files
 | File | Purpose |
 |------|---------|
-| `src/main/resources/bootstrap.yml` | Central config — Vault, Config Server, OAuth |
+| `src/main/resources/application.yml` | Central config — Vault, Config Server, OAuth (migrated off the legacy `bootstrap.yml`/`spring-cloud-starter-bootstrap` mechanism for GraalVM AOT compatibility — see `spring.config.import`) |
 | `src/main/resources/static/api.yaml` | OpenAPI 3.1 spec (served at `/api.yaml`) |
 | `src/main/resources/default.env` | Runtime env stubs (no real secrets in git) |
 | `ruleset.xml` | PMD rules — check before committing |

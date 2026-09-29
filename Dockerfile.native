@@ -1,0 +1,133 @@
+# syntax=docker/dockerfile:1
+
+# GraalVM Native Image build for backbone-rest. Two stages: compile the native
+# executable inside a Linux GraalVM builder image (native-image cross-compiles for
+# the container's own arch, regardless of the host that runs `docker build`), then
+# copy just the binary into a minimal runtime image. Same pattern as mercury's own
+# Dockerfile.native (MER-5) — see that repo's docs/architecture/graalvm-native-image.md
+# for the base-image gotchas this avoids by construction.
+#
+# Builder base is minimal Debian, NOT ghcr.io/graalvm/native-image-community:25 — that image is
+# built on Oracle Linux 10, which raised its glibc CPU baseline to x86-64-v3 (requires AVX2/BMI2),
+# and fails immediately ("Fatal glibc error: CPU does not support x86-64-v3") on deployment
+# platforms whose CPU/VM doesn't offer those extensions. Debian/Ubuntu keep the original x86-64
+# baseline, so GraalVM and Maven are installed manually here instead.
+FROM debian:12-slim AS builder
+ARG TARGETARCH
+WORKDIR /build
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl ca-certificates build-essential zlib1g-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+ARG GRAALVM_VERSION=25.0.4
+RUN set -eu; \
+    case "${TARGETARCH}" in \
+      amd64) GRAAL_ARCH=x64 ;; \
+      arm64) GRAAL_ARCH=aarch64 ;; \
+      *) echo "Unsupported TARGETARCH: ${TARGETARCH}" >&2; exit 1 ;; \
+    esac; \
+    curl -fsSL "https://download.oracle.com/graalvm/25/archive/graalvm-jdk-${GRAALVM_VERSION}_linux-${GRAAL_ARCH}_bin.tar.gz" -o /tmp/graalvm.tar.gz && \
+    mkdir -p /opt/graalvm && \
+    tar xzf /tmp/graalvm.tar.gz -C /opt/graalvm --strip-components=1 && \
+    rm /tmp/graalvm.tar.gz
+ENV JAVA_HOME=/opt/graalvm
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
+
+# Maven isn't part of a bare JDK — installed from a pinned tarball, matching the version this
+# project builds with locally, rather than whatever a distro repo happens to have.
+ARG MAVEN_VERSION=3.9.14
+# archive.apache.org, not dlcdn.apache.org — dlcdn only mirrors the latest release per line and
+# 404s once a newer 3.9.x replaces this pinned version; the archive keeps every release forever.
+RUN curl -fsSL "https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz" \
+    | tar xz -C /opt && ln -s "/opt/apache-maven-${MAVEN_VERSION}/bin/mvn" /usr/local/bin/mvn
+
+COPY pom.xml ruleset.xml ./
+COPY config/native.env ./config/native.env
+COPY src ./src
+# certs/backbone/ (gitignored, never in git history) supplies backbone.jks / umdc-truststore.jks
+# to pom.xml's <resources> entry so ThirdPartyNativeRuntimeHints' `*.jks` resource-pattern hint
+# has something to embed into the native binary — this COPY only succeeds when certs/backbone/
+# is actually populated on the build host (true for local builds; see the secret-mount staging
+# below for how the final image gets these files on a from-scratch CI checkout instead).
+COPY certs/backbone ./certs/backbone
+# ~/.m2/settings.xml (repo credentials for the private Repsy repository) is mounted as a
+# BuildKit secret, never COPYed, so it never lands in an image layer:
+# `docker build --secret id=maven_settings,src=$HOME/.m2/settings.xml -f Dockerfile.native .`
+# native:compile is a separate goal from package/clean — native-maven-plugin's "extensions" mode
+# does NOT auto-bind native-image compilation to the package phase for this plugin version, only
+# the AOT-metadata-generation goals; the actual native-image invocation must be requested
+# explicitly.
+# config/native.env is required here too, same reason as local builds: process-aot needs a full
+# ApplicationContext refresh and this build has no Vault/Config Server access — see that file's
+# own header comment and docs/architecture/graalvm-native-image.md.
+RUN --mount=type=secret,id=maven_settings,target=/root/.m2/settings.xml \
+    sh -c 'set -a; . ./config/native.env; set +a; \
+    mvn -Pnative -B -DskipTests clean package native:compile'
+
+# native-image also dynamically links libz (java.util.zip / jar reading needs it — every Java app
+# uses this, native or not), which neither distroless variant ships: "error while loading shared
+# libraries: libz.so.1: cannot open shared object file" at container start. distroless has no
+# package manager and no shell to fix this from the runtime side, so the zlib1g-dev install above
+# (which pulls in the zlib1g runtime lib as a dependency) is staged into an arch-neutral path here
+# (via gcc's own multiarch triplet, so this works for both amd64 and arm64 builds without
+# hardcoding one) for the final stage to COPY — landing at the exact same multiarch directory the
+# runtime image's own glibc/libssl already live in, since both stages are Debian 12.
+RUN MULTIARCH="$(gcc -print-multiarch)" \
+    && mkdir -p "/staging/usr/lib/${MULTIARCH}" \
+    && cp -a /usr/lib/"${MULTIARCH}"/libz.so* "/staging/usr/lib/${MULTIARCH}/"
+
+# certs/backbone/ is entirely gitignored (see .gitignore's "Secrets / certs" section), so a
+# plain `COPY certs/backbone/ certs/backbone/` from the build context copies nothing on a
+# from-scratch git checkout — same trap mercury's own prx-internal-ca.crt hit (MER-5). The CA
+# is required as a BuildKit secret; the keystore mounts are optional when the files are already
+# in the builder context, and allow clean CI checkouts to supply them without COPYing them into
+# a build layer. The distroless final stage has no shell, so the files are staged here for its
+# later COPY.
+RUN --mount=type=secret,id=prx_internal_ca,target=/run/secrets/prx-internal-ca.crt \
+    --mount=type=secret,id=backbone_jks,target=/run/secrets/backbone.jks,required=false \
+    --mount=type=secret,id=umdc_truststore_jks,target=/run/secrets/umdc-truststore.jks,required=false \
+    mkdir -p /staging-certs/backbone && \
+    cp /run/secrets/prx-internal-ca.crt /staging-certs/backbone/prx-internal-ca.crt && \
+    if [ -f /run/secrets/backbone.jks ]; then \
+      cp /run/secrets/backbone.jks /staging-certs/backbone/backbone.jks; \
+    else \
+      cp /build/certs/backbone/backbone.jks /staging-certs/backbone/backbone.jks; \
+    fi && \
+    if [ -f /run/secrets/umdc-truststore.jks ]; then \
+      cp /run/secrets/umdc-truststore.jks /staging-certs/backbone/umdc-truststore.jks; \
+    else \
+      cp /build/certs/backbone/umdc-truststore.jks /staging-certs/backbone/umdc-truststore.jks; \
+    fi
+
+# cc-debian12 (glibc + libstdc++/libgcc1), not the smaller base-debian12 (glibc only) — this
+# build uses the plain default `--no-fallback` native-image linking (dynamically linked against
+# glibc AND libstdc++), not the "mostly static" mode base-debian12 is meant for.
+FROM gcr.io/distroless/cc-debian12:nonroot
+LABEL version="0.0.2-native"
+LABEL description="Backbone REST API (GraalVM native image)"
+LABEL maintainer="Luis Antonio Mata luis.antonio.mata@gmail.com"
+
+WORKDIR /usr/local/runme
+
+COPY --from=builder /build/target/backbone-rest /usr/local/runme/backbone-rest
+COPY --from=builder /staging/usr/lib/ /usr/lib/
+# Sourced from the builder stage's staged certificate files (see the RUN step above). The
+# keystores are placed both at WORKDIR root (classpath:backbone.jks lookups) and under
+# certs/backbone/ (matching the local, non-Docker layout pom.xml's <resources> entry expects).
+COPY --from=builder /staging-certs/backbone/backbone.jks backbone.jks
+COPY --from=builder /staging-certs/backbone/umdc-truststore.jks umdc-truststore.jks
+COPY --from=builder /staging-certs/backbone/ certs/backbone/
+
+EXPOSE 8084
+
+# No shell in a distroless image, so no docker-entrypoint.sh here — the two static -D values
+# the JIT entrypoint set unconditionally are passed as native-image CLI args instead (Spring's
+# native launcher still honors -D the same way the JVM does). Everything else
+# (SSL_KEYSTORE_LOCATION, VAULT_ENABLED, etc.) is read directly from the container's plain
+# environment — confirmed sufficient: the native smoke test that verified this Dockerfile's
+# build never set any -D for those, only env vars, and Tomcat's SSL listener and MCAM key
+# loading both worked correctly from env vars alone.
+ENTRYPOINT ["/usr/local/runme/backbone-rest", \
+    "-Dspring.application.name=backbone-rest", \
+    "-Dapi.info.version=0.0.3"]

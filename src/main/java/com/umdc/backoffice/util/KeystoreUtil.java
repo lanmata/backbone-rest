@@ -191,11 +191,11 @@ public final class KeystoreUtil {
         }
     }
 
-    private SslBundle loadSslBundle(KeyStore trustStore, KeyStore keyStore, String keystorePassword) {
+    private SslBundle loadSslBundle(KeyStore keyStore, KeyStore trustStore, String keystorePassword) {
         return SslBundle.of(SslStoreBundle.of(keyStore, keystorePassword, trustStore));
     }
 
-    private SslBundle loadSslBundle(KeyStore trustStore, KeyStore keyStore, String keystorePassword, String alias) {
+    private SslBundle loadSslBundle(KeyStore keyStore, KeyStore trustStore, String keystorePassword, String alias) {
         SslBundleKey bundleKey = SslBundleKey.of(keystorePassword, alias);
         return SslBundle.of(SslStoreBundle.of(keyStore, keystorePassword, trustStore), bundleKey);
     }

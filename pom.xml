@@ -25,7 +25,7 @@
 
     <groupId>com.umdc.backbone</groupId>
     <artifactId>backbone-rest</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.3</version>
     <name>UMDC Backbone REST</name>
     <description>Management service to system entities</description>
 
@@ -51,42 +51,49 @@
     </scm>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <java.version>21</java.version>
+        <java.version>25</java.version>
         <!-- Use a dedicated jacoco argLine property to avoid conflicts with CI/global agent injection -->
         <jacoco.argLine/>
         <!--        PRX Commons-->
-        <com.umdc.commons.version>0.0.1</com.umdc.commons.version>
-        <com.umdc.commons-services.version>0.0.1</com.umdc.commons-services.version>
-        <com.umdc.security-oauth.version>0.0.1</com.umdc.security-oauth.version>
-        <com.umdc.persistence.version>0.0.1</com.umdc.persistence.version>
+        <com.umdc.commons.version>0.0.2</com.umdc.commons.version>
+        <com.umdc.commons-services.version>0.0.2</com.umdc.commons-services.version>
+        <com.umdc.security-oauth.version>0.0.2</com.umdc.security-oauth.version>
+        <com.umdc.persistence.version>0.0.2</com.umdc.persistence.version>
         <!--        MAVEN-->
         <maven.compiler.release>${java.version}</maven.compiler.release>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
-        <maven.compiler.plugin.version>3.14.1</maven.compiler.plugin.version>
+        <maven.compiler.plugin.version>3.15.0</maven.compiler.plugin.version>
         <maven.resource.plugin.version>3.3.1</maven.resource.plugin.version>
-        <maven.plugin.javadoc.version>3.6.3</maven.plugin.javadoc.version>
-        <maven.plugin.jacoco.version>0.8.14</maven.plugin.jacoco.version>
+        <maven.plugin.javadoc.version>3.12.0</maven.plugin.javadoc.version>
+        <maven.plugin.jacoco.version>0.8.15</maven.plugin.jacoco.version>
         <maven.plugin.pmd.version>3.28.0</maven.plugin.pmd.version>
         <maven.plugin.jxr.version>3.0.0</maven.plugin.jxr.version>
-        <maven.surefire.version>3.5.2</maven.surefire.version>
+        <maven.surefire.version>3.5.6</maven.surefire.version>
         <!--        OPEN API -->
-        <springdoc.version>2.6.0</springdoc.version>
+        <!-- 2.6.0 targets Spring Boot 3.x; Spring Data 4.1.1 relocated TypeInformation from
+             org.springframework.data.util to org.springframework.data.core, which springdoc
+             2.6.0's QuerydslPredicateOperationCustomizer still references — invisible to a
+             plain `mvn test` (no test loads a full ApplicationContext) but fatal the first time
+             something does a real context refresh (spring-boot:process-aot's AOT pass, or a real
+             `spring-boot:run`). 3.1.0 is the version already fixed to this Boot/Data line in
+             mercury's pom.xml. -->
+        <springdoc.version>3.1.0</springdoc.version>
         <!--        SPRING -->
         <spring-boot.version>4.1.1</spring-boot.version>
-        <spring-cloud.version>2025.1.2</spring-cloud.version>
+        <spring-cloud.version>2025.1.3</spring-cloud.version>
         <!-- Overrides Spring Boot BOM's tomcat.version (11.0.24) to close CVEs GHSA-h3x4-894j-xpx5,
              GHSA-9xv2-5v5q-p794, GHSA-gcx9-497g-6cp6 (fixed in 11.0.25) -->
         <tomcat.version>11.0.26</tomcat.version>
 
         <!-- Centralized versions for previously hardcoded dependency/plugin versions -->
         <postgresql.version>42.7.13</postgresql.version>
-        <aws.sdk.version>2.21.0</aws.sdk.version>
+        <aws.sdk.version>2.54.5</aws.sdk.version>
         <google.gson.version>2.13.2</google.gson.version>
         <mapstruct.version>1.6.3</mapstruct.version>
-        <jwt.version>0.12.6</jwt.version>
-        <snakeyaml.version>2.5</snakeyaml.version>
-        <org.json.version>20250517</org.json.version>
+        <jwt.version>0.13.0</jwt.version>
+        <snakeyaml.version>2.6</snakeyaml.version>
+        <org.json.version>20260814</org.json.version>
         <plexus.utils.version>4.0.2</plexus.utils.version>
         <rewrite.plugin.version>5.42.0</rewrite.plugin.version>
         <rewrite.recipe.version>5.21.0</rewrite.recipe.version>
@@ -99,10 +106,10 @@
 
         <!--        Test Dependencies-->
         <!--        JUnit 6.x-->
-        <junit.jupiter.version>6.0.3</junit.jupiter.version>
+        <junit.jupiter.version>6.1.3</junit.jupiter.version>
         <!--        Mockito-->
-        <mockito.version>5.21.0</mockito.version>
-        <mockserver.junit.jupiter.version>5.15.0</mockserver.junit.jupiter.version>
+        <mockito.version>5.23.0</mockito.version>
+        <mockserver.junit.jupiter.version>7.6.0</mockserver.junit.jupiter.version>
         <!-- Transitive test-scope CVEs pulled in by mockserver-junit-jupiter / spring-cloud-contract-verifier;
              overridden to close GHSA-7g45-4rm6-3mm3, GHSA-5mg8-w23w-74h3 (guava), GHSA-gvpg-vgmx-xg6w,
              GHSA-xwmg-2g98-w7v9 (nimbus-jose-jwt), GHSA-r4gv-qr8j-p3pg (handlebars), GHSA-3w8q-xq97-5j7x (rhino) -->
@@ -195,17 +202,13 @@
             <artifactId>jersey-hk2</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-bootstrap</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.woodstox</groupId>
             <artifactId>woodstox-core</artifactId>
-            <version>7.0.0</version>
+            <version>7.2.2</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
@@ -341,26 +344,15 @@
             <groupId>org.apache.httpcomponents.client5</groupId>
             <artifactId>httpclient5</artifactId>
         </dependency>
-        <!--        TEST-->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-contract-verifier</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-contract-stub-runner</artifactId>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>org.codehaus.plexus</groupId>
             <artifactId>plexus-utils</artifactId>
-            <version>4.0.3</version>
+            <version>4.1.0</version>
         </dependency>
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <version>2.2.224</version>
+            <version>2.4.240</version>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
@@ -407,7 +399,7 @@
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
-            <version>5.4.0</version>
+            <version>5.5.1</version>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
@@ -423,12 +415,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-test-autoconfigure</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.vintage</groupId>
-            <artifactId>junit-vintage-engine</artifactId>
-            <version>${junit.jupiter.version}</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.junit</groupId>
@@ -554,11 +540,29 @@
 
     <build>
         <finalName>${project.artifactId}</finalName>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <!-- KeystoreUtil.getKeyStore (com.umdc.backoffice.util) loads the umdc.security.keystore/
+                 truststore "location" properties via a raw ClassLoader.getResourceAsStream(location)
+                 call after stripping any "classpath:" prefix — the files must be real classpath
+                 resources. Real dev certs (backbone.jks, umdc-truststore.jks, ...) live in
+                 certs/backbone/ instead of src/main/resources so they're never committed (see
+                 .gitignore's *.jks/*.crt/etc. rules) — copying that directory's contents onto the
+                 classpath root here lets classpath:backbone.jks / classpath:umdc-truststore.jks
+                 resolve exactly as before. Same pattern as mercury's own pom.xml (MER-5). Silently
+                 a no-op (Maven skips a missing <directory>, no failure) on any checkout/build stage
+                 where certs/backbone/ isn't populated yet. -->
+            <resource>
+                <directory>certs/backbone</directory>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.14.1</version>
+                <version>3.15.0</version>
                 <configuration>
                     <annotationProcessorPaths>
                         <path>
@@ -679,7 +683,7 @@
             <plugin>
                 <groupId>org.springdoc</groupId>
                 <artifactId>springdoc-openapi-maven-plugin</artifactId>
-                <version>1.4</version>
+                <version>1.5.3</version>
                 <executions>
                     <execution>
                         <phase>integration-test</phase>
@@ -692,7 +696,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-antrun-plugin</artifactId>
-                <version>3.1.0</version>
+                <version>3.2.0</version>
                 <executions>
                     <execution>
                         <id>fix-spring-configuration-metadata</id>
@@ -735,4 +739,56 @@
             <url>https://repo.repsy.io/mvn/lmata/prx</url>
         </repository>
     </distributionManagement>
+
+    <profiles>
+        <profile>
+            <!-- GraalVM native-image build. Activates the native/native-build-tools
+                 wiring already pluginManagement'd by spring-boot-starter-parent (process-aot
+                 plus native-maven-plugin, native-build-tools) and adds the no-fallback
+                 build arg so the build fails loudly instead of silently producing a
+                 JVM-fallback "native" jar. Same pattern as mercury's pom.xml (MER-5) —
+                 see that repo's docs/architecture/graalvm-native-image.md for the reflection
+                 hints / Dockerfile.native / base-image gotchas a real native build here will
+                 likely also need; NOT reproduced here since they're specific to what
+                 GraalVM's own MissingReflectionRegistrationError names when the build is
+                 actually attempted (no GraalVM toolchain was available to run that here). -->
+            <id>native</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-maven-plugin</artifactId>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <configuration>
+                            <buildArgs>
+                                <buildArg>--no-fallback</buildArg>
+                            </buildArgs>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <!-- Mockito's default inline mock maker does not work under native-image test
+                 execution (mockito/mockito#2435), and this project's test suite uses it —
+                 so nativeTest is wired for completeness (per Spring Boot convention) but is
+                 not the correctness gate; the JVM-mode `mvn test` remains that. -->
+            <id>nativeTest</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-maven-plugin</artifactId>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

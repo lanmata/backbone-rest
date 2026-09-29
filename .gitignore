@@ -34,12 +34,14 @@ build/
 .vscode/
 
 ### Environment Variables ###
+# Same split as mercury: *.env is ignored by default (local Vault-bootstrap bypass files
+# like default.env / secrets/local.env), except config/*.env — that carries no credentials,
+# only bootstrap identity (profile, Vault/Config Server URLs), and is meant to be versioned.
 .env
 .env.local
 .env.*.local
-/default.env
-
-/src/main/resources/backbone.jks
+*.env
+!config/*.env
 
 ### OS ###
 .DS_Store
@@ -49,4 +51,12 @@ __pycache__/
 *.pyc
 
 ### Secrets / certs — never commit (see CLAUDE.md "What Not To Do") ###
+# Real keystores/certs live under certs/backbone/ on disk (see pom.xml's <resources> for how
+# they reach the classpath) and are never committed, matching mercury's own certs/mercury/.
+*.pem
+*.key
+*.jks
+*.p12
+*.pfx
+*.cert
 *.crt
