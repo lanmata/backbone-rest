@@ -28,11 +28,26 @@ This endpoint evaluates whether a **session token** holder has a specific named 
 
 ### How It Works
 
+When `applicationId` is provided **and** the session token carries a resolvable `uid` claim, the check is
+**application-scoped** — the authoritative path, since a user holds at most one role per application
+(`general.application_role_user`, unique on `(user_id, application_id)`):
+
 ```
-sessionToken → decode → extract userId + applicationId
-→ load user's roles → expand role.features
-→ match feature.name == permission
-→ return { granted: true/false }
+sessionToken → decode uid
+→ general.application_role_user.findByUserAndApplication(uid, applicationId)
+→ role must be active
+→ match permission == role.name, or permission == name of one of role's active granted features
+→ return { granted, permission, reason }
+```
+
+Otherwise (no `applicationId`, or the token has no `uid` claim — e.g. a token minted before this claim was
+added), it falls back to the **global** check against the token's flattened `roles` claim, which is not
+scoped to any single application:
+
+```
+sessionToken → decode roles claim (cross-application, flattened)
+→ match permission ∈ roles
+→ return { granted, permission, reason }
 ```
 
 ### 📋 Request Headers
@@ -46,13 +61,15 @@ sessionToken → decode → extract userId + applicationId
 
 | Field | Type | Required | Constraints | Description |
 |-------|------|----------|-------------|-------------|
-| `sessionToken` | `string` | ✅ | Valid session JWT | The session JWT obtained from `POST /api/v1/session` |
-| `permission` | `string` | ✅ | Non-empty | Feature name to check (e.g. `EXPORT_REPORTS`) |
+| `sessionToken` | `string` | ✅ | Valid session JWT | The session JWT to evaluate — this service's own, or any signed with the same shared `APP_TOKEN_SECRET` (e.g. Mercury's) |
+| `permission` | `string` | ✅ | Non-empty | Role name or feature name to check (e.g. `EXPORT_REPORTS`, `TEMPLATE_MANAGE`) |
+| `applicationId` | `string` (uuid) | – | Valid UUID | Application scope. When set and the token carries a resolvable `uid`, enforces the check against `general.application_role_user` for that specific `(user, application)` pair instead of the token's cross-application `roles` claim |
 
 ```json
 {
   "sessionToken": "<session-jwt>",
-  "permission": "EXPORT_REPORTS"
+  "permission": "TEMPLATE_MANAGE",
+  "applicationId": "33333333-3333-3333-3333-333333333333"
 }
 ```
 
@@ -71,15 +88,17 @@ sessionToken → decode → extract userId + applicationId
 ```json
 {
   "granted": true,
-  "permission": "EXPORT_REPORTS"
+  "permission": "EXPORT_REPORTS",
+  "reason": "Permission granted"
 }
 ```
 
-**Response `200 OK` — permission denied:**
+**Response `200 OK` — permission denied (no active role in the requested application):**
 ```json
 {
   "granted": false,
-  "permission": "EXPORT_REPORTS"
+  "permission": "EXPORT_REPORTS",
+  "reason": "User has no active role in this application"
 }
 ```
 

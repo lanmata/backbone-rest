@@ -21,6 +21,14 @@
 > [!NOTE]
 > Use this endpoint when the client identifies the user by their **alias** (username). For email-based login, use `POST /api/v1/session/token`.
 
+> [!NOTE]
+> The issued `sessionToken` embeds a `uid` claim identifying the authenticated user (matches
+> the claim already set by `POST /api/v1/session/token`). Downstream services rely on it to
+> resolve caller identity for application-scoped authorization — see
+> [`applicationId`-scoped checks](./iam-permissions.md#how-it-works) in `POST /api/v1/iam/permissions/check`.
+> Tokens minted before this fix carry no `uid` and fall back to that endpoint's global,
+> cross-application `roles` claim instead.
+
 ### 📋 Request Headers
 
 | Header | Required | Value |

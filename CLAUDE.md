@@ -58,9 +58,30 @@ service, no REST surface), `roles`, `servicetype`, `session`, `users`
   `jti:<value>` with the token's remaining TTL — Redis expires them natively,
   no scheduled cleanup job needed.
 - **`APP_TOKEN_SECRET`**: sourced from `${APP_TOKEN_SECRET}` (no default/fallback),
-  injected via Vault + Spring Cloud Config in `bootstrap.yml`. Never hardcoded.
+  injected via Vault + Spring Cloud Config (`spring.config.import` in `application.yml`). Never hardcoded.
   Rotation is an operational Vault procedure, not application code — the
   rotation cadence/runbook is not documented here; owner to fill in.
+
+## Dependency Security (Dependabot)
+- **Review cadence**: check open alerts at the start of any work session that
+  touches `pom.xml`, and at least weekly otherwise —
+  `gh api repos/lanmata/backbone-rest/dependabot/alerts --paginate -q '.[] | select(.state=="open")'`.
+  Don't rely on discovering them only via the warning GitHub prints on `git push`.
+- **Remediation pattern**: when a CVE is in a *transitive* dependency (no direct
+  `<dependency>` entry to bump), add a `<properties>` entry named `<lib>.version`
+  next to the other centralized versions, then an explicit override in
+  `<dependencyManagement>` pinning that artifact to it — see `tomcat.version`,
+  `bouncycastle.version`, `guava.version`, `nimbus-jose-jwt.version`,
+  `handlebars.version`, `rhino.version`, `httpclient.version` in `pom.xml` for
+  worked examples (added to close 39 alerts in one pass — see PR #59).
+  Always verify with `mvn dependency:tree -Dincludes=<groupId>:<artifactId>`
+  that the override actually took effect before assuming a CVE is closed.
+- **Test-scope-only CVEs** (pulled in by `mockserver-junit-jupiter` /
+  `spring-cloud-contract-verifier`) still get the same override treatment for
+  hygiene, even though they never ship in the runtime JAR — see the same PR.
+- After merging a remediation, GitHub's dependency graph re-scans on the next
+  `submit-maven` Action run and typically auto-closes the alerts within minutes;
+  no manual "resolve" step is needed.
 
 ## Supabase Integration (Current Branch: ds-196-include-supabase-storage)
 - Auth: `AUTH_SERVER_URI=https://jygwixrpoxcrltmeshyl.supabase.co`
@@ -71,7 +92,7 @@ service, no REST surface), `roles`, `servicetype`, `session`, `users`
 ## Key Files
 | File | Purpose |
 |------|---------|
-| `src/main/resources/bootstrap.yml` | Central config — Vault, Config Server, OAuth |
+| `src/main/resources/application.yml` | Central config — Vault, Config Server, OAuth (migrated off the legacy `bootstrap.yml`/`spring-cloud-starter-bootstrap` mechanism for GraalVM AOT compatibility — see `spring.config.import`) |
 | `src/main/resources/static/api.yaml` | OpenAPI 3.1 spec (served at `/api.yaml`) |
 | `src/main/resources/default.env` | Runtime env stubs (no real secrets in git) |
 | `ruleset.xml` | PMD rules — check before committing |

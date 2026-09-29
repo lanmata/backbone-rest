@@ -17,7 +17,7 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * Configuration properties for JWT token generation and validation.
- * Binds to the {@code umdc.security.jwt} prefix in bootstrap.yml.
+ * Binds to the {@code umdc.security.jwt} prefix in application.yml.
  */
 @Configuration
 @ConfigurationProperties(prefix = "umdc.security.jwt")

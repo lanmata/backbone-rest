@@ -1596,7 +1596,7 @@ paths:
       tags: ["iam-permissions"]
       operationId: "checkPermission"
       summary: "Check permission"
-      description: "Validates a session token and checks whether it carries the requested permission."
+      description: "Validates a session token and checks whether the caller holds the requested permission. When applicationId is provided and the token carries a resolvable uid, the check is scoped to that specific application via the caller's general.application_role_user ACL row (role name or one of its active granted features must match); otherwise falls back to the token's flattened, cross-application roles claim."
       requestBody:
         required: true
         content:
@@ -2729,9 +2729,11 @@ components:
       properties:
         permission:
           type: "string"
+          description: "Role name (e.g. ROLE_ADMIN) or feature name to check. When applicationId is set, matched against the caller's single application-scoped role and its active granted features; otherwise matched against the token's flattened roles claim."
         applicationId:
           type: ["string", "null"]
           format: "uuid"
+          description: "Optional application scope. When set and the token carries a resolvable uid, the check is enforced against the general.application_role_user ACL row for that (user, application) pair instead of the token's cross-application roles claim."
         sessionToken:
           type: "string"
 

@@ -169,6 +169,9 @@ public class SessionServiceImpl implements SessionService {
             var userAlias = loadUserAlias(userEntity.getId());
             if (Objects.nonNull(userAlias) && Objects.nonNull(userAlias.getRoles())) {
                 parameters = new ConcurrentHashMap<>();
+                // Required so downstream per-application ACL checks (e.g. PermissionCheckServiceImpl)
+                // can resolve the caller's identity from the token — see AuthKey.USER_ID usage there.
+                parameters.put(AuthKey.USER_ID.value, userEntity.getId().toString());
                 parameters.put(AuthKey.ROLES_ID.value, userAlias.getRoles().toString());
                 parameters.put(AuthKey.FIRSTNAME.value, userAlias.getFirstname());
                 parameters.put(AuthKey.LASTNAME.value, userAlias.getLastname());

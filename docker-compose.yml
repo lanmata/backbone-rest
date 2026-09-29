@@ -1,0 +1,37 @@
+services:
+  backbone-rest:
+    container_name: backbone-rest
+    image: lamata/backbone-rest:0.0.3
+    hostname: umdc-qa
+    domainname: backbone.umdc-qa.tst                   # FQDN → backbone-rest.umdc-qa.tst
+    dns_search:
+      - tst
+    extra_hosts:
+      # These map PRX service FQDNs to pinned IPs on nginx_umdc-net (172.29.0.0/16).
+      # config-server and vault must run on nginx_umdc-net with these IPs (see NETWORK_SETUP.md).
+      - "config-server.umdc-qa.tst:172.22.0.2"
+      - "vault.umdc-qa.tst:172.22.0.2"
+      - "monitor.umdc-qa.tst:172.22.0.2"
+      - "api.umdc-qa.tst:172.22.0.2"
+    networks:
+      nginx_umdc-net:
+        ipv4_address: 172.22.0.9
+    ports:
+      - "8084:8084"
+    # Config split in two, by sensitivity — same pattern as mercury's docker-compose.yml:
+    #   - config/local.env  (versioned) — bootstrap identity: which environment, and how to
+    #     reach Vault/Config Server, plus the non-secret TLS identity vars. No credentials.
+    #   - secrets/local.env (gitignored, copy secrets/local.env.example) — the one bootstrap
+    #     secret Vault can't hand us: VAULT_TOKEN. Everything else (DB, mail, OAuth, etc.) is
+    #     resolved from Vault's own KV store at runtime and never belongs in either file.
+    env_file:
+      - config/local.env
+      - secrets/local.env
+
+# Run ONCE on the Docker host before starting any PRX containers:
+# docker network create --driver bridge --subnet 172.29.0.0/16 --gateway 172.29.0.1 nginx_umdc-net
+# Or use the helper script: ./scripts/bootstrap-network.sh
+networks:
+  nginx_umdc-net:
+    external: true
+    name: nginx_umdc-net

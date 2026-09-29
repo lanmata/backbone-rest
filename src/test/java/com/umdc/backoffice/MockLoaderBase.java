@@ -12,14 +12,11 @@
  */
 package com.umdc.backoffice;
 
-import io.restassured.module.mockmvc.RestAssuredMockMvc;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.runner.RunWith;
 import org.mockito.MockitoAnnotations;
-import org.mockito.junit.MockitoJUnitRunner;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerExtension;
 import org.mockserver.junit.jupiter.MockServerSettings;
@@ -44,14 +41,11 @@ import static org.apache.http.Consts.UTF_8;
  * @version 1.0.0, 19-02-2021
  */
 @ActiveProfiles("test")
-@RunWith(MockitoJUnitRunner.class)
 @MockServerSettings(perTestSuite = true)
 @ExtendWith(value = {MockServerExtension.class})
 @TestPropertySource(locations = "classpath:application-test.yml")
 @SpringBootTest(properties = {"spring.cloud.config.enabled=false", "SPRING_BOOT_PROFILE_ACTIVE=local", "app.environments.contact.limit=5"})
 public abstract class MockLoaderBase {
-
-//	protected MockMvc mockMvc;
 
 	@Autowired
 	public WebApplicationContext applicationContext;
@@ -60,12 +54,6 @@ public abstract class MockLoaderBase {
 	public static final String TEST_URL = "https://localhost:";
 	/** clientAndServer */
 	public ClientAndServer clientAndServer;
-
-	@BeforeEach
-	public void init(){
-//		mockMvc = MockMvcBuilders.webAppContextSetup(applicationContext).build();
-		RestAssuredMockMvc.webAppContextSetup(applicationContext);
-	}
 
 	/**
 	 * Carga un archivo de Respuesta.
