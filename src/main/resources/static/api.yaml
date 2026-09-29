@@ -1250,8 +1250,18 @@ paths:
     get:
       tags: ["applications"]
       operationId: "listAllApplications"
-      summary: "List all applications"
-      description: "Returns every registered application."
+      summary: "List all applications, or by IDs"
+      description: "Returns every registered application. When the `ids` query parameter is supplied, returns only the applications matching those UUIDs instead (same path, same method — Spring dispatches on the presence of `ids`)."
+      parameters:
+        - name: "ids"
+          in: "query"
+          required: false
+          description: "Comma-separated application UUIDs to filter by. Omit to list every application."
+          schema:
+            type: "array"
+            items:
+              type: "string"
+              format: "uuid"
       responses:
         "200":
           description: "Application list returned"
@@ -1357,35 +1367,6 @@ paths:
           description: "Application deleted"
         "404":
           description: "Application not found"
-        "401":
-          description: "Unauthorized"
-
-  /api/v1/applications/by-ids:
-    get:
-      tags: ["applications"]
-      operationId: "listApplicationsByIds"
-      summary: "List applications by IDs"
-      description: "Returns applications matching the provided comma-separated UUIDs."
-      parameters:
-        - name: "ids"
-          in: "query"
-          required: true
-          schema:
-            type: "array"
-            items:
-              type: "string"
-              format: "uuid"
-      responses:
-        "200":
-          description: "Applications returned"
-          content:
-            application/json:
-              schema:
-                type: "array"
-                items:
-                  $ref: "#/components/schemas/Application"
-        "404":
-          description: "No applications found for the given IDs"
         "401":
           description: "Unauthorized"
 
@@ -1614,61 +1595,6 @@ paths:
           description: "Missing or malformed payload"
         "401":
           description: "Invalid or expired session token"
-
-  # ── Report (legacy) ───────────────────────────────────────────────────────────
-
-  /api/v1/report/template:
-    get:
-      tags: ["report"]
-      operationId: "createWordDocument"
-      summary: "Generate document from template"
-      parameters:
-        - name: "values"
-          in: "query"
-          required: true
-          schema:
-            type: "string"
-        - name: "documentTemplate"
-          in: "query"
-          required: true
-          schema:
-            type: "string"
-            format: "binary"
-      responses:
-        "200":
-          description: "Document generated"
-          content:
-            application/octet-stream:
-              schema:
-                type: "string"
-                format: "binary"
-
-  /api/v1/report/placeholdervalues:
-    get:
-      tags: ["report"]
-      operationId: "placeholderValues"
-      summary: "Get template placeholder values"
-      parameters:
-        - name: "templateDocumentModel"
-          in: "query"
-          required: true
-          schema:
-            $ref: "#/components/schemas/TemplateDocumentModel"
-        - name: "documentTemplate"
-          in: "query"
-          required: true
-          schema:
-            type: "string"
-            format: "binary"
-      responses:
-        "200":
-          description: "Placeholder list returned"
-          content:
-            application/octet-stream:
-              schema:
-                type: "array"
-                items:
-                  type: "string"
 
   # ── Managed Clients ──────────────────────────────────────────────────────────
 
@@ -2111,7 +2037,7 @@ paths:
   /api/v1/report/placeholdervalues:
     post:
       tags: ["report"]
-      operationId: "listTemplatePlaceholders"
+      operationId: "placeholderValues"
       summary: "List placeholders in a template"
       description: "Scans the uploaded .docx template and returns every ~{placeholder}~ found."
       requestBody:
