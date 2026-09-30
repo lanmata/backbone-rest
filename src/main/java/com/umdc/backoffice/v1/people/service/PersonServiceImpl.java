@@ -72,7 +72,7 @@ public class PersonServiceImpl implements PersonService {
 		}
 
 		PersonEntity savedEntity = personRepository.save(personEntity);
-		LOGGER.info(HttpStatus.CREATED.toString());
+		LOGGER.info("{}", HttpStatus.CREATED);
 		return new ResponseEntity<>(personMapper.toTarget(savedEntity), HttpStatus.CREATED);
 	}
 

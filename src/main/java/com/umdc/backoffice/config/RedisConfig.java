@@ -74,52 +74,63 @@ public class RedisConfig {
         LOGGER.info("Configuring Redis connection: host={}, port={}, database={}, ssl={}, username={}, source={}",
             endpoint.host, endpoint.port, endpoint.database, endpoint.sslEnabled,
             hasText(endpoint.username) ? endpoint.username : "(none)", endpoint.source);
-        final RedisStandaloneConfiguration server;
-        final LettuceClientConfiguration.LettuceClientConfigurationBuilder clientBuilder;
-        if ("url".equals(endpoint.source)) {
-            // Connect by source URL — delegate parsing to Lettuce's own RedisURI so that
-            // Redis-specific semantics (percent-encoded passwords, rediss://, ACL user) are
-            // handled correctly without manual java.net.URI decomposition.
-            RedisURI redisURI = RedisURI.create(properties.getUrl().trim());
-            server = new RedisStandaloneConfiguration(redisURI.getHost(), redisURI.getPort());
-            server.setDatabase(redisURI.getDatabase());
-            String urlUsername = extractUsernameFromUrl(properties.getUrl());
-            if (hasText(urlUsername)) {
-                server.setUsername(urlUsername);
-            }
-            String urlPassword = extractPasswordFromUrl(properties.getUrl());
-            if (hasText(urlPassword)) {
-                server.setPassword(RedisPassword.of(urlPassword));
-            }
-            clientBuilder = LettuceClientConfiguration.builder().commandTimeout(timeout);
-            if (redisURI.isSsl()) {
-                clientBuilder.useSsl();
-            }
-        } else {
-            // Connect from discrete spring.data.redis.* properties
-            server = new RedisStandaloneConfiguration(endpoint.host, endpoint.port);
-            server.setDatabase(endpoint.database);
-            if (hasText(endpoint.username)) {
-                server.setUsername(endpoint.username);
-            }
-            if (hasText(endpoint.password)) {
-                server.setPassword(RedisPassword.of(endpoint.password));
-            }
-            ClientOptions clientOptions = ClientOptions.builder()
-                .socketOptions(io.lettuce.core.SocketOptions.builder()
-                        .connectTimeout(timeout).build())
-                .build();
-            clientBuilder = LettuceClientConfiguration.builder()
-                    .clientOptions(clientOptions)
-                    .commandTimeout(timeout);
-            if (endpoint.sslEnabled) {
-                clientBuilder.useSsl();
-            }
-        }
-        var lettuceConnectionFactory = new LettuceConnectionFactory(server, clientBuilder.build());
+
+        RedisConnectionSetup setup = "url".equals(endpoint.source)
+                ? buildFromUrl(timeout)
+                : buildFromProperties(endpoint, timeout);
+
+        var lettuceConnectionFactory = new LettuceConnectionFactory(setup.server, setup.clientBuilder.build());
         lettuceConnectionFactory.setShareNativeConnection(false);
         lettuceConnectionFactory.afterPropertiesSet();
         return lettuceConnectionFactory;
+    }
+    /**
+     * Connect by source URL — delegate parsing to Lettuce's own {@link RedisURI} so that
+     * Redis-specific semantics (percent-encoded passwords, {@code rediss://}, ACL user) are
+     * handled correctly without manual {@link URI} decomposition.
+     */
+    private RedisConnectionSetup buildFromUrl(Duration timeout) {
+        RedisURI redisURI = RedisURI.create(properties.getUrl().trim());
+        RedisStandaloneConfiguration server = new RedisStandaloneConfiguration(redisURI.getHost(), redisURI.getPort());
+        server.setDatabase(redisURI.getDatabase());
+        String urlUsername = extractUsernameFromUrl(properties.getUrl());
+        if (hasText(urlUsername)) {
+            server.setUsername(urlUsername);
+        }
+        String urlPassword = extractPasswordFromUrl(properties.getUrl());
+        if (hasText(urlPassword)) {
+            server.setPassword(RedisPassword.of(urlPassword));
+        }
+        LettuceClientConfiguration.LettuceClientConfigurationBuilder clientBuilder =
+                LettuceClientConfiguration.builder().commandTimeout(timeout);
+        if (redisURI.isSsl()) {
+            clientBuilder.useSsl();
+        }
+        return new RedisConnectionSetup(server, clientBuilder);
+    }
+    /**
+     * Connect from discrete {@code spring.data.redis.*} properties.
+     */
+    private RedisConnectionSetup buildFromProperties(RedisEndpoint endpoint, Duration timeout) {
+        RedisStandaloneConfiguration server = new RedisStandaloneConfiguration(endpoint.host, endpoint.port);
+        server.setDatabase(endpoint.database);
+        if (hasText(endpoint.username)) {
+            server.setUsername(endpoint.username);
+        }
+        if (hasText(endpoint.password)) {
+            server.setPassword(RedisPassword.of(endpoint.password));
+        }
+        ClientOptions clientOptions = ClientOptions.builder()
+            .socketOptions(io.lettuce.core.SocketOptions.builder()
+                    .connectTimeout(timeout).build())
+            .build();
+        LettuceClientConfiguration.LettuceClientConfigurationBuilder clientBuilder = LettuceClientConfiguration.builder()
+                .clientOptions(clientOptions)
+                .commandTimeout(timeout);
+        if (endpoint.sslEnabled) {
+            clientBuilder.useSsl();
+        }
+        return new RedisConnectionSetup(server, clientBuilder);
     }
     private RedisEndpoint resolveEndpoint() {
         String url = properties.getUrl();
@@ -164,7 +175,7 @@ public class RedisConfig {
                     return parts[0];
                 }
             }
-        } catch (Exception ignored) {
+        } catch (Exception _) {
             // RedisURI.create() has already validated the URL; silent fallback is safe
         }
         return null;
@@ -178,7 +189,7 @@ public class RedisConfig {
                     return parts[1];
                 }
             }
-        } catch (Exception ignored) {
+        } catch (Exception _) {
             // RedisURI.create() has already validated the URL; silent fallback is safe
         }
         return null;
@@ -196,5 +207,8 @@ public class RedisConfig {
     }
     private record RedisEndpoint(String host, int port, String username, String password,
                                  int database, boolean sslEnabled, String source) {
+    }
+    private record RedisConnectionSetup(RedisStandaloneConfiguration server,
+                                        LettuceClientConfiguration.LettuceClientConfigurationBuilder clientBuilder) {
     }
 }

@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 
-/// Unit tests for {@link NoticeController} verifying correct delegation to the service layer.
+/// Unit tests for [NoticeController] verifying correct delegation to the service layer.
 @ExtendWith(MockitoExtension.class)
 class NoticeControllerTest {
 

@@ -105,7 +105,7 @@ public interface NoticeApi {
             @ApiResponse(responseCode = HttpStatusUtil.NOT_FOUND_STR, description = "Notice not found")
     })
     @DeleteMapping(value = "/user/{userId}/application/{applicationId}/notice-type/{noticeTypeId}")
-    default ResponseEntity<?> deleteNotice(
+    default ResponseEntity<Void> deleteNotice(
             @Parameter(description = "User UUID", required = true)
             @PathVariable UUID userId,
             @Parameter(description = "Application UUID", required = true)

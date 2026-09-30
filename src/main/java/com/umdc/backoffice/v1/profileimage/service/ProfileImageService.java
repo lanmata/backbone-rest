@@ -31,9 +31,8 @@ public interface ProfileImageService {
      * @param applicationId the ID of the application
      * @param image the image file as a byte array
      * @return the ProfileImageService instance
-     * @throws Exception if saving fails
      */
-    default ResponseEntity<PostProfileImageResponse> save(String token, UUID applicationId, byte[] image) throws Exception {
+    default ResponseEntity<PostProfileImageResponse> save(String token, UUID applicationId, byte[] image) {
         throw new UnsupportedOperationException("Not implemented");
     }
 
@@ -43,9 +42,8 @@ public interface ProfileImageService {
      * @param token the session token of the user
      * @param applicationId the ID of the application
      * @return ResponseEntity with the profile image reference
-     * @throws Exception if retrieval fails
      */
-    default ResponseEntity<GetProfileImageReferenceResponse> getProfileImageReference(String token, UUID applicationId) throws Exception {
+    default ResponseEntity<GetProfileImageReferenceResponse> getProfileImageReference(String token, UUID applicationId) {
         throw new UnsupportedOperationException("Not implemented");
     }
 }

@@ -115,7 +115,7 @@ public class NoticeServiceImpl implements NoticeService {
     /** {@inheritDoc} */
     @Override
     @Transactional
-    public ResponseEntity<?> delete(UUID userId, UUID applicationId, UUID noticeTypeId) {
+    public ResponseEntity<Void> delete(UUID userId, UUID applicationId, UUID noticeTypeId) {
         NoticeId id = new NoticeId();
         id.setUserId(userId);
         id.setApplicationId(applicationId);

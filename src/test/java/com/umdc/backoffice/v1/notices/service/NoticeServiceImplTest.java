@@ -43,7 +43,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
-/// Unit tests for {@link NoticeServiceImpl}.
+/// Unit tests for [NoticeServiceImpl].
 @ExtendWith(MockitoExtension.class)
 class NoticeServiceImplTest {
 
