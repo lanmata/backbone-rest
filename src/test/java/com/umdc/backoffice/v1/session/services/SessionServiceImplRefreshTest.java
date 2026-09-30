@@ -3,6 +3,7 @@ package com.umdc.backoffice.v1.session.services;
 import com.umdc.backoffice.security.bruteforce.LoginAttemptService;
 import com.umdc.backoffice.security.jwt.JwtConfigProperties;
 import com.umdc.backoffice.util.MessageUtil;
+import com.umdc.backoffice.util.RequestContextUtil;
 import com.umdc.backoffice.v1.iam.audit.service.AuditEventService;
 import com.umdc.backoffice.v1.session.mapper.UserAliasMapper;
 import com.umdc.backoffice.v1.session.to.SessionResponse;
@@ -70,6 +71,8 @@ class SessionServiceImplRefreshTest {
     private AuditEventService auditEventService;
     @Mock
     private SessionUserLookupService sessionUserLookupService;
+    @Mock
+    private RequestContextUtil requestContextUtil;
 
     private SessionServiceImpl sessionService;
     private SessionTokenServiceImpl sessionTokenService;
@@ -83,7 +86,7 @@ class SessionServiceImplRefreshTest {
         sessionService = new SessionServiceImpl(
                 messageUtil, userMapper, userAliasMapper,
                 userRepository, passwordEncoder, loginAttemptService,
-                auditEventService, sessionTokenService, sessionUserLookupService);
+                auditEventService, sessionTokenService, sessionUserLookupService, requestContextUtil);
     }
 
     // ── null / blank token ─────────────────────────────────────────────────────

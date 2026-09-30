@@ -23,6 +23,7 @@ import com.umdc.backoffice.v1.users.api.to.UserCreateRequest;
 import com.umdc.backoffice.v1.users.api.to.UserCreateResponse;
 import com.umdc.backoffice.v1.users.api.to.UserTO;
 import com.umdc.backoffice.v1.users.mapper.UserMapper;
+import com.umdc.backoffice.util.RequestContextUtil;
 import com.umdc.commons.exception.StandardException;
 import com.umdc.commons.general.pojo.Application;
 import com.umdc.commons.general.pojo.AuditEventType;
@@ -41,6 +42,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -68,6 +70,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final AuditEventService auditEventService;
     private final PasswordPolicyService passwordPolicyService;
+    private final RequestContextUtil requestContextUtil;
 
     /**
      * Constructs a new UserServiceImpl with the provided dependencies.
@@ -82,6 +85,7 @@ public class UserServiceImpl implements UserService {
      * @param passwordEncoder the encoder for BCrypt password hashing
      * @param auditEventService the service for recording security audit events
      * @param passwordPolicyService the service that validates password complexity rules
+     * @param requestContextUtil resolves source IP / User-Agent from the current request for audit records
      */
     public UserServiceImpl(UserRepository userRepository,
                            ApplicationRoleUserRepository applicationRoleUserRepository,
@@ -90,7 +94,8 @@ public class UserServiceImpl implements UserService {
                            UserApplicationRoleService userApplicationRoleService,
                            PasswordEncoder passwordEncoder,
                            AuditEventService auditEventService,
-                           PasswordPolicyService passwordPolicyService) {
+                           PasswordPolicyService passwordPolicyService,
+                           RequestContextUtil requestContextUtil) {
         this.userRepository = userRepository;
         this.applicationRoleUserRepository = applicationRoleUserRepository;
         this.applicationService = applicationService;
@@ -101,6 +106,7 @@ public class UserServiceImpl implements UserService {
         this.passwordEncoder = passwordEncoder;
         this.auditEventService = auditEventService;
         this.passwordPolicyService = passwordPolicyService;
+        this.requestContextUtil = requestContextUtil;
     }
 
 
@@ -172,8 +178,14 @@ public class UserServiceImpl implements UserService {
             // Delegate role refresh to dedicated service
             userApplicationRoleService.refreshRoleByApplication(userEntity, user);
             if (Objects.nonNull(user.getRoles()) && !user.getRoles().isEmpty()) {
-                auditEventService.saveRecord(userId, null, AuditEventType.ROLE_ASSIGNED,
-                        null, null, null);
+                UUID roleApplicationId = Optional.ofNullable(user.getApplications())
+                        .filter(apps -> !apps.isEmpty())
+                        .flatMap(apps -> apps.stream().findFirst())
+                        .map(Application::getId)
+                        .orElseGet(() -> userEntity.getApplication().getId());
+                auditEventService.saveRecord(userId, roleApplicationId, AuditEventType.ROLE_ASSIGNED,
+                        requestContextUtil.extractIpAddress(), requestContextUtil.extractUserAgent(),
+                        buildDetails("role_assigned"));
             }
 
             LOGGER.info("Before to save {}", userEntity);
@@ -193,8 +205,9 @@ public class UserServiceImpl implements UserService {
         }
         if (isNonEmpty(source.getPassword()) && !Objects.equals(target.getPassword(), source.getPassword())) {
             target.setPassword(passwordEncoder.encode(source.getPassword()));
-            auditEventService.saveRecord(target.getId(), null, AuditEventType.PASSWORD_CHANGE,
-                    null, null, null);
+            auditEventService.saveRecord(target.getId(), target.getApplication().getId(), AuditEventType.PASSWORD_CHANGE,
+                    requestContextUtil.extractIpAddress(), requestContextUtil.extractUserAgent(),
+                    buildDetails("password_change"));
         }
         if (Objects.nonNull(source.getNotificationEmail())) {
             target.setNotificationEmail(source.getNotificationEmail());
@@ -205,7 +218,7 @@ public class UserServiceImpl implements UserService {
         if (Objects.nonNull(source.getPrivacyDataOutActive())) {
             target.setPrivacyDataOutActive(source.getPrivacyDataOutActive());
         }
-        target.setLastUpdate(LocalDateTime.now());
+        target.setLastUpdate(LocalDateTime.now(ZoneId.systemDefault()));
     }
 
     // New helper: update person and contacts
@@ -250,6 +263,10 @@ public class UserServiceImpl implements UserService {
 
     private String buildViolationSummary(List<PasswordPolicyViolation> violations) {
         return String.join("; ", violations.stream().map(PasswordPolicyViolation::message).toList());
+    }
+
+    private String buildDetails(String action) {
+        return "{\"action\":\"" + action + "\"}";
     }
 
     /**
@@ -397,8 +414,8 @@ public class UserServiceImpl implements UserService {
             userEntity.setPassword(passwordEncoder.encode(userEntity.getPassword()));
         }
 
-        userEntity.setCreatedDate(LocalDateTime.now());
-        userEntity.setLastUpdate(LocalDateTime.now());
+        userEntity.setCreatedDate(LocalDateTime.now(ZoneId.systemDefault()));
+        userEntity.setLastUpdate(LocalDateTime.now(ZoneId.systemDefault()));
 
         userEntity.setApplicationRoleUser(new HashSet<>());
         userEntity.setActive(Boolean.TRUE);
@@ -453,15 +470,18 @@ public class UserServiceImpl implements UserService {
         }
         UserEntity userEntity = optionalUser.get();
         Set<ApplicationRoleUserEntity> mutableRoles = new HashSet<>(userEntity.getApplicationRoleUser());
-        boolean removed = mutableRoles.removeIf(
-                aru -> Objects.nonNull(aru.getId()) && roleId.equals(aru.getId().getRoleId())
-        );
-        if (!removed) {
+        var revokedAru = mutableRoles.stream()
+                .filter(aru -> Objects.nonNull(aru.getId()) && roleId.equals(aru.getId().getRoleId()))
+                .findFirst();
+        if (revokedAru.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
+        mutableRoles.remove(revokedAru.get());
         userEntity.setApplicationRoleUser(mutableRoles);
         UserEntity saved = userRepository.save(userEntity);
-        auditEventService.saveRecord(userId, null, AuditEventType.ROLE_REVOKED, null, null, null);
+        auditEventService.saveRecord(userId, revokedAru.get().getApplication().getId(), AuditEventType.ROLE_REVOKED,
+                requestContextUtil.extractIpAddress(), requestContextUtil.extractUserAgent(),
+                buildDetails("role_revoked"));
         LOGGER.info("Role {} unlinked from user {}", roleId, userId);
         return ResponseEntity.ok(userMapper.toTarget(saved));
     }
@@ -509,7 +529,9 @@ public class UserServiceImpl implements UserService {
         }
 
         UserEntity saved = userRepository.save(userEntity);
-        auditEventService.saveRecord(userId, null, AuditEventType.ROLE_ASSIGNED, null, null, null);
+        auditEventService.saveRecord(userId, application.getId(), AuditEventType.ROLE_ASSIGNED,
+                requestContextUtil.extractIpAddress(), requestContextUtil.extractUserAgent(),
+                buildDetails("role_assigned"));
         LOGGER.info("Role {} linked to user {}", roleId, userId);
         return ResponseEntity.ok(userMapper.toTarget(saved));
     }

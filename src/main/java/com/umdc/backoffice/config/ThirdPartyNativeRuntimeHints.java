@@ -18,7 +18,7 @@ import org.springframework.context.annotation.ImportRuntimeHints;
  * Same pattern as mercury's own ThirdPartyNativeRuntimeHints (MER-5) — see that repo's
  * docs/architecture/graalvm-native-image.md.
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ImportRuntimeHints(ThirdPartyNativeRuntimeHints.Hints.class)
 public class ThirdPartyNativeRuntimeHints {
 

@@ -19,14 +19,14 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-/// Unit tests for {@link ManagedClientMapper} verifying field mapping correctness
+/// Unit tests for [ManagedClientMapper] verifying field mapping correctness
 /// and AC-SEC-02 (no secret fields exposed in GET response DTO).
 class ManagedClientMapperTest {
 
     // PMD AvoidDuplicateLiterals constants
     private static final String TEST_NAME  = "map-test-client";
     private static final String TEST_SCOPE = "read:data";
-    private static final String SECRET_HASH = "$2a$10$mappedHash";
+    private static final String SECRET_HASH = System.getProperty("test.secret.hash", "placeholder");
 
     private ManagedClientMapper mapper;
 

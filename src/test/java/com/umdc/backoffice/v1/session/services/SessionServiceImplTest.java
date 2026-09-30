@@ -3,6 +3,7 @@ package com.umdc.backoffice.v1.session.services;
 import com.umdc.backoffice.security.bruteforce.LoginAttemptService;
 import com.umdc.backoffice.security.jwt.JwtConfigProperties;
 import com.umdc.backoffice.util.MessageUtil;
+import com.umdc.backoffice.util.RequestContextUtil;
 import com.umdc.backoffice.v1.iam.audit.service.AuditEventService;
 import com.umdc.backoffice.v1.session.mapper.UserAliasMapper;
 import com.umdc.backoffice.v1.session.to.SessionEmailRequest;
@@ -66,6 +67,9 @@ class SessionServiceImplTest {
     @Mock
     private SessionUserLookupService sessionUserLookupService;
 
+    @Mock
+    private RequestContextUtil requestContextUtil;
+
     private SessionServiceImpl sessionService;
     private SessionTokenServiceImpl sessionTokenService;
 
@@ -80,7 +84,7 @@ class SessionServiceImplTest {
         sessionTokenService = new SessionTokenServiceImpl(jwtConfigProperties, jtiDenyListService);
         sessionService = new SessionServiceImpl(messageUtil, userMapper, userAliasMapper,
                 userRepository, passwordEncoder, loginAttemptService, auditEventService, sessionTokenService,
-                sessionUserLookupService);
+                sessionUserLookupService, requestContextUtil);
     }
 
     /**
@@ -185,7 +189,7 @@ class SessionServiceImplTest {
         UserEntity userEntity = new UserEntity();
         userEntity.setId(UUID.randomUUID());
         userEntity.setAlias("testAlias");
-        userEntity.setPassword("correctPassword");
+        userEntity.setPassword(UUID.randomUUID().toString());
         userEntity.setActive(true);
         userEntity.setApplicationRoleUser(Set.of(applicationRoleUser));
 
@@ -210,7 +214,7 @@ class SessionServiceImplTest {
         UserEntity userEntity = new UserEntity();
         userEntity.setId(userId);
         userEntity.setAlias("testAlias");
-        userEntity.setPassword("encodedPassword");
+        userEntity.setPassword(UUID.randomUUID().toString());
         userEntity.setActive(true);
         userEntity.setApplicationRoleUser(Set.of(applicationRoleUser));
 
@@ -225,7 +229,7 @@ class SessionServiceImplTest {
         when(userRepository.findUserInfo(userId)).thenReturn(userInfo);
         when(userMapper.toTarget(userInfo)).thenReturn(userTO);
         when(userAliasMapper.toTarget(userTO)).thenReturn(userAliasTO);
-        when(passwordEncoder.matches("password", "encodedPassword")).thenReturn(true);
+        when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
 
         ResponseEntity<SessionResponse> response = sessionService.loadSession(request);
 
@@ -248,12 +252,12 @@ class SessionServiceImplTest {
         UserEntity userEntity = new UserEntity();
         userEntity.setId(userId);
         userEntity.setAlias("testAlias");
-        userEntity.setPassword("encodedPassword");
+        userEntity.setPassword(UUID.randomUUID().toString());
         userEntity.setActive(true);
         userEntity.setApplicationRoleUser(Set.of(applicationRoleUser));
 
         mockUserLookup(Optional.of(userEntity));
-        when(passwordEncoder.matches("password", "encodedPassword")).thenReturn(true);
+        when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
         when(userRepository.findUserInfo(userId)).thenReturn(null);
 
         ResponseEntity<SessionResponse> response = sessionService.loadSession(request);
@@ -275,7 +279,7 @@ class SessionServiceImplTest {
         UserEntity userEntity = new UserEntity();
         userEntity.setId(userId);
         userEntity.setAlias("testAlias");
-        userEntity.setPassword("encodedPassword");
+        userEntity.setPassword(UUID.randomUUID().toString());
         userEntity.setActive(true);
         userEntity.setApplicationRoleUser(Set.of(applicationRoleUser));
 
@@ -287,7 +291,7 @@ class SessionServiceImplTest {
         userAliasTO.setLastname("Doe");
 
         mockUserLookup(Optional.of(userEntity));
-        when(passwordEncoder.matches("password", "encodedPassword")).thenReturn(true);
+        when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
         when(userRepository.findUserInfo(userId)).thenReturn(userInfo);
         when(userMapper.toTarget(userInfo)).thenReturn(userTO);
         when(userAliasMapper.toTarget(userTO)).thenReturn(userAliasTO);
@@ -408,7 +412,7 @@ class SessionServiceImplTest {
         when(userRepository.findUserInfo(userId)).thenReturn(userInfo);
         when(userMapper.toTarget(userInfo)).thenReturn(userTO);
         when(userAliasMapper.toTarget(userTO)).thenReturn(userAliasTO);
-        when(passwordEncoder.matches("password", "password")).thenReturn(true);
+        when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
 
         ResponseEntity<SessionResponse> response = sessionService.loadSession(request);
 
@@ -432,7 +436,7 @@ class SessionServiceImplTest {
         UserEntity userEntity = new UserEntity();
         userEntity.setId(userId);
         userEntity.setEmail("test@example.com");
-        userEntity.setPassword("correctPassword");
+        userEntity.setPassword(UUID.randomUUID().toString());
         userEntity.setActive(true);
         userEntity.setApplicationRoleUser(Set.of(applicationRoleUser));
 

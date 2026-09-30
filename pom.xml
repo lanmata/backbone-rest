@@ -120,6 +120,21 @@
         <!-- Transitive via eureka-client-jersey3 (compile scope, ships in the runtime jar);
              overridden to close GHSA-7r82-7xv7-xcpj (fixed in 4.5.13) -->
         <httpclient.version>4.5.14</httpclient.version>
+        <!-- Transitive: jackson-databind via com.umdc:commons (2.21.5), jackson-core via
+             jackson-datatype-jsr310 (2.21.5). Bumped to 2.21.7 to close two Snyk-reported
+             jackson-databind CVEs (fixed in 2.18.10/2.21.6/2.22.2 and 2.18.11/2.21.7/2.22.3)
+             and one jackson-core CVE (fixed in 2.18.11/2.21.7/2.22.3). -->
+        <jackson.version>2.21.7</jackson.version>
+        <!-- Transitive via software.amazon.awssdk:s3 -> netty-nio-client (netty-codec-http) and
+             org.mock-server:mockserver-junit-jupiter -> mockserver-netty -> netty-codec-http3 ->
+             netty-codec-classes-quic (test scope). All at 4.2.17.Final; bumped together to
+             4.2.18.Final to close their respective Snyk-reported CVEs. -->
+        <netty.version>4.2.18.Final</netty.version>
+        <!-- Transitive via spring-cloud-starter-config -> tools.jackson.core:jackson-databind
+             (Jackson 3.x's rebranded groupId). jackson-core pinned alongside it to keep the pair
+             in lockstep. Bumped to 3.1.6 to close a Snyk-reported jackson-databind CVE
+             (fixed in 3.1.6/3.2.2). -->
+        <tools-jackson.version>3.1.6</tools-jackson.version>
 
         <!--        Coverage and Sonar-->
         <sonar.organization>umdevc</sonar.organization>
@@ -535,6 +550,41 @@
                 <artifactId>httpclient</artifactId>
                 <version>${httpclient.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-codec-http</artifactId>
+                <version>${netty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-codec-http3</artifactId>
+                <version>${netty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-codec-classes-quic</artifactId>
+                <version>${netty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>tools.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${tools-jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>tools.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
+                <version>${tools-jackson.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -683,7 +733,7 @@
             <plugin>
                 <groupId>org.springdoc</groupId>
                 <artifactId>springdoc-openapi-maven-plugin</artifactId>
-                <version>1.5.3</version>
+                <version>1.5</version>
                 <executions>
                     <execution>
                         <phase>integration-test</phase>
