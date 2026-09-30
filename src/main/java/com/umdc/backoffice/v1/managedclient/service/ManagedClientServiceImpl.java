@@ -17,6 +17,7 @@ import com.umdc.backoffice.v1.managedclient.api.to.ManagedClientCreateResponse;
 import com.umdc.backoffice.v1.managedclient.api.to.ManagedClientErrorResponse;
 import com.umdc.backoffice.v1.managedclient.api.to.ManagedClientUpdateRequest;
 import com.umdc.backoffice.v1.managedclient.mapper.ManagedClientMapper;
+import com.umdc.backoffice.util.LogSanitizerUtil;
 import com.umdc.commons.general.pojo.AuditEventType;
 import com.umdc.persistence.general.domains.ManagedClientEntity;
 import com.umdc.persistence.general.repositories.ManagedClientRepository;
@@ -81,7 +82,7 @@ public class ManagedClientServiceImpl implements ManagedClientService {
     @Override
     public ResponseEntity<?> registerClient(ManagedClientCreateRequest request) {
         LOGGER.debug("Registering managed client — name='{}', applicationId='{}'",
-                request.getName(), request.getApplicationId());
+                LogSanitizerUtil.sanitize(request.getName()), request.getApplicationId());
 
         if (repository.existsByNameAndApplicationId(request.getName(), request.getApplicationId())) {
             return ResponseEntity.status(HttpStatus.CONFLICT)

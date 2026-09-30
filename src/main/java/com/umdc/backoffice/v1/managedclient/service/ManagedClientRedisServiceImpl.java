@@ -12,6 +12,7 @@
  */
 package com.umdc.backoffice.v1.managedclient.service;
 
+import com.umdc.backoffice.util.LogSanitizerUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -56,7 +57,8 @@ public class ManagedClientRedisServiceImpl implements ManagedClientRedisService 
     public void storeToken(String jti, UUID clientId, List<String> scopes, long ttlSeconds) {
         String payload = clientId.toString() + ":" + String.join(",", scopes);
         redisTemplate.opsForValue().set(KEY_TOKEN + jti, payload, Duration.ofSeconds(ttlSeconds));
-        LOGGER.debug("Stored M2M token jti='{}' for clientId='{}'", jti, clientId);
+        LOGGER.debug("Stored M2M token jti='{}' for clientId='{}'",
+                LogSanitizerUtil.sanitize(jti), LogSanitizerUtil.sanitize(clientId));
     }
 
     /**

@@ -65,8 +65,8 @@ public class SessionController implements SessionApi {
             var value = sessionService.getTokenClaims(sessionToken).get("type");
             isValid = AUTHORIZATION_HEADER.equals(value) && !sessionService.isTokenExpired(sessionToken);
 
-        } catch (ExpiredJwtException e) {
-            return ResponseEntity.ok(false);
+        } catch (ExpiredJwtException _) {
+            return ResponseEntity.status(401).body(false);
         }
         return ResponseEntity.ok(isValid);
     }
