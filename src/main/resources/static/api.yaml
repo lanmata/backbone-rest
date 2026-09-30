@@ -8,8 +8,8 @@ info:
   version: "1.0.0"
 
 servers:
-  - url: "http://localhost:8080"
-    description: "Local development server"
+  - url: "https://localhost:8084"
+    description: "Local development server (TLS 1.3 — see server.port / server.ssl in application.yml)"
 
 security:
   - bearerAuth: []

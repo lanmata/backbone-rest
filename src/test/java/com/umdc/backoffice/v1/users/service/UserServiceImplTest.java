@@ -64,6 +64,9 @@ class UserServiceImplTest {
     @Mock
     AuditEventService auditEventService;
 
+    @Mock
+    com.umdc.backoffice.util.RequestContextUtil requestContextUtil;
+
     @InjectMocks
     UserServiceImpl userService;
 
@@ -342,7 +345,8 @@ class UserServiceImplTest {
         when(userRepository.findByAliasAndApplication("newuser", appId)).thenReturn(Optional.empty());
         when(userMapper.toSource(request)).thenReturn(userEntity);
         when(userRepository.save(any(UserEntity.class))).thenReturn(userEntity);
-        when(userMapper.toUserCreateResponse(userEntity)).thenReturn(mock(UserCreateResponse.class));
+        var mock = mock(UserCreateResponse.class);
+        when(userMapper.toUserCreateResponse(userEntity)).thenReturn(mock);
 
         ResponseEntity<UserCreateResponse> response = userService.create(request);
 
@@ -374,14 +378,18 @@ class UserServiceImplTest {
     @Test
     void testUpdate_Success() {
         UUID userId = UUID.randomUUID();
+        ApplicationEntity appEntity = new ApplicationEntity();
+        appEntity.setId(UUID.randomUUID());
+
         UserEntity existingUser = new UserEntity();
         existingUser.setId(userId);
         existingUser.setAlias("testuser");
-        existingUser.setPassword("oldpassword");
+        existingUser.setPassword(UUID.randomUUID().toString());
+        existingUser.setApplication(appEntity);
 
         UserTO updateData = new UserTO();
         updateData.setDisplayName("Updated Name");
-        updateData.setPassword("newpassword");
+        updateData.setPassword(UUID.randomUUID().toString());
         updateData.setNotificationEmail(true);
         updateData.setNotificationSms(false);
         updateData.setPrivacyDataOutActive(true);
@@ -630,10 +638,11 @@ class UserServiceImplTest {
         UUID userId = UUID.randomUUID();
         UserEntity existingUser = new UserEntity();
         existingUser.setId(userId);
-        existingUser.setPassword("samepassword");
+        String testPassword = System.getProperty("test.user.password", "dummy-" + UUID.randomUUID());
+        existingUser.setPassword(testPassword);
 
         UserTO updateData = new UserTO();
-        updateData.setPassword("samepassword");
+        updateData.setPassword(testPassword);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
         when(userRepository.save(any(UserEntity.class))).thenReturn(existingUser);
@@ -642,7 +651,7 @@ class UserServiceImplTest {
         ResponseEntity<UserTO> response = userService.update(userId, updateData);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("samepassword", existingUser.getPassword());
+        assertEquals(testPassword, existingUser.getPassword());
     }
 
     @Test
@@ -999,8 +1008,12 @@ class UserServiceImplTest {
         ApplicationRoleUserEntityId aruId = new ApplicationRoleUserEntityId();
         aruId.setRoleId(roleId);
 
+        ApplicationEntity appEntity = new ApplicationEntity();
+        appEntity.setId(UUID.randomUUID());
+
         ApplicationRoleUserEntity aru = new ApplicationRoleUserEntity();
         aru.setId(aruId);
+        aru.setApplication(appEntity);
 
         UserEntity userEntity = new UserEntity();
         userEntity.setId(userId);

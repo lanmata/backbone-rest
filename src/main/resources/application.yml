@@ -17,8 +17,30 @@ server:
     min-response-size: 1024
 
 springdoc:
+  # api.yaml (src/main/resources/static/api.yaml) is the hand-maintained contract — see
+  # CLAUDE.md's "Mandatory Conventions" #9: update it directly whenever an *Api.java
+  # signature changes. Annotation-driven generation is unreliable here regardless: every
+  # *Api.java method returns ResponseEntity<?> (convention #3 — status decisions live in
+  # *ServiceImpl), and that wildcard erasure means springdoc can't resolve a response body
+  # schema from the method signature alone. Rather than leave /v3/api-docs auto-generating
+  # an incomplete, unused spec in parallel with the real one (and risk a client rendering
+  # that broken doc by mistake), it's switched off explicitly.
+  api-docs:
+    enabled: false
+    path: /v3/api-docs
   swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    # The only spec Swagger UI ever renders — never /v3/api-docs (disabled above).
     url: /api.yaml
+    display-request-duration: true
+    operations-sorter: alpha
+    tags-sorter: alpha
+  # Since api-docs generation is disabled, these have no effect today, but are set
+  # explicitly rather than left to defaults in case api-docs is ever re-enabled.
+  show-actuator: false
+  default-produces-media-type: application/json
+  packages-to-scan: com.umdc.backoffice.v1
 
 app:
   name: backbone-rest

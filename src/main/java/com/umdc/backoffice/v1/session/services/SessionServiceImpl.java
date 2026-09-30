@@ -17,6 +17,7 @@ import com.umdc.backoffice.constant.keys.AuthKey;
 import com.umdc.backoffice.messages.JWTMessage;
 import com.umdc.backoffice.security.bruteforce.LoginAttemptService;
 import com.umdc.backoffice.util.MessageUtil;
+import com.umdc.backoffice.util.RequestContextUtil;
 import com.umdc.backoffice.v1.iam.audit.service.AuditEventService;
 import com.umdc.backoffice.v1.session.mapper.UserAliasMapper;
 import com.umdc.backoffice.v1.session.to.SessionEmailRequest;
@@ -30,15 +31,14 @@ import com.umdc.commons.util.ValidatorCommonsUtil;
 import com.umdc.persistence.general.domains.UserEntity;
 import com.umdc.persistence.general.repositories.UserRepository;
 import io.jsonwebtoken.Claims;
-import jakarta.servlet.http.HttpServletRequest;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.Map;
 import java.util.Objects;
@@ -58,6 +58,8 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class SessionServiceImpl implements SessionService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(SessionServiceImpl.class);
+
     private final MessageUtil messageUtil;
     private final UserMapper userMapper;
     private final UserAliasMapper userAliasMapper;
@@ -67,6 +69,7 @@ public class SessionServiceImpl implements SessionService {
     private final AuditEventService auditEventService;
     private final SessionTokenServiceImpl sessionTokenService;
     private final SessionUserLookupService sessionUserLookupService;
+    private final RequestContextUtil requestContextUtil;
 
     private static final String INVALID_APPLICATION_ID_MSG = "Invalid application ID";
     private static final String ACCOUNT_LOCKED_MSG = "Account temporarily locked due to too many failed attempts";
@@ -88,6 +91,7 @@ public class SessionServiceImpl implements SessionService {
      *                                 {@link SessionUserLookupServiceImpl} for why this replaces
      *                                 {@link UserRepository#findByAliasAndApplication} and
      *                                 {@link UserRepository#findByEmailAndApplication}
+     * @param requestContextUtil resolves source IP / User-Agent from the current request for audit records
      */
     public SessionServiceImpl(MessageUtil messageUtil,
                               UserMapper userMapper, UserAliasMapper userAliasMapper,
@@ -95,7 +99,8 @@ public class SessionServiceImpl implements SessionService {
                               LoginAttemptService loginAttemptService,
                               AuditEventService auditEventService,
                               SessionTokenServiceImpl sessionTokenService,
-                              SessionUserLookupService sessionUserLookupService) {
+                              SessionUserLookupService sessionUserLookupService,
+                              RequestContextUtil requestContextUtil) {
         this.userMapper = userMapper;
         this.userAliasMapper = userAliasMapper;
         this.userRepository = userRepository;
@@ -105,6 +110,7 @@ public class SessionServiceImpl implements SessionService {
         this.auditEventService = auditEventService;
         this.sessionTokenService = sessionTokenService;
         this.sessionUserLookupService = sessionUserLookupService;
+        this.requestContextUtil = requestContextUtil;
     }
 
     /**
@@ -123,8 +129,8 @@ public class SessionServiceImpl implements SessionService {
         UserEntity userEntity;
         String messageError = "";
         Map<String, String> parameters;
-        String ipAddress = extractIpAddress();
-        String userAgent = extractUserAgent();
+        String ipAddress = requestContextUtil.extractIpAddress();
+        String userAgent = requestContextUtil.extractUserAgent();
 
         // IF User and Service linked
         if (ValidatorCommonsUtil.esNulo(sessionRequest)) {
@@ -204,6 +210,8 @@ public class SessionServiceImpl implements SessionService {
         Optional<UserEntity> optionalUserEntity;
         UserEntity userEntity;
         String messageError = "";
+        String ipAddress = requestContextUtil.extractIpAddress();
+        String userAgent = requestContextUtil.extractUserAgent();
 
         // IF User and Service linked
         if (ValidatorCommonsUtil.esNulo(sessionEmailRequest)) {
@@ -239,7 +247,8 @@ public class SessionServiceImpl implements SessionService {
         // Brute-force protection — check before validating password
         if (loginAttemptService.isLocked(sessionEmailRequest.email(), sessionEmailRequest.applicationId())) {
             auditEventService.saveRecord(userEntity.getId(), sessionEmailRequest.applicationId(),
-                    AuditEventType.ACCOUNT_LOCKED, null, null, null);
+                    AuditEventType.ACCOUNT_LOCKED, ipAddress, userAgent,
+                    buildDescription("Account locked", sessionEmailRequest.email()));
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                     .body(new SessionResponse(ACCOUNT_LOCKED_MSG));
         }
@@ -255,7 +264,8 @@ public class SessionServiceImpl implements SessionService {
             // IF User and Password validated (BCrypt)
             loginAttemptService.recordSuccess(sessionEmailRequest.email(), sessionEmailRequest.applicationId());
             auditEventService.saveRecord(userEntity.getId(), sessionEmailRequest.applicationId(),
-                    AuditEventType.LOGIN_SUCCESS, null, null, null);
+                    AuditEventType.LOGIN_SUCCESS, ipAddress, userAgent,
+                    buildDescription("Login successful", sessionEmailRequest.email()));
             String newToken = generateSessionToken(userEntity.getId());
             if (Objects.isNull(newToken)) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -266,7 +276,8 @@ public class SessionServiceImpl implements SessionService {
         }
         loginAttemptService.recordFailure(sessionEmailRequest.email(), sessionEmailRequest.applicationId());
         auditEventService.saveRecord(userEntity.getId(), sessionEmailRequest.applicationId(),
-                AuditEventType.LOGIN_FAILURE, null, null, null);
+                AuditEventType.LOGIN_FAILURE, ipAddress, userAgent,
+                buildDescription("Login failed", sessionEmailRequest.email()));
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
@@ -301,7 +312,7 @@ public class SessionServiceImpl implements SessionService {
             }
             sessionTokenService.denyToken(token);
             return ResponseEntity.noContent().build();
-        } catch (Exception e) {
+        } catch (Exception _) {
             return ResponseEntity.badRequest().build();
         }
     }
@@ -371,7 +382,7 @@ public class SessionServiceImpl implements SessionService {
             }
 
             return getSessionResponseResponseEntity(currentToken);
-        } catch (Exception e) {
+        } catch (Exception _) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new SessionResponse(messageUtil.getUserInvalido()));
         }
@@ -491,8 +502,8 @@ public class SessionServiceImpl implements SessionService {
         if (userIdStr != null && !userIdStr.isBlank()) {
             try {
                 userId = UUID.fromString(userIdStr);
-            } catch (IllegalArgumentException ignored) {
-                // will fall through to alias lookup below
+            } catch (IllegalArgumentException e) {
+                LOGGER.debug("uid claim '{}' is not a valid UUID; falling back to subject", userIdStr, e);
             }
         }
 
@@ -504,7 +515,7 @@ public class SessionServiceImpl implements SessionService {
             }
             try {
                 userId = UUID.fromString(subject);
-            } catch (IllegalArgumentException ignored) {
+            } catch (IllegalArgumentException _) {
                 // subject is an alias; look up by alias
                 UserEntity aliasEntity = userRepository.findByAlias(subject);
                 if (Objects.isNull(aliasEntity) || !aliasEntity.getActive()) {
@@ -514,30 +525,6 @@ public class SessionServiceImpl implements SessionService {
             }
         }
         return userId;
-    }
-
-    private String extractIpAddress() {
-        try {
-            var attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-            if (attrs == null) return null;
-            HttpServletRequest request = attrs.getRequest();
-            String forwarded = request.getHeader("X-Forwarded-For");
-            return (forwarded != null && !forwarded.isBlank())
-                    ? forwarded.split(",")[0].trim()
-                    : request.getRemoteAddr();
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    private String extractUserAgent() {
-        try {
-            var attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-            if (attrs == null) return null;
-            return attrs.getRequest().getHeader("User-Agent");
-        } catch (Exception e) {
-            return null;
-        }
     }
 
     private String buildDescription(String action, String alias) {

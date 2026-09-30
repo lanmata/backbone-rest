@@ -42,7 +42,7 @@ import java.io.IOException;
  * DTO found, request and response alike — cheaper than maintaining two lists that would silently
  * drift apart as new endpoints are added.
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ImportRuntimeHints(ApiResponseNativeRuntimeHints.Hints.class)
 public class ApiResponseNativeRuntimeHints {
 

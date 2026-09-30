@@ -25,10 +25,10 @@ class PasswordPolicyServiceImplTest {
     private static final String VALID_PASSWORD       = "ValidP@ss1";
     private static final String SHORT_PASSWORD       = "short";
     private static final String BAD_PASSWORD         = "bad";
-    private static final String NO_UPPERCASE_PWD     = "nouppercase1!";
-    private static final String NO_LOWERCASE_PWD     = "NOLOWERCASE1!";
-    private static final String NO_DIGIT_PWD         = "NoDigit!!";
-    private static final String NO_SPECIAL_CHAR_PWD  = "NoSpecial1A";
+    private static final String NO_UPPERCASE_PWD     = System.getProperty("test.pwd.noUppercase", "nouppercase1!");
+    private static final String NO_LOWERCASE_PWD     = System.getProperty("test.pwd.noLowercase", "NOLOWERCASE1!");
+    private static final String NO_DIGIT_PWD         = System.getProperty("test.pwd.noDigit", "NoDigit!!");
+    private static final String NO_SPECIAL_CHAR_PWD  = System.getProperty("test.pwd.noSpecial", "NoSpecial1A");
 
     private PasswordPolicyServiceImpl service;
 
