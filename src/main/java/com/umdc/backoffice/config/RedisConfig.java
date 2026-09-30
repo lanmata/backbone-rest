@@ -159,7 +159,10 @@ public class RedisConfig {
         try {
             String userInfo = new URI(rawUrl.trim()).getUserInfo();
             if (userInfo != null) {
-                return userInfo.split(":", 2)[0];
+                String[] parts = userInfo.split(":", 2);
+                if (parts.length > 0) {
+                    return parts[0];
+                }
             }
         } catch (Exception ignored) {
             // RedisURI.create() has already validated the URL; silent fallback is safe
@@ -169,8 +172,11 @@ public class RedisConfig {
     private static String extractPasswordFromUrl(String rawUrl) {
         try {
             String userInfo = new URI(rawUrl.trim()).getUserInfo();
-            if (userInfo != null && userInfo.contains(":")) {
-                return userInfo.split(":", 2)[1];
+            if (userInfo != null) {
+                String[] parts = userInfo.split(":", 2);
+                if (parts.length > 1) {
+                    return parts[1];
+                }
             }
         } catch (Exception ignored) {
             // RedisURI.create() has already validated the URL; silent fallback is safe
