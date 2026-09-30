@@ -18,6 +18,7 @@ import com.umdc.backoffice.v1.iam.permissions.api.to.PermissionCheckRequest;
 import com.umdc.backoffice.v1.iam.permissions.api.to.PermissionCheckResponse;
 import com.umdc.backoffice.v1.session.services.SessionService;
 import com.umdc.persistence.general.domains.ApplicationRoleUserEntity;
+import com.umdc.persistence.general.domains.FeatureEntity;
 import com.umdc.persistence.general.domains.RoleEntity;
 import com.umdc.persistence.general.domains.RoleFeatureEntity;
 import com.umdc.persistence.general.repositories.ApplicationRoleUserRepository;
@@ -168,7 +169,7 @@ public class PermissionCheckServiceImpl implements PermissionCheckService {
                 .filter(rf -> Boolean.TRUE.equals(rf.getActive()))
                 .map(RoleFeatureEntity::getFeature)
                 .filter(Objects::nonNull)
-                .map(feature -> feature.getName())
+                .map(FeatureEntity::getName)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
     }
@@ -188,7 +189,7 @@ public class PermissionCheckServiceImpl implements PermissionCheckService {
         }
         try {
             return UUID.fromString(raw.toString());
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException _) {
             LOGGER.debug("uid claim is not a well-formed UUID: '{}'", raw);
             return null;
         }

@@ -30,7 +30,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/// Unit tests for {@link NoticeTypeController}.
+/// Unit tests for [NoticeTypeController].
 class NoticeTypeControllerTest {
 
     private static final String NOTICE_TYPE_NAME = "test-notice-type";

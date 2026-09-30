@@ -40,7 +40,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/// Unit tests for {@link ManagedClientTokenServiceImpl} covering M2M token issuance,
+/// Unit tests for [ManagedClientTokenServiceImpl] covering M2M token issuance,
 /// revocation, and introspection (AC-TOK-01 – AC-TOK-04, AC-REV-01, AC-INT-01 – AC-INT-02).
 @ExtendWith(MockitoExtension.class)
 class ManagedClientTokenServiceImplTest {
@@ -50,8 +50,6 @@ class ManagedClientTokenServiceImplTest {
     private static final String CURR_HASH    = "current-hash";
     private static final String GRACE_HASH   = "grace-hash";
     private static final String SCOPE_READ   = "read:data";
-    private static final String ERR_INVALID  = "invalid_client";
-    private static final String ERR_SCOPE    = "invalid_scope";
     private static final long   TOKEN_TTL    = 3600L;
     private static final int    RATE_LIMIT   = 100;
     private static final String ISSUER       = "backbone-rest";
@@ -140,7 +138,7 @@ class ManagedClientTokenServiceImplTest {
         ManagedClientTokenRequest request = buildTokenRequest(clientId, "wrong", List.of(SCOPE_READ));
 
         when(repository.findById(clientId)).thenReturn(Optional.of(entity));
-        when(secretHashService.matchesWithConstantTime(eq("wrong"), eq(CURR_HASH))).thenReturn(false);
+        when(secretHashService.matchesWithConstantTime("wrong", CURR_HASH)).thenReturn(false);
         when(redisService.getGraceSecret(clientId)).thenReturn(Optional.empty());
 
         ResponseEntity<?> response = service.issueToken(request);

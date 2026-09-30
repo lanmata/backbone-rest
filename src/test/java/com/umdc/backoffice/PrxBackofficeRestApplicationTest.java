@@ -12,6 +12,8 @@
  */
 package com.umdc.backoffice;
 
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
@@ -30,6 +32,14 @@ import org.springframework.test.context.TestPropertySource;
         "keycloak.realm=prx-access-validator",
         "SPRING_BOOT_PROFILE_ACTIVE=local"
 })
+@Disabled("Requires a live local Postgres (localhost:5432), Vault and the 'prx-access-validator' "
+        + "Keycloak realm — start the 'local' profile stack via docker-compose and run manually; "
+        + "not part of the automated mvn test gate, which has none of that infrastructure available.")
 class PrxBackofficeRestApplicationTest {
 
+    @Test
+    void contextLoads() {
+        // Verifies the Spring application context starts successfully with the
+        // configured properties/profile; failure surfaces as a context-load exception.
+    }
 }

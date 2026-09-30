@@ -45,7 +45,6 @@ public interface ProfileImageApi {
      * @param token of the user
      * @param image the image file as a byte array
      * @return ResponseEntity with upload status
-     * @throws Exception if upload fails
      */
     @Operation(summary = "Upload profile image", description = "Uploads a profile image for a user.")
     @ApiResponses(value = {
@@ -58,7 +57,7 @@ public interface ProfileImageApi {
             @Parameter(description = "Token session", required = true) @RequestHeader(SESSION_TOKEN_KEY) String token,
             @Parameter(description = "Application Id", required = true) @PathVariable("applicationId") UUID applicationId,
             @Parameter(description = "Profile image file", required = true) @RequestPart byte[] image
-    ) throws Exception {
+    ) {
         return ResponseEntity.status(HttpStatusUtil.NOT_IMPLEMENTED).body(new PostProfileImageResponse(""));
     }
 
@@ -66,7 +65,6 @@ public interface ProfileImageApi {
      * Retrieves a user's profile image.
      *
      * @return ResponseEntity with the image as a byte array
-     * @throws Exception if retrieval fails
      */
     @Operation(summary = "Get profile image", description = "Retrieves a user's profile image.")
     @ApiResponses(value = {
@@ -77,7 +75,7 @@ public interface ProfileImageApi {
     @GetMapping("/")
     default ResponseEntity<byte[]> getProfileImage(
             @Parameter(description = "Token session", required = true) @RequestHeader(SESSION_TOKEN_KEY) String token
-    ) throws Exception {
+    ) {
         return ResponseEntity.status(HttpStatusUtil.NOT_IMPLEMENTED).body(new byte[0]);
     }
 
@@ -87,7 +85,6 @@ public interface ProfileImageApi {
      * @param token the session token of the user
      * @param applicationId the ID of the application
      * @return ResponseEntity with the profile image reference
-     * @throws Exception if retrieval fails
      */
     @Operation(summary = "Get profile image reference", description = "Retrieves the profile image reference for a user.")
     @ApiResponses(value = {
@@ -100,7 +97,7 @@ public interface ProfileImageApi {
     default ResponseEntity<GetProfileImageReferenceResponse> getProfileImageReference(
             @Parameter(description = "Token session", required = true) @RequestHeader(SESSION_TOKEN_KEY) String token,
             @Parameter(description = "Application Id", required = true) @PathVariable("applicationId") UUID applicationId
-    ) throws Exception {
+    ) {
         return ResponseEntity.status(HttpStatusUtil.NOT_IMPLEMENTED).body(null);
     }
 }

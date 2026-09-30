@@ -25,7 +25,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
@@ -62,7 +64,7 @@ public class ProfileImageServiceImpl implements ProfileImageService {
      * {@inheritDoc}
      */
     @Override
-    public ResponseEntity<PostProfileImageResponse> save(String token, UUID applicationId, byte[] image) throws Exception {
+    public ResponseEntity<PostProfileImageResponse> save(String token, UUID applicationId, byte[] image) {
         logger.info("Saving profile image for application: {}", applicationId);
         
         // 1. Extract userId from the JWT token
@@ -83,8 +85,8 @@ public class ProfileImageServiceImpl implements ProfileImageService {
 
         // 3. Generate unique filename: images/{applicationCode}/{userId}-{timestamp}.jpg
         String applicationCode = applicationRoleUser.getApplication().getCodeName();
-        String timestamp = new SimpleDateFormat(DateUtil.PATTERN_DATETIME_YYMMDDHHMMSS, Locale.ROOT)
-                .format(new java.util.Date());
+        String timestamp = DateTimeFormatter.ofPattern(DateUtil.PATTERN_DATETIME_YYMMDDHHMMSS, Locale.ROOT)
+                .format(LocalDateTime.now(ZoneId.systemDefault()));
         String objectKey = applicationCode + "/" + PROFILE_IMAGE_PREFIX + userId + "-" + timestamp + IMAGE_EXTENSION;
 
         try {
@@ -113,8 +115,7 @@ public class ProfileImageServiceImpl implements ProfileImageService {
      * {@inheritDoc}
      */
     @Override
-    public ResponseEntity<GetProfileImageReferenceResponse> getProfileImageReference(String token, UUID applicationId) 
-            throws Exception {
+    public ResponseEntity<GetProfileImageReferenceResponse> getProfileImageReference(String token, UUID applicationId) {
         logger.info("Getting profile image reference for application: {}", applicationId);
         
         // 1. Extract userId from the JWT token

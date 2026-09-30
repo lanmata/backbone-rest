@@ -61,7 +61,7 @@ public interface NoticeService {
      * @return a ResponseEntity reflecting the outcome of the deletion
      * @throws NotImplementedException if the method is not implemented
      */
-    default ResponseEntity<?> delete(UUID userId, UUID applicationId, UUID noticeTypeId) {
+    default ResponseEntity<Void> delete(UUID userId, UUID applicationId, UUID noticeTypeId) {
         throw new NotImplementedException();
     }
 }

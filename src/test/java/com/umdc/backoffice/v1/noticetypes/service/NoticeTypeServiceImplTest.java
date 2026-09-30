@@ -40,7 +40,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-/// Unit tests for {@link NoticeTypeServiceImpl}.
+/// Unit tests for [NoticeTypeServiceImpl].
 @ExtendWith(MockitoExtension.class)
 class NoticeTypeServiceImplTest {
 

@@ -51,7 +51,7 @@ public class NoticeController implements NoticeApi {
     }
 
     @Override
-    public ResponseEntity<?> deleteNotice(UUID userId, UUID applicationId, UUID noticeTypeId) {
+    public ResponseEntity<Void> deleteNotice(UUID userId, UUID applicationId, UUID noticeTypeId) {
         return noticeService.delete(userId, applicationId, noticeTypeId);
     }
 }

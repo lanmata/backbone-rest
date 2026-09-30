@@ -41,7 +41,7 @@ public class ProfileImageController implements ProfileImageApi {
      * {@inheritDoc}
      */
     @Override
-    public ResponseEntity<PostProfileImageResponse> uploadProfileImage(String token, UUID applicationId, byte[] image) throws Exception {
+    public ResponseEntity<PostProfileImageResponse> uploadProfileImage(String token, UUID applicationId, byte[] image) {
         // Implementation logic goes here
         return profileImageService.save(token, applicationId, image);
     }
@@ -50,7 +50,7 @@ public class ProfileImageController implements ProfileImageApi {
      * {@inheritDoc}
      */
     @Override
-    public ResponseEntity<byte[]> getProfileImage(String token) throws Exception {
+    public ResponseEntity<byte[]> getProfileImage(String token) {
         // Implementation logic goes here
         return ResponseEntity.ok(new byte[0]);
     }
@@ -59,7 +59,7 @@ public class ProfileImageController implements ProfileImageApi {
      * {@inheritDoc}
      */
     @Override
-    public ResponseEntity<GetProfileImageReferenceResponse> getProfileImageReference(String token, UUID applicationId) throws Exception {
+    public ResponseEntity<GetProfileImageReferenceResponse> getProfileImageReference(String token, UUID applicationId) {
         return profileImageService.getProfileImageReference(token, applicationId);
     }
 }
