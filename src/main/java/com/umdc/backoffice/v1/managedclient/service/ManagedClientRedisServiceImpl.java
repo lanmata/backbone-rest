@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Redis-backed implementation of {@link ManagedClientRedisService}.
@@ -55,7 +56,10 @@ public class ManagedClientRedisServiceImpl implements ManagedClientRedisService 
      */
     @Override
     public void storeToken(String jti, UUID clientId, List<String> scopes, long ttlSeconds) {
-        String payload = clientId.toString() + ":" + String.join(",", scopes);
+        String sanitizedScopes = scopes.stream()
+                .map(LogSanitizerUtil::sanitize)
+                .collect(Collectors.joining(","));
+        String payload = LogSanitizerUtil.sanitize(clientId) + ":" + sanitizedScopes;
         redisTemplate.opsForValue().set(KEY_TOKEN + jti, payload, Duration.ofSeconds(ttlSeconds));
         LOGGER.debug("Stored M2M token jti='{}' for clientId='{}'",
                 LogSanitizerUtil.sanitize(jti), LogSanitizerUtil.sanitize(clientId));
@@ -108,14 +112,15 @@ public class ManagedClientRedisServiceImpl implements ManagedClientRedisService 
      */
     @Override
     public boolean checkAndIncrementRateLimit(UUID clientId, int maxRpm) {
-        String key = KEY_RATELIMIT + clientId;
+        String key = KEY_RATELIMIT + LogSanitizerUtil.sanitize(clientId);
         Long count = redisTemplate.opsForValue().increment(key);
         if (Long.valueOf(1L).equals(count)) {
             redisTemplate.expire(key, Duration.ofSeconds(RATE_LIMIT_WINDOW_SECONDS));
         }
         boolean allowed = count != null && count <= maxRpm;
         if (!allowed) {
-            LOGGER.warn("Rate limit exceeded for clientId='{}' count={} maxRpm={}", clientId, count, maxRpm);
+            LOGGER.warn("Rate limit exceeded for clientId='{}' count={} maxRpm={}",
+                    LogSanitizerUtil.sanitize(clientId), count, maxRpm);
         }
         return allowed;
     }
