@@ -23,6 +23,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -32,6 +33,8 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Luis Mata
@@ -134,6 +137,124 @@ class DocumentServiceImplTest {
         ResponseEntity<java.util.List<String>> response = documentService.findPlaceholderValues(template);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    @DisplayName("findPlaceholderValues returns 404 (empty result) when reading the upload itself fails with IOException")
+    void findPlaceholderValuesReturnsNotFoundWhenInputStreamFails() throws IOException {
+        MultipartFile brokenUpload = mock(MultipartFile.class);
+        when(brokenUpload.getInputStream()).thenThrow(new IOException("boom"));
+
+        ResponseEntity<java.util.List<String>> response = documentService.findPlaceholderValues(brokenUpload);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    @DisplayName("process returns 400 (via writeDocument's own catch) when reading the upload itself fails with IOException")
+    void processReturnsBadRequestWhenInputStreamFails() throws IOException {
+        MultipartFile brokenUpload = mock(MultipartFile.class);
+        when(brokenUpload.getInputStream()).thenThrow(new IOException("boom"));
+
+        ResponseEntity<org.springframework.core.io.Resource> response =
+                documentService.process(Map.of(), brokenUpload);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    @DisplayName("constructor keeps outputDir unchanged when it already ends with the path separator")
+    void constructorKeepsTrailingSeparatorAsIs() throws IOException {
+        var serviceWithTrailingSeparator = new DocumentServiceImpl(tempDir.toString() + java.io.File.separator);
+        MockMultipartFile template = docxWithParagraph("No placeholders here, just checking the path join.");
+
+        ResponseEntity<org.springframework.core.io.Resource> response =
+                serviceWithTrailingSeparator.process(Map.of(), template);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    @DisplayName("process returns 400 when the configured output directory path is invalid")
+    void processReturnsBadRequestWhenOutputDirIsInvalid() throws IOException {
+        var serviceWithInvalidOutputDir = new DocumentServiceImpl("invalid" + (char) 0 + "dir");
+        MockMultipartFile template = docxWithParagraph("No placeholders here.");
+
+        ResponseEntity<org.springframework.core.io.Resource> response =
+                serviceWithInvalidOutputDir.process(Map.of(), template);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    @DisplayName("replace leaves a run with no text untouched instead of throwing")
+    void processSkipsRunsWithNullText() throws IOException {
+        MockMultipartFile template;
+        try (XWPFDocument document = new XWPFDocument()) {
+            XWPFParagraph paragraph = document.createParagraph();
+            paragraph.createRun(); // no setText(...) called — getText(0) is null
+            XWPFRun withText = paragraph.createRun();
+            withText.setText("Hello {name}!");
+            template = toMultipartFile(document);
+        }
+
+        ResponseEntity<org.springframework.core.io.Resource> response =
+                documentService.process(Map.of("name", "Alice"), template);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(readParagraphText(response.getBody().getInputStream()).contains("Hello Alice!"));
+    }
+
+    @Test
+    @DisplayName("replace leaves text unchanged when none of the placeholder keys match")
+    void processLeavesTextUnchangedWhenNoPlaceholderMatches() throws IOException {
+        MockMultipartFile template = docxWithParagraph("Hello there, no braces here.");
+
+        ResponseEntity<org.springframework.core.io.Resource> response =
+                documentService.process(Map.of("name", "Alice"), template);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(readParagraphText(response.getBody().getInputStream()).contains("Hello there, no braces here."));
+    }
+
+    @Test
+    @DisplayName("findPlaceholderValues skips a non-matching run inside a table cell but keeps the matching one")
+    void findPlaceholderValuesSkipsNonMatchingRunInTableCell() throws IOException {
+        MockMultipartFile template;
+        try (XWPFDocument document = new XWPFDocument()) {
+            XWPFTable table = document.createTable(1, 1);
+            XWPFParagraph paragraph = table.getRow(0).getCell(0).getParagraphs().get(0);
+            XWPFRun noMatch = paragraph.createRun();
+            noMatch.setText("no markers here");
+            XWPFRun withMatch = paragraph.createRun();
+            withMatch.setText("~{amount}~");
+            template = toMultipartFile(document);
+        }
+
+        ResponseEntity<java.util.List<String>> response = documentService.findPlaceholderValues(template);
+
+        assertEquals(HttpStatus.FOUND, response.getStatusCode());
+        assertTrue(response.getBody().stream().anyMatch(v -> v.contains("~{amount}~")));
+    }
+
+    @Test
+    @DisplayName("findPlaceholderValues skips runs with no text and runs with no match in the same paragraph")
+    void findPlaceholderValuesSkipsNullAndNonMatchingRuns() throws IOException {
+        MockMultipartFile template;
+        try (XWPFDocument document = new XWPFDocument()) {
+            XWPFParagraph paragraph = document.createParagraph();
+            paragraph.createRun(); // no setText(...) called — getText(0) is null
+            XWPFRun noMatch = paragraph.createRun();
+            noMatch.setText("no markers here");
+            XWPFRun withMatch = paragraph.createRun();
+            withMatch.setText("~{firstname}~");
+            template = toMultipartFile(document);
+        }
+
+        ResponseEntity<java.util.List<String>> response = documentService.findPlaceholderValues(template);
+
+        assertEquals(HttpStatus.FOUND, response.getStatusCode());
+        assertTrue(response.getBody().contains("~{firstname}~"));
     }
 
     // ── helpers ──────────────────────────────────────────────────────────────
