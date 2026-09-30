@@ -4,6 +4,56 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] - 2026-09-29
+
+### Fixed
+- **`POST /api/v1/session` threw `HibernateException: Generation of
+  HibernateProxy instances at runtime is not allowed when the configured
+  BytecodeProvider is 'none'` under the GraalVM native-image build** (both
+  the alias/password and email/password login flows) —
+  `UserRepository#findByAliasAndApplication` / `#findByEmailAndApplication`
+  plain-`JOIN` the eagerly-fetched (`fetch = EAGER`) `applicationRoleUser`
+  collection but never `JOIN FETCH` its nested, lazily-fetched
+  (`fetch = LAZY`) `role`/`application` associations. The moment Hibernate
+  materializes that eager collection it tries to back each lazy reference
+  with a runtime-generated proxy — harmless under the JVM, fatal under
+  native-image, where Spring Boot disables runtime bytecode generation
+  (`hibernate.bytecode.provider=none`) since a closed-world native binary
+  can't generate classes at runtime. Added `SessionUserLookupService` /
+  `SessionUserLookupServiceImpl`, a small collaborator that runs an
+  equivalent `EntityManager` query which `JOIN FETCH`es `role` and
+  `application` directly (mirroring the already-correct
+  `UserRepository#findUserInfo` query), so no proxy is ever needed. Kept as
+  a separate class, rather than inlined into `SessionServiceImpl`, to keep
+  that class under PMD's `GodClass` threshold.
+  - Note: the same collection/association shape is reachable from
+    `PermissionCheckServiceImpl`, `ProfileImageServiceImpl`,
+    `UserServiceImpl`, `UserApplicationRoleServiceImpl`, and the
+    `UserMapper`/`ApplicationRoleUserMapper` pair, so the identical failure
+    is plausible anywhere else a `UserEntity` with a populated
+    `applicationRoleUser` set is loaded and read under native-image. Not
+    fixed here — out of scope for this change — but worth tracking; the
+    durable fix belongs in the `com.umdc.persistence` module that owns
+    these entity mappings (e.g. build-time Hibernate bytecode enhancement),
+    not in per-call `JOIN FETCH` workarounds on the consuming side.
+
+### Documentation
+- `src/main/resources/static/api.yaml` — synced against every `*Api.java`
+  interface:
+  - Removed a duplicate, stale `GET`-based definition of
+    `/api/v1/report/template` and `/api/v1/report/placeholdervalues`
+    (labeled "Report (legacy)") that shadowed the correct `POST`
+    `multipart/form-data` definitions matching `DocumentApi.java` — YAML
+    allows duplicate keys, so a parser was silently discarding one of the
+    two on every load.
+  - Removed the phantom `/api/v1/applications/by-ids` path, which doesn't
+    exist in Spring's routing — `ApplicationApi.list()` actually serves
+    `ids`-filtered lookups from the *same* `/api/v1/applications` path via
+    `@GetMapping(params = "ids")`. Merged the `ids` query parameter into
+    that existing operation instead.
+  - Fixed the `placeholderValues` operation's `operationId`, which had
+    drifted to `listTemplatePlaceholders`.
+
 ## [Unreleased] - 2026-09-28
 
 ### Fixed

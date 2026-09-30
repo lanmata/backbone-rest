@@ -66,6 +66,7 @@ public class SessionServiceImpl implements SessionService {
     private final LoginAttemptService loginAttemptService;
     private final AuditEventService auditEventService;
     private final SessionTokenServiceImpl sessionTokenService;
+    private final SessionUserLookupService sessionUserLookupService;
 
     private static final String INVALID_APPLICATION_ID_MSG = "Invalid application ID";
     private static final String ACCOUNT_LOCKED_MSG = "Account temporarily locked due to too many failed attempts";
@@ -83,13 +84,18 @@ public class SessionServiceImpl implements SessionService {
      * @param loginAttemptService the brute-force login attempt tracking service
      * @param auditEventService   the audit event service for recording security events
      * @param sessionTokenService the JWT mechanics collaborator (signing, parsing, revocation)
+     * @param sessionUserLookupService the application-scoped user lookup collaborator — see
+     *                                 {@link SessionUserLookupServiceImpl} for why this replaces
+     *                                 {@link UserRepository#findByAliasAndApplication} and
+     *                                 {@link UserRepository#findByEmailAndApplication}
      */
     public SessionServiceImpl(MessageUtil messageUtil,
                               UserMapper userMapper, UserAliasMapper userAliasMapper,
                               UserRepository userRepository, PasswordEncoder passwordEncoder,
                               LoginAttemptService loginAttemptService,
                               AuditEventService auditEventService,
-                              SessionTokenServiceImpl sessionTokenService) {
+                              SessionTokenServiceImpl sessionTokenService,
+                              SessionUserLookupService sessionUserLookupService) {
         this.userMapper = userMapper;
         this.userAliasMapper = userAliasMapper;
         this.userRepository = userRepository;
@@ -98,6 +104,7 @@ public class SessionServiceImpl implements SessionService {
         this.loginAttemptService = loginAttemptService;
         this.auditEventService = auditEventService;
         this.sessionTokenService = sessionTokenService;
+        this.sessionUserLookupService = sessionUserLookupService;
     }
 
     /**
@@ -140,7 +147,8 @@ public class SessionServiceImpl implements SessionService {
         }
 
         // Lookup user scoped to the target application
-        optionalUserEntity = userRepository.findByAliasAndApplication(sessionRequest.alias(), sessionRequest.applicationId());
+        optionalUserEntity = sessionUserLookupService.findByAliasAndApplication(
+                sessionRequest.alias(), sessionRequest.applicationId());
         if (optionalUserEntity.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
@@ -217,7 +225,8 @@ public class SessionServiceImpl implements SessionService {
             return responseEntity;
         }
 
-        optionalUserEntity = userRepository.findByEmailAndApplication(sessionEmailRequest.email(), sessionEmailRequest.applicationId());
+        optionalUserEntity = sessionUserLookupService.findByEmailAndApplication(
+                sessionEmailRequest.email(), sessionEmailRequest.applicationId());
         if (optionalUserEntity.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
