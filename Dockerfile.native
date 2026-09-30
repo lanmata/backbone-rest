@@ -104,7 +104,7 @@ RUN --mount=type=secret,id=prx_internal_ca,target=/run/secrets/prx-internal-ca.c
 # build uses the plain default `--no-fallback` native-image linking (dynamically linked against
 # glibc AND libstdc++), not the "mostly static" mode base-debian12 is meant for.
 FROM gcr.io/distroless/cc-debian12:nonroot
-LABEL version="0.0.2-native"
+LABEL version="0.0.3-native"
 LABEL description="Backbone REST API (GraalVM native image)"
 LABEL maintainer="Luis Antonio Mata luis.antonio.mata@gmail.com"
 
