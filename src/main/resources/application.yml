@@ -22,11 +22,18 @@ springdoc:
   # signature changes. Annotation-driven generation is unreliable here regardless: every
   # *Api.java method returns ResponseEntity<?> (convention #3 — status decisions live in
   # *ServiceImpl), and that wildcard erasure means springdoc can't resolve a response body
-  # schema from the method signature alone. Rather than leave /v3/api-docs auto-generating
-  # an incomplete, unused spec in parallel with the real one (and risk a client rendering
-  # that broken doc by mistake), it's switched off explicitly.
+  # schema from the method signature alone.
+  #
+  # api-docs.enabled is springdoc's master switch, NOT a toggle for just the /v3/api-docs
+  # JSON — setting it to false disables the entire autoconfiguration, which silently took
+  # Swagger UI down with it (no handler registered for /swagger-ui/** or /swagger-resources
+  # at all — see CLAUDE.md "Known Issues"). It must stay enabled for Swagger UI's own
+  # backend to register. The incomplete auto-generated spec is still not what gets shown:
+  # swagger-ui.url below points Swagger UI at the real /api.yaml instead, and /v3/api-docs
+  # itself is kept out of SecurityConfig's permitAll list (requires auth) so a client can't
+  # stumble onto the broken generated doc by mistake.
   api-docs:
-    enabled: false
+    enabled: true
     path: /v3/api-docs
   swagger-ui:
     enabled: true

@@ -16,6 +16,7 @@ package com.umdc.backoffice.v1.users.service;
 import com.umdc.persistence.general.domains.UserEntity;
 import com.umdc.persistence.general.repositories.UserRepository;
 import jakarta.persistence.EntityManager;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -44,15 +45,31 @@ import java.util.UUID;
  * is fetched with a {@code LEFT} join (not {@code INNER}, unlike {@link UserRepository
  * #findUserInfo}) since it's an optional one-to-one — an inner join would silently exclude any
  * user without a person record.
+ * <p>
+ * The two collections are deliberately loaded with <strong>two separate queries</strong> rather
+ * than one: {@code person.contacts} is a {@code List} (a bag — {@code PersonEntity} declares no
+ * {@code @OrderColumn}) and {@code applicationRoleUser} is a {@code Set}. JOIN FETCHing a bag
+ * and another collection together in the same query produces a SQL cartesian product — Hibernate
+ * only collapses duplicate root {@code UserEntity} rows ({@code SELECT DISTINCT}), it does not
+ * deduplicate the bag itself, so a user with 2 contacts and 3 role links would come back with 6
+ * contact entries. Running two queries against the same {@link EntityManager} inside one
+ * {@code @Transactional} boundary avoids this: each query fetches only one to-many collection at
+ * a time (safe — a single bag can't cartesian-product against itself), and Hibernate's
+ * persistence-context identity map attaches the second query's result to the exact same managed
+ * {@code UserEntity} instance the first query already returned.
  */
 @Service
 public class UserGraphLookupServiceImpl implements UserGraphLookupService {
 
-    private static final String FIND_USER_BY_ID_WITH_GRAPH =
+    private static final String FIND_USER_BY_ID_WITH_APPLICATION_AND_CONTACTS =
             "SELECT DISTINCT u FROM UserEntity u "
             + "LEFT JOIN FETCH u.application "
             + "LEFT JOIN FETCH u.person p "
             + "LEFT JOIN FETCH p.contacts "
+            + "WHERE u.id = :userId";
+
+    private static final String FETCH_APPLICATION_ROLE_USER_FOR_USER =
+            "SELECT DISTINCT u FROM UserEntity u "
             + "LEFT JOIN FETCH u.applicationRoleUser ar "
             + "LEFT JOIN FETCH ar.role "
             + "LEFT JOIN FETCH ar.application "
@@ -61,7 +78,7 @@ public class UserGraphLookupServiceImpl implements UserGraphLookupService {
     private final EntityManager entityManager;
 
     /**
-     * @param entityManager used to run the JOIN FETCH lookup
+     * @param entityManager used to run the JOIN FETCH lookups
      */
     public UserGraphLookupServiceImpl(EntityManager entityManager) {
         this.entityManager = entityManager;
@@ -70,11 +87,23 @@ public class UserGraphLookupServiceImpl implements UserGraphLookupService {
     /**
      * {@inheritDoc}
      */
+    @Transactional
     @Override
     public Optional<UserEntity> findByIdWithGraph(UUID userId) {
-        return entityManager.createQuery(FIND_USER_BY_ID_WITH_GRAPH, UserEntity.class)
+        Optional<UserEntity> user = entityManager
+                .createQuery(FIND_USER_BY_ID_WITH_APPLICATION_AND_CONTACTS, UserEntity.class)
                 .setParameter("userId", userId)
                 .getResultStream()
                 .findFirst();
+        if (user.isEmpty()) {
+            return Optional.empty();
+        }
+        // Populates applicationRoleUser/role/application on the same managed instance `user`
+        // already holds — same EntityManager, same persistence context, same transaction.
+        entityManager.createQuery(FETCH_APPLICATION_ROLE_USER_FOR_USER, UserEntity.class)
+                .setParameter("userId", userId)
+                .getResultStream()
+                .findFirst();
+        return user;
     }
 }

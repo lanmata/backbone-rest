@@ -435,6 +435,16 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-test-autoconfigure</artifactId>
         </dependency>
+        <!-- @DataJpaTest / TestEntityManager — Spring Boot 4.x split the JPA test slice out of
+             spring-boot-test-autoconfigure into its own module (spring-boot-jpa-test, pulled in
+             transitively, provides TestEntityManager). Used by
+             UserGraphLookupServiceImplIntegrationTest to exercise real Hibernate JOIN FETCH
+             behavior (row-multiplication bugs can't be observed with a mocked EntityManager). -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-data-jpa-test</artifactId>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.junit</groupId>
             <artifactId>junit-bom</artifactId>

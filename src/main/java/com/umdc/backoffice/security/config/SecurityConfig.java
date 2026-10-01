@@ -45,9 +45,19 @@ public class SecurityConfig {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SecurityConfig.class);
 
+    // /v3/api-docs (the generated spec document itself) is intentionally NOT permitted here —
+    // springdoc.api-docs.enabled must stay true for the Swagger UI backend to register at all,
+    // but the generated spec it would serve is incomplete (see the api-docs.enabled comment in
+    // application.yml), so it's left behind authentication rather than exposed. Swagger UI
+    // itself renders the hand-maintained /api.yaml instead (springdoc.swagger-ui.url).
+    // /v3/api-docs/swagger-config IS permitted below — it's a small, harmless JSON describing
+    // which spec URL(s) the UI shell should list (no schema/path data), but Swagger UI's own
+    // bootstrap JS fetches it unconditionally on load; blocking it produces "Failed to load
+    // remote configuration" even though the page itself rendered.
     private static final String[] SWAGGER_PATHS = {
+            "/swagger-ui.html",
             "/swagger-ui/**",
-            "/v3/api-docs/**",
+            "/v3/api-docs/swagger-config",
             "/swagger-resources/**",
             "/swagger-resources",
             "/api.yaml"
@@ -97,6 +107,12 @@ public class SecurityConfig {
                 .sessionManagement(session ->
                     session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> {
+                    // Must be permitAll: Spring re-runs authorization on the internal forward to
+                    // /error for ANY unhandled condition (404 from a missing resource, 400 from a
+                    // malformed body, 500, ...). Without this, that forwarded dispatch gets denied
+                    // by anyRequest().authenticated() below and every error response gets replaced
+                    // with a misleading blank 403, masking the real status code.
+                    auth.requestMatchers("/error").permitAll();
                     auth.requestMatchers(SWAGGER_PATHS).permitAll();
                     // Session endpoints — alias login, email login, validate, renew
                     auth.requestMatchers(HttpMethod.POST, "/api/v1/session").permitAll();
