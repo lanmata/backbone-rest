@@ -62,6 +62,64 @@ service, no REST surface), `roles`, `servicetype`, `session`, `users`
   Rotation is an operational Vault procedure, not application code — the
   rotation cadence/runbook is not documented here; owner to fill in.
 
+## Known Issues (fixed 2026-09-30 — see below for the current, working config)
+Two bugs made Swagger UI return a bare `403 Forbidden` instead of loading, and masked real
+error status codes app-wide. Both are now fixed in `SecurityConfig.java` / `application.yml`;
+documenting them here since the symptom is non-obvious and the fix touches security config.
+
+1. **`/error` was not `permitAll`.** Any request that internally forwards to `/error` (a 404
+   from a missing static resource, a 400 from `HttpMessageNotReadableException`, a 500,
+   anything) gets re-evaluated by the security filter chain on that forward. Since `/error`
+   fell under `anyRequest().authenticated()` and the request is anonymous, `AuthorizationFilter`
+   denied it and the client saw a bare `403 Forbidden` instead of the real status code — e.g. a
+   genuine 404 or 400 both came back as indistinguishable 403s. Verified with
+   `-Dlogging.level.org.springframework.security=TRACE`: the original request was correctly
+   authorized (`SingleResultAuthorizationManager` granted it), the handler threw/resolved to
+   `/error`, and *that* forwarded dispatch is what got `AuthorizationDeniedException`'d.
+   **Fix**: `"/error"` added to the permitAll matcher list, with a comment explaining why.
+2. **`springdoc.api-docs.enabled: false` is springdoc's master switch, not just a toggle for
+   `/v3/api-docs`.** It had been set to `false` to avoid exposing the auto-generated OpenAPI doc
+   (incomplete because every `*Api.java` method returns `ResponseEntity<?>` — convention #3 —
+   and that wildcard erasure means springdoc can't resolve a response schema). But disabling it
+   took down the *entire* springdoc-openapi-starter-webmvc-ui autoconfiguration, including the
+   resource handlers for `/swagger-ui.html`, `/swagger-ui/**`, and `/swagger-resources` — there
+   was no controller registered for them at all (confirmed via
+   `NoResourceFoundException: No static resource swagger-resources ...` in the TRACE log).
+   Combined with bug #1, this presented as `403 Forbidden` rather than `404`, which looked like
+   a permissions problem instead of "the UI isn't wired up."
+   **Fix**: `springdoc.api-docs.enabled` set back to `true` (required for the UI backend to
+   register at all), while `/v3/api-docs` — the actual generated spec document — is deliberately
+   **excluded** from `SecurityConfig.SWAGGER_PATHS`, so it still requires auth and a client can't
+   stumble onto the broken generated doc by mistake. Swagger UI itself renders the real,
+   hand-maintained `api.yaml` instead, via `springdoc.swagger-ui.url: /api.yaml` (already set).
+3. **Follow-on gotcha from fix #2**: once the page loaded, it showed "Failed to load remote
+   configuration." Swagger UI's own bootstrap JS unconditionally fetches
+   `/v3/api-docs/swagger-config` (a small JSON describing which spec URL to render — no schema/
+   path data in it) regardless of `swagger-ui.url`, and that path was still blocked by the same
+   exclusion as `/v3/api-docs`. **Fix**: `/v3/api-docs/swagger-config` added as its own explicit
+   `permitAll` entry in `SWAGGER_PATHS`, separate from `/v3/api-docs` itself.
+   `/swagger-ui.html` also needed its own explicit entry — the `/swagger-ui/**` pattern doesn't
+   match the exact literal `/swagger-ui.html` (no `/` after `swagger-ui`), which is the actual
+   page entry point (it 302-redirects to `/swagger-ui/index.html`).
+
+**Current working state**: `GET https://localhost:8084/swagger-ui.html` → 302 →
+`/swagger-ui/index.html` → 200, rendering `api.yaml`. `GET /v3/api-docs` stays `403` (by
+design). Verify after any future springdoc/security change with the curl checks above, not just
+by eyeballing the page — the "page loads" and "page's own API calls succeed" states are
+different failure surfaces, as bug #3 showed.
+
+Also noted while debugging: `server.port` is `8084` over **HTTPS** with a custom cert
+(`backbone.jks` / PRX Internal CA, TLS 1.3 only) — hitting `http://` or the wrong port looks
+like "won't load" too, independent of the bugs above. And `default.env` with real runtime
+values (Vault token, Config Server URI, etc. for the `remote-supabase` profile) lives at the
+**project root** (`default.env`), gitignored — not at `src/main/resources/default.env` as the
+Key Files table below says. The IntelliJ run configuration (`.idea/workspace.xml`) loads it via
+the EnvFile plugin. To run the same way from a shell:
+`set -a; source default.env; set +a; mvn -Dspring-boot.run.profiles=remote-supabase spring-boot:run`.
+Don't run both an IntelliJ instance and a shell-launched instance at once — whichever binds
+port 8084 first wins and the other's `mvn` process just sits there failing to bind, which looks
+like your code change had no effect when it's actually a stale second instance still answering.
+
 ## Dependency Security (Dependabot)
 - **Review cadence**: check open alerts at the start of any work session that
   touches `pom.xml`, and at least weekly otherwise —

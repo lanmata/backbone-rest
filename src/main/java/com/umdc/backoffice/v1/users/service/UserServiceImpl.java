@@ -71,6 +71,7 @@ public class UserServiceImpl implements UserService {
     private final AuditEventService auditEventService;
     private final PasswordPolicyService passwordPolicyService;
     private final RequestContextUtil requestContextUtil;
+    private final UserGraphLookupService userGraphLookupService;
 
     /**
      * Constructs a new UserServiceImpl with the provided dependencies.
@@ -86,6 +87,9 @@ public class UserServiceImpl implements UserService {
      * @param auditEventService the service for recording security audit events
      * @param passwordPolicyService the service that validates password complexity rules
      * @param requestContextUtil resolves source IP / User-Agent from the current request for audit records
+     * @param userGraphLookupService loads a user by id with its lazy association graph eagerly
+     *                               fetched — see {@link UserGraphLookupServiceImpl} for why this
+     *                               replaces {@link UserRepository#findById} in this class
      */
     public UserServiceImpl(UserRepository userRepository,
                            ApplicationRoleUserRepository applicationRoleUserRepository,
@@ -95,7 +99,8 @@ public class UserServiceImpl implements UserService {
                            PasswordEncoder passwordEncoder,
                            AuditEventService auditEventService,
                            PasswordPolicyService passwordPolicyService,
-                           RequestContextUtil requestContextUtil) {
+                           RequestContextUtil requestContextUtil,
+                           UserGraphLookupService userGraphLookupService) {
         this.userRepository = userRepository;
         this.applicationRoleUserRepository = applicationRoleUserRepository;
         this.applicationService = applicationService;
@@ -107,6 +112,7 @@ public class UserServiceImpl implements UserService {
         this.auditEventService = auditEventService;
         this.passwordPolicyService = passwordPolicyService;
         this.requestContextUtil = requestContextUtil;
+        this.userGraphLookupService = userGraphLookupService;
     }
 
 
@@ -331,7 +337,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public ResponseEntity<UserTO> findUserById(UUID userId) {
         ResponseEntity<UserTO> responseEntity;
-        final var optionalUser = userRepository.findById(userId);
+        final var optionalUser = userGraphLookupService.findByIdWithGraph(userId);
         responseEntity = optionalUser.map(userEntity ->
                 new ResponseEntity<>(userMapper.toTarget(userEntity), HttpStatus.OK)).orElseGet(() ->
                 ResponseEntity.notFound().build());
@@ -340,7 +346,8 @@ public class UserServiceImpl implements UserService {
     }
 
     private UserEntity findById(UUID userId) {
-        return userRepository.findById(userId).orElseThrow(() -> new StandardException(UserMessageKey.USER_NOT_FOUND));
+        return userGraphLookupService.findByIdWithGraph(userId)
+                .orElseThrow(() -> new StandardException(UserMessageKey.USER_NOT_FOUND));
     }
 
     /**
@@ -464,7 +471,7 @@ public class UserServiceImpl implements UserService {
         if (Objects.isNull(userId) || Objects.isNull(roleId)) {
             return ResponseEntity.badRequest().build();
         }
-        Optional<UserEntity> optionalUser = userRepository.findById(userId);
+        Optional<UserEntity> optionalUser = userGraphLookupService.findByIdWithGraph(userId);
         if (optionalUser.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
@@ -502,7 +509,7 @@ public class UserServiceImpl implements UserService {
         if (Objects.isNull(userId) || Objects.isNull(roleId)) {
             return ResponseEntity.badRequest().build();
         }
-        Optional<UserEntity> optionalUser = userRepository.findById(userId);
+        Optional<UserEntity> optionalUser = userGraphLookupService.findByIdWithGraph(userId);
         if (optionalUser.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
@@ -568,7 +575,7 @@ public class UserServiceImpl implements UserService {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
 
-        var userOpt = userRepository.findById(userId);
+        var userOpt = userGraphLookupService.findByIdWithGraph(userId);
         if (userOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }

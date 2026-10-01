@@ -67,6 +67,9 @@ class UserServiceImplTest {
     @Mock
     com.umdc.backoffice.util.RequestContextUtil requestContextUtil;
 
+    @Mock
+    UserGraphLookupService userGraphLookupService;
+
     @InjectMocks
     UserServiceImpl userService;
 
@@ -230,7 +233,7 @@ class UserServiceImplTest {
         UUID userId = UUID.randomUUID();
         UserEntity userEntity = new UserEntity();
         UserTO userTO = new UserTO();
-        when(userRepository.findById(userId)).thenReturn(Optional.of(userEntity));
+        when(userGraphLookupService.findByIdWithGraph(userId)).thenReturn(Optional.of(userEntity));
         when(userMapper.toTarget(userEntity)).thenReturn(userTO);
         ResponseEntity<UserTO> response = userService.findUserById(userId);
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -240,7 +243,7 @@ class UserServiceImplTest {
     @Test
     void testFindUserByUserId_NotFound() {
         UUID userId = UUID.randomUUID();
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        when(userGraphLookupService.findByIdWithGraph(userId)).thenReturn(Optional.empty());
         ResponseEntity<UserTO> response = userService.findUserById(userId);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertNull(response.getBody());
@@ -302,7 +305,7 @@ class UserServiceImplTest {
         Application application = new Application();
         application.setId(appId);
         when(applicationService.find(appId)).thenReturn(ResponseEntity.ok(application));
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        when(userGraphLookupService.findByIdWithGraph(userId)).thenReturn(Optional.empty());
         ResponseEntity<Void> response = userService.deleteUserByApplicationAndUserId(appId, userId);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
@@ -315,7 +318,7 @@ class UserServiceImplTest {
         application.setId(appId);
         var userEntity = mock(UserEntity.class);
         when(applicationService.find(appId)).thenReturn(ResponseEntity.ok(application));
-        when(userRepository.findById(userId)).thenReturn(Optional.of(userEntity));
+        when(userGraphLookupService.findByIdWithGraph(userId)).thenReturn(Optional.of(userEntity));
         when(userEntity.getApplicationRoleUser()).thenReturn(java.util.Set.of());
         ResponseEntity<Void> response = userService.deleteUserByApplicationAndUserId(appId, userId);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
@@ -394,7 +397,7 @@ class UserServiceImplTest {
         updateData.setNotificationSms(false);
         updateData.setPrivacyDataOutActive(true);
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userGraphLookupService.findByIdWithGraph(userId)).thenReturn(Optional.of(existingUser));
         when(userRepository.save(any(UserEntity.class))).thenReturn(existingUser);
         when(userMapper.toTarget(existingUser)).thenReturn(updateData);
 
@@ -410,7 +413,7 @@ class UserServiceImplTest {
         UUID userId = UUID.randomUUID();
         UserTO updateData = new UserTO();
 
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        when(userGraphLookupService.findByIdWithGraph(userId)).thenReturn(Optional.empty());
 
         ResponseEntity<UserTO> response = userService.update(userId, updateData);
 
@@ -436,7 +439,7 @@ class UserServiceImplTest {
         person.setBirthdate(java.time.LocalDate.now());
         updateData.setPerson(person);
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userGraphLookupService.findByIdWithGraph(userId)).thenReturn(Optional.of(existingUser));
         when(userRepository.save(any(UserEntity.class))).thenReturn(existingUser);
         when(userMapper.toTarget(existingUser)).thenReturn(updateData);
 
@@ -459,7 +462,7 @@ class UserServiceImplTest {
         person.setLastName("Smith");
         updateData.setPerson(person);
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userGraphLookupService.findByIdWithGraph(userId)).thenReturn(Optional.of(existingUser));
         when(userRepository.save(any(UserEntity.class))).thenReturn(existingUser);
         when(userMapper.toTarget(existingUser)).thenReturn(updateData);
 
@@ -498,7 +501,7 @@ class UserServiceImplTest {
         ContactEntity contactEntity = new ContactEntity();
         ContactTypeEntity contactTypeEntity = new ContactTypeEntity();
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userGraphLookupService.findByIdWithGraph(userId)).thenReturn(Optional.of(existingUser));
         when(contactMapper.toSource(any())).thenReturn(contactEntity);
         when(contactTypeMapper.toSource(any())).thenReturn(contactTypeEntity);
         when(userRepository.save(any(UserEntity.class))).thenReturn(existingUser);
@@ -531,7 +534,7 @@ class UserServiceImplTest {
         userEntity.setApplicationRoleUser(Set.of(aru));
 
         when(applicationService.find(appId)).thenReturn(ResponseEntity.ok(application));
-        when(userRepository.findById(userId)).thenReturn(Optional.of(userEntity));
+        when(userGraphLookupService.findByIdWithGraph(userId)).thenReturn(Optional.of(userEntity));
         doNothing().when(applicationRoleUserRepository).deleteByUserIdAndApplicationId(userId, appId);
 
         ResponseEntity<Void> response = userService.deleteUserByApplicationAndUserId(appId, userId);
@@ -549,7 +552,7 @@ class UserServiceImplTest {
     @Test
     void testFind_DelegatesToFindUserById() {
         UUID userId = UUID.randomUUID();
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        when(userGraphLookupService.findByIdWithGraph(userId)).thenReturn(Optional.empty());
         ResponseEntity<UserTO> response = userService.find(userId);
         assertNotNull(response);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
@@ -597,7 +600,7 @@ class UserServiceImplTest {
         updateData.setPerson(null); // No person data
         updateData.setDisplayName("Test User");
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userGraphLookupService.findByIdWithGraph(userId)).thenReturn(Optional.of(existingUser));
         when(userRepository.save(any(UserEntity.class))).thenReturn(existingUser);
         when(userMapper.toTarget(existingUser)).thenReturn(updateData);
 
@@ -622,7 +625,7 @@ class UserServiceImplTest {
         person.setLastName("NewLastName");
         updateData.setPerson(person);
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userGraphLookupService.findByIdWithGraph(userId)).thenReturn(Optional.of(existingUser));
         when(userRepository.save(any(UserEntity.class))).thenReturn(existingUser);
         when(userMapper.toTarget(existingUser)).thenReturn(updateData);
 
@@ -644,7 +647,7 @@ class UserServiceImplTest {
         UserTO updateData = new UserTO();
         updateData.setPassword(testPassword);
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userGraphLookupService.findByIdWithGraph(userId)).thenReturn(Optional.of(existingUser));
         when(userRepository.save(any(UserEntity.class))).thenReturn(existingUser);
         when(userMapper.toTarget(existingUser)).thenReturn(updateData);
 
@@ -664,7 +667,7 @@ class UserServiceImplTest {
         UserTO updateData = new UserTO();
         updateData.setDisplayName(null); // Null should not update
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userGraphLookupService.findByIdWithGraph(userId)).thenReturn(Optional.of(existingUser));
         when(userRepository.save(any(UserEntity.class))).thenReturn(existingUser);
         when(userMapper.toTarget(existingUser)).thenReturn(updateData);
 
@@ -688,7 +691,7 @@ class UserServiceImplTest {
         person.setContacts(Collections.emptyList());
         updateData.setPerson(person);
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userGraphLookupService.findByIdWithGraph(userId)).thenReturn(Optional.of(existingUser));
         when(userRepository.save(any(UserEntity.class))).thenReturn(existingUser);
         when(userMapper.toTarget(existingUser)).thenReturn(updateData);
 
@@ -723,7 +726,7 @@ class UserServiceImplTest {
         ContactEntity contactEntity = new ContactEntity();
         ContactTypeEntity contactTypeEntity = new ContactTypeEntity();
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userGraphLookupService.findByIdWithGraph(userId)).thenReturn(Optional.of(existingUser));
         when(contactMapper.toSource(any())).thenReturn(contactEntity);
         when(contactTypeMapper.toSource(any())).thenReturn(contactTypeEntity);
         when(userRepository.save(any(UserEntity.class))).thenReturn(existingUser);
@@ -752,7 +755,7 @@ class UserServiceImplTest {
         person.setBirthdate(java.time.LocalDate.of(1990, 1, 1));
         updateData.setPerson(person);
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userGraphLookupService.findByIdWithGraph(userId)).thenReturn(Optional.of(existingUser));
         when(userRepository.save(any(UserEntity.class))).thenReturn(existingUser);
         when(userMapper.toTarget(existingUser)).thenReturn(updateData);
 
@@ -773,7 +776,7 @@ class UserServiceImplTest {
 
         UserTO updateData = new UserTO();
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userGraphLookupService.findByIdWithGraph(userId)).thenReturn(Optional.of(existingUser));
         when(userRepository.save(any(UserEntity.class))).thenThrow(new RuntimeException("Database error"));
 
         ResponseEntity<UserTO> response = userService.update(userId, updateData);
@@ -832,7 +835,7 @@ class UserServiceImplTest {
         updateData.setNotificationSms(true);
         updateData.setPrivacyDataOutActive(true);
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userGraphLookupService.findByIdWithGraph(userId)).thenReturn(Optional.of(existingUser));
         when(userRepository.save(any(UserEntity.class))).thenReturn(existingUser);
         when(userMapper.toTarget(existingUser)).thenReturn(updateData);
 
@@ -858,7 +861,7 @@ class UserServiceImplTest {
         updateData.setNotificationSms(null);
         updateData.setPrivacyDataOutActive(null);
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userGraphLookupService.findByIdWithGraph(userId)).thenReturn(Optional.of(existingUser));
         when(userRepository.save(any(UserEntity.class))).thenReturn(existingUser);
         when(userMapper.toTarget(existingUser)).thenReturn(updateData);
 
@@ -901,7 +904,7 @@ class UserServiceImplTest {
         ContactEntity contactEntity = new ContactEntity();
         ContactTypeEntity contactTypeEntity = new ContactTypeEntity();
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userGraphLookupService.findByIdWithGraph(userId)).thenReturn(Optional.of(existingUser));
         when(contactMapper.toSource(any())).thenReturn(contactEntity);
         when(contactTypeMapper.toSource(any())).thenReturn(contactTypeEntity);
         when(userRepository.save(any(UserEntity.class))).thenReturn(existingUser);
@@ -934,7 +937,7 @@ class UserServiceImplTest {
 
         ContactEntity contactEntity = new ContactEntity();
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userGraphLookupService.findByIdWithGraph(userId)).thenReturn(Optional.of(existingUser));
         when(contactMapper.toSource(any())).thenReturn(contactEntity);
         when(userRepository.save(any(UserEntity.class))).thenReturn(existingUser);
         when(userMapper.toTarget(existingUser)).thenReturn(updateData);
@@ -976,7 +979,7 @@ class UserServiceImplTest {
     void unlink_userNotFound_returnsNotFound() {
         UUID userId = UUID.randomUUID();
         UUID roleId = UUID.randomUUID();
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        when(userGraphLookupService.findByIdWithGraph(userId)).thenReturn(Optional.empty());
 
         ResponseEntity<UserTO> response = userService.unlink(userId, roleId);
 
@@ -993,7 +996,7 @@ class UserServiceImplTest {
         userEntity.setId(userId);
         userEntity.setApplicationRoleUser(new HashSet<>());
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(userEntity));
+        when(userGraphLookupService.findByIdWithGraph(userId)).thenReturn(Optional.of(userEntity));
 
         ResponseEntity<UserTO> response = userService.unlink(userId, roleId);
 
@@ -1022,7 +1025,7 @@ class UserServiceImplTest {
         UserTO expectedUserTO = new UserTO();
         expectedUserTO.setId(userId);
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(userEntity));
+        when(userGraphLookupService.findByIdWithGraph(userId)).thenReturn(Optional.of(userEntity));
         when(userRepository.save(any(UserEntity.class))).thenReturn(userEntity);
         when(userMapper.toTarget(userEntity)).thenReturn(expectedUserTO);
 

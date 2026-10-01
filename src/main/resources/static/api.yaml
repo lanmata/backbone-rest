@@ -3341,30 +3341,6 @@ components:
         serviceType:
           $ref: "#/components/schemas/ServiceType"
 
-    # ── Report ──────────────────────────────────────────────────────────────
-
-    TemplateDocumentModel:
-      type: object
-      description: "Metadata describing a Word document template"
-      properties:
-        versionId:
-          type: integer
-          format: int64
-        templateName:
-          type: string
-        description:
-          type: string
-        createdBy:
-          type: string
-        createdTimestamp:
-          type: string
-          format: date
-        lastModifiedBy:
-          type: string
-        lastModifiedTimestamp:
-          type: string
-          format: date
-
     # ── Addresses ───────────────────────────────────────────────────────────
 
     Address:

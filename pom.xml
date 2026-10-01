@@ -132,9 +132,13 @@
         <netty.version>4.2.18.Final</netty.version>
         <!-- Transitive via spring-cloud-starter-config -> tools.jackson.core:jackson-databind
              (Jackson 3.x's rebranded groupId). jackson-core pinned alongside it to keep the pair
-             in lockstep. Bumped to 3.1.6 to close a Snyk-reported jackson-databind CVE
-             (fixed in 3.1.6/3.2.2). -->
-        <tools-jackson.version>3.1.6</tools-jackson.version>
+             in lockstep. Bumped to 3.1.7 to close Snyk-reported jackson-databind and jackson-core
+             CVEs (fixed in 3.1.7/3.2.2-3.2.3). -->
+        <tools-jackson.version>3.1.7</tools-jackson.version>
+        <!-- Transitive via spring-boot-starter-security -> spring-boot-starter ->
+             spring-boot-starter-logging (1.5.38); bumped to close a Snyk-reported
+             logback-classic CVE (fixed in 1.6.3). -->
+        <logback.version>1.6.3</logback.version>
 
         <!--        Coverage and Sonar-->
         <sonar.organization>umdevc</sonar.organization>
@@ -430,6 +434,16 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-test-autoconfigure</artifactId>
+        </dependency>
+        <!-- @DataJpaTest / TestEntityManager — Spring Boot 4.x split the JPA test slice out of
+             spring-boot-test-autoconfigure into its own module (spring-boot-jpa-test, pulled in
+             transitively, provides TestEntityManager). Used by
+             UserGraphLookupServiceImplIntegrationTest to exercise real Hibernate JOIN FETCH
+             behavior (row-multiplication bugs can't be observed with a mocked EntityManager). -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-data-jpa-test</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.junit</groupId>
