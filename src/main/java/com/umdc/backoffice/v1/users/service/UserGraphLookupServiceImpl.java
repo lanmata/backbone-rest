@@ -197,10 +197,18 @@ public class UserGraphLookupServiceImpl implements UserGraphLookupService {
                 .setParameter(APPLICATION_ID_PARAM, applicationId)
                 .setHint(FETCH_GRAPH_HINT, buildApplicationAndContactsGraph())
                 .getResultList();
-        users.forEach(user -> {
-            fetchApplicationRoleUser(user.getId());
-            fetchRoleSubGraph(user);
-        });
+        List<UUID> ids = users.stream().map(UserEntity::getId).toList();
+        if (!ids.isEmpty()) {
+            entityManager.createQuery("SELECT DISTINCT u FROM UserEntity u LEFT JOIN FETCH u.applicationRoleUser WHERE u.id IN :userIds", UserEntity.class)
+                    .setParameter("userIds", ids)
+                    .setHint(FETCH_GRAPH_HINT, buildApplicationRoleUserGraph())
+                    .getResultList();
+            var roleIds = users.stream().filter(u -> u.getApplicationRoleUser() != null)
+                    .flatMap(u -> u.getApplicationRoleUser().stream())
+                    .map(ApplicationRoleUserEntity::getRole).filter(Objects::nonNull)
+                    .map(RoleEntity::getId).distinct().toList();
+            if (!roleIds.isEmpty()) roleGraphLookupService.findByIdsWithGraph(roleIds);
+        }
         return users;
     }
 
