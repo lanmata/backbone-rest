@@ -134,7 +134,7 @@
              (Jackson 3.x's rebranded groupId). jackson-core pinned alongside it to keep the pair
              in lockstep. Bumped to 3.1.6 to close a Snyk-reported jackson-databind CVE
              (fixed in 3.1.6/3.2.2). -->
-        <tools-jackson.version>3.1.6</tools-jackson.version>
+        <tools-jackson.version>3.1.7</tools-jackson.version>
 
         <!--        Coverage and Sonar-->
         <sonar.organization>umdevc</sonar.organization>
