@@ -57,23 +57,27 @@ public class NoticeServiceImpl implements NoticeService {
     private final NoticeTypeRepository noticeTypeRepository;
     private final NoticeMapper noticeMapper;
     private final ApplicationRepository applicationRepository;
+    private final NoticeGraphLookupService noticeGraphLookupService;
 
     /**
      * Constructor for NoticeServiceImpl.
      *
-     * @param noticeRepository      the notice repository
-     * @param noticeTypeRepository  the notice type repository
-     * @param noticeMapper          the notice mapper
-     * @param applicationRepository the application repository
+     * @param noticeRepository         the notice repository
+     * @param noticeTypeRepository     the notice type repository
+     * @param noticeMapper             the notice mapper
+     * @param applicationRepository    the application repository
+     * @param noticeGraphLookupService safe notice lookups (noticeType eagerly loaded)
      */
     public NoticeServiceImpl(NoticeRepository noticeRepository,
                               NoticeTypeRepository noticeTypeRepository,
                               NoticeMapper noticeMapper,
-                              ApplicationRepository applicationRepository) {
+                              ApplicationRepository applicationRepository,
+                              NoticeGraphLookupService noticeGraphLookupService) {
         this.noticeRepository = noticeRepository;
         this.noticeTypeRepository = noticeTypeRepository;
         this.noticeMapper = noticeMapper;
         this.applicationRepository = applicationRepository;
+        this.noticeGraphLookupService = noticeGraphLookupService;
     }
 
     /** {@inheritDoc} */
@@ -108,7 +112,7 @@ public class NoticeServiceImpl implements NoticeService {
             return ResponseEntity.notFound().header(MESSAGE_HEADER_STR, APPLICATION_NOT_FOUND_MSG).build();
         }
         List<Notice> notices = new ArrayList<>();
-        noticeRepository.findByIdApplicationId(applicationId).forEach(entity -> notices.add(noticeMapper.toTarget(entity)));
+        noticeGraphLookupService.findByApplicationIdWithGraph(applicationId).forEach(entity -> notices.add(noticeMapper.toTarget(entity)));
         return ResponseEntity.ok().header(MESSAGE_HEADER_STR, FOUND_MSG).body(notices);
     }
 

@@ -16,9 +16,11 @@ package com.umdc.backoffice.v1.profileimage.service;
 import com.umdc.backoffice.util.JwtUtil;
 import com.umdc.backoffice.v1.profileimage.to.GetProfileImageReferenceResponse;
 import com.umdc.backoffice.v1.profileimage.to.PostProfileImageResponse;
+import com.umdc.backoffice.v1.users.service.ApplicationRoleUserGraphLookupService;
 import com.umdc.commons.services.cloudflare.r2.client.CloudflareR2StorageClient;
 import com.umdc.commons.util.DateUtil;
 import com.umdc.commons.util.HttpStatusUtil;
+import com.umdc.persistence.general.domains.ApplicationRoleUserEntity;
 import com.umdc.persistence.general.repositories.ApplicationRoleUserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +31,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.UUID;
 
 import static com.umdc.backoffice.constant.BackboneAppConstants.*;
@@ -45,17 +46,24 @@ public class ProfileImageServiceImpl implements ProfileImageService {
     private static final String IMAGE_EXTENSION = ".jpg";
     private static final String PROFILE_IMAGE_PREFIX = "profiles/";
     
+    private final ApplicationRoleUserGraphLookupService applicationRoleUserGraphLookupService;
     private final ApplicationRoleUserRepository applicationRoleUserRepository;
     private final CloudflareR2StorageClient r2StorageClient;
 
     /**
      * Constructor for ProfileImageServiceImpl.
      *
-     * @param applicationRoleUserRepository repository for application role user data
+     * @param applicationRoleUserGraphLookupService safe application-role-user lookups (user,
+     *                                               application and role eagerly loaded)
+     * @param applicationRoleUserRepository          repository used only to persist the updated
+     *                                               {@code profileImageRef} on an already-loaded,
+     *                                               fully-managed entity
      * @param r2StorageClient client for Cloudflare R2 storage operations
      */
-    public ProfileImageServiceImpl(ApplicationRoleUserRepository applicationRoleUserRepository,
+    public ProfileImageServiceImpl(ApplicationRoleUserGraphLookupService applicationRoleUserGraphLookupService,
+                                   ApplicationRoleUserRepository applicationRoleUserRepository,
                                    CloudflareR2StorageClient r2StorageClient) {
+        this.applicationRoleUserGraphLookupService = applicationRoleUserGraphLookupService;
         this.applicationRoleUserRepository = applicationRoleUserRepository;
         this.r2StorageClient = r2StorageClient;
     }
@@ -76,12 +84,13 @@ public class ProfileImageServiceImpl implements ProfileImageService {
         }
 
         // 2. Find the application role user record
-        var applicationRoleUser = applicationRoleUserRepository.findByUserAndApplication(userId, applicationId);
-        
-        if (Objects.isNull(applicationRoleUser)) {
+        var applicationRoleUserOpt = applicationRoleUserGraphLookupService.findByUserAndApplicationWithGraph(userId, applicationId);
+
+        if (applicationRoleUserOpt.isEmpty()) {
             logger.warn("ApplicationRoleUser not found for user: {} and application: {}", userId, applicationId);
             return ResponseEntity.status(HttpStatusUtil.NOT_FOUND).body(new PostProfileImageResponse(""));
         }
+        ApplicationRoleUserEntity applicationRoleUser = applicationRoleUserOpt.get();
 
         // 3. Generate unique filename: images/{applicationCode}/{userId}-{timestamp}.jpg
         String applicationCode = applicationRoleUser.getApplication().getCodeName();
@@ -127,15 +136,15 @@ public class ProfileImageServiceImpl implements ProfileImageService {
         }
 
         // 2. Find the application role user record
-        var applicationRoleUser = applicationRoleUserRepository.findByUserAndApplication(userId, applicationId);
-        
-        if (Objects.isNull(applicationRoleUser) || applicationRoleUser.getProfileImageRef() == null) {
+        var applicationRoleUserOpt = applicationRoleUserGraphLookupService.findByUserAndApplicationWithGraph(userId, applicationId);
+
+        if (applicationRoleUserOpt.isEmpty() || applicationRoleUserOpt.get().getProfileImageRef() == null) {
             logger.warn("Profile image reference not found for user: {} and application: {}", userId, applicationId);
             return ResponseEntity.status(HttpStatusUtil.NOT_FOUND).body(null);
         }
 
         // 3. Get the public URL for the image
-        String imageRef = applicationRoleUser.getProfileImageRef();
+        String imageRef = applicationRoleUserOpt.get().getProfileImageRef();
         String publicUrl = r2StorageClient.getPublicUrl(imageRef);
         
         logger.info("Profile image reference retrieved: {}", publicUrl);

@@ -29,7 +29,6 @@ import com.umdc.commons.exception.StandardException;
 import com.umdc.commons.general.pojo.AuditEventType;
 import com.umdc.commons.util.ValidatorCommonsUtil;
 import com.umdc.persistence.general.domains.UserEntity;
-import com.umdc.persistence.general.repositories.UserRepository;
 import io.jsonwebtoken.Claims;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -63,7 +62,6 @@ public class SessionServiceImpl implements SessionService {
     private final MessageUtil messageUtil;
     private final UserMapper userMapper;
     private final UserAliasMapper userAliasMapper;
-    private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final LoginAttemptService loginAttemptService;
     private final AuditEventService auditEventService;
@@ -82,20 +80,18 @@ public class SessionServiceImpl implements SessionService {
      * @param messageUtil         the message utility
      * @param userMapper          the user mapper
      * @param userAliasMapper     the user alias mapper
-     * @param userRepository      the user repository
      * @param passwordEncoder     the password encoder for BCrypt verification
      * @param loginAttemptService the brute-force login attempt tracking service
      * @param auditEventService   the audit event service for recording security events
      * @param sessionTokenService the JWT mechanics collaborator (signing, parsing, revocation)
      * @param sessionUserLookupService the application-scoped user lookup collaborator — see
      *                                 {@link SessionUserLookupServiceImpl} for why this replaces
-     *                                 {@link UserRepository#findByAliasAndApplication} and
-     *                                 {@link UserRepository#findByEmailAndApplication}
+     *                                 every direct {@code UserRepository} query method in this class
      * @param requestContextUtil resolves source IP / User-Agent from the current request for audit records
      */
     public SessionServiceImpl(MessageUtil messageUtil,
                               UserMapper userMapper, UserAliasMapper userAliasMapper,
-                              UserRepository userRepository, PasswordEncoder passwordEncoder,
+                              PasswordEncoder passwordEncoder,
                               LoginAttemptService loginAttemptService,
                               AuditEventService auditEventService,
                               SessionTokenServiceImpl sessionTokenService,
@@ -103,7 +99,6 @@ public class SessionServiceImpl implements SessionService {
                               RequestContextUtil requestContextUtil) {
         this.userMapper = userMapper;
         this.userAliasMapper = userAliasMapper;
-        this.userRepository = userRepository;
         this.messageUtil = messageUtil;
         this.passwordEncoder = passwordEncoder;
         this.loginAttemptService = loginAttemptService;
@@ -340,8 +335,8 @@ public class SessionServiceImpl implements SessionService {
      * @return the user alias transfer object
      */
     private UserAliasTO loadUserAlias(UUID userId) {
-        final var userInfo = userRepository.findUserInfo(userId);
-        return Objects.nonNull(userInfo) ? userAliasMapper.toTarget(userMapper.toTarget(userInfo)) : null;
+        final var userInfo = sessionUserLookupService.findByIdWithGraph(userId);
+        return userInfo.isPresent() ? userAliasMapper.toTarget(userMapper.toTarget(userInfo.get())) : null;
     }
 
     private String generateSessionToken(UUID userId) {
@@ -397,11 +392,12 @@ public class SessionServiceImpl implements SessionService {
         String userIdStr = (String) claims.get(AuthKey.USER_ID.value);
         if (ValidatorCommonsUtil.esVacio(userIdStr)) {
             // If USER_ID is not in claims, try to find user by username (subject)
-            UserEntity userEntity = userRepository.findByAlias(username);
-            if (Objects.isNull(userEntity)) {
+            Optional<UserEntity> userEntityOpt = sessionUserLookupService.findByAliasWithGraph(username);
+            if (userEntityOpt.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(new SessionResponse(messageUtil.getUserCorreoNoExiste()));
             }
+            UserEntity userEntity = userEntityOpt.get();
 
             if (!userEntity.getActive()) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -415,7 +411,7 @@ public class SessionServiceImpl implements SessionService {
         } else {
             // Use USER_ID from claims
             UUID userId = UUID.fromString(userIdStr);
-            Optional<UserEntity> userEntity = userRepository.findById(userId);
+            Optional<UserEntity> userEntity = sessionUserLookupService.findByIdWithGraph(userId);
 
             if (userEntity.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -477,7 +473,7 @@ public class SessionServiceImpl implements SessionService {
         }
 
         assert userId != null;
-        Optional<UserEntity> userEntityOpt = userRepository.findById(userId);
+        Optional<UserEntity> userEntityOpt = sessionUserLookupService.findByIdWithGraph(userId);
         if (userEntityOpt.isEmpty() || !userEntityOpt.get().getActive()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new SessionResponse(USER_INACTIVE_MSG));
@@ -517,11 +513,11 @@ public class SessionServiceImpl implements SessionService {
                 userId = UUID.fromString(subject);
             } catch (IllegalArgumentException _) {
                 // subject is an alias; look up by alias
-                UserEntity aliasEntity = userRepository.findByAlias(subject);
-                if (Objects.isNull(aliasEntity) || !aliasEntity.getActive()) {
+                Optional<UserEntity> aliasEntity = sessionUserLookupService.findByAliasWithGraph(subject);
+                if (aliasEntity.isEmpty() || !aliasEntity.get().getActive()) {
                     throw new StandardException(JWTMessage.USER_INACTIVE);
                 }
-                userId = aliasEntity.getId();
+                userId = aliasEntity.get().getId();
             }
         }
         return userId;

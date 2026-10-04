@@ -15,13 +15,14 @@ package com.umdc.backoffice.v1.users.service;
 
 import com.umdc.persistence.general.domains.UserEntity;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 /**
- * User-by-id lookup with the full lazy association graph eagerly loaded. See
- * {@link UserGraphLookupServiceImpl} for why this exists instead of
- * {@code UserRepository#findById}.
+ * User lookups with the full lazy association graph eagerly loaded. See
+ * {@link UserGraphLookupServiceImpl} for why this exists instead of the plain
+ * {@code UserRepository} query methods.
  */
 public interface UserGraphLookupService {
 
@@ -31,4 +32,35 @@ public interface UserGraphLookupService {
      *         and {@code applicationRoleUser}/{@code role}/{@code application} all eagerly loaded
      */
     Optional<UserEntity> findByIdWithGraph(UUID userId);
+
+    /**
+     * @param alias         the user alias
+     * @param applicationId the application the user must belong to
+     * @return the matching user, with {@code application}, {@code person}/{@code person.contacts}
+     *         and {@code applicationRoleUser}/{@code role}/{@code application} all eagerly loaded
+     */
+    Optional<UserEntity> findByAliasAndApplicationWithGraph(String alias, UUID applicationId);
+
+    /**
+     * @param email         the user email
+     * @param applicationId the application the user must belong to
+     * @return the matching user, with {@code application}, {@code person}/{@code person.contacts}
+     *         and {@code applicationRoleUser}/{@code role}/{@code application} all eagerly loaded
+     */
+    Optional<UserEntity> findByEmailAndApplicationWithGraph(String email, UUID applicationId);
+
+    /**
+     * @param alias the user alias, not scoped to any application
+     * @return the matching user, with {@code application}, {@code person}/{@code person.contacts}
+     *         and {@code applicationRoleUser}/{@code role}/{@code application} all eagerly loaded
+     */
+    Optional<UserEntity> findByAliasWithGraph(String alias);
+
+    /**
+     * @param applicationId the application ID
+     * @return every user linked to that application (via {@code applicationRoleUser}), with
+     *         {@code application}, {@code person}/{@code person.contacts} and
+     *         {@code applicationRoleUser}/{@code role}/{@code application} all eagerly loaded
+     */
+    List<UserEntity> findByApplicationWithGraph(UUID applicationId);
 }

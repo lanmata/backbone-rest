@@ -42,9 +42,12 @@ ARG MAVEN_VERSION=3.9.14
 RUN curl -fsSL "https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz" \
     | tar xz -C /opt && ln -s "/opt/apache-maven-${MAVEN_VERSION}/bin/mvn" /usr/local/bin/mvn
 
-COPY pom.xml ruleset.xml ./
+# Only what the native build reads — see Dockerfile.native.dockerignore, which keeps everything
+# else (target/, .git/, src/test, …) out of the build context entirely. ruleset.xml is not copied
+# because PMD is skipped below.
+COPY pom.xml ./
 COPY config/native.env ./config/native.env
-COPY src ./src
+COPY src/main ./src/main
 # certs/backbone/ (gitignored, never in git history) supplies backbone.jks / umdc-truststore.jks
 # to pom.xml's <resources> entry so ThirdPartyNativeRuntimeHints' `*.jks` resource-pattern hint
 # has something to embed into the native binary — this COPY only succeeds when certs/backbone/
@@ -61,9 +64,29 @@ COPY certs/backbone ./certs/backbone
 # config/native.env is required here too, same reason as local builds: process-aot needs a full
 # ApplicationContext refresh and this build has no Vault/Config Server access — see that file's
 # own header comment and docs/architecture/graalvm-native-image.md.
+# The Maven local repo (~/.m2/repository) is a BuildKit cache mount, not a COPYed/baked-in layer:
+# without it, every build re-downloaded the entire dependency tree from Repsy/Maven Central from
+# scratch (3000+ "Downloading from" lines, several minutes) because COPY src invalidates this RUN
+# step's layer on every source change, and a plain filesystem write inside that layer doesn't
+# survive the invalidation — a cache mount is a separate, content-addressed cache BuildKit keeps
+# across builds regardless of which layers get invalidated. id=maven-repo pins it to a stable
+# cache key shared by every build of this Dockerfile, instead of one keyed to this RUN's own
+# instruction text/position.
+# Quality gates are skipped on purpose: PMD/CPD and JaCoCo are bound to the `test` phase and so ran
+# on every image build even with -DskipTests, and -DskipTests still compiled the whole test tree.
+# None of that affects the binary — `mvn test` (JVM mode) stays the correctness gate, per README.
+# No `clean` either: target/ is never in the build context, so there is nothing to clean.
+#
+# NATIVE_QUICK_BUILD=true turns on native-image's quick build mode (-Ob): noticeably shorter
+# compile, slower peak throughput at runtime. For local smoke-test images only — leave it at the
+# default (false) for anything that gets deployed:
+# `docker build --build-arg NATIVE_QUICK_BUILD=true -f Dockerfile.native ...`
+ARG NATIVE_QUICK_BUILD=false
 RUN --mount=type=secret,id=maven_settings,target=/root/.m2/settings.xml \
+    --mount=type=cache,id=maven-repo,target=/root/.m2/repository,sharing=locked \
     sh -c 'set -a; . ./config/native.env; set +a; \
-    mvn -Pnative -B -DskipTests clean package native:compile'
+    mvn -Pnative -B -Dmaven.test.skip=true -Dpmd.skip=true -Dcpd.skip=true -Djacoco.skip=true \
+        -DquickBuild="${NATIVE_QUICK_BUILD}" package native:compile'
 
 # native-image also dynamically links libz (java.util.zip / jar reading needs it — every Java app
 # uses this, native or not), which neither distroless variant ships: "error while loading shared

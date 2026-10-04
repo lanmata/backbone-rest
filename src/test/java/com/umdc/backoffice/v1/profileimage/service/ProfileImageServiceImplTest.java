@@ -3,6 +3,7 @@ package com.umdc.backoffice.v1.profileimage.service;
 import com.umdc.backoffice.util.JwtUtil;
 import com.umdc.backoffice.v1.profileimage.to.GetProfileImageReferenceResponse;
 import com.umdc.backoffice.v1.profileimage.to.PostProfileImageResponse;
+import com.umdc.backoffice.v1.users.service.ApplicationRoleUserGraphLookupService;
 import com.umdc.commons.services.cloudflare.r2.client.CloudflareR2StorageClient;
 import com.umdc.persistence.general.domains.*;
 import com.umdc.persistence.general.repositories.ApplicationRoleUserRepository;
@@ -12,6 +13,7 @@ import org.mockito.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -21,6 +23,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.times;
 
 class ProfileImageServiceImplTest {
+
+    @Mock
+    private ApplicationRoleUserGraphLookupService applicationRoleUserGraphLookupService;
 
     @Mock
     private ApplicationRoleUserRepository applicationRoleUserRepository;
@@ -37,7 +42,7 @@ class ProfileImageServiceImplTest {
     }
 
     @Test
-    void testSave_Success() throws Exception {
+    void testSave_Success() {
 
         try(MockedStatic<JwtUtil> mockedStatic = Mockito.mockStatic(JwtUtil.class)) {
             // Arrange
@@ -73,8 +78,8 @@ class ProfileImageServiceImplTest {
             applicationRoleUser.setUser(userEntity);
             
             mockedStatic.when(() -> JwtUtil.getUidFromToken(anyString())).thenReturn(userId);
-            when(applicationRoleUserRepository.findByUserAndApplication(userId, applicationId))
-                    .thenReturn(applicationRoleUser);
+            when(applicationRoleUserGraphLookupService.findByUserAndApplicationWithGraph(userId, applicationId))
+                    .thenReturn(Optional.of(applicationRoleUser));
             when(r2StorageClient.uploadImage(any(byte[].class), anyString(), anyString()))
                     .thenReturn("images/app-code/test.jpg");
             when(r2StorageClient.getPublicUrl(anyString()))
@@ -95,7 +100,7 @@ class ProfileImageServiceImplTest {
     }
 
     @Test
-    void testSave_InvalidToken() throws Exception {
+    void testSave_InvalidToken() {
         // Arrange
         String token = "invalid-token";
         UUID applicationId = UUID.randomUUID();
@@ -115,7 +120,7 @@ class ProfileImageServiceImplTest {
     }
 
     @Test
-    void testSave_NotFound() throws Exception {
+    void testSave_NotFound() {
         // Arrange
         String token = "valid-token";
         UUID applicationId = UUID.randomUUID();
@@ -124,8 +129,8 @@ class ProfileImageServiceImplTest {
 
         try(MockedStatic<JwtUtil> mockedStatic = Mockito.mockStatic(JwtUtil.class)) {
             mockedStatic.when(() -> JwtUtil.getUidFromToken(anyString())).thenReturn(userId);
-            when(applicationRoleUserRepository.findByUserAndApplication(userId, applicationId))
-                    .thenReturn(null);
+            when(applicationRoleUserGraphLookupService.findByUserAndApplicationWithGraph(userId, applicationId))
+                    .thenReturn(Optional.empty());
 
             // Act
             ResponseEntity<PostProfileImageResponse> response = profileImageService.save(token, applicationId, image);
@@ -138,7 +143,7 @@ class ProfileImageServiceImplTest {
     }
 
     @Test
-    void testSave_R2UploadFailure() throws Exception {
+    void testSave_R2UploadFailure() {
         try(MockedStatic<JwtUtil> mockedStatic = Mockito.mockStatic(JwtUtil.class)) {
             // Arrange
             String token = "valid-token";
@@ -166,8 +171,8 @@ class ProfileImageServiceImplTest {
             applicationRoleUser.setUser(userEntity);
 
             mockedStatic.when(() -> JwtUtil.getUidFromToken(anyString())).thenReturn(userId);
-            when(applicationRoleUserRepository.findByUserAndApplication(userId, applicationId))
-                    .thenReturn(applicationRoleUser);
+            when(applicationRoleUserGraphLookupService.findByUserAndApplicationWithGraph(userId, applicationId))
+                    .thenReturn(Optional.of(applicationRoleUser));
             when(r2StorageClient.uploadImage(any(byte[].class), anyString(), anyString()))
                     .thenThrow(new RuntimeException("R2 upload failed"));
 
@@ -182,7 +187,7 @@ class ProfileImageServiceImplTest {
     }
 
     @Test
-    void testGetProfileImageReference_Success() throws Exception {
+    void testGetProfileImageReference_Success() {
         // Arrange
         String token = "valid-token";
         UUID applicationId = UUID.randomUUID();
@@ -217,8 +222,8 @@ class ProfileImageServiceImplTest {
 
         try(MockedStatic<JwtUtil> mockedStatic = Mockito.mockStatic(JwtUtil.class)) {
             mockedStatic.when(() -> JwtUtil.getUidFromToken(anyString())).thenReturn(userId);
-            when(applicationRoleUserRepository.findByUserAndApplication(userId, applicationId))
-                    .thenReturn(applicationRoleUser);
+            when(applicationRoleUserGraphLookupService.findByUserAndApplicationWithGraph(userId, applicationId))
+                    .thenReturn(Optional.of(applicationRoleUser));
             when(r2StorageClient.getPublicUrl(profileImageRef))
                     .thenReturn("https://cdn.example.com/" + profileImageRef);
 
@@ -234,7 +239,7 @@ class ProfileImageServiceImplTest {
     }
 
     @Test
-    void testGetProfileImageReference_InvalidToken() throws Exception {
+    void testGetProfileImageReference_InvalidToken() {
         // Arrange
         String token = "invalid-token";
         UUID applicationId = UUID.randomUUID();
@@ -253,7 +258,7 @@ class ProfileImageServiceImplTest {
     }
 
     @Test
-    void testGetProfileImageReference_NotFound() throws Exception {
+    void testGetProfileImageReference_NotFound() {
         // Arrange
         String token = "valid-token";
         UUID applicationId = UUID.randomUUID();
@@ -261,8 +266,8 @@ class ProfileImageServiceImplTest {
 
         try(MockedStatic<JwtUtil> mockedStatic = Mockito.mockStatic(JwtUtil.class)) {
             mockedStatic.when(() -> JwtUtil.getUidFromToken(anyString())).thenReturn(userId);
-            when(applicationRoleUserRepository.findByUserAndApplication(userId, applicationId))
-                    .thenReturn(null);
+            when(applicationRoleUserGraphLookupService.findByUserAndApplicationWithGraph(userId, applicationId))
+                    .thenReturn(Optional.empty());
             
             // Act
             ResponseEntity<GetProfileImageReferenceResponse> response = 
@@ -275,7 +280,7 @@ class ProfileImageServiceImplTest {
     }
 
     @Test
-    void testGetProfileImageReference_NoImageRef() throws Exception {
+    void testGetProfileImageReference_NoImageRef() {
         // Arrange
         String token = "valid-token";
         UUID applicationId = UUID.randomUUID();
@@ -302,8 +307,8 @@ class ProfileImageServiceImplTest {
 
         try(MockedStatic<JwtUtil> mockedStatic = Mockito.mockStatic(JwtUtil.class)) {
             mockedStatic.when(() -> JwtUtil.getUidFromToken(anyString())).thenReturn(userId);
-            when(applicationRoleUserRepository.findByUserAndApplication(userId, applicationId))
-                    .thenReturn(applicationRoleUser);
+            when(applicationRoleUserGraphLookupService.findByUserAndApplicationWithGraph(userId, applicationId))
+                    .thenReturn(Optional.of(applicationRoleUser));
 
             // Act
             ResponseEntity<GetProfileImageReferenceResponse> response = 

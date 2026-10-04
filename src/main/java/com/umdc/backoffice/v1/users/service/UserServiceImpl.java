@@ -118,7 +118,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResponseEntity<Void> validateEmail(String email, UUID applicationId) {
-        var result = userRepository.findByEmailAndApplication(email, applicationId);
+        var result = userGraphLookupService.findByEmailAndApplicationWithGraph(email, applicationId);
         AtomicReference<ResponseEntity<Void>> responseEntity = new AtomicReference<>();
         result.ifPresentOrElse(
                 userEntity -> responseEntity.set(new ResponseEntity<>(HttpStatus.CONFLICT)),
@@ -128,7 +128,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResponseEntity<Void> validateAlias(String alias, UUID applicationId) {
-        var result = userRepository.findByAliasAndApplication(alias, applicationId);
+        var result = userGraphLookupService.findByAliasAndApplicationWithGraph(alias, applicationId);
         AtomicReference<ResponseEntity<Void>> responseEntity = new AtomicReference<>();
         result.ifPresentOrElse(
                 userEntity -> responseEntity.set(new ResponseEntity<>(HttpStatus.CONFLICT)),
@@ -380,7 +380,7 @@ public class UserServiceImpl implements UserService {
             return ResponseEntity.badRequest().build();
         }
         final List<UserTO> userEntityList = new ArrayList<>();
-        userRepository.findByApplication(applicationId).forEach(userEntity -> userEntityList.add(userMapper.toTarget(userEntity)));
+        userGraphLookupService.findByApplicationWithGraph(applicationId).forEach(userEntity -> userEntityList.add(userMapper.toTarget(userEntity)));
         return new ResponseEntity<>(userEntityList, HttpStatus.OK);
     }
 
@@ -415,6 +415,16 @@ public class UserServiceImpl implements UserService {
         }
 
         var userEntity = userMapper.toSource(userCreateRequest);
+
+        // person is always newly created alongside the user — there's no "link to an existing
+        // person" concept at this endpoint. PersonEntity.id is @GeneratedValue(strategy = UUID),
+        // so a client-supplied id reaching persist() (cascaded from userRepository.save() below)
+        // makes Hibernate assume the entity already exists and is detached, throwing
+        // PersistentObjectException. Clearing it forces a fresh, Hibernate-generated id. Same root
+        // cause already fixed for the standalone endpoint in PersonServiceImpl#create.
+        if (Objects.nonNull(userEntity.getPerson())) {
+            userEntity.getPerson().setId(null);
+        }
 
         // Encode the password with BCrypt before persisting
         if (isNonEmpty(userEntity.getPassword())) {
@@ -553,9 +563,9 @@ public class UserServiceImpl implements UserService {
         Optional<UserEntity> userEntityOptional;
         UserEntity userEntity;
         if (Objects.isNull(applicationId)) {
-            userEntityOptional = Optional.ofNullable(userRepository.findByAlias(alias));
+            userEntityOptional = userGraphLookupService.findByAliasWithGraph(alias);
         } else {
-            userEntityOptional = userRepository.findByAliasAndApplication(alias, applicationId);
+            userEntityOptional = userGraphLookupService.findByAliasAndApplicationWithGraph(alias, applicationId);
         }
 
         userEntity = userEntityOptional.orElse(null);

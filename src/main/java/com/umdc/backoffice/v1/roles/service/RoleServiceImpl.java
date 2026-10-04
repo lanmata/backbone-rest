@@ -13,12 +13,12 @@
 package com.umdc.backoffice.v1.roles.service;
 
 import com.umdc.backoffice.constant.keys.FeatureMessageKey;
+import com.umdc.backoffice.v1.application.service.ApplicationGraphLookupService;
+import com.umdc.backoffice.v1.features.service.FeatureGraphLookupService;
 import com.umdc.backoffice.v1.features.service.FeatureService;
 import com.umdc.backoffice.v1.roles.mapper.RoleMapper;
 import com.umdc.backoffice.v1.rolefeatures.service.RoleFeatureLinkService;
 import com.umdc.commons.exception.StandardException;
-import com.umdc.persistence.general.repositories.ApplicationRepository;
-import com.umdc.persistence.general.repositories.FeatureRepository;
 import com.umdc.commons.general.pojo.Feature;
 import com.umdc.commons.general.pojo.Role;
 import com.umdc.persistence.general.domains.FeatureEntity;
@@ -45,20 +45,24 @@ public class RoleServiceImpl implements RoleService {
 
     private final RoleRepository roleRepository;
     private final RoleMapper roleMapper;
-    private final FeatureRepository featureRepository;
     private final FeatureService featureService;
-    private final ApplicationRepository applicationRepository;
     private final RoleFeatureLinkService roleFeatureLinkService;
+    private final RoleGraphLookupService roleGraphLookupService;
+    private final FeatureGraphLookupService featureGraphLookupService;
+    private final ApplicationGraphLookupService applicationGraphLookupService;
 
-    public RoleServiceImpl(RoleRepository roleRepository, RoleMapper roleMapper, FeatureRepository featureRepository,
-                           FeatureService featureService, ApplicationRepository applicationRepository,
-                           RoleFeatureLinkService roleFeatureLinkService) {
+    public RoleServiceImpl(RoleRepository roleRepository, RoleMapper roleMapper,
+                           FeatureService featureService,
+                           RoleFeatureLinkService roleFeatureLinkService, RoleGraphLookupService roleGraphLookupService,
+                           FeatureGraphLookupService featureGraphLookupService,
+                           ApplicationGraphLookupService applicationGraphLookupService) {
         this.roleRepository = roleRepository;
         this.roleMapper = roleMapper;
-        this.featureRepository = featureRepository;
         this.featureService = featureService;
-        this.applicationRepository = applicationRepository;
         this.roleFeatureLinkService = roleFeatureLinkService;
+        this.roleGraphLookupService = roleGraphLookupService;
+        this.featureGraphLookupService = featureGraphLookupService;
+        this.applicationGraphLookupService = applicationGraphLookupService;
     }
 
     /**
@@ -67,7 +71,7 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public ResponseEntity<Role> find(UUID rolId) {
         LOGGER.info("Inicia llamado al repositorio de Rol para busqueda por id");
-        final var roleEntity = roleRepository.findById(rolId);
+        final var roleEntity = roleGraphLookupService.findByIdWithGraph(rolId);
         return roleEntity.map(entity -> ResponseEntity.ok(roleMapper.toTarget(entity))).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
@@ -76,7 +80,7 @@ public class RoleServiceImpl implements RoleService {
      */
     @Override
     public ResponseEntity<List<Role>> list() {
-        return getRoleList(roleRepository.findAll()).map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        return getRoleList(roleGraphLookupService.findAllWithGraph()).map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     /**
@@ -86,7 +90,7 @@ public class RoleServiceImpl implements RoleService {
     public ResponseEntity<List<Role>> list(UUID... id) {
         return Objects.isNull(id) ?
                 ResponseEntity.badRequest().build()
-                : getRoleList(roleRepository.findById(Arrays.stream(id).toList()))
+                : getRoleList(roleGraphLookupService.findByIdsWithGraph(Arrays.stream(id).toList()))
                 .map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
@@ -96,10 +100,10 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public ResponseEntity<List<Role>> list(Boolean inactiveIncluded, List<UUID> roleIds) {
         if (Objects.isNull(roleIds) || roleIds.isEmpty()) {
-            return getRoleList(roleRepository.findByStatus(inactiveIncluded)).map(ResponseEntity::ok)
+            return getRoleList(roleGraphLookupService.findByStatusWithGraph(inactiveIncluded)).map(ResponseEntity::ok)
                     .orElseGet(() -> ResponseEntity.notFound().build());
         } else {
-            return getRoleList(roleRepository.findByStatusAndRoleId(inactiveIncluded, roleIds.stream().toList()))
+            return getRoleList(roleGraphLookupService.findByStatusAndIdsWithGraph(inactiveIncluded, roleIds.stream().toList()))
                     .map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
         }
     }
@@ -123,7 +127,7 @@ public class RoleServiceImpl implements RoleService {
             LOGGER.warn("Role without applicationId.");
             return ResponseEntity.badRequest().build();
         }
-        var optionApplicationEntity = applicationRepository.findById(role.getApplicationId());
+        var optionApplicationEntity = applicationGraphLookupService.findByIdSafe(role.getApplicationId());
         if (optionApplicationEntity.isEmpty()) {
             LOGGER.warn("Application {} not found for role creation.", role.getApplicationId());
             return ResponseEntity.notFound().build();
@@ -151,7 +155,7 @@ public class RoleServiceImpl implements RoleService {
         LOGGER.info("Inicia la actualización del role.");
         final ResponseEntity<Role> roleResponseEntity;
         LOGGER.info("Se busca el role solicitado para actualizar los datos.");
-        final var optionRoleEntity = roleRepository.findById(roleId);
+        final var optionRoleEntity = roleGraphLookupService.findByIdWithGraph(roleId);
         if (optionRoleEntity.isPresent()) {
             final var roleEntity = optionRoleEntity.get();
             roleEntity.setName(role.getName());
@@ -181,7 +185,7 @@ public class RoleServiceImpl implements RoleService {
         LOGGER.info("STARTED - Find role by user id {}", userId);
         return Objects.isNull(userId) ?
                 ResponseEntity.badRequest().build()
-                : getRoleList(roleRepository.findByUserId(userId))
+                : getRoleList(roleGraphLookupService.findByUserIdWithGraph(userId))
                 .map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
@@ -193,7 +197,7 @@ public class RoleServiceImpl implements RoleService {
         LOGGER.info("STARTED - Find role by application id {}", applicationId);
         return Objects.isNull(applicationId) ?
                 ResponseEntity.badRequest().build()
-                : getRoleList(roleRepository.findByApplicationId(applicationId))
+                : getRoleList(roleGraphLookupService.findByApplicationIdWithGraph(applicationId))
                 .map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
@@ -214,14 +218,14 @@ public class RoleServiceImpl implements RoleService {
         final List<FeatureEntity> resolved = new ArrayList<>();
         for (Feature feature : features) {
             if (Objects.nonNull(feature.getId())) {
-                resolved.add(featureRepository.findById(feature.getId())
+                resolved.add(featureGraphLookupService.findByIdWithGraph(feature.getId())
                         .orElseThrow(() -> new StandardException(FeatureMessageKey.FEATURE_NOT_FOUND)));
             } else {
                 var createdFeature = featureService.create(feature);
                 if (!createdFeature.getStatusCode().is2xxSuccessful() || Objects.isNull(createdFeature.getBody())) {
                     throw new StandardException(FeatureMessageKey.FEATURE_PREVIOUS_EXIST);
                 }
-                resolved.add(featureRepository.findById(createdFeature.getBody().getId())
+                resolved.add(featureGraphLookupService.findByIdWithGraph(createdFeature.getBody().getId())
                         .orElseThrow(() -> new StandardException(FeatureMessageKey.FEATURE_NOT_FOUND)));
             }
         }
@@ -229,22 +233,10 @@ public class RoleServiceImpl implements RoleService {
     }
 
     private Optional<List<Role>> getRoleList(Optional<List<RoleEntity>> optionalRoleEntityList) {
-        Optional<List<Role>> optional = Optional.empty();
-        if (optionalRoleEntityList.isPresent()) {
-            var roleEntities = optionalRoleEntityList.get();
-            optional = Optional.of(roleEntities.stream().map(roleMapper::toTarget).toList());
-        }
-        return optional;
-    }
-
-    private Optional<List<Role>> getRoleList(Iterable<RoleEntity> roleEntityIterable) {
-        if (Objects.isNull(roleEntityIterable)) {
+        if (Objects.isNull(optionalRoleEntityList) || optionalRoleEntityList.isEmpty()) {
             return Optional.empty();
-        } else {
-            var roles = new ArrayList<Role>();
-            roleEntityIterable.forEach(roleEntity -> roles.add(roleMapper.toTarget(roleEntity)));
-            return Optional.of(roles);
         }
+        return Optional.of(optionalRoleEntityList.get().stream().map(roleMapper::toTarget).toList());
     }
 
 }

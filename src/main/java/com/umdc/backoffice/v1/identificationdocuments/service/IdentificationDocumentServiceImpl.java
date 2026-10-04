@@ -13,11 +13,13 @@
 package com.umdc.backoffice.v1.identificationdocuments.service;
 
 import com.umdc.backoffice.v1.identificationdocuments.api.to.IdentificationDocument;
+import com.umdc.backoffice.v1.people.service.PersonGraphLookupService;
 import com.umdc.commons.constants.types.IdentificationType;
 import com.umdc.persistence.general.domains.IdentificationDocumentEntity;
 import com.umdc.persistence.general.domains.PersonEntity;
 import com.umdc.persistence.general.repositories.IdentificationDocumentRepository;
 import com.umdc.persistence.general.repositories.PersonRepository;
+import jakarta.persistence.EntityManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -63,17 +65,30 @@ public class IdentificationDocumentServiceImpl implements IdentificationDocument
 
     private final IdentificationDocumentRepository identificationDocumentRepository;
     private final PersonRepository personRepository;
+    private final IdentificationDocumentGraphLookupService identificationDocumentGraphLookupService;
+    private final PersonGraphLookupService personGraphLookupService;
+    private final EntityManager entityManager;
 
     /**
      * Constructor for IdentificationDocumentServiceImpl.
      *
-     * @param identificationDocumentRepository the identification document repository
-     * @param personRepository                 the person repository
+     * @param identificationDocumentRepository         the identification document repository
+     * @param personRepository                         the person repository
+     * @param identificationDocumentGraphLookupService safe document lookups (person eagerly loaded)
+     * @param personGraphLookupService                 safe person lookups (contacts suppressed to lazy)
+     * @param entityManager                             used to {@code persist} new documents directly —
+     *                                                   see {@link #create(IdentificationDocument)}
      */
     public IdentificationDocumentServiceImpl(IdentificationDocumentRepository identificationDocumentRepository,
-                                              PersonRepository personRepository) {
+                                              PersonRepository personRepository,
+                                              IdentificationDocumentGraphLookupService identificationDocumentGraphLookupService,
+                                              PersonGraphLookupService personGraphLookupService,
+                                              EntityManager entityManager) {
         this.identificationDocumentRepository = identificationDocumentRepository;
         this.personRepository = personRepository;
+        this.identificationDocumentGraphLookupService = identificationDocumentGraphLookupService;
+        this.personGraphLookupService = personGraphLookupService;
+        this.entityManager = entityManager;
     }
 
     /** {@inheritDoc} */
@@ -94,22 +109,31 @@ public class IdentificationDocumentServiceImpl implements IdentificationDocument
             log.debug("create called with null expirationDate");
             return ResponseEntity.badRequest().header(MESSAGE_HEADER_STR, BAD_REQUEST_MSG).build();
         }
-        Optional<PersonEntity> person = personRepository.findById(identificationDocument.getPersonId());
+        Optional<PersonEntity> person = personGraphLookupService.findByIdSafe(identificationDocument.getPersonId());
         if (person.isEmpty()) {
             log.debug("Person not found for create: personId={}", identificationDocument.getPersonId());
             return ResponseEntity.badRequest().header(MESSAGE_HEADER_STR, PERSON_NOT_FOUND_MSG).build();
         }
         IdentificationDocumentEntity entity = new IdentificationDocumentEntity();
-        entity.setId(UUID.randomUUID());
+        // IdentificationDocumentEntity.id is @GeneratedValue(strategy = IDENTITY) (DB-generated,
+        // same as ContactEntity/AddressEntity) — it must stay null here. The previous code called
+        // entity.setId(UUID.randomUUID()) before saving, which broke both persistence paths: via
+        // Spring Data's save(), a non-null id makes isNew() report false, routing to merge() and
+        // throwing StaleObjectStateException (no row with that id exists yet); via
+        // entityManager.persist() directly, Hibernate's own unsaved-value check for an
+        // IDENTITY-strategy id sees the same non-null value and throws
+        // PersistentObjectException: "Detached entity passed to persist". Leaving id unset lets
+        // Hibernate generate and populate it immediately on persist(), same as every other
+        // IDENTITY-strategy entity in this codebase.
         entity.setNumber(number.toString());
         entity.setExpirationDate(toStartOfDay(identificationDocument.getExpirationDate()).toLocalDate());
         entity.setIdentificationType(type);
         entity.setPerson(person.get());
-        IdentificationDocumentEntity saved = identificationDocumentRepository.save(entity);
-        log.debug("Identification document created: id={}", saved.getId());
+        entityManager.persist(entity);
+        log.debug("Identification document created: id={}", entity.getId());
         return ResponseEntity.status(HttpStatus.CREATED)
                 .header(MESSAGE_HEADER_STR, CREATED_MSG)
-                .body(toDto(saved));
+                .body(toDto(entity));
     }
 
     /** {@inheritDoc} */
@@ -119,7 +143,7 @@ public class IdentificationDocumentServiceImpl implements IdentificationDocument
             log.debug("find called with null id");
             return ResponseEntity.badRequest().header(MESSAGE_HEADER_STR, BAD_REQUEST_MSG).build();
         }
-        Optional<IdentificationDocumentEntity> entity = identificationDocumentRepository.findById(id);
+        Optional<IdentificationDocumentEntity> entity = identificationDocumentGraphLookupService.findByIdWithGraph(id);
         return entity.map(e -> ResponseEntity.ok().header(MESSAGE_HEADER_STR, FOUND_MSG).body(toDto(e)))
                 .orElseGet(() -> ResponseEntity.notFound().header(MESSAGE_HEADER_STR, NOT_FOUND_MSG).build());
     }
@@ -132,7 +156,7 @@ public class IdentificationDocumentServiceImpl implements IdentificationDocument
             log.debug("update called with null id or null identificationDocument");
             return ResponseEntity.badRequest().header(MESSAGE_HEADER_STR, BAD_REQUEST_MSG).build();
         }
-        Optional<IdentificationDocumentEntity> existing = identificationDocumentRepository.findById(id);
+        Optional<IdentificationDocumentEntity> existing = identificationDocumentGraphLookupService.findByIdWithGraph(id);
         if (existing.isEmpty()) {
             log.debug("Identification document not found for update: id={}", id);
             return ResponseEntity.notFound().header(MESSAGE_HEADER_STR, NOT_FOUND_MSG).build();
@@ -150,7 +174,7 @@ public class IdentificationDocumentServiceImpl implements IdentificationDocument
         IdentificationDocumentEntity entity = existing.get();
         UUID requestedPersonId = identificationDocument.getPersonId();
         if (!Objects.isNull(requestedPersonId) && !requestedPersonId.equals(currentPersonId(entity))) {
-            Optional<PersonEntity> person = personRepository.findById(requestedPersonId);
+            Optional<PersonEntity> person = personGraphLookupService.findByIdSafe(requestedPersonId);
             if (person.isEmpty()) {
                 log.debug("Person not found for update: personId={}", requestedPersonId);
                 return ResponseEntity.badRequest().header(MESSAGE_HEADER_STR, PERSON_NOT_FOUND_MSG).build();
@@ -169,7 +193,7 @@ public class IdentificationDocumentServiceImpl implements IdentificationDocument
     @Override
     @Transactional
     public ResponseEntity<IdentificationDocument> delete(UUID id, IdentificationDocument identificationDocument) {
-        Optional<IdentificationDocumentEntity> existing = identificationDocumentRepository.findById(id);
+        Optional<IdentificationDocumentEntity> existing = identificationDocumentGraphLookupService.findByIdWithGraph(id);
         if (existing.isEmpty()) {
             log.debug("Identification document not found for delete: id={}", id);
             return ResponseEntity.notFound().header(MESSAGE_HEADER_STR, NOT_FOUND_MSG).build();
@@ -192,7 +216,7 @@ public class IdentificationDocumentServiceImpl implements IdentificationDocument
             return ResponseEntity.notFound().header(MESSAGE_HEADER_STR, PERSON_NOT_FOUND_MSG).build();
         }
         List<IdentificationDocument> result = new ArrayList<>();
-        identificationDocumentRepository.findByPersonId(personId).forEach(entity -> result.add(toDto(entity)));
+        identificationDocumentGraphLookupService.findByPersonIdWithGraph(personId).forEach(entity -> result.add(toDto(entity)));
         if (result.isEmpty()) {
             log.debug("No identification documents found for person: personId={}", personId);
             return ResponseEntity.notFound().header(MESSAGE_HEADER_STR, NO_DOCUMENTS_MSG).build();
@@ -254,7 +278,7 @@ public class IdentificationDocumentServiceImpl implements IdentificationDocument
         }
         try {
             return Integer.parseInt(number.trim());
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException _) {
             return null;
         }
     }

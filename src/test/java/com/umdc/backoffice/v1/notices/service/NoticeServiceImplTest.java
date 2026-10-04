@@ -59,11 +59,15 @@ class NoticeServiceImplTest {
     @Mock
     private ApplicationRepository applicationRepository;
 
+    @Mock
+    private NoticeGraphLookupService noticeGraphLookupService;
+
     private NoticeServiceImpl noticeService;
 
     @BeforeEach
     void setUp() {
-        noticeService = new NoticeServiceImpl(noticeRepository, noticeTypeRepository, noticeMapper, applicationRepository);
+        noticeService = new NoticeServiceImpl(noticeRepository, noticeTypeRepository, noticeMapper, applicationRepository,
+                noticeGraphLookupService);
     }
 
     // ── create ────────────────────────────────────────────────────────────────
@@ -166,7 +170,7 @@ class NoticeServiceImplTest {
         Notice notice = buildNotice(userId, applicationId, noticeTypeId);
 
         doReturn(true).when(applicationRepository).existsById(applicationId);
-        doReturn(List.of(entity)).when(noticeRepository).findByIdApplicationId(applicationId);
+        doReturn(List.of(entity)).when(noticeGraphLookupService).findByApplicationIdWithGraph(applicationId);
         doReturn(notice).when(noticeMapper).toTarget(entity);
 
         ResponseEntity<List<Notice>> response = noticeService.listByApplication(applicationId);
@@ -183,7 +187,7 @@ class NoticeServiceImplTest {
         UUID applicationId = UUID.randomUUID();
 
         doReturn(true).when(applicationRepository).existsById(applicationId);
-        doReturn(List.of()).when(noticeRepository).findByIdApplicationId(applicationId);
+        doReturn(List.of()).when(noticeGraphLookupService).findByApplicationIdWithGraph(applicationId);
 
         ResponseEntity<List<Notice>> response = noticeService.listByApplication(applicationId);
 
@@ -203,7 +207,7 @@ class NoticeServiceImplTest {
         ResponseEntity<List<Notice>> response = noticeService.listByApplication(applicationId);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        verify(noticeRepository, never()).findByIdApplicationId(any(UUID.class));
+        verify(noticeGraphLookupService, never()).findByApplicationIdWithGraph(any(UUID.class));
     }
 
     // ── delete ────────────────────────────────────────────────────────────────

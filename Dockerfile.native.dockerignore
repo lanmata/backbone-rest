@@ -1,0 +1,18 @@
+# Build-context allowlist for Dockerfile.native only (BuildKit picks up
+# `<Dockerfile name>.dockerignore` ahead of a root `.dockerignore`, so the JIT `Dockerfile`'s
+# context — which needs target/*.jar — is unaffected).
+#
+# Everything is excluded, then only what the builder stage actually COPYs is let back in. Without
+# this, every build shipped ~220 MB to the daemon first (target/, .git/, .codegraph/, htmlReport/,
+# .idea/ …) plus default.env and secrets/, none of which the build reads.
+*
+
+!pom.xml
+!config/native.env
+!certs/backbone
+!src/main
+
+# src/test is deliberately NOT allowed back in: the image build runs with -Dmaven.test.skip=true,
+# so test sources are never compiled, and keeping them out of the context means a test-only change
+# doesn't invalidate the (multi-minute) native-image layer.
+**/.DS_Store

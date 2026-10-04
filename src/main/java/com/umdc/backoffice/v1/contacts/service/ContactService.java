@@ -13,6 +13,7 @@
 
 package com.umdc.backoffice.v1.contacts.service;
 
+import com.umdc.backoffice.v1.contacts.api.to.ContactCreateRequest;
 import com.umdc.commons.general.pojo.Contact;
 import com.umdc.commons.services.CrudService;
 
@@ -47,6 +48,27 @@ public interface ContactService extends CrudService<UUID, Contact> {
      * @return {@link ResponseEntity} object type with a {@link Contact} object type.
      */
     default ResponseEntity<Contact> create(UUID personId, Contact contact) {
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Creates a new contact from the flat wire request, resolving its contact type by id.
+     *
+     * @param request {@link ContactCreateRequest} object type.
+     * @return {@link ResponseEntity} object type with a {@link Contact} object type.
+     */
+    default ResponseEntity<Contact> create(ContactCreateRequest request) {
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Updates an existing contact from the flat wire request, resolving its contact type by id.
+     *
+     * @param contactId {@link UUID} object type.
+     * @param request   {@link ContactCreateRequest} object type.
+     * @return {@link ResponseEntity} object type with a {@link Contact} object type.
+     */
+    default ResponseEntity<Contact> update(UUID contactId, ContactCreateRequest request) {
         throw new NotImplementedException();
     }
 

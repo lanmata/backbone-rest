@@ -13,8 +13,12 @@
 
 package com.umdc.backoffice.v1.users.service;
 
+import com.umdc.backoffice.v1.roles.service.RoleGraphLookupService;
+import com.umdc.persistence.general.domains.ContactEntity;
 import com.umdc.persistence.general.domains.UserEntity;
+import jakarta.persistence.EntityGraph;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.Subgraph;
 import jakarta.persistence.TypedQuery;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -32,6 +36,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -41,7 +47,8 @@ import static org.mockito.Mockito.when;
 /// (which JPQL goes out, in what order, short-circuiting when the user isn't found) — proving the
 /// two queries are never merged back into one (the original bag/set cartesian-product bug) is the
 /// job of [UserGraphLookupServiceImplIntegrationTest], which runs against a real Hibernate
-/// session; a mocked [EntityManager] can't reproduce row-multiplication from a real JOIN FETCH.
+/// session; a mocked [EntityManager] can't reproduce row-multiplication from a real JOIN FETCH or
+/// `jakarta.persistence.fetchgraph` hint.
 class UserGraphLookupServiceImplTest {
 
     @Mock
@@ -53,12 +60,19 @@ class UserGraphLookupServiceImplTest {
     @Mock
     private TypedQuery<UserEntity> applicationRoleUserQuery;
 
+    @Mock
+    private RoleGraphLookupService roleGraphLookupService;
+
     private UserGraphLookupServiceImpl service;
 
     @BeforeEach
+    @SuppressWarnings("unchecked")
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        service = new UserGraphLookupServiceImpl(entityManager);
+        service = new UserGraphLookupServiceImpl(entityManager, roleGraphLookupService);
+
+        when(entityManager.createEntityGraph(UserEntity.class))
+                .thenAnswer(invocation -> mock(EntityGraph.class, RETURNS_DEEP_STUBS));
 
         when(entityManager.createQuery(
                 argThat(jpql -> jpql != null && !jpql.contains("applicationRoleUser")), eq(UserEntity.class)))
@@ -67,7 +81,9 @@ class UserGraphLookupServiceImplTest {
                 argThat(jpql -> jpql != null && jpql.contains("applicationRoleUser")), eq(UserEntity.class)))
                 .thenReturn(applicationRoleUserQuery);
         when(applicationAndContactsQuery.setParameter(eq("userId"), any())).thenReturn(applicationAndContactsQuery);
+        when(applicationAndContactsQuery.setHint(any(), any())).thenReturn(applicationAndContactsQuery);
         when(applicationRoleUserQuery.setParameter(eq("userId"), any())).thenReturn(applicationRoleUserQuery);
+        when(applicationRoleUserQuery.setHint(any(), any())).thenReturn(applicationRoleUserQuery);
     }
 
     @Test
@@ -102,7 +118,7 @@ class UserGraphLookupServiceImplTest {
     }
 
     @Test
-    @DisplayName("the two queries each JOIN FETCH only one to-many collection — never both together")
+    @DisplayName("the two queries each target only one to-many collection — never both together")
     void findByIdWithGraph_neverJoinsBothToManyCollectionsInOneQuery() {
         UUID userId = UUID.randomUUID();
         UserEntity userEntity = new UserEntity();
@@ -112,20 +128,56 @@ class UserGraphLookupServiceImplTest {
 
         service.findByIdWithGraph(userId);
 
-        // First query: application + person + person.contacts (a bag) — safe alone.
+        // First query: plain select by id, scoped to application/person/contacts entirely via its
+        // own fetchgraph hint (never embeds applicationRoleUser in its JPQL text).
         verify(entityManager).createQuery(argThat(jpql ->
-                jpql.contains("LEFT JOIN FETCH u.application")
-                        && jpql.contains("LEFT JOIN FETCH u.person p")
-                        && jpql.contains("LEFT JOIN FETCH p.contacts")
-                        && !jpql.contains("applicationRoleUser")
+                !jpql.contains("applicationRoleUser")
                         && jpql.contains("WHERE u.id = :userId")), eq(UserEntity.class));
-        // Second query: applicationRoleUser (a Set) + its nested role/application — safe alone,
-        // and critically does NOT also join the contacts bag (that combination is the bug).
+        // Second query: targets applicationRoleUser (a Set) alone — critically does NOT also
+        // reference contacts (that combination, fetched together, is the cartesian-product bug).
         verify(entityManager).createQuery(argThat(jpql ->
-                jpql.contains("LEFT JOIN FETCH u.applicationRoleUser ar")
-                        && jpql.contains("LEFT JOIN FETCH ar.role")
-                        && jpql.contains("LEFT JOIN FETCH ar.application")
+                jpql.contains("LEFT JOIN FETCH u.applicationRoleUser")
                         && !jpql.contains("contacts")
                         && jpql.contains("WHERE u.id = :userId")), eq(UserEntity.class));
+    }
+
+    @Test
+    @DisplayName("both queries apply a jakarta.persistence.fetchgraph hint built from entityManager.createEntityGraph")
+    void findByIdWithGraph_appliesFetchGraphHintOnBothQueries() {
+        UUID userId = UUID.randomUUID();
+        UserEntity userEntity = new UserEntity();
+        userEntity.setId(userId);
+        when(applicationAndContactsQuery.getResultStream()).thenReturn(Stream.of(userEntity));
+        when(applicationRoleUserQuery.getResultStream()).thenReturn(Stream.of(userEntity));
+
+        service.findByIdWithGraph(userId);
+
+        verify(entityManager, times(2)).createEntityGraph(UserEntity.class);
+        verify(applicationAndContactsQuery).setHint(eq("jakarta.persistence.fetchgraph"), any());
+        verify(applicationRoleUserQuery).setHint(eq("jakarta.persistence.fetchgraph"), any());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    @DisplayName("does not throw when building the real (non-deep-stub) entity graphs this class constructs")
+    void buildGraphs_doNotThrow_withRealEntityGraphMocks() {
+        // Smoke test against a closer-to-real EntityGraph/Subgraph mock shape, catching any
+        // method-name/arity mismatch the deep-stub mocks above would silently swallow.
+        EntityGraph<UserEntity> graph = mock(EntityGraph.class);
+        Subgraph<Object> personSubgraph = mock(Subgraph.class);
+        Subgraph<ContactEntity> contactsSubgraph = mock(Subgraph.class);
+        when(entityManager.createEntityGraph(UserEntity.class)).thenReturn(graph);
+        when(graph.addSubgraph("person")).thenReturn((Subgraph) personSubgraph);
+        when(personSubgraph.addSubgraph("contacts")).thenReturn((Subgraph) contactsSubgraph);
+
+        UUID userId = UUID.randomUUID();
+        UserEntity userEntity = new UserEntity();
+        userEntity.setId(userId);
+        when(applicationAndContactsQuery.getResultStream()).thenReturn(Stream.empty());
+
+        service.findByIdWithGraph(userId);
+
+        verify(graph).addAttributeNodes("application");
+        verify(contactsSubgraph).addAttributeNodes("contactType", "person", "application");
     }
 }
