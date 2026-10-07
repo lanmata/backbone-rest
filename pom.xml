@@ -55,10 +55,10 @@
         <!-- Use a dedicated jacoco argLine property to avoid conflicts with CI/global agent injection -->
         <jacoco.argLine/>
         <!--        PRX Commons-->
-        <com.umdc.commons.version>0.0.2</com.umdc.commons.version>
-        <com.umdc.commons-services.version>0.0.2</com.umdc.commons-services.version>
-        <com.umdc.security-oauth.version>0.0.2</com.umdc.security-oauth.version>
-        <com.umdc.persistence.version>0.0.2</com.umdc.persistence.version>
+        <com.umdc.commons.version>0.0.3</com.umdc.commons.version>
+        <com.umdc.commons-services.version>0.0.3</com.umdc.commons-services.version>
+        <com.umdc.security-oauth.version>0.0.3</com.umdc.security-oauth.version>
+        <com.umdc.persistence.version>0.0.3</com.umdc.persistence.version>
         <!--        MAVEN-->
         <maven.compiler.release>${java.version}</maven.compiler.release>
         <maven.compiler.source>${java.version}</maven.compiler.source>

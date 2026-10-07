@@ -281,13 +281,13 @@ public class UserServiceImpl implements UserService {
      *
      * @param contacts the list of Contact POJOs
      * @param personEntity the person entity to link contacts to
-     * @return the list of ContactEntity objects
+     * @return the set of ContactEntity objects
      */
-    private List<ContactEntity> convertContacts(List<Contact> contacts, PersonEntity personEntity) {
+    private Set<ContactEntity> convertContacts(List<Contact> contacts, PersonEntity personEntity) {
         if (contacts == null || contacts.isEmpty()) {
-            return Collections.emptyList();
+            return Collections.emptySet();
         }
-        List<ContactEntity> contactEntities = new ArrayList<>(contacts.size());
+        Set<ContactEntity> contactEntities = new LinkedHashSet<>(contacts.size());
         for (var contact : contacts) {
             ContactEntity contactEntity = contactMapper.toSource(contact);
             contactEntity.setPerson(personEntity);
