@@ -30,7 +30,7 @@ sequenceDiagram
 | Token | Header / Field | Lifetime | Purpose |
 |-------|---------------|----------|---------|
 | **Access Token** | `session-token` header | Short (configured via `APP_TOKEN_EXPIRATION`) | Authenticate API calls |
-| **Refresh Token** | `refreshToken` in response body | Longer-lived | Obtain a new access token without re-login |
+| **Refresh Token** | `refreshToken` in response body | Longer-lived (7× the access TTL) | Obtain a new access token without re-login. Carries `uid` and is signed with the **same key** but `type=refresh-token` — consumers that share the secret (Mercury) must reject it as a session token |
 
 ---
 
@@ -134,26 +134,33 @@ Login using the user's **email address**, password, and the target application I
 ### 3. Validate Session Token
 
 ```http
-GET /api/v1/sessions/validate
+GET /api/v1/session/validate
 ```
 
-> 🔓 **Public endpoint** — no token required.
+> 🔓 **Public endpoint** — no Bearer required (`permitAll` in `SecurityConfig`).
 
-Check whether a session token is still valid.
+Check whether a session token is still valid (correct type, not expired, **not on the JTI deny-list**).
 
 #### Request Headers
 
 | Header | Required | Description |
 |--------|----------|-------------|
-| `session-token` | ✅ | The JWT to validate |
+| `Authorization` | ✅ | The **raw session JWT** — no `Bearer ` prefix. (Not `session-token`: that header name was replaced by `Authorization` for this endpoint and for `/renew`.) |
 
-#### Response `200 OK`
+#### Response
 
-```json
-true
-```
+| Status | Body | Meaning |
+|--------|------|---------|
+| `200` | `true` | Valid |
+| `200` | `false` | Wrong type (e.g. a refresh token) or revoked (logged out) |
+| `400` | `false` | Missing or empty `Authorization` header |
+| `401` | `false` | Expired or malformed token |
 
-Returns `true` if the token is valid, `false` or `401` otherwise.
+> **Consumer: Mercury.** Mercury calls this endpoint for every end-user `session-token` it receives (cached for
+> 30 s on a positive answer), so a logout here is reflected there within that window. Mercury treats anything
+> but `200 true` — including `401`, `5xx` and connection errors — as "not active" (fail closed). Do not change
+> the path, the header name or the `true`/`false` body without updating Mercury's `BackboneSessionClient`
+> (its `BackboneSessionClientContractTest` pins them).
 
 ---
 

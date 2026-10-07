@@ -255,10 +255,24 @@ All variables are injected at runtime. Secrets must come from Vault or a secrets
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `APP_TOKEN_SECRET` | **Yes** | — | HMAC-SHA key used to sign/verify session JWTs |
+| `APP_TOKEN_SECRET` | **Yes** | — | HMAC-SHA key used to sign/verify session JWTs. **Shared with Mercury** — it must be the identical value there (see below) |
 | `APP_TOKEN_EXPIRATION` | **Yes** | — | Session token TTL in milliseconds |
-| `JWT_ISSUER` | No | `backbone-rest` | JWT `iss` claim value |
-| `JWT_AUDIENCE` | No | `backbone-rest-client` | JWT `aud` claim value |
+| `JWT_ISSUER` | No | `backbone-rest` | JWT `iss` claim value. Only stamped when non-empty. **Mercury rejects a token whose `iss` it does not trust** — keep Mercury's `APP_TOKEN_TRUSTED_ISSUERS` in sync |
+| `JWT_AUDIENCE` | No | `backbone-rest-client` | JWT `aud` claim value. Only stamped when non-empty. Mercury's `APP_TOKEN_TRUSTED_AUDIENCES` must contain it |
+
+> **Cross-service contract — Mercury.** Mercury accepts the session JWT this service issues directly in its
+> `session-token` header, so these settings are coupled to Mercury's:
+>
+> | backbone-rest | Mercury | Rule |
+> |---|---|---|
+> | `APP_TOKEN_SECRET` | `APP_TOKEN_SECRET` | Identical value, or every user token is rejected there |
+> | `JWT_ISSUER` | `APP_TOKEN_TRUSTED_ISSUERS` | Mercury's list must contain it |
+> | `JWT_AUDIENCE` | `APP_TOKEN_TRUSTED_AUDIENCES` | Mercury's list must contain it |
+>
+> Mercury makes `iss` and `aud` **mandatory** (`APP_TOKEN_ALLOW_MISSING_CLAIMS=false` by default), so **do not
+> blank `JWT_ISSUER`/`JWT_AUDIENCE`** in an environment Mercury serves. Mercury also calls
+> `GET /api/v1/session/validate` (public, no credentials) on this service to honour logouts: that endpoint must
+> stay reachable from Mercury and keep reading the token from the `Authorization` header.
 
 ### Managed Client Authentication Manager (MCAM)
 

@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 FROM amazoncorretto:25-alpine3.24-jdk
-LABEL version="0.0.4"
+LABEL version="0.0.3"
 LABEL description="PRX Backbone REST"
 LABEL maintainer="Luis Mata luis.antonio.mata@gmail.com"
 
