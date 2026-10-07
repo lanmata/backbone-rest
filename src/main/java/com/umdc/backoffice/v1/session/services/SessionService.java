@@ -48,6 +48,18 @@ public interface SessionService extends SessionJwtService {
     }
 
     /**
+     * Validates a session token: it must carry {@code type=session-token}, be unexpired
+     * and its JTI must not be in the deny-list.
+     *
+     * @param token the session token from the {@code session-token} header
+     * @return 200 with {@code true} if valid, 200 with {@code false} if the type is wrong or
+     *         the JTI is revoked, 401 with {@code false} if expired or malformed, 400 if empty
+     */
+    default ResponseEntity<Boolean> validateToken(String token) {
+        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(Boolean.FALSE);
+    }
+
+    /**
      * Renews a session token by validating the current token and generating a new one.
      *
      * @param currentToken the current session token to be renewed
