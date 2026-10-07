@@ -578,6 +578,64 @@ class SessionServiceImplTest {
         assertFalse(result);
     }
 
+    // ── validateToken ────────────────────────────────────────────────────────
+
+    @Test
+    void validateToken_validSessionToken_returns200True() {
+        String token = sessionService.generateSessionToken("testUser", null);
+
+        ResponseEntity<Boolean> response = sessionService.validateToken(token);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(Boolean.TRUE, response.getBody());
+    }
+
+    @Test
+    void validateToken_wrongType_returns200False() {
+        String refreshToken = sessionTokenService.generateRefreshToken(UUID.randomUUID());
+
+        ResponseEntity<Boolean> response = sessionService.validateToken(refreshToken);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(Boolean.FALSE, response.getBody());
+    }
+
+    @Test
+    void validateToken_revokedJti_returns200False() {
+        String token = sessionService.generateSessionToken("testUser", null);
+        when(jtiDenyListService.isDenied(any(String.class))).thenReturn(true);
+
+        ResponseEntity<Boolean> response = sessionService.validateToken(token);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(Boolean.FALSE, response.getBody());
+    }
+
+    @Test
+    void validateToken_expiredToken_returns401False() {
+        when(jwtConfigProperties.getExpirationMs()).thenReturn(-1000L);
+        String token = sessionService.generateSessionToken("testUser", null);
+
+        ResponseEntity<Boolean> response = sessionService.validateToken(token);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        assertEquals(Boolean.FALSE, response.getBody());
+    }
+
+    @Test
+    void validateToken_malformedToken_returns401False() {
+        ResponseEntity<Boolean> response = sessionService.validateToken("not.a.jwt");
+
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        assertEquals(Boolean.FALSE, response.getBody());
+    }
+
+    @Test
+    void validateToken_emptyToken_returns400() {
+        assertEquals(HttpStatus.BAD_REQUEST, sessionService.validateToken(null).getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST, sessionService.validateToken("").getStatusCode());
+    }
+
     @Test
     void generateSessionToken_containsIssAndAud() {
         when(jwtConfigProperties.getIssuer()).thenReturn("test-issuer");

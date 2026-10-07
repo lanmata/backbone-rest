@@ -113,11 +113,10 @@ paths:
       tags: ["session"]
       operationId: "validateSessionToken"
       summary: "Validate session token"
-      description: "Validates the session JWT supplied in the session-token header."
-      security:
-        - sessionToken: []
+      description: "Validates the session JWT supplied in the Authorization header."
+      security: []
       parameters:
-        - name: "session-token"
+        - name: "Authorization"
           in: "header"
           required: true
           description: "The session JWT to validate"
@@ -125,13 +124,15 @@ paths:
             type: "string"
       responses:
         "200":
-          description: "Token validation result"
+          description: "Validation result: true if the token is valid; false if its type is not session-token or its JTI is revoked"
           content:
             application/json:
               schema:
                 type: "boolean"
+        "400":
+          description: "Missing or empty Authorization header"
         "401":
-          description: "Invalid or expired session token"
+          description: "Expired or malformed session token (body: false)"
 
   /api/v1/session/renew:
     get:
@@ -139,10 +140,9 @@ paths:
       operationId: "renewSessionToken"
       summary: "Renew session token"
       description: "Validates the current session token and issues a fresh one."
-      security:
-        - sessionToken: []
+      security: []
       parameters:
-        - name: "session-token"
+        - name: "Authorization"
           in: "header"
           required: true
           description: "The current session JWT to renew"

@@ -93,14 +93,15 @@ public interface SessionApi {
      * @param sessionToken the session token to be validated
      * @return a ResponseEntity containing a boolean indicating whether the token is valid
      */
-    @Operation(summary = "Validate session token", description = "Validates the provided session token")
+    @Operation(summary = "Validate session token", description = "Validates the session token supplied in the Authorization header")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "Session token is valid"),
-            @ApiResponse(responseCode = HttpStatusUtil.UNAUTHORIZED_STR, description = "Invalid session token")
+            @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "Validation result: true if valid, false if wrong type or revoked"),
+            @ApiResponse(responseCode = HttpStatusUtil.BAD_REQUEST_STR, description = "Missing or empty Authorization header"),
+            @ApiResponse(responseCode = HttpStatusUtil.UNAUTHORIZED_STR, description = "Expired or malformed session token")
     })
     @GetMapping("/validate")
     default ResponseEntity<Boolean> validateSessionToken(@RequestHeader(AUTHORIZATION_HEADER) String sessionToken) {
-        return ResponseEntity.status(HttpStatusUtil.NOT_IMPLEMENTED).body(Boolean.FALSE);
+        return this.getSessionService().validateToken(sessionToken);
     }
 
     /**
@@ -119,7 +120,7 @@ public interface SessionApi {
     })
     @GetMapping(value = "/renew", produces = {MediaType.APPLICATION_JSON_VALUE})
     default ResponseEntity<SessionResponse> renewSessionToken(@RequestHeader(AUTHORIZATION_HEADER) String sessionToken) {
-        return ResponseEntity.status(HttpStatusUtil.NOT_IMPLEMENTED).body(new SessionResponse());
+        return this.getSessionService().renewToken(sessionToken);
     }
 
     /**

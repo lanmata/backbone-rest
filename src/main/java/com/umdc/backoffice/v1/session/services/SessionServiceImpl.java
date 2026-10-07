@@ -356,6 +356,21 @@ public class SessionServiceImpl implements SessionService {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ResponseEntity<Boolean> validateToken(String token) {
+        if (Objects.isNull(token) || token.isBlank()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Boolean.FALSE);
+        }
+        // isTokenExpired also reports malformed/unverifiable tokens as expired
+        if (isTokenExpired(token)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Boolean.FALSE);
+        }
+        return ResponseEntity.ok(isValid(token));
+    }
+
+    /**
      * Renews a session token by validating the current token and generating a new one.
      *
      * @param currentToken the current session token to be renewed
