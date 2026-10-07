@@ -47,6 +47,9 @@ class PersonServiceImplTest {
     @Mock
     private PersonRepository personRepository;
 
+    @Mock
+    private PersonGraphLookupService personGraphLookupService;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
@@ -60,12 +63,12 @@ class PersonServiceImplTest {
     void testUpdate() {
         final var personId = UUID.randomUUID();
         Person person = mock(Person.class);
-        doNothing().when(person).setBirthdate(Mockito.<LocalDate>any());
-        doNothing().when(person).setFirstName(Mockito.<String>any());
-        doNothing().when(person).setGender(Mockito.<String>any());
-        doNothing().when(person).setId(Mockito.<UUID>any());
-        doNothing().when(person).setLastName(Mockito.<String>any());
-        doNothing().when(person).setMiddleName(Mockito.<String>any());
+        doNothing().when(person).setBirthdate(Mockito.any());
+        doNothing().when(person).setFirstName(Mockito.any());
+        doNothing().when(person).setGender(Mockito.any());
+        doNothing().when(person).setId(Mockito.any());
+        doNothing().when(person).setLastName(Mockito.any());
+        doNothing().when(person).setMiddleName(Mockito.any());
         person.setBirthdate(LocalDate.of(1970, 1, 1));
         person.setFirstName("Jane");
         person.setGender("M");
@@ -79,17 +82,17 @@ class PersonServiceImplTest {
         personEntity.setLastName("Doe");
         personEntity.setMiddleName("Middle Name");
         personEntity.setName("Name");
-        when(personRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.of(personEntity));
-        when(personMapper.toSource(Mockito.<Person>any())).thenReturn(personEntity);
-        when(personMapper.toTarget(Mockito.<PersonEntity>any())).thenReturn(person);
-        when(personRepository.save(Mockito.<PersonEntity>any())).thenReturn(personEntity);
+        when(personGraphLookupService.findByIdSafe(Mockito.any())).thenReturn(Optional.of(personEntity));
+        when(personMapper.toSource(Mockito.any())).thenReturn(personEntity);
+        when(personMapper.toTarget(Mockito.any())).thenReturn(person);
+        when(personRepository.save(Mockito.any())).thenReturn(personEntity);
 
         final var response = personServiceImpl.update(personId, person);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(personRepository).findById(Mockito.<UUID>any());
-        verify(personMapper).toSource(Mockito.<Person>any());
-        verify(personMapper).toTarget(Mockito.<PersonEntity>any());
-        verify(personRepository).save(Mockito.<PersonEntity>any());
+        verify(personGraphLookupService).findByIdSafe(Mockito.any());
+        verify(personMapper).toSource(Mockito.any());
+        verify(personMapper).toTarget(Mockito.any());
+        verify(personRepository).save(Mockito.any());
     }
 
     /**
@@ -99,23 +102,23 @@ class PersonServiceImplTest {
     void testUpdate2() {
         final var personId = UUID.randomUUID();
         Person person = mock(Person.class);
-        doNothing().when(person).setBirthdate(Mockito.<LocalDate>any());
-        doNothing().when(person).setFirstName(Mockito.<String>any());
-        doNothing().when(person).setGender(Mockito.<String>any());
-        doNothing().when(person).setId(Mockito.<UUID>any());
-        doNothing().when(person).setLastName(Mockito.<String>any());
-        doNothing().when(person).setMiddleName(Mockito.<String>any());
+        doNothing().when(person).setBirthdate(Mockito.any());
+        doNothing().when(person).setFirstName(Mockito.any());
+        doNothing().when(person).setGender(Mockito.any());
+        doNothing().when(person).setId(Mockito.any());
+        doNothing().when(person).setLastName(Mockito.any());
+        doNothing().when(person).setMiddleName(Mockito.any());
         person.setBirthdate(LocalDate.of(1970, 1, 1));
         person.setFirstName("Jane");
         person.setGender("M");
         person.setLastName("Doe");
         person.setMiddleName("Middle Name");
 
-        when(personRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.empty());
+        when(personGraphLookupService.findByIdSafe(Mockito.any())).thenReturn(Optional.empty());
 
         final var response = personServiceImpl.update(personId, person);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        verify(personRepository).findById(Mockito.<UUID>any());
+        verify(personGraphLookupService).findByIdSafe(Mockito.any());
     }
 
     /**
@@ -124,19 +127,19 @@ class PersonServiceImplTest {
     @Test
     void testUpdate3() {
         Person person = mock(Person.class);
-        doNothing().when(person).setBirthdate(Mockito.<LocalDate>any());
-        doNothing().when(person).setFirstName(Mockito.<String>any());
-        doNothing().when(person).setGender(Mockito.<String>any());
-        doNothing().when(person).setId(Mockito.<UUID>any());
-        doNothing().when(person).setLastName(Mockito.<String>any());
-        doNothing().when(person).setMiddleName(Mockito.<String>any());
+        doNothing().when(person).setBirthdate(Mockito.any());
+        doNothing().when(person).setFirstName(Mockito.any());
+        doNothing().when(person).setGender(Mockito.any());
+        doNothing().when(person).setId(Mockito.any());
+        doNothing().when(person).setLastName(Mockito.any());
+        doNothing().when(person).setMiddleName(Mockito.any());
         person.setBirthdate(LocalDate.of(1970, 1, 1));
         person.setFirstName("Jane");
         person.setGender("M");
         person.setLastName("Doe");
         person.setMiddleName("Middle Name");
 
-        when(personRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.empty());
+        when(personRepository.findById(Mockito.any())).thenReturn(Optional.empty());
 
         final var response = personServiceImpl.update(null, person);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
@@ -148,7 +151,7 @@ class PersonServiceImplTest {
     @Test
     void testUpdate4() {
         final var personId = UUID.randomUUID();
-        when(personRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.empty());
+        when(personRepository.findById(Mockito.any())).thenReturn(Optional.empty());
         final var response = personServiceImpl.update(personId, null);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
@@ -173,8 +176,8 @@ class PersonServiceImplTest {
         person.setMiddleName("Middle Name");
         person.setFirstName("Name");
         person.setBirthdate(LocalDate.of(1970, 1, 1));
-        when(personRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.of(personEntity));
-        when(personMapper.toTarget(Mockito.<PersonEntity>any())).thenReturn(person);
+        when(personGraphLookupService.findByIdWithContactsGraph(Mockito.any())).thenReturn(Optional.of(personEntity));
+        when(personMapper.toTarget(Mockito.any())).thenReturn(person);
         final var result = personServiceImpl.find(personId);
         assertNotNull(result);
         assertNotNull(result.getBody());
@@ -183,8 +186,8 @@ class PersonServiceImplTest {
         assertEquals("Doe", personEntity.getLastName());
         assertEquals("Middle Name", personEntity.getMiddleName());
         assertEquals("Name", personEntity.getName());
-        verify(personRepository).findById(Mockito.<UUID>any());
-        verify(personMapper).toTarget(Mockito.<PersonEntity>any());
+        verify(personGraphLookupService).findByIdWithContactsGraph(Mockito.any());
+        verify(personMapper).toTarget(Mockito.any());
     }
 
     /**
@@ -200,11 +203,11 @@ class PersonServiceImplTest {
         personEntity.setLastName("Doe");
         personEntity.setMiddleName("Middle Name");
         personEntity.setName("Name");
-        when(personRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.empty());
+        when(personGraphLookupService.findByIdWithContactsGraph(Mockito.any())).thenReturn(Optional.empty());
         final var result = personServiceImpl.find(personId);
         assertNotNull(result);
         assertEquals(HttpStatus.NOT_FOUND, result.getStatusCode());
-        verify(personRepository).findById(Mockito.<UUID>any());
+        verify(personGraphLookupService).findByIdWithContactsGraph(Mockito.any());
     }
 
     /**
@@ -214,7 +217,7 @@ class PersonServiceImplTest {
     void testFind_null_parameter() {
         final var result = personServiceImpl.find((UUID) null);
         assertNotNull(result);
-        assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, result.getStatusCode());
+        assertEquals(HttpStatus.UNPROCESSABLE_CONTENT, result.getStatusCode());
     }
 
     /**
@@ -229,7 +232,7 @@ class PersonServiceImplTest {
         personEntity.setLastName("Doe");
         personEntity.setMiddleName("Middle Name");
         personEntity.setName("Name");
-        when(personRepository.save(Mockito.<PersonEntity>any())).thenReturn(personEntity);
+        when(personRepository.save(Mockito.any())).thenReturn(personEntity);
 
         PersonEntity personEntity2 = new PersonEntity();
         personEntity2.setBirthdate(LocalDate.of(1970, 1, 1));
@@ -238,7 +241,7 @@ class PersonServiceImplTest {
         personEntity2.setLastName("Doe");
         personEntity2.setMiddleName("Middle Name");
         personEntity2.setName("Name");
-        when(personMapper.toSource(Mockito.<Person>any())).thenReturn(personEntity2);
+        when(personMapper.toSource(Mockito.any())).thenReturn(personEntity2);
 
         Person person = new Person();
         person.setBirthdate(LocalDate.of(1970, 1, 1));
@@ -246,14 +249,14 @@ class PersonServiceImplTest {
         person.setGender("Gender");
         person.setLastName("Doe");
         person.setMiddleName("Middle Name");
-        when(personMapper.toTarget(Mockito.<PersonEntity>any())).thenReturn(person);
+        when(personMapper.toTarget(Mockito.any())).thenReturn(person);
         ResponseEntity<Person> actualSaveResult = personServiceImpl.create(person);
         assertTrue(actualSaveResult.hasBody());
         assertTrue(actualSaveResult.getHeaders().isEmpty());
         assertEquals(HttpStatus.CREATED, actualSaveResult.getStatusCode());
-        verify(personRepository).save(Mockito.<PersonEntity>any());
-        verify(personMapper).toSource(Mockito.<Person>any());
-        verify(personMapper).toTarget(Mockito.<PersonEntity>any());
+        verify(personRepository).save(Mockito.any());
+        verify(personMapper).toSource(Mockito.any());
+        verify(personMapper).toTarget(Mockito.any());
     }
 
     /**
@@ -261,7 +264,7 @@ class PersonServiceImplTest {
      */
     @Test
     void testCreate2() {
-        when(personMapper.toSource(Mockito.<Person>any())).thenThrow(new StandardException(null));
+        when(personMapper.toSource(Mockito.any())).thenThrow(new StandardException(null));
 
         Person person = new Person();
         person.setBirthdate(LocalDate.of(1970, 1, 1));
@@ -270,7 +273,7 @@ class PersonServiceImplTest {
         person.setLastName("Doe");
         person.setMiddleName("Middle Name");
         assertThrows(StandardException.class, () -> personServiceImpl.create(person));
-        verify(personMapper).toSource(Mockito.<Person>any());
+        verify(personMapper).toSource(Mockito.any());
     }
 
     @Test
@@ -291,7 +294,7 @@ class PersonServiceImplTest {
         person.setId(UUID.randomUUID());
 
         List<PersonEntity> personEntities = List.of(personEntity1, personEntity2 );
-        when(personRepository.findAll()).thenReturn(personEntities);
+        when(personGraphLookupService.findAllWithContactsGraph()).thenReturn(personEntities);
         when(personMapper.toTarget(any(PersonEntity.class))).thenReturn(person);
 
         ResponseEntity<List<Person>> response = personServiceImpl.list();
@@ -305,7 +308,7 @@ class PersonServiceImplTest {
     @DisplayName("List persons by IDs")
     void listPersonsByIds() {
         List<PersonEntity> personEntities = List.of(getPersonEntity());
-        when(personRepository.findAllById(anyList())).thenReturn(personEntities);
+        when(personGraphLookupService.findByIdsWithContactsGraph(anyList())).thenReturn(personEntities);
         when(personMapper.toTarget(any(PersonEntity.class))).thenReturn(getPerson());
 
         ResponseEntity<List<Person>> response = personServiceImpl.list(UUID.randomUUID(), UUID.randomUUID());
@@ -318,7 +321,7 @@ class PersonServiceImplTest {
     @Test
     @DisplayName("List persons with empty result")
     void listPersonsWithEmptyResult() {
-        when(personRepository.findAll()).thenReturn(List.of(getPersonEntity()));
+        when(personGraphLookupService.findByIdsWithContactsGraph(anyList())).thenReturn(List.of());
 
         ResponseEntity<List<Person>> response = personServiceImpl.list(UUID.randomUUID());
 

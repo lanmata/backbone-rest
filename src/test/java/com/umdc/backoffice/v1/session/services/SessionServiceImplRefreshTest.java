@@ -11,7 +11,6 @@ import com.umdc.backoffice.v1.session.to.UserAliasTO;
 import com.umdc.backoffice.v1.users.api.to.UserTO;
 import com.umdc.backoffice.v1.users.mapper.UserMapper;
 import com.umdc.persistence.general.domains.UserEntity;
-import com.umdc.persistence.general.repositories.UserRepository;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -60,8 +59,6 @@ class SessionServiceImplRefreshTest {
     @Mock
     private UserAliasMapper userAliasMapper;
     @Mock
-    private UserRepository userRepository;
-    @Mock
     private PasswordEncoder passwordEncoder;
     @Mock
     private JtiDenyListService jtiDenyListService;
@@ -85,7 +82,7 @@ class SessionServiceImplRefreshTest {
         sessionTokenService = new SessionTokenServiceImpl(jwtConfigProperties, jtiDenyListService);
         sessionService = new SessionServiceImpl(
                 messageUtil, userMapper, userAliasMapper,
-                userRepository, passwordEncoder, loginAttemptService,
+                passwordEncoder, loginAttemptService,
                 auditEventService, sessionTokenService, sessionUserLookupService, requestContextUtil);
     }
 
@@ -129,7 +126,7 @@ class SessionServiceImplRefreshTest {
         UserEntity userEntity = new UserEntity();
         userEntity.setId(userId);
         userEntity.setActive(false);
-        when(userRepository.findById(userId)).thenReturn(Optional.of(userEntity));
+        when(sessionUserLookupService.findByIdWithGraph(userId)).thenReturn(Optional.of(userEntity));
 
         ResponseEntity<SessionResponse> response = sessionService.refreshSession(token);
 
@@ -142,7 +139,7 @@ class SessionServiceImplRefreshTest {
         UUID userId = UUID.randomUUID();
         String token = buildRefreshToken(userId, EXPIRATION_MS);
 
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        when(sessionUserLookupService.findByIdWithGraph(userId)).thenReturn(Optional.empty());
 
         ResponseEntity<SessionResponse> response = sessionService.refreshSession(token);
 
@@ -168,8 +165,7 @@ class SessionServiceImplRefreshTest {
         userAliasTO.setLastname("User");
         userAliasTO.setRoles(Set.of(UUID.randomUUID()));
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(userEntity));
-        when(userRepository.findUserInfo(userId)).thenReturn(new UserEntity());
+        when(sessionUserLookupService.findByIdWithGraph(userId)).thenReturn(Optional.of(userEntity));
         when(userMapper.toTarget(any())).thenReturn(new UserTO());
         when(userAliasMapper.toTarget(any())).thenReturn(userAliasTO);
 

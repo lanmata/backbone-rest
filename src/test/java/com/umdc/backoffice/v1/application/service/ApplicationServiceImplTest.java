@@ -42,12 +42,15 @@ class ApplicationServiceImplTest {
     @Mock
     private ApplicationMapper applicationMapper;
 
+    @Mock
+    private ApplicationGraphLookupService applicationGraphLookupService;
+
     private ApplicationServiceImpl applicationService;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        applicationService = new ApplicationServiceImpl(applicationRepository, applicationMapper);
+        applicationService = new ApplicationServiceImpl(applicationRepository, applicationMapper, applicationGraphLookupService);
     }
 
     // ── create ──────────────────────────────────────────────────────────────────
@@ -173,7 +176,7 @@ class ApplicationServiceImplTest {
         Application application = new Application();
         application.setId(appId);
 
-        when(applicationRepository.findById(appId)).thenReturn(Optional.of(entity));
+        when(applicationGraphLookupService.findByIdSafe(appId)).thenReturn(Optional.of(entity));
         when(applicationMapper.toTarget(entity)).thenReturn(application);
 
         ResponseEntity<Application> response = applicationService.find(appId);
@@ -181,20 +184,20 @@ class ApplicationServiceImplTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(application, response.getBody());
         assertNotNull(response.getHeaders().getFirst(MESSAGE_HEADER_STR));
-        verify(applicationRepository).findById(appId);
+        verify(applicationGraphLookupService).findByIdSafe(appId);
     }
 
     @Test
     @DisplayName("find: non-existent ID returns 404 with Message-header")
     void findApplicationByNonExistentIdReturnsNotFound() {
         UUID appId = UUID.randomUUID();
-        when(applicationRepository.findById(appId)).thenReturn(Optional.empty());
+        when(applicationGraphLookupService.findByIdSafe(appId)).thenReturn(Optional.empty());
 
         ResponseEntity<Application> response = applicationService.find(appId);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertNotNull(response.getHeaders().getFirst(MESSAGE_HEADER_STR));
-        verify(applicationRepository).findById(appId);
+        verify(applicationGraphLookupService).findByIdSafe(appId);
         verifyNoInteractions(applicationMapper);
     }
 
@@ -214,7 +217,7 @@ class ApplicationServiceImplTest {
         updated.setId(appId);
         updated.setName("Updated Name");
 
-        when(applicationRepository.findById(appId)).thenReturn(Optional.of(entity));
+        when(applicationGraphLookupService.findByIdSafe(appId)).thenReturn(Optional.of(entity));
         when(applicationRepository.save(entity)).thenReturn(entity);
         when(applicationMapper.toTarget(entity)).thenReturn(updated);
 
@@ -233,7 +236,7 @@ class ApplicationServiceImplTest {
         Application incoming = new Application();
         incoming.setName("Updated Name");
 
-        when(applicationRepository.findById(appId)).thenReturn(Optional.empty());
+        when(applicationGraphLookupService.findByIdSafe(appId)).thenReturn(Optional.empty());
 
         ResponseEntity<Application> response = applicationService.update(appId, incoming);
 
@@ -276,7 +279,7 @@ class ApplicationServiceImplTest {
         entity.setId(appId);
         Application result = new Application();
 
-        when(applicationRepository.findById(appId)).thenReturn(Optional.of(entity));
+        when(applicationGraphLookupService.findByIdSafe(appId)).thenReturn(Optional.of(entity));
         when(applicationRepository.save(entity)).thenReturn(entity);
         when(applicationMapper.toTarget(entity)).thenReturn(result);
 
@@ -327,7 +330,7 @@ class ApplicationServiceImplTest {
         Application app1 = new Application();
         Application app2 = new Application();
 
-        when(applicationRepository.findAllById(List.of(id1, id2))).thenReturn(List.of(entity1, entity2));
+        when(applicationGraphLookupService.findByIdsSafe(List.of(id1, id2))).thenReturn(List.of(entity1, entity2));
         when(applicationMapper.toTarget(entity1)).thenReturn(app1);
         when(applicationMapper.toTarget(entity2)).thenReturn(app2);
 
@@ -343,7 +346,7 @@ class ApplicationServiceImplTest {
     @DisplayName("list: returns 404 with Message-header when no IDs match")
     void listApplicationsByIdsNoMatchReturns404() {
         UUID id1 = UUID.randomUUID();
-        when(applicationRepository.findAllById(List.of(id1))).thenReturn(List.of());
+        when(applicationGraphLookupService.findByIdsSafe(List.of(id1))).thenReturn(List.of());
 
         ResponseEntity<List<Application>> response = applicationService.list(id1);
 
@@ -362,7 +365,7 @@ class ApplicationServiceImplTest {
         Application app1 = new Application();
         Application app2 = new Application();
 
-        when(applicationRepository.findAll()).thenReturn(List.of(entity1, entity2));
+        when(applicationGraphLookupService.findAllSafe()).thenReturn(List.of(entity1, entity2));
         when(applicationMapper.toTarget(entity1)).thenReturn(app1);
         when(applicationMapper.toTarget(entity2)).thenReturn(app2);
 
@@ -373,19 +376,19 @@ class ApplicationServiceImplTest {
         assertEquals(2, response.getBody().size());
         assertTrue(response.getBody().containsAll(List.of(app1, app2)));
         assertNotNull(response.getHeaders().getFirst(MESSAGE_HEADER_STR));
-        verify(applicationRepository).findAll();
+        verify(applicationGraphLookupService).findAllSafe();
     }
 
     @Test
     @DisplayName("listAll: returns 404 with Message-header when no applications exist")
     void listAllApplicationsWhenNoneExistReturnsNotFound() {
-        when(applicationRepository.findAll()).thenReturn(List.of());
+        when(applicationGraphLookupService.findAllSafe()).thenReturn(List.of());
 
         ResponseEntity<List<Application>> response = applicationService.listAll();
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertNotNull(response.getHeaders().getFirst(MESSAGE_HEADER_STR));
-        verify(applicationRepository).findAll();
+        verify(applicationGraphLookupService).findAllSafe();
         verifyNoInteractions(applicationMapper);
     }
 }

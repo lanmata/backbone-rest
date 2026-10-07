@@ -47,15 +47,21 @@ public interface AddressMapper {
      * @return the converted DTO
      */
     @Mapping(target = "personId", expression = "java(entity.getPerson() != null ? entity.getPerson().getId() : null)")
+    @Mapping(target = "content", source = "address")
     Address toTarget(AddressEntity entity);
 
     /**
      * Converts an {@link Address} to an {@link AddressEntity}.
      * The {@code person} relation is left unset; the caller must resolve and assign it.
+     * {@code content} (the DTO's wire field name) and {@code address} (the entity's actual
+     * column-backed field name) don't match by name, so MapStruct's default mapping silently
+     * leaves {@code address} null without this explicit path — which then fails the entity's own
+     * {@code @NotNull}/{@code @NotBlank} validation on persist.
      *
      * @param address the DTO to convert
      * @return the converted entity
      */
     @Mapping(target = "person", ignore = true)
+    @Mapping(target = "address", source = "content")
     AddressEntity toSource(Address address);
 }

@@ -16,12 +16,12 @@ import com.umdc.backoffice.constant.keys.RoleMessageKey;
 import com.umdc.backoffice.util.MessageUtil;
 import com.umdc.backoffice.v1.features.mapper.FeatureMapper;
 import com.umdc.backoffice.v1.rolefeatures.service.RoleFeatureLinkService;
+import com.umdc.backoffice.v1.roles.service.RoleGraphLookupService;
 import com.umdc.commons.exception.StandardException;
 import com.umdc.commons.general.pojo.Feature;
 import com.umdc.persistence.general.domains.FeatureEntity;
 import com.umdc.persistence.general.domains.RoleEntity;
 import com.umdc.persistence.general.repositories.FeatureRepository;
-import com.umdc.persistence.general.repositories.RoleRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -48,16 +48,21 @@ public class FeatureServiceImpl implements FeatureService {
 
 	private final FeatureMapper featureMapper;
 
-	private final RoleRepository roleRepository;
-
 	private final RoleFeatureLinkService roleFeatureLinkService;
 
+	private final FeatureGraphLookupService featureGraphLookupService;
+
+	private final RoleGraphLookupService roleGraphLookupService;
+
 	public FeatureServiceImpl(FeatureRepository featureRepository, FeatureMapper featureMapper,
-							   RoleRepository roleRepository, RoleFeatureLinkService roleFeatureLinkService) {
+							   RoleFeatureLinkService roleFeatureLinkService,
+							   FeatureGraphLookupService featureGraphLookupService,
+							   RoleGraphLookupService roleGraphLookupService) {
 		this.featureRepository = featureRepository;
 		this.featureMapper = featureMapper;
-		this.roleRepository = roleRepository;
 		this.roleFeatureLinkService = roleFeatureLinkService;
+		this.featureGraphLookupService = featureGraphLookupService;
+		this.roleGraphLookupService = roleGraphLookupService;
 	}
 
 	/** {@inheritDoc} */
@@ -66,7 +71,7 @@ public class FeatureServiceImpl implements FeatureService {
 		LOGGER.info("Starting feature creation");
 		ResponseEntity<Feature> responseEntity;
 		LOGGER.info("Feature name duplication validation.");
-		final var optFeature = featureRepository.findByName(feature.getName());
+		final var optFeature = featureGraphLookupService.findByNameWithGraph(feature.getName());
 		if (optFeature.isPresent()) {
 			responseEntity = new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
 		} else {
@@ -81,7 +86,7 @@ public class FeatureServiceImpl implements FeatureService {
 			roleFeatureLinkService.linkFeatureToRoles(featureEntityResult, resolvedRoles);
 			responseEntity = new ResponseEntity<>(featureMapper.toTarget(featureEntityResult), HttpStatus.CREATED);
 		}
-		LOGGER.info(responseEntity.getStatusCode() + MessageUtil.LOG_PATH_SEPARATOR + feature);
+		LOGGER.info("{}{}{}", responseEntity.getStatusCode(), MessageUtil.LOG_PATH_SEPARATOR, feature);
 		return responseEntity;
 	}
 
@@ -97,10 +102,12 @@ public class FeatureServiceImpl implements FeatureService {
 			return List.of();
 		}
 		final List<RoleEntity> resolved = new ArrayList<>();
-		for (UUID roleId : roleIds) {
-			resolved.add(roleRepository.findById(roleId)
-					.orElseThrow(() -> new StandardException(RoleMessageKey.ROL_NOT_FOUND)));
-		}
+		roleIds.stream().distinct().forEach(roleId -> {
+			if (Objects.nonNull(roleId)) {
+				resolved.add(roleGraphLookupService.findByIdWithGraph(roleId)
+						.orElseThrow(() -> new StandardException(RoleMessageKey.ROL_NOT_FOUND)));
+			}
+		});
 		return resolved;
 	}
 
@@ -108,7 +115,7 @@ public class FeatureServiceImpl implements FeatureService {
 	@Override
 	public ResponseEntity<Feature> update(UUID featureId, Feature feature) {
 		ResponseEntity<Feature> responseEntity;
-		final var optFeature = featureRepository.findById(featureId);
+		final var optFeature = featureGraphLookupService.findByIdWithGraph(featureId);
 		if (optFeature.isPresent()) {
 			feature.setId(featureId);
 			responseEntity = ResponseEntity.accepted().body(featureMapper.toTarget(
@@ -116,7 +123,7 @@ public class FeatureServiceImpl implements FeatureService {
 		} else {
 			responseEntity = ResponseEntity.of(ProblemDetail.forStatusAndDetail(HttpStatus.NOT_ACCEPTABLE,"Feature not registered")).build();
 		}
-		LOGGER.info(responseEntity.getStatusCode() + MessageUtil.LOG_PATH_SEPARATOR + feature.toString());
+		LOGGER.info("{}{}{}", responseEntity.getStatusCode(), MessageUtil.LOG_PATH_SEPARATOR, feature);
 		return responseEntity;
 	}
 
@@ -125,19 +132,19 @@ public class FeatureServiceImpl implements FeatureService {
 	public ResponseEntity<List<Feature>> list(List<String> featureIds, boolean includeInactive) {
 		final var featureListResult = new ArrayList<Feature>();
 		List<UUID> uuidList = new ArrayList<>();
-		Optional<Iterable<FeatureEntity>> featureEntityListResult;
+		List<FeatureEntity> featureEntityListResult;
 		if(Objects.isNull(featureIds) || featureIds.isEmpty()) {
-			featureEntityListResult = Optional.of(featureRepository.findAll());
+			featureEntityListResult = featureGraphLookupService.findAllWithGraph();
 		} else {
 			featureIds.forEach(s -> uuidList.add(UUID.fromString(s)));
-			featureEntityListResult = featureRepository.findByIdAndStatus(uuidList.stream().toList(), includeInactive);
+			featureEntityListResult = featureGraphLookupService.findByIdsAndStatusWithGraph(uuidList.stream().toList(), includeInactive);
 		}
 
-        featureEntityListResult.ifPresent(featureEntities -> featureEntities.forEach(featureEntity -> {
+        featureEntityListResult.forEach(featureEntity -> {
             if (includeInactive || Boolean.TRUE.equals(featureEntity.getActive())) {
                 featureListResult.add(featureMapper.toTarget(featureEntity));
             }
-        }));
+        });
 
 		if(featureListResult.isEmpty()) {
 			return ResponseEntity.notFound().build();
@@ -153,11 +160,11 @@ public class FeatureServiceImpl implements FeatureService {
 		if (Objects.isNull(roleId)) {
 			return ResponseEntity.badRequest().build();
 		}
-		final var optFeatures = featureRepository.findByRoleId(roleId);
-		if (optFeatures.isEmpty() || optFeatures.get().isEmpty()) {
+		final var featureEntities = featureGraphLookupService.findByRoleIdWithGraph(roleId);
+		if (featureEntities.isEmpty()) {
 			return ResponseEntity.notFound().build();
 		}
-		final var features = optFeatures.get().stream().map(featureMapper::toTarget).toList();
+		final var features = featureEntities.stream().map(featureMapper::toTarget).toList();
 		return ResponseEntity.ok(sort(features));
 	}
 
@@ -165,13 +172,13 @@ public class FeatureServiceImpl implements FeatureService {
 	@Override
 	public ResponseEntity<Feature> find(UUID featureId) {
 		ResponseEntity<Feature> responseEntity;
-		final var featureEntity = featureRepository.findById(featureId).orElse(new FeatureEntity());
+		final var featureEntity = featureGraphLookupService.findByIdWithGraph(featureId).orElse(new FeatureEntity());
 		if (esNulo(featureEntity.getId())) {
 			responseEntity = ResponseEntity.notFound().build();
 		} else {
 			responseEntity = new ResponseEntity<>(featureMapper.toTarget(featureEntity), HttpStatus.OK);
 		}
-		LOGGER.info(responseEntity.getStatusCode() + MessageUtil.LOG_PATH_SEPARATOR + featureId);
+		LOGGER.info("{}{}{}", responseEntity.getStatusCode(), MessageUtil.LOG_PATH_SEPARATOR, featureId);
 		return responseEntity;
 	}
 

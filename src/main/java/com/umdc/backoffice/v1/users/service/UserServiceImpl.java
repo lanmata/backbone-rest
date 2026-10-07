@@ -71,6 +71,7 @@ public class UserServiceImpl implements UserService {
     private final AuditEventService auditEventService;
     private final PasswordPolicyService passwordPolicyService;
     private final RequestContextUtil requestContextUtil;
+    private final UserGraphLookupService userGraphLookupService;
 
     /**
      * Constructs a new UserServiceImpl with the provided dependencies.
@@ -86,6 +87,9 @@ public class UserServiceImpl implements UserService {
      * @param auditEventService the service for recording security audit events
      * @param passwordPolicyService the service that validates password complexity rules
      * @param requestContextUtil resolves source IP / User-Agent from the current request for audit records
+     * @param userGraphLookupService loads a user by id with its lazy association graph eagerly
+     *                               fetched — see {@link UserGraphLookupServiceImpl} for why this
+     *                               replaces {@link UserRepository#findById} in this class
      */
     public UserServiceImpl(UserRepository userRepository,
                            ApplicationRoleUserRepository applicationRoleUserRepository,
@@ -95,7 +99,8 @@ public class UserServiceImpl implements UserService {
                            PasswordEncoder passwordEncoder,
                            AuditEventService auditEventService,
                            PasswordPolicyService passwordPolicyService,
-                           RequestContextUtil requestContextUtil) {
+                           RequestContextUtil requestContextUtil,
+                           UserGraphLookupService userGraphLookupService) {
         this.userRepository = userRepository;
         this.applicationRoleUserRepository = applicationRoleUserRepository;
         this.applicationService = applicationService;
@@ -107,12 +112,13 @@ public class UserServiceImpl implements UserService {
         this.auditEventService = auditEventService;
         this.passwordPolicyService = passwordPolicyService;
         this.requestContextUtil = requestContextUtil;
+        this.userGraphLookupService = userGraphLookupService;
     }
 
 
     @Override
     public ResponseEntity<Void> validateEmail(String email, UUID applicationId) {
-        var result = userRepository.findByEmailAndApplication(email, applicationId);
+        var result = userGraphLookupService.findByEmailAndApplicationWithGraph(email, applicationId);
         AtomicReference<ResponseEntity<Void>> responseEntity = new AtomicReference<>();
         result.ifPresentOrElse(
                 userEntity -> responseEntity.set(new ResponseEntity<>(HttpStatus.CONFLICT)),
@@ -122,7 +128,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResponseEntity<Void> validateAlias(String alias, UUID applicationId) {
-        var result = userRepository.findByAliasAndApplication(alias, applicationId);
+        var result = userGraphLookupService.findByAliasAndApplicationWithGraph(alias, applicationId);
         AtomicReference<ResponseEntity<Void>> responseEntity = new AtomicReference<>();
         result.ifPresentOrElse(
                 userEntity -> responseEntity.set(new ResponseEntity<>(HttpStatus.CONFLICT)),
@@ -275,13 +281,13 @@ public class UserServiceImpl implements UserService {
      *
      * @param contacts the list of Contact POJOs
      * @param personEntity the person entity to link contacts to
-     * @return the list of ContactEntity objects
+     * @return the set of ContactEntity objects
      */
-    private List<ContactEntity> convertContacts(List<Contact> contacts, PersonEntity personEntity) {
+    private Set<ContactEntity> convertContacts(List<Contact> contacts, PersonEntity personEntity) {
         if (contacts == null || contacts.isEmpty()) {
-            return Collections.emptyList();
+            return Collections.emptySet();
         }
-        List<ContactEntity> contactEntities = new ArrayList<>(contacts.size());
+        Set<ContactEntity> contactEntities = new LinkedHashSet<>(contacts.size());
         for (var contact : contacts) {
             ContactEntity contactEntity = contactMapper.toSource(contact);
             contactEntity.setPerson(personEntity);
@@ -331,7 +337,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public ResponseEntity<UserTO> findUserById(UUID userId) {
         ResponseEntity<UserTO> responseEntity;
-        final var optionalUser = userRepository.findById(userId);
+        final var optionalUser = userGraphLookupService.findByIdWithGraph(userId);
         responseEntity = optionalUser.map(userEntity ->
                 new ResponseEntity<>(userMapper.toTarget(userEntity), HttpStatus.OK)).orElseGet(() ->
                 ResponseEntity.notFound().build());
@@ -340,7 +346,8 @@ public class UserServiceImpl implements UserService {
     }
 
     private UserEntity findById(UUID userId) {
-        return userRepository.findById(userId).orElseThrow(() -> new StandardException(UserMessageKey.USER_NOT_FOUND));
+        return userGraphLookupService.findByIdWithGraph(userId)
+                .orElseThrow(() -> new StandardException(UserMessageKey.USER_NOT_FOUND));
     }
 
     /**
@@ -373,7 +380,7 @@ public class UserServiceImpl implements UserService {
             return ResponseEntity.badRequest().build();
         }
         final List<UserTO> userEntityList = new ArrayList<>();
-        userRepository.findByApplication(applicationId).forEach(userEntity -> userEntityList.add(userMapper.toTarget(userEntity)));
+        userGraphLookupService.findByApplicationWithGraph(applicationId).forEach(userEntity -> userEntityList.add(userMapper.toTarget(userEntity)));
         return new ResponseEntity<>(userEntityList, HttpStatus.OK);
     }
 
@@ -408,6 +415,16 @@ public class UserServiceImpl implements UserService {
         }
 
         var userEntity = userMapper.toSource(userCreateRequest);
+
+        // person is always newly created alongside the user — there's no "link to an existing
+        // person" concept at this endpoint. PersonEntity.id is @GeneratedValue(strategy = UUID),
+        // so a client-supplied id reaching persist() (cascaded from userRepository.save() below)
+        // makes Hibernate assume the entity already exists and is detached, throwing
+        // PersistentObjectException. Clearing it forces a fresh, Hibernate-generated id. Same root
+        // cause already fixed for the standalone endpoint in PersonServiceImpl#create.
+        if (Objects.nonNull(userEntity.getPerson())) {
+            userEntity.getPerson().setId(null);
+        }
 
         // Encode the password with BCrypt before persisting
         if (isNonEmpty(userEntity.getPassword())) {
@@ -464,7 +481,7 @@ public class UserServiceImpl implements UserService {
         if (Objects.isNull(userId) || Objects.isNull(roleId)) {
             return ResponseEntity.badRequest().build();
         }
-        Optional<UserEntity> optionalUser = userRepository.findById(userId);
+        Optional<UserEntity> optionalUser = userGraphLookupService.findByIdWithGraph(userId);
         if (optionalUser.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
@@ -502,7 +519,7 @@ public class UserServiceImpl implements UserService {
         if (Objects.isNull(userId) || Objects.isNull(roleId)) {
             return ResponseEntity.badRequest().build();
         }
-        Optional<UserEntity> optionalUser = userRepository.findById(userId);
+        Optional<UserEntity> optionalUser = userGraphLookupService.findByIdWithGraph(userId);
         if (optionalUser.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
@@ -546,9 +563,9 @@ public class UserServiceImpl implements UserService {
         Optional<UserEntity> userEntityOptional;
         UserEntity userEntity;
         if (Objects.isNull(applicationId)) {
-            userEntityOptional = Optional.ofNullable(userRepository.findByAlias(alias));
+            userEntityOptional = userGraphLookupService.findByAliasWithGraph(alias);
         } else {
-            userEntityOptional = userRepository.findByAliasAndApplication(alias, applicationId);
+            userEntityOptional = userGraphLookupService.findByAliasAndApplicationWithGraph(alias, applicationId);
         }
 
         userEntity = userEntityOptional.orElse(null);
@@ -568,7 +585,7 @@ public class UserServiceImpl implements UserService {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
 
-        var userOpt = userRepository.findById(userId);
+        var userOpt = userGraphLookupService.findByIdWithGraph(userId);
         if (userOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }

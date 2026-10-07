@@ -4,11 +4,11 @@ import com.umdc.backoffice.constant.keys.AuthKey;
 import com.umdc.backoffice.v1.iam.permissions.api.to.PermissionCheckRequest;
 import com.umdc.backoffice.v1.iam.permissions.api.to.PermissionCheckResponse;
 import com.umdc.backoffice.v1.session.services.SessionService;
+import com.umdc.backoffice.v1.users.service.ApplicationRoleUserGraphLookupService;
 import com.umdc.persistence.general.domains.ApplicationRoleUserEntity;
 import com.umdc.persistence.general.domains.FeatureEntity;
 import com.umdc.persistence.general.domains.RoleEntity;
 import com.umdc.persistence.general.domains.RoleFeatureEntity;
-import com.umdc.persistence.general.repositories.ApplicationRoleUserRepository;
 import io.jsonwebtoken.Claims;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -18,6 +18,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -39,7 +40,7 @@ class PermissionCheckServiceImplTest {
     private SessionService sessionService;
 
     @Mock
-    private ApplicationRoleUserRepository applicationRoleUserRepository;
+    private ApplicationRoleUserGraphLookupService applicationRoleUserGraphLookupService;
 
     @Mock
     private Claims claims;
@@ -49,7 +50,7 @@ class PermissionCheckServiceImplTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        permissionCheckService = new PermissionCheckServiceImpl(sessionService, applicationRoleUserRepository);
+        permissionCheckService = new PermissionCheckServiceImpl(sessionService, applicationRoleUserGraphLookupService);
     }
 
     // ── invalid token ─────────────────────────────────────────────────────────
@@ -211,7 +212,8 @@ class PermissionCheckServiceImplTest {
         void check_noAclLink_returnsGrantedFalseWithSpecificReason() {
             stubValidTokenWithUid();
             PermissionCheckRequest request = new PermissionCheckRequest(ROLE_ADMIN, applicationId, VALID_TOKEN);
-            when(applicationRoleUserRepository.findByUserAndApplication(userId, applicationId)).thenReturn(null);
+            when(applicationRoleUserGraphLookupService.findByUserAndApplicationWithGraph(userId, applicationId))
+                    .thenReturn(Optional.empty());
 
             ResponseEntity<PermissionCheckResponse> response = permissionCheckService.check(request);
 
@@ -224,8 +226,8 @@ class PermissionCheckServiceImplTest {
         void check_inactiveAclLink_returnsGrantedFalse() {
             stubValidTokenWithUid();
             PermissionCheckRequest request = new PermissionCheckRequest(ROLE_ADMIN, applicationId, VALID_TOKEN);
-            when(applicationRoleUserRepository.findByUserAndApplication(userId, applicationId))
-                    .thenReturn(link(activeRole(ROLE_ADMIN), false));
+            when(applicationRoleUserGraphLookupService.findByUserAndApplicationWithGraph(userId, applicationId))
+                    .thenReturn(Optional.of(link(activeRole(ROLE_ADMIN), false)));
 
             ResponseEntity<PermissionCheckResponse> response = permissionCheckService.check(request);
 
@@ -236,8 +238,8 @@ class PermissionCheckServiceImplTest {
         void check_activeLink_roleNameMatchesPermission_returnsGrantedTrue() {
             stubValidTokenWithUid();
             PermissionCheckRequest request = new PermissionCheckRequest(ROLE_ADMIN, applicationId, VALID_TOKEN);
-            when(applicationRoleUserRepository.findByUserAndApplication(userId, applicationId))
-                    .thenReturn(link(activeRole(ROLE_ADMIN), true));
+            when(applicationRoleUserGraphLookupService.findByUserAndApplicationWithGraph(userId, applicationId))
+                    .thenReturn(Optional.of(link(activeRole(ROLE_ADMIN), true)));
 
             ResponseEntity<PermissionCheckResponse> response = permissionCheckService.check(request);
 
@@ -249,8 +251,8 @@ class PermissionCheckServiceImplTest {
         void check_activeLink_roleNameMatchesCaseInsensitively_returnsGrantedTrue() {
             stubValidTokenWithUid();
             PermissionCheckRequest request = new PermissionCheckRequest("role_admin", applicationId, VALID_TOKEN);
-            when(applicationRoleUserRepository.findByUserAndApplication(userId, applicationId))
-                    .thenReturn(link(activeRole(ROLE_ADMIN), true));
+            when(applicationRoleUserGraphLookupService.findByUserAndApplicationWithGraph(userId, applicationId))
+                    .thenReturn(Optional.of(link(activeRole(ROLE_ADMIN), true)));
 
             ResponseEntity<PermissionCheckResponse> response = permissionCheckService.check(request);
 
@@ -263,8 +265,8 @@ class PermissionCheckServiceImplTest {
             RoleEntity inactiveRole = activeRole(ROLE_ADMIN);
             inactiveRole.setActive(false);
             PermissionCheckRequest request = new PermissionCheckRequest(ROLE_ADMIN, applicationId, VALID_TOKEN);
-            when(applicationRoleUserRepository.findByUserAndApplication(userId, applicationId))
-                    .thenReturn(link(inactiveRole, true));
+            when(applicationRoleUserGraphLookupService.findByUserAndApplicationWithGraph(userId, applicationId))
+                    .thenReturn(Optional.of(link(inactiveRole, true)));
 
             ResponseEntity<PermissionCheckResponse> response = permissionCheckService.check(request);
 
@@ -275,8 +277,8 @@ class PermissionCheckServiceImplTest {
         void check_activeLink_roleNameDoesNotMatch_returnsGrantedFalse() {
             stubValidTokenWithUid();
             PermissionCheckRequest request = new PermissionCheckRequest(ROLE_SUPERUSER, applicationId, VALID_TOKEN);
-            when(applicationRoleUserRepository.findByUserAndApplication(userId, applicationId))
-                    .thenReturn(link(activeRole(ROLE_ADMIN), true));
+            when(applicationRoleUserGraphLookupService.findByUserAndApplicationWithGraph(userId, applicationId))
+                    .thenReturn(Optional.of(link(activeRole(ROLE_ADMIN), true)));
 
             ResponseEntity<PermissionCheckResponse> response = permissionCheckService.check(request);
 
@@ -300,8 +302,8 @@ class PermissionCheckServiceImplTest {
             role.setRoleFeatures(Set.of(roleFeature));
 
             PermissionCheckRequest request = new PermissionCheckRequest("TEMPLATE_MANAGE", applicationId, VALID_TOKEN);
-            when(applicationRoleUserRepository.findByUserAndApplication(userId, applicationId))
-                    .thenReturn(link(role, true));
+            when(applicationRoleUserGraphLookupService.findByUserAndApplicationWithGraph(userId, applicationId))
+                    .thenReturn(Optional.of(link(role, true)));
 
             ResponseEntity<PermissionCheckResponse> response = permissionCheckService.check(request);
 
@@ -325,8 +327,8 @@ class PermissionCheckServiceImplTest {
             role.setRoleFeatures(Set.of(roleFeature));
 
             PermissionCheckRequest request = new PermissionCheckRequest("TEMPLATE_MANAGE", applicationId, VALID_TOKEN);
-            when(applicationRoleUserRepository.findByUserAndApplication(userId, applicationId))
-                    .thenReturn(link(role, true));
+            when(applicationRoleUserGraphLookupService.findByUserAndApplicationWithGraph(userId, applicationId))
+                    .thenReturn(Optional.of(link(role, true)));
 
             ResponseEntity<PermissionCheckResponse> response = permissionCheckService.check(request);
 
@@ -340,8 +342,8 @@ class PermissionCheckServiceImplTest {
             role.setRoleFeatures(null);
 
             PermissionCheckRequest request = new PermissionCheckRequest("TEMPLATE_MANAGE", applicationId, VALID_TOKEN);
-            when(applicationRoleUserRepository.findByUserAndApplication(userId, applicationId))
-                    .thenReturn(link(role, true));
+            when(applicationRoleUserGraphLookupService.findByUserAndApplicationWithGraph(userId, applicationId))
+                    .thenReturn(Optional.of(link(role, true)));
 
             ResponseEntity<PermissionCheckResponse> response = permissionCheckService.check(request);
 

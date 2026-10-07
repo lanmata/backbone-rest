@@ -14,6 +14,7 @@ package com.umdc.backoffice.v1.addresses.service;
 
 import com.umdc.backoffice.v1.addresses.api.to.Address;
 import com.umdc.backoffice.v1.addresses.mapper.AddressMapper;
+import com.umdc.backoffice.v1.people.service.PersonGraphLookupService;
 import com.umdc.persistence.general.domains.AddressEntity;
 import com.umdc.persistence.general.domains.PersonEntity;
 import com.umdc.persistence.general.repositories.AddressRepository;
@@ -53,20 +54,28 @@ public class AddressServiceImpl implements AddressService {
     private final AddressRepository addressRepository;
     private final PersonRepository personRepository;
     private final AddressMapper addressMapper;
+    private final AddressGraphLookupService addressGraphLookupService;
+    private final PersonGraphLookupService personGraphLookupService;
 
     /**
      * Constructor for AddressServiceImpl.
      *
-     * @param addressRepository the address repository
-     * @param personRepository  the person repository
-     * @param addressMapper     the address mapper
+     * @param addressRepository         the address repository
+     * @param personRepository          the person repository
+     * @param addressMapper             the address mapper
+     * @param addressGraphLookupService safe address lookups (person eagerly loaded)
+     * @param personGraphLookupService  safe person lookups (contacts suppressed to lazy)
      */
     public AddressServiceImpl(AddressRepository addressRepository,
                                PersonRepository personRepository,
-                               AddressMapper addressMapper) {
+                               AddressMapper addressMapper,
+                               AddressGraphLookupService addressGraphLookupService,
+                               PersonGraphLookupService personGraphLookupService) {
         this.addressRepository = addressRepository;
         this.personRepository = personRepository;
         this.addressMapper = addressMapper;
+        this.addressGraphLookupService = addressGraphLookupService;
+        this.personGraphLookupService = personGraphLookupService;
     }
 
     /** {@inheritDoc} */
@@ -78,7 +87,7 @@ public class AddressServiceImpl implements AddressService {
             log.debug("create called with an invalid address payload");
             return ResponseEntity.badRequest().header(MESSAGE_HEADER_STR, BAD_REQUEST_MSG).build();
         }
-        Optional<PersonEntity> person = personRepository.findById(address.getPersonId());
+        Optional<PersonEntity> person = personGraphLookupService.findByIdSafe(address.getPersonId());
         if (person.isEmpty()) {
             log.debug("Person not found for address creation: personId={}", address.getPersonId());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).header(MESSAGE_HEADER_STR, PERSON_NOT_FOUND_MSG).build();
@@ -95,7 +104,7 @@ public class AddressServiceImpl implements AddressService {
     /** {@inheritDoc} */
     @Override
     public ResponseEntity<Address> find(UUID id) {
-        Optional<Address> result = addressRepository.findById(id).map(addressMapper::toTarget);
+        Optional<Address> result = addressGraphLookupService.findByIdWithGraph(id).map(addressMapper::toTarget);
         return result.map(found -> ResponseEntity.ok().header(MESSAGE_HEADER_STR, FOUND_MSG).body(found))
                 .orElseGet(() -> ResponseEntity.notFound().header(MESSAGE_HEADER_STR, NOT_FOUND_MSG).build());
     }
@@ -109,12 +118,12 @@ public class AddressServiceImpl implements AddressService {
             log.debug("update called with an invalid address payload: id={}", id);
             return ResponseEntity.badRequest().header(MESSAGE_HEADER_STR, BAD_REQUEST_MSG).build();
         }
-        Optional<AddressEntity> existing = addressRepository.findById(id);
+        Optional<AddressEntity> existing = addressGraphLookupService.findByIdWithGraph(id);
         if (existing.isEmpty()) {
             log.debug("Address not found for update: id={}", id);
             return ResponseEntity.notFound().header(MESSAGE_HEADER_STR, NOT_FOUND_MSG).build();
         }
-        Optional<PersonEntity> person = personRepository.findById(address.getPersonId());
+        Optional<PersonEntity> person = personGraphLookupService.findByIdSafe(address.getPersonId());
         if (person.isEmpty()) {
             log.debug("Person not found for address update: personId={}", address.getPersonId());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).header(MESSAGE_HEADER_STR, PERSON_NOT_FOUND_MSG).build();
@@ -132,7 +141,7 @@ public class AddressServiceImpl implements AddressService {
     @Override
     @Transactional
     public ResponseEntity<Address> delete(UUID id) {
-        Optional<AddressEntity> existing = addressRepository.findById(id);
+        Optional<AddressEntity> existing = addressGraphLookupService.findByIdWithGraph(id);
         if (existing.isEmpty()) {
             log.debug("Address not found for delete: id={}", id);
             return ResponseEntity.notFound().header(MESSAGE_HEADER_STR, NOT_FOUND_MSG).build();
@@ -151,7 +160,7 @@ public class AddressServiceImpl implements AddressService {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).header(MESSAGE_HEADER_STR, PERSON_NOT_FOUND_MSG).build();
         }
         List<Address> addresses = new ArrayList<>();
-        addressRepository.findByPersonId(personId).forEach(entity -> addresses.add(addressMapper.toTarget(entity)));
+        addressGraphLookupService.findByPersonIdWithGraph(personId).forEach(entity -> addresses.add(addressMapper.toTarget(entity)));
         if (addresses.isEmpty()) {
             log.debug("Person exists but has no addresses registered: personId={}", personId);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).header(MESSAGE_HEADER_STR, NO_ADDRESSES_MSG).build();

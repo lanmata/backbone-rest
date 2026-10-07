@@ -153,6 +153,11 @@ DOCKER_BUILDKIT=1 docker build -f Dockerfile.native \
   -t prx/backbone-rest:native .
 docker run --rm -p 8084:8084 prx/backbone-rest:native
 ```
+The image build skips PMD/CPD/JaCoCo and test compilation (they don't affect the binary — run
+`mvn test` separately), and `Dockerfile.native.dockerignore` limits the build context to
+`pom.xml`, `src/main`, `config/native.env` and `certs/backbone`. For a local smoke-test image, add
+`--build-arg NATIVE_QUICK_BUILD=true` (native-image `-Ob`: faster compile, lower peak throughput —
+not for deployed images).
 
 **What does NOT run the same way in native mode:**
 - `mvn test` (the JUnit 5 + Mockito suite) is **not** run against the native image — Mockito's
