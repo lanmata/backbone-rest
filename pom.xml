@@ -25,7 +25,7 @@
 
     <groupId>com.umdc.backbone</groupId>
     <artifactId>backbone-rest</artifactId>
-    <version>0.0.4</version>
+    <version>0.0.3</version>
     <name>UMDC Backbone REST</name>
     <description>Management service to system entities</description>
 

@@ -153,4 +153,4 @@ EXPOSE 8084
 # loading both worked correctly from env vars alone.
 ENTRYPOINT ["/usr/local/runme/backbone-rest", \
     "-Dspring.application.name=backbone-rest", \
-    "-Dapi.info.version=0.0.4"]
+    "-Dapi.info.version=0.0.3"]
