@@ -53,10 +53,15 @@ service, no REST surface), `roles`, `servicetype`, `session`, `users`
   a valid JWT. Roles extracted from `resource_access.<clientId>.roles` by `JwtConverter`.
 - **Session JWT** (JJWT 0.12.3): minted in `SessionServiceImpl`, transmitted via
   `session-token` header. Separate from OAuth2 validation.
-- Endpoints `/v1/sessions/token` and `/v1/sessions/validate` bypass OAuth2 filter.
+- Endpoints `/api/v1/session/token` and `/api/v1/session/validate` bypass OAuth2 filter.
 - **JTI deny-list**: `JtiDenyListServiceImpl` stores revoked JTIs in Redis under
   `jti:<value>` with the token's remaining TTL — Redis expires them natively,
   no scheduled cleanup job needed.
+- **Shared with Mercury:** Mercury verifies this service's session JWT locally with the *same* `APP_TOKEN_SECRET`, requires
+  `iss`/`aud` (`JWT_ISSUER`/`JWT_AUDIENCE` must be non-empty and listed in Mercury's `APP_TOKEN_TRUSTED_ISSUERS`/
+  `_AUDIENCES`), requires `type=session-token` (refresh tokens share the key and carry `uid` — never accept one as a
+  session), and calls `GET /api/v1/session/validate` (public; token in the `Authorization` header, raw) to honour the
+  JTI deny-list. Treat those as a cross-service contract. See `docs/v1/00-prerequisites.md`.
 - **`APP_TOKEN_SECRET`**: sourced from `${APP_TOKEN_SECRET}` (no default/fallback),
   injected via Vault + Spring Cloud Config (`spring.config.import` in `application.yml`). Never hardcoded.
   Rotation is an operational Vault procedure, not application code — the
