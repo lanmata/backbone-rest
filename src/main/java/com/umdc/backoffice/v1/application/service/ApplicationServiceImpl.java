@@ -48,10 +48,13 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     private final ApplicationRepository applicationRepository;
     private final ApplicationMapper applicationMapper;
+    private final ApplicationGraphLookupService applicationGraphLookupService;
 
-    public ApplicationServiceImpl(ApplicationRepository applicationRepository, ApplicationMapper applicationMapper) {
+    public ApplicationServiceImpl(ApplicationRepository applicationRepository, ApplicationMapper applicationMapper,
+                                   ApplicationGraphLookupService applicationGraphLookupService) {
         this.applicationRepository = applicationRepository;
         this.applicationMapper = applicationMapper;
+        this.applicationGraphLookupService = applicationGraphLookupService;
     }
 
     /** {@inheritDoc} */
@@ -78,7 +81,7 @@ public class ApplicationServiceImpl implements ApplicationService {
     /** {@inheritDoc} */
     @Override
     public ResponseEntity<Application> find(UUID id) {
-        Optional<Application> result = applicationRepository.findById(id).map(applicationMapper::toTarget);
+        Optional<Application> result = applicationGraphLookupService.findByIdSafe(id).map(applicationMapper::toTarget);
         return result.map(app -> ResponseEntity.ok().header(MESSAGE_HEADER_STR, FOUND_MSG).body(app))
                      .orElseGet(() -> ResponseEntity.notFound().header(MESSAGE_HEADER_STR, NOT_FOUND_MSG).build());
     }
@@ -91,7 +94,7 @@ public class ApplicationServiceImpl implements ApplicationService {
             LOGGER.debug("update called with null or nameless application: id={}", id);
             return ResponseEntity.badRequest().header(MESSAGE_HEADER_STR, BAD_REQUEST_MSG).build();
         }
-        var existing = applicationRepository.findById(id);
+        var existing = applicationGraphLookupService.findByIdSafe(id);
         if (existing.isEmpty()) {
             LOGGER.debug("Application not found for update: id={}", id);
             return ResponseEntity.notFound().header(MESSAGE_HEADER_STR, NOT_FOUND_MSG).build();
@@ -119,14 +122,14 @@ public class ApplicationServiceImpl implements ApplicationService {
         }
         applicationRepository.deleteById(id);
         LOGGER.debug("Application deleted: id={}", id);
-        return ResponseEntity.ok().<Application>header(MESSAGE_HEADER_STR, DELETED_MSG).build();
+        return ResponseEntity.ok().header(MESSAGE_HEADER_STR, DELETED_MSG).build();
     }
 
     /** {@inheritDoc} */
     @Override
     public ResponseEntity<List<Application>> list(UUID... ids) {
         List<Application> result = new ArrayList<>();
-        applicationRepository.findAllById(List.of(ids)).forEach(entity -> result.add(applicationMapper.toTarget(entity)));
+        applicationGraphLookupService.findByIdsSafe(List.of(ids)).forEach(entity -> result.add(applicationMapper.toTarget(entity)));
         if (result.isEmpty()) {
             LOGGER.debug("No applications found for provided IDs");
             return ResponseEntity.notFound().header(MESSAGE_HEADER_STR, NO_DATA_MSG).build();
@@ -139,7 +142,7 @@ public class ApplicationServiceImpl implements ApplicationService {
     public ResponseEntity<List<Application>> listAll() {
         LOGGER.debug("Listing all applications");
         List<Application> applications = new ArrayList<>();
-        applicationRepository.findAll().forEach(entity -> applications.add(applicationMapper.toTarget(entity)));
+        applicationGraphLookupService.findAllSafe().forEach(entity -> applications.add(applicationMapper.toTarget(entity)));
         if (applications.isEmpty()) {
             LOGGER.debug("No applications found");
             return ResponseEntity.notFound().header(MESSAGE_HEADER_STR, NO_DATA_MSG).build();

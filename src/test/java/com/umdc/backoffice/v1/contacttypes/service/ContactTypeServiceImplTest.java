@@ -82,7 +82,7 @@ class ContactTypeServiceImplTest {
         var result = contactTypeServiceImpl.create(response);
         assertNotNull(result);
         assertEquals(HttpStatus.CREATED, result.getStatusCode());
-        verify(contactTypeRepository).save(Mockito.<ContactTypeEntity>any());
+        verify(contactTypeRepository).save(Mockito.any());
     }
 
     @Test
@@ -117,8 +117,8 @@ class ContactTypeServiceImplTest {
         var result = contactTypeServiceImpl.update(contactTypeUUID, getContactType());
         assertNotNull(result);
         assertEquals(HttpStatus.ACCEPTED, result.getStatusCode());
-        verify(contactTypeRepository).findById(Mockito.<UUID>any());
-        verify(contactTypeRepository).save(Mockito.<ContactTypeEntity>any());
+        verify(contactTypeRepository).findById(Mockito.any());
+        verify(contactTypeRepository).save(Mockito.any());
     }
 
     @Test
@@ -129,7 +129,7 @@ class ContactTypeServiceImplTest {
         var result = contactTypeServiceImpl.update(contactTypeUUID, getContactType());
         assertNotNull(result);
         assertEquals(HttpStatus.NOT_FOUND, result.getStatusCode());
-        verify(contactTypeRepository).findById(Mockito.<UUID>any());
+        verify(contactTypeRepository).findById(Mockito.any());
     }
 
     @Test
@@ -166,20 +166,20 @@ class ContactTypeServiceImplTest {
         contactTypeEntity.setName("Contact type description 001");
         contactTypeEntity.setDescription("Contact type description");
         contactTypeEntity.setActive(true);
-        when(contactTypeRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.of(contactTypeEntity));
-        when(contactTypeMapper.toTarget(Mockito.<ContactTypeEntity>any())).thenReturn(getContactType());
+        when(contactTypeRepository.findById(Mockito.any())).thenReturn(Optional.of(contactTypeEntity));
+        when(contactTypeMapper.toTarget(Mockito.any())).thenReturn(getContactType());
         var result = contactTypeServiceImpl.findById(uuidValue);
         assertNotNull(result);
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertEquals(uuidValue, contactType.getId());
-        verify(contactTypeRepository).findById(Mockito.<UUID>any());
-        verify(contactTypeMapper).toTarget(Mockito.<ContactTypeEntity>any());
+        verify(contactTypeRepository).findById(Mockito.any());
+        verify(contactTypeMapper).toTarget(Mockito.any());
     }
 
     @Test
     @DisplayName("Test finding a contact type by ID - Bad Request")
     void testFindById_bad_request() {
-        when(contactTypeRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.empty());
+        when(contactTypeRepository.findById(Mockito.any())).thenReturn(Optional.empty());
         var result = contactTypeServiceImpl.findById(null);
         assertNotNull(result);
         assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
@@ -188,7 +188,7 @@ class ContactTypeServiceImplTest {
     @Test
     @DisplayName("Test finding a contact type by ID - Not Found")
     void testFindById_not_found() {
-        when(contactTypeRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.empty());
+        when(contactTypeRepository.findById(Mockito.any())).thenReturn(Optional.empty());
         var result = contactTypeServiceImpl.findById(UUID.randomUUID());
         assertNotNull(result);
         assertEquals(HttpStatus.NOT_FOUND, result.getStatusCode());

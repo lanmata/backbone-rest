@@ -39,4 +39,20 @@ public interface SessionUserLookupService {
      * @return the matching user, if any
      */
     Optional<UserEntity> findByEmailAndApplication(String email, UUID applicationId);
+
+    /**
+     * @param userId the user ID
+     * @return the matching user, with {@code person}, {@code application} and
+     *         {@code applicationRoleUser}/{@code role}/{@code application} all eagerly loaded —
+     *         same graph as the alias/email lookups, used instead of
+     *         {@code UserRepository#findUserInfo} for the identical reason
+     */
+    Optional<UserEntity> findByIdWithGraph(UUID userId);
+
+    /**
+     * @param alias the user alias, not scoped to any application
+     * @return the matching user, with the same graph eagerly loaded as the other lookups in this
+     *         interface — used instead of {@code UserRepository#findByAlias}
+     */
+    Optional<UserEntity> findByAliasWithGraph(String alias);
 }

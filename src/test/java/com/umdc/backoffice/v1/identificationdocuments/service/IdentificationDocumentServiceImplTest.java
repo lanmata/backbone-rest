@@ -13,12 +13,14 @@
 package com.umdc.backoffice.v1.identificationdocuments.service;
 
 import com.umdc.backoffice.v1.identificationdocuments.api.to.IdentificationDocument;
+import com.umdc.backoffice.v1.people.service.PersonGraphLookupService;
 import com.umdc.backoffice.util.MessageUtil;
 import com.umdc.commons.constants.types.IdentificationType;
 import com.umdc.persistence.general.domains.IdentificationDocumentEntity;
 import com.umdc.persistence.general.domains.PersonEntity;
 import com.umdc.persistence.general.repositories.IdentificationDocumentRepository;
 import com.umdc.persistence.general.repositories.PersonRepository;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -44,7 +46,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
-/// Unit tests for {@link IdentificationDocumentServiceImpl}.
+/// Unit tests for [IdentificationDocumentServiceImpl].
 @ExtendWith(MockitoExtension.class)
 class IdentificationDocumentServiceImplTest {
 
@@ -59,12 +61,21 @@ class IdentificationDocumentServiceImplTest {
     @Mock
     private PersonRepository personRepository;
 
+    @Mock
+    private IdentificationDocumentGraphLookupService identificationDocumentGraphLookupService;
+
+    @Mock
+    private PersonGraphLookupService personGraphLookupService;
+
+    @Mock
+    private EntityManager entityManager;
+
     private IdentificationDocumentServiceImpl identificationDocumentService;
 
     @BeforeEach
     void setUp() {
-        identificationDocumentService =
-                new IdentificationDocumentServiceImpl(identificationDocumentRepository, personRepository);
+        identificationDocumentService = new IdentificationDocumentServiceImpl(identificationDocumentRepository,
+                personRepository, identificationDocumentGraphLookupService, personGraphLookupService, entityManager);
     }
 
     // ── create ────────────────────────────────────────────────────────────────
@@ -74,10 +85,8 @@ class IdentificationDocumentServiceImplTest {
     void create_returnsCreated_whenValid() {
         IdentificationDocument pojo = buildPojo();
         PersonEntity person = buildPersonEntity(PERSON_ID);
-        IdentificationDocumentEntity saved = buildEntity();
 
-        doReturn(Optional.of(person)).when(personRepository).findById(PERSON_ID);
-        doReturn(saved).when(identificationDocumentRepository).save(any(IdentificationDocumentEntity.class));
+        doReturn(Optional.of(person)).when(personGraphLookupService).findByIdSafe(PERSON_ID);
 
         ResponseEntity<IdentificationDocument> response = identificationDocumentService.create(pojo);
 
@@ -87,6 +96,7 @@ class IdentificationDocumentServiceImplTest {
         assertEquals(EXPIRATION_DATE, response.getBody().getExpirationDate());
         assertEquals(0, response.getBody().getIdentificationType());
         assertEquals(PERSON_ID, response.getBody().getPersonId());
+        verify(entityManager).persist(any(IdentificationDocumentEntity.class));
     }
 
     @Test
@@ -95,7 +105,8 @@ class IdentificationDocumentServiceImplTest {
         ResponseEntity<IdentificationDocument> response = identificationDocumentService.create(null);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        verifyNoInteractions(identificationDocumentRepository, personRepository);
+        verifyNoInteractions(identificationDocumentRepository, personRepository, identificationDocumentGraphLookupService,
+                personGraphLookupService);
     }
 
     @Test
@@ -107,7 +118,8 @@ class IdentificationDocumentServiceImplTest {
         ResponseEntity<IdentificationDocument> response = identificationDocumentService.create(pojo);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        verifyNoInteractions(identificationDocumentRepository, personRepository);
+        verifyNoInteractions(identificationDocumentRepository, personRepository, identificationDocumentGraphLookupService,
+                personGraphLookupService);
     }
 
     @Test
@@ -119,7 +131,8 @@ class IdentificationDocumentServiceImplTest {
         ResponseEntity<IdentificationDocument> response = identificationDocumentService.create(pojo);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        verifyNoInteractions(identificationDocumentRepository, personRepository);
+        verifyNoInteractions(identificationDocumentRepository, personRepository, identificationDocumentGraphLookupService,
+                personGraphLookupService);
     }
 
     @Test
@@ -131,7 +144,8 @@ class IdentificationDocumentServiceImplTest {
         ResponseEntity<IdentificationDocument> response = identificationDocumentService.create(pojo);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        verifyNoInteractions(identificationDocumentRepository, personRepository);
+        verifyNoInteractions(identificationDocumentRepository, personRepository, identificationDocumentGraphLookupService,
+                personGraphLookupService);
     }
 
     @Test
@@ -143,7 +157,8 @@ class IdentificationDocumentServiceImplTest {
         ResponseEntity<IdentificationDocument> response = identificationDocumentService.create(pojo);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        verifyNoInteractions(identificationDocumentRepository, personRepository);
+        verifyNoInteractions(identificationDocumentRepository, personRepository, identificationDocumentGraphLookupService,
+                personGraphLookupService);
     }
 
     @Test
@@ -155,7 +170,8 @@ class IdentificationDocumentServiceImplTest {
         ResponseEntity<IdentificationDocument> response = identificationDocumentService.create(pojo);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        verifyNoInteractions(identificationDocumentRepository, personRepository);
+        verifyNoInteractions(identificationDocumentRepository, personRepository, identificationDocumentGraphLookupService,
+                personGraphLookupService);
     }
 
     @Test
@@ -163,7 +179,7 @@ class IdentificationDocumentServiceImplTest {
     void create_returnsBadRequest_whenPersonNotFound() {
         IdentificationDocument pojo = buildPojo();
 
-        doReturn(Optional.empty()).when(personRepository).findById(PERSON_ID);
+        doReturn(Optional.empty()).when(personGraphLookupService).findByIdSafe(PERSON_ID);
 
         ResponseEntity<IdentificationDocument> response = identificationDocumentService.create(pojo);
 
@@ -180,7 +196,8 @@ class IdentificationDocumentServiceImplTest {
         ResponseEntity<IdentificationDocument> response = identificationDocumentService.create(pojo);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        verifyNoInteractions(identificationDocumentRepository, personRepository);
+        verifyNoInteractions(identificationDocumentRepository, personRepository, identificationDocumentGraphLookupService,
+                personGraphLookupService);
     }
 
     @Test
@@ -189,15 +206,14 @@ class IdentificationDocumentServiceImplTest {
         IdentificationDocument pojo = buildPojo();
         pojo.setNumber(" 0042 ");
         PersonEntity person = buildPersonEntity(PERSON_ID);
-        IdentificationDocumentEntity saved = buildEntity();
         ArgumentCaptor<IdentificationDocumentEntity> captor = ArgumentCaptor.forClass(IdentificationDocumentEntity.class);
 
-        doReturn(Optional.of(person)).when(personRepository).findById(PERSON_ID);
-        doReturn(saved).when(identificationDocumentRepository).save(captor.capture());
+        doReturn(Optional.of(person)).when(personGraphLookupService).findByIdSafe(PERSON_ID);
 
         ResponseEntity<IdentificationDocument> response = identificationDocumentService.create(pojo);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        verify(entityManager).persist(captor.capture());
         assertEquals("42", captor.getValue().getNumber());
     }
 
@@ -208,7 +224,7 @@ class IdentificationDocumentServiceImplTest {
     void find_returnsOk_whenFound() {
         IdentificationDocumentEntity entity = buildEntity();
 
-        doReturn(Optional.of(entity)).when(identificationDocumentRepository).findById(DOCUMENT_ID);
+        doReturn(Optional.of(entity)).when(identificationDocumentGraphLookupService).findByIdWithGraph(DOCUMENT_ID);
 
         ResponseEntity<IdentificationDocument> response = identificationDocumentService.find(DOCUMENT_ID);
 
@@ -220,7 +236,7 @@ class IdentificationDocumentServiceImplTest {
     @Test
     @DisplayName("find: returns 404 when the identification document is absent")
     void find_returnsNotFound_whenAbsent() {
-        doReturn(Optional.empty()).when(identificationDocumentRepository).findById(DOCUMENT_ID);
+        doReturn(Optional.empty()).when(identificationDocumentGraphLookupService).findByIdWithGraph(DOCUMENT_ID);
 
         ResponseEntity<IdentificationDocument> response = identificationDocumentService.find(DOCUMENT_ID);
 
@@ -233,7 +249,7 @@ class IdentificationDocumentServiceImplTest {
         ResponseEntity<IdentificationDocument> response = identificationDocumentService.find(null);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        verifyNoInteractions(identificationDocumentRepository);
+        verifyNoInteractions(identificationDocumentRepository, identificationDocumentGraphLookupService);
     }
 
     // ── update ────────────────────────────────────────────────────────────────
@@ -245,14 +261,14 @@ class IdentificationDocumentServiceImplTest {
         IdentificationDocumentEntity existing = buildEntity();
         IdentificationDocumentEntity saved = buildEntity();
 
-        doReturn(Optional.of(existing)).when(identificationDocumentRepository).findById(DOCUMENT_ID);
+        doReturn(Optional.of(existing)).when(identificationDocumentGraphLookupService).findByIdWithGraph(DOCUMENT_ID);
         doReturn(saved).when(identificationDocumentRepository).save(existing);
 
         ResponseEntity<IdentificationDocument> response = identificationDocumentService.update(DOCUMENT_ID, pojo);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        verifyNoInteractions(personRepository);
+        verifyNoInteractions(personRepository, personGraphLookupService);
     }
 
     @Test
@@ -260,7 +276,7 @@ class IdentificationDocumentServiceImplTest {
     void update_returnsNotFound_whenAbsent() {
         IdentificationDocument pojo = buildPojo();
 
-        doReturn(Optional.empty()).when(identificationDocumentRepository).findById(DOCUMENT_ID);
+        doReturn(Optional.empty()).when(identificationDocumentGraphLookupService).findByIdWithGraph(DOCUMENT_ID);
 
         ResponseEntity<IdentificationDocument> response = identificationDocumentService.update(DOCUMENT_ID, pojo);
 
@@ -273,7 +289,8 @@ class IdentificationDocumentServiceImplTest {
         ResponseEntity<IdentificationDocument> response = identificationDocumentService.update(null, buildPojo());
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        verifyNoInteractions(identificationDocumentRepository, personRepository);
+        verifyNoInteractions(identificationDocumentRepository, personRepository, identificationDocumentGraphLookupService,
+                personGraphLookupService);
     }
 
     @Test
@@ -283,7 +300,8 @@ class IdentificationDocumentServiceImplTest {
                 identificationDocumentService.update(DOCUMENT_ID, null);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        verifyNoInteractions(identificationDocumentRepository, personRepository);
+        verifyNoInteractions(identificationDocumentRepository, personRepository, identificationDocumentGraphLookupService,
+                personGraphLookupService);
     }
 
     @Test
@@ -293,7 +311,7 @@ class IdentificationDocumentServiceImplTest {
         pojo.setNumber("not-a-number");
         IdentificationDocumentEntity existing = buildEntity();
 
-        doReturn(Optional.of(existing)).when(identificationDocumentRepository).findById(DOCUMENT_ID);
+        doReturn(Optional.of(existing)).when(identificationDocumentGraphLookupService).findByIdWithGraph(DOCUMENT_ID);
 
         ResponseEntity<IdentificationDocument> response = identificationDocumentService.update(DOCUMENT_ID, pojo);
 
@@ -308,7 +326,7 @@ class IdentificationDocumentServiceImplTest {
         pojo.setIdentificationType(2);
         IdentificationDocumentEntity existing = buildEntity();
 
-        doReturn(Optional.of(existing)).when(identificationDocumentRepository).findById(DOCUMENT_ID);
+        doReturn(Optional.of(existing)).when(identificationDocumentGraphLookupService).findByIdWithGraph(DOCUMENT_ID);
 
         ResponseEntity<IdentificationDocument> response = identificationDocumentService.update(DOCUMENT_ID, pojo);
 
@@ -323,13 +341,13 @@ class IdentificationDocumentServiceImplTest {
         pojo.setExpirationDate(null);
         IdentificationDocumentEntity existing = buildEntity();
 
-        doReturn(Optional.of(existing)).when(identificationDocumentRepository).findById(DOCUMENT_ID);
+        doReturn(Optional.of(existing)).when(identificationDocumentGraphLookupService).findByIdWithGraph(DOCUMENT_ID);
 
         ResponseEntity<IdentificationDocument> response = identificationDocumentService.update(DOCUMENT_ID, pojo);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         verify(identificationDocumentRepository, never()).save(any());
-        verifyNoInteractions(personRepository);
+        verifyNoInteractions(personRepository, personGraphLookupService);
     }
 
     @Test
@@ -340,8 +358,8 @@ class IdentificationDocumentServiceImplTest {
         pojo.setPersonId(newPersonId);
         IdentificationDocumentEntity existing = buildEntity();
 
-        doReturn(Optional.of(existing)).when(identificationDocumentRepository).findById(DOCUMENT_ID);
-        doReturn(Optional.empty()).when(personRepository).findById(newPersonId);
+        doReturn(Optional.of(existing)).when(identificationDocumentGraphLookupService).findByIdWithGraph(DOCUMENT_ID);
+        doReturn(Optional.empty()).when(personGraphLookupService).findByIdSafe(newPersonId);
 
         ResponseEntity<IdentificationDocument> response = identificationDocumentService.update(DOCUMENT_ID, pojo);
 
@@ -358,8 +376,8 @@ class IdentificationDocumentServiceImplTest {
         IdentificationDocumentEntity existing = buildEntity();
         PersonEntity newPerson = buildPersonEntity(newPersonId);
 
-        doReturn(Optional.of(existing)).when(identificationDocumentRepository).findById(DOCUMENT_ID);
-        doReturn(Optional.of(newPerson)).when(personRepository).findById(newPersonId);
+        doReturn(Optional.of(existing)).when(identificationDocumentGraphLookupService).findByIdWithGraph(DOCUMENT_ID);
+        doReturn(Optional.of(newPerson)).when(personGraphLookupService).findByIdSafe(newPersonId);
         doReturn(existing).when(identificationDocumentRepository).save(existing);
 
         ResponseEntity<IdentificationDocument> response = identificationDocumentService.update(DOCUMENT_ID, pojo);
@@ -376,7 +394,7 @@ class IdentificationDocumentServiceImplTest {
         pojo.setPersonId(null);
         IdentificationDocumentEntity existing = buildEntity();
 
-        doReturn(Optional.of(existing)).when(identificationDocumentRepository).findById(DOCUMENT_ID);
+        doReturn(Optional.of(existing)).when(identificationDocumentGraphLookupService).findByIdWithGraph(DOCUMENT_ID);
         doReturn(existing).when(identificationDocumentRepository).save(existing);
 
         ResponseEntity<IdentificationDocument> response = identificationDocumentService.update(DOCUMENT_ID, pojo);
@@ -384,7 +402,7 @@ class IdentificationDocumentServiceImplTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(PERSON_ID, response.getBody().getPersonId());
-        verifyNoInteractions(personRepository);
+        verifyNoInteractions(personRepository, personGraphLookupService);
     }
 
     // ── delete ────────────────────────────────────────────────────────────────
@@ -394,7 +412,7 @@ class IdentificationDocumentServiceImplTest {
     void delete_returnsOk_whenFound() {
         IdentificationDocumentEntity existing = buildEntity();
 
-        doReturn(Optional.of(existing)).when(identificationDocumentRepository).findById(DOCUMENT_ID);
+        doReturn(Optional.of(existing)).when(identificationDocumentGraphLookupService).findByIdWithGraph(DOCUMENT_ID);
 
         ResponseEntity<IdentificationDocument> response =
                 identificationDocumentService.delete(DOCUMENT_ID, null);
@@ -408,7 +426,7 @@ class IdentificationDocumentServiceImplTest {
     @Test
     @DisplayName("delete: returns 404 when the identification document is absent")
     void delete_returnsNotFound_whenAbsent() {
-        doReturn(Optional.empty()).when(identificationDocumentRepository).findById(DOCUMENT_ID);
+        doReturn(Optional.empty()).when(identificationDocumentGraphLookupService).findByIdWithGraph(DOCUMENT_ID);
 
         ResponseEntity<IdentificationDocument> response =
                 identificationDocumentService.delete(DOCUMENT_ID, null);
@@ -425,7 +443,7 @@ class IdentificationDocumentServiceImplTest {
         IdentificationDocumentEntity entity = buildEntity();
 
         doReturn(true).when(personRepository).existsById(PERSON_ID);
-        doReturn(List.of(entity)).when(identificationDocumentRepository).findByPersonId(PERSON_ID);
+        doReturn(List.of(entity)).when(identificationDocumentGraphLookupService).findByPersonIdWithGraph(PERSON_ID);
 
         ResponseEntity<List<IdentificationDocument>> response = identificationDocumentService.listByPerson(PERSON_ID);
 
@@ -443,14 +461,14 @@ class IdentificationDocumentServiceImplTest {
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertEquals("Person not found.", response.getHeaders().getFirst(MessageUtil.MESSAGE_HEADER_STR));
-        verify(identificationDocumentRepository, never()).findByPersonId(any());
+        verify(identificationDocumentGraphLookupService, never()).findByPersonIdWithGraph(any());
     }
 
     @Test
     @DisplayName("listByPerson: returns 404 with a distinct no-documents message when the person exists but has none")
     void listByPerson_returnsNotFound_whenPersonHasNoDocuments() {
         doReturn(true).when(personRepository).existsById(PERSON_ID);
-        doReturn(List.of()).when(identificationDocumentRepository).findByPersonId(PERSON_ID);
+        doReturn(List.of()).when(identificationDocumentGraphLookupService).findByPersonIdWithGraph(PERSON_ID);
 
         ResponseEntity<List<IdentificationDocument>> response = identificationDocumentService.listByPerson(PERSON_ID);
 
@@ -465,7 +483,8 @@ class IdentificationDocumentServiceImplTest {
         ResponseEntity<List<IdentificationDocument>> response = identificationDocumentService.listByPerson(null);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        verifyNoInteractions(identificationDocumentRepository, personRepository);
+        verifyNoInteractions(identificationDocumentRepository, personRepository, identificationDocumentGraphLookupService,
+                personGraphLookupService);
     }
 
     // ── conversion helpers observable behavior ───────────────────────────────
@@ -476,7 +495,7 @@ class IdentificationDocumentServiceImplTest {
         IdentificationDocumentEntity entity = buildEntity();
         entity.setExpirationDate(EXPIRATION_DATE);
 
-        doReturn(Optional.of(entity)).when(identificationDocumentRepository).findById(DOCUMENT_ID);
+        doReturn(Optional.of(entity)).when(identificationDocumentGraphLookupService).findByIdWithGraph(DOCUMENT_ID);
 
         ResponseEntity<IdentificationDocument> response = identificationDocumentService.find(DOCUMENT_ID);
 
@@ -491,7 +510,7 @@ class IdentificationDocumentServiceImplTest {
         IdentificationDocumentEntity entity = buildEntity();
         entity.setPerson(null);
 
-        doReturn(Optional.of(entity)).when(identificationDocumentRepository).findById(DOCUMENT_ID);
+        doReturn(Optional.of(entity)).when(identificationDocumentGraphLookupService).findByIdWithGraph(DOCUMENT_ID);
 
         ResponseEntity<IdentificationDocument> response = identificationDocumentService.find(DOCUMENT_ID);
 

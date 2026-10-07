@@ -14,6 +14,7 @@
 package com.umdc.backoffice.v1.features.service;
 
 import com.umdc.backoffice.v1.features.mapper.FeatureMapper;
+import com.umdc.backoffice.v1.roles.service.RoleGraphLookupService;
 import com.umdc.backoffice.v1.rolefeatures.service.RoleFeatureLinkService;
 import com.umdc.commons.general.pojo.Feature;
 import com.umdc.persistence.general.domains.FeatureEntity;
@@ -55,6 +56,12 @@ class FeatureServiceImplTest {
     @Mock
     private RoleFeatureLinkService roleFeatureLinkService;
 
+    @Mock
+    private FeatureGraphLookupService featureGraphLookupService;
+
+    @Mock
+    private RoleGraphLookupService roleGraphLookupService;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
@@ -69,7 +76,7 @@ class FeatureServiceImplTest {
         feature.setName("Test Feature");
         featureEntity.setName("Test Feature");
 
-        when(featureRepository.findByName(feature.getName())).thenReturn(Optional.of(featureEntity));
+        when(featureGraphLookupService.findByNameWithGraph(feature.getName())).thenReturn(Optional.of(featureEntity));
 
         ResponseEntity<Feature> response = featureServiceImpl.create(feature);
 
@@ -89,7 +96,7 @@ class FeatureServiceImplTest {
         featureEntity.setName("Name");
         featureEntity.setRolFeatures(new HashSet<>());
         Optional<FeatureEntity> ofResult = Optional.of(featureEntity);
-        when(featureRepository.findByName(Mockito.<String>any())).thenReturn(ofResult);
+        when(featureGraphLookupService.findByNameWithGraph(Mockito.any())).thenReturn(ofResult);
 
         Feature feature = new Feature();
         feature.setActive(true);
@@ -99,7 +106,7 @@ class FeatureServiceImplTest {
         assertNull(actualCreateResult.getBody());
         assertEquals(HttpStatus.NOT_ACCEPTABLE, actualCreateResult.getStatusCode());
         assertTrue(actualCreateResult.getHeaders().isEmpty());
-        verify(featureRepository).findByName(Mockito.<String>any());
+        verify(featureGraphLookupService).findByNameWithGraph(Mockito.any());
     }
 
     /**
@@ -115,8 +122,8 @@ class FeatureServiceImplTest {
         featureEntity.setId(featureId);
         featureEntity.setName("Name");
         featureEntity.setRolFeatures(new HashSet<>());
-        when(featureRepository.save(Mockito.<FeatureEntity>any())).thenReturn(featureEntity);
-        when(featureRepository.findByName(Mockito.<String>any())).thenReturn(Optional.empty());
+        when(featureRepository.save(Mockito.any())).thenReturn(featureEntity);
+        when(featureGraphLookupService.findByNameWithGraph(Mockito.any())).thenReturn(Optional.empty());
 
         Feature feature = new Feature();
         feature.setActive(true);
@@ -129,8 +136,8 @@ class FeatureServiceImplTest {
         featureEntity2.setId(UUID.randomUUID());
         featureEntity2.setName("Name");
         featureEntity2.setRolFeatures(new HashSet<>());
-        when(featureMapper.toTarget(Mockito.<FeatureEntity>any())).thenReturn(feature);
-        when(featureMapper.toSource(Mockito.<Feature>any())).thenReturn(featureEntity2);
+        when(featureMapper.toTarget(Mockito.any())).thenReturn(feature);
+        when(featureMapper.toSource(Mockito.any())).thenReturn(featureEntity2);
 
         Feature feature2 = new Feature();
         feature2.setActive(true);
@@ -140,10 +147,10 @@ class FeatureServiceImplTest {
         assertTrue(actualCreateResult.hasBody());
         assertTrue(actualCreateResult.getHeaders().isEmpty());
         assertEquals(HttpStatus.CREATED, actualCreateResult.getStatusCode());
-        verify(featureRepository).save(Mockito.<FeatureEntity>any());
-        verify(featureRepository).findByName(Mockito.<String>any());
-        verify(featureMapper).toTarget(Mockito.<FeatureEntity>any());
-        verify(featureMapper).toSource(Mockito.<Feature>any());
+        verify(featureRepository).save(Mockito.any());
+        verify(featureGraphLookupService).findByNameWithGraph(Mockito.any());
+        verify(featureMapper).toTarget(Mockito.any());
+        verify(featureMapper).toSource(Mockito.any());
     }
 
     /**
@@ -157,8 +164,8 @@ class FeatureServiceImplTest {
         featureEntity.setDescription("The characteristics of someone or something");
         featureEntity.setName("Name");
         featureEntity.setRolFeatures(new HashSet<>());
-        when(featureRepository.save(Mockito.<FeatureEntity>any())).thenReturn(featureEntity);
-        when(featureRepository.findByName(Mockito.<String>any())).thenReturn(Optional.empty());
+        when(featureRepository.save(Mockito.any())).thenReturn(featureEntity);
+        when(featureGraphLookupService.findByNameWithGraph(Mockito.any())).thenReturn(Optional.empty());
 
         Feature feature = new Feature();
         feature.setActive(true);
@@ -170,14 +177,14 @@ class FeatureServiceImplTest {
         featureEntity2.setDescription("The characteristics of someone or something");
         featureEntity2.setName("Name");
         featureEntity2.setRolFeatures(new HashSet<>());
-        when(featureMapper.toTarget(Mockito.<FeatureEntity>any())).thenReturn(feature);
-        when(featureMapper.toSource(Mockito.<Feature>any())).thenReturn(featureEntity2);
+        when(featureMapper.toTarget(Mockito.any())).thenReturn(feature);
+        when(featureMapper.toSource(Mockito.any())).thenReturn(featureEntity2);
         Feature feature2 = mock(Feature.class);
         when(feature2.getName()).thenReturn("Name");
-        doNothing().when(feature2).setActive(Mockito.<Boolean>any());
-        doNothing().when(feature2).setDescription(Mockito.<String>any());
-        doNothing().when(feature2).setId(Mockito.<UUID>any());
-        doNothing().when(feature2).setName(Mockito.<String>any());
+        doNothing().when(feature2).setActive(Mockito.any());
+        doNothing().when(feature2).setDescription(Mockito.any());
+        doNothing().when(feature2).setId(Mockito.any());
+        doNothing().when(feature2).setName(Mockito.any());
         feature2.setActive(true);
         feature2.setDescription("The characteristics of someone or something");
         feature2.setName("Name");
@@ -185,14 +192,14 @@ class FeatureServiceImplTest {
         assertTrue(actualCreateResult.hasBody());
         assertTrue(actualCreateResult.getHeaders().isEmpty());
         assertEquals(HttpStatus.CREATED, actualCreateResult.getStatusCode());
-        verify(featureRepository).save(Mockito.<FeatureEntity>any());
-        verify(featureRepository).findByName(Mockito.<String>any());
-        verify(featureMapper).toTarget(Mockito.<FeatureEntity>any());
-        verify(featureMapper).toSource(Mockito.<Feature>any());
+        verify(featureRepository).save(Mockito.any());
+        verify(featureGraphLookupService).findByNameWithGraph(Mockito.any());
+        verify(featureMapper).toTarget(Mockito.any());
+        verify(featureMapper).toSource(Mockito.any());
         verify(feature2).getName();
-        verify(feature2).setActive(Mockito.<Boolean>any());
-        verify(feature2).setDescription(Mockito.<String>any());
-        verify(feature2).setName(Mockito.<String>any());
+        verify(feature2).setActive(Mockito.any());
+        verify(feature2).setDescription(Mockito.any());
+        verify(feature2).setName(Mockito.any());
     }
 
     @Test
@@ -204,7 +211,7 @@ class FeatureServiceImplTest {
 
         feature.setName("Test Feature");
         featureEntity.setName("Test Feature");
-        when(featureRepository.findById(featureId)).thenReturn(Optional.empty());
+        when(featureGraphLookupService.findByIdWithGraph(featureId)).thenReturn(Optional.empty());
 
         ResponseEntity<Feature> response = featureServiceImpl.update(featureId, feature);
 
@@ -224,7 +231,7 @@ class FeatureServiceImplTest {
         featureEntity.setId(UUID.randomUUID());
         featureEntity.setName("Name");
         featureEntity.setRolFeatures(new HashSet<>());
-        when(featureRepository.save(Mockito.<FeatureEntity>any())).thenReturn(featureEntity);
+        when(featureRepository.save(Mockito.any())).thenReturn(featureEntity);
 
         Feature feature = new Feature();
         feature.setActive(true);
@@ -238,15 +245,15 @@ class FeatureServiceImplTest {
         featureEntity2.setId(UUID.randomUUID());
         featureEntity2.setName("Name");
         featureEntity2.setRolFeatures(new HashSet<>());
-        when(featureMapper.toTarget(Mockito.<FeatureEntity>any())).thenReturn(feature);
-        when(featureMapper.toSource(Mockito.<Feature>any())).thenReturn(featureEntity2);
-        when(featureRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.of(featureEntity2));
+        when(featureMapper.toTarget(Mockito.any())).thenReturn(feature);
+        when(featureMapper.toSource(Mockito.any())).thenReturn(featureEntity2);
+        when(featureGraphLookupService.findByIdWithGraph(Mockito.any())).thenReturn(Optional.of(featureEntity2));
 
         Feature feature2 = mock(Feature.class);
-        doNothing().when(feature2).setActive(Mockito.<Boolean>any());
-        doNothing().when(feature2).setDescription(Mockito.<String>any());
-        doNothing().when(feature2).setId(Mockito.<UUID>any());
-        doNothing().when(feature2).setName(Mockito.<String>any());
+        doNothing().when(feature2).setActive(Mockito.any());
+        doNothing().when(feature2).setDescription(Mockito.any());
+        doNothing().when(feature2).setId(Mockito.any());
+        doNothing().when(feature2).setName(Mockito.any());
         feature2.setActive(true);
         feature2.setDescription("The characteristics of someone or something");
         feature2.setId(featureId);
@@ -255,13 +262,13 @@ class FeatureServiceImplTest {
         assertTrue(actualUpdateResult.hasBody());
         assertTrue(actualUpdateResult.getHeaders().isEmpty());
         assertEquals(HttpStatus.ACCEPTED, actualUpdateResult.getStatusCode());
-        verify(featureRepository).save(Mockito.<FeatureEntity>any());
-        verify(featureMapper).toTarget(Mockito.<FeatureEntity>any());
-        verify(featureMapper).toSource(Mockito.<Feature>any());
-        verify(feature2).setActive(Mockito.<Boolean>any());
-        verify(feature2).setDescription(Mockito.<String>any());
-        verify(feature2, atLeast(1)).setId(Mockito.<UUID>any());
-        verify(feature2).setName(Mockito.<String>any());
+        verify(featureRepository).save(Mockito.any());
+        verify(featureMapper).toTarget(Mockito.any());
+        verify(featureMapper).toSource(Mockito.any());
+        verify(feature2).setActive(Mockito.any());
+        verify(feature2).setDescription(Mockito.any());
+        verify(feature2, atLeast(1)).setId(Mockito.any());
+        verify(feature2).setName(Mockito.any());
     }
 
     /**
@@ -277,7 +284,7 @@ class FeatureServiceImplTest {
         feature.setId(featureId);
         feature.setName("Name");
         var result = featureServiceImpl.update(featureId, feature);
-        verify(featureRepository).findById(Mockito.<UUID>any());
+        verify(featureGraphLookupService).findByIdWithGraph(Mockito.any());
         assertTrue(result.hasBody());
         assertTrue(result.getHeaders().isEmpty());
     }
@@ -290,16 +297,16 @@ class FeatureServiceImplTest {
     void testUpdate5() {
         final var featureId = UUID.fromString("fda40349-6850-46de-94fc-3ad07608b043");
         Feature feature = mock(Feature.class);
-        doNothing().when(feature).setActive(Mockito.<Boolean>any());
-        doNothing().when(feature).setDescription(Mockito.<String>any());
-        doNothing().when(feature).setId(Mockito.<UUID>any());
-        doNothing().when(feature).setName(Mockito.<String>any());
+        doNothing().when(feature).setActive(Mockito.any());
+        doNothing().when(feature).setDescription(Mockito.any());
+        doNothing().when(feature).setId(Mockito.any());
+        doNothing().when(feature).setName(Mockito.any());
         feature.setActive(true);
         feature.setDescription("The characteristics of someone or something");
         feature.setId(featureId);
         feature.setName("Name");
         var result = featureServiceImpl.update(featureId, feature);
-        verify(featureRepository).findById(Mockito.<UUID>any());
+        verify(featureGraphLookupService).findByIdWithGraph(Mockito.any());
         assertTrue(result.hasBody());
         assertTrue(result.getHeaders().isEmpty());
     }
@@ -311,18 +318,18 @@ class FeatureServiceImplTest {
     @DisplayName("Test listing features - Empty list")
     void testList() {
         List<FeatureEntity> iterable = new ArrayList<>();
-        when(featureRepository.findAll()).thenReturn(iterable);
+        when(featureGraphLookupService.findAllWithGraph()).thenReturn(iterable);
         ResponseEntity<List<Feature>> actualListResult = featureServiceImpl.list(new ArrayList<>(), true);
         assertNull(actualListResult.getBody());
         assertEquals(HttpStatus.NOT_FOUND, actualListResult.getStatusCode());
         assertTrue(actualListResult.getHeaders().isEmpty());
-        verify(featureRepository).findAll();
+        verify(featureGraphLookupService).findAllWithGraph();
     }
 
     @Test
     @DisplayName("List features with null featureIds and empty result")
     void listFeaturesWithNullFeatureIdsAndEmptyResult() {
-        when(featureRepository.findAll()).thenReturn(Collections.emptyList());
+        when(featureGraphLookupService.findAllWithGraph()).thenReturn(Collections.emptyList());
 
         ResponseEntity<List<Feature>> response = featureServiceImpl.list(null, true);
 
@@ -333,7 +340,7 @@ class FeatureServiceImplTest {
     @DisplayName("List features with non-empty featureIds and empty result")
     void listFeaturesWithNonEmptyFeatureIdsAndEmptyResult() {
         List<String> featureIds = List.of(UUID.randomUUID().toString());
-        when(featureRepository.findByIdAndStatus(anyList(), eq(true))).thenReturn(Optional.empty());
+        when(featureGraphLookupService.findByIdsAndStatusWithGraph(anyList(), eq(true))).thenReturn(List.of());
 
         ResponseEntity<List<Feature>> response = featureServiceImpl.list(featureIds, true);
 
@@ -350,10 +357,10 @@ class FeatureServiceImplTest {
         final var featuresString = featureEntities.stream().map(featureEntity -> featureEntity.getId().toString()).toList();
         final var featureList = getFeatureList(featureEntities);
 
-        when(featureRepository.findByIdAndStatus(Mockito.any(), Mockito.anyBoolean())).thenReturn(Optional.of(featureEntities));
+        when(featureGraphLookupService.findByIdsAndStatusWithGraph(Mockito.any(), Mockito.anyBoolean())).thenReturn(featureEntities);
         when(featureMapper.toTarget(Mockito.any())).thenReturn(featureList.get(0));
-        when(featureRepository.findAllById(Mockito.<Iterable<UUID>>any())).thenReturn(featureEntities);
-        when(featureMapper.toSourceList(Mockito.<List<Feature>>any())).thenReturn(featureEntities);
+        when(featureRepository.findAllById(Mockito.any())).thenReturn(featureEntities);
+        when(featureMapper.toSourceList(Mockito.any())).thenReturn(featureEntities);
         var result = featureServiceImpl.list(featuresString, true);
         assertNotNull(result);
     }
@@ -376,9 +383,9 @@ class FeatureServiceImplTest {
         featureEntity.setId(UUID.randomUUID());
         featureEntity.setName("Name");
         featureEntity.setRolFeatures(new HashSet<>());
-        when(featureRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.of(featureEntity));
-        when(featureMapper.toTarget(Mockito.<FeatureEntity>any())).thenReturn(feature);
-        when(featureMapper.toSource(Mockito.<Feature>any())).thenReturn(featureEntity);
+        when(featureGraphLookupService.findByIdWithGraph(Mockito.any())).thenReturn(Optional.of(featureEntity));
+        when(featureMapper.toTarget(Mockito.any())).thenReturn(feature);
+        when(featureMapper.toSource(Mockito.any())).thenReturn(featureEntity);
 
         ResponseEntity<Feature> response = featureServiceImpl.find(featureId);
         assertTrue(response.hasBody());
@@ -393,7 +400,7 @@ class FeatureServiceImplTest {
     @DisplayName("Test finding a feature - Feature not found")
     void testFind_not_found() {
         final var featureId = UUID.randomUUID();
-        when(featureRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.empty());
+        when(featureGraphLookupService.findByIdWithGraph(Mockito.any())).thenReturn(Optional.empty());
 
         ResponseEntity<Feature> response = featureServiceImpl.find(featureId);
         assertFalse(response.hasBody());
@@ -411,8 +418,8 @@ class FeatureServiceImplTest {
         final var featureEntities = getFeatureEntities(UUID.randomUUID(), UUID.randomUUID());
         final var featureList = getFeatureList(featureEntities);
 
-        when(featureRepository.findByRoleId(roleId)).thenReturn(Optional.of(featureEntities));
-        when(featureMapper.toTarget(Mockito.<FeatureEntity>any()))
+        when(featureGraphLookupService.findByRoleIdWithGraph(roleId)).thenReturn(featureEntities);
+        when(featureMapper.toTarget(Mockito.any()))
                 .thenReturn(featureList.get(0), featureList.get(1));
 
         ResponseEntity<List<Feature>> response = featureServiceImpl.listByRole(roleId);
@@ -420,7 +427,7 @@ class FeatureServiceImplTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertTrue(Objects.nonNull(response.getBody()));
         assertEquals(2, response.getBody().size());
-        verify(featureRepository).findByRoleId(roleId);
+        verify(featureGraphLookupService).findByRoleIdWithGraph(roleId);
     }
 
     /**
@@ -430,7 +437,7 @@ class FeatureServiceImplTest {
     @DisplayName("Test listing features by role id not found")
     void testListByRole_not_found() {
         final var roleId = UUID.randomUUID();
-        when(featureRepository.findByRoleId(roleId)).thenReturn(Optional.empty());
+        when(featureGraphLookupService.findByRoleIdWithGraph(roleId)).thenReturn(List.of());
 
         ResponseEntity<List<Feature>> response = featureServiceImpl.listByRole(roleId);
 
@@ -465,11 +472,11 @@ class FeatureServiceImplTest {
         var roleEntity = new RoleEntity();
         roleEntity.setId(roleId);
 
-        when(featureRepository.findByName("Name")).thenReturn(Optional.empty());
+        when(featureGraphLookupService.findByNameWithGraph("Name")).thenReturn(Optional.empty());
         when(featureMapper.toSource(feature)).thenReturn(featureEntity);
         when(featureRepository.save(featureEntity)).thenReturn(featureEntity);
         when(featureMapper.toTarget(featureEntity)).thenReturn(feature);
-        when(roleRepository.findById(roleId)).thenReturn(Optional.of(roleEntity));
+        when(roleGraphLookupService.findByIdWithGraph(roleId)).thenReturn(Optional.of(roleEntity));
 
         ResponseEntity<Feature> response = featureServiceImpl.create(feature);
 
@@ -488,8 +495,8 @@ class FeatureServiceImplTest {
         feature.setName("Name");
         feature.setRoleIds(List.of(roleId));
 
-        when(featureRepository.findByName("Name")).thenReturn(Optional.empty());
-        when(roleRepository.findById(roleId)).thenReturn(Optional.empty());
+        when(featureGraphLookupService.findByNameWithGraph("Name")).thenReturn(Optional.empty());
+        when(roleGraphLookupService.findByIdWithGraph(roleId)).thenReturn(Optional.empty());
 
         ResponseEntity<Feature> response = featureServiceImpl.create(feature);
 

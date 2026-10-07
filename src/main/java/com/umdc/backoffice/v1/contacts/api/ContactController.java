@@ -13,6 +13,7 @@
 
 package com.umdc.backoffice.v1.contacts.api;
 
+import com.umdc.backoffice.v1.contacts.api.to.ContactCreateRequest;
 import com.umdc.backoffice.v1.contacts.service.ContactService;
 import com.umdc.commons.general.pojo.Contact;
 import org.springframework.http.HttpStatus;
@@ -41,13 +42,13 @@ public class ContactController implements ContactApi {
     }
 
     @Override
-    public ResponseEntity<Contact> create(final Contact contact) {
-        return contactService.create(contact);
+    public ResponseEntity<Contact> create(final ContactCreateRequest request) {
+        return contactService.create(request);
     }
 
     @Override
-    public ResponseEntity<Contact> update(final UUID contactId, Contact contact) {
-        return contactService.update(contactId, contact);
+    public ResponseEntity<Contact> update(final UUID contactId, ContactCreateRequest request) {
+        return contactService.update(contactId, request);
     }
 
     @Override

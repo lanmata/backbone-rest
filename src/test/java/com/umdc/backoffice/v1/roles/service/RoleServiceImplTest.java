@@ -12,7 +12,9 @@
  */
 package com.umdc.backoffice.v1.roles.service;
 
+import com.umdc.backoffice.v1.application.service.ApplicationGraphLookupService;
 import com.umdc.backoffice.v1.features.mapper.decorator.FeatureMapperUtil;
+import com.umdc.backoffice.v1.features.service.FeatureGraphLookupService;
 import com.umdc.backoffice.v1.features.service.FeatureService;
 import com.umdc.backoffice.v1.rolefeatures.service.RoleFeatureLinkService;
 import com.umdc.backoffice.v1.roles.mapper.RoleMapper;
@@ -77,6 +79,15 @@ class RoleServiceImplTest {
     @Mock
     private ApplicationRepository applicationRepository;
 
+    @Mock
+    private RoleGraphLookupService roleGraphLookupService;
+
+    @Mock
+    private FeatureGraphLookupService featureGraphLookupService;
+
+    @Mock
+    private ApplicationGraphLookupService applicationGraphLookupService;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
@@ -102,7 +113,7 @@ class RoleServiceImplTest {
         roleFeatureEntity.setFeature(featureEntity);
         var optionalRole = Optional.of(roleEntity);
 
-        Mockito.when(roleRepository.findById(Mockito.any(UUID.class))).thenReturn(optionalRole);
+        when(roleGraphLookupService.findByIdWithGraph(Mockito.any(UUID.class))).thenReturn(optionalRole);
         final var responseEntity = roleServiceImpl.find(roleId);
         Assertions.assertNotNull(responseEntity);
     }
@@ -111,8 +122,7 @@ class RoleServiceImplTest {
     @DisplayName("Test listing roles by IDs")
     void list() {
         final var roles = new ArrayList<RoleEntity>();
-        final Optional<List<RoleEntity>> rolesOption = Optional.of(roles);
-        Mockito.when(roleRepository.findById(Mockito.anyList())).thenReturn(rolesOption);
+        when(roleGraphLookupService.findByIdsWithGraph(Mockito.anyList())).thenReturn(Optional.of(roles));
         final var response = roleServiceImpl.list(UUID.randomUUID(),
                 UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID());
         Assertions.assertNotNull(response);
@@ -146,13 +156,13 @@ class RoleServiceImplTest {
         roleEntity.setRoleFeatures(new HashSet<>());
         roleEntity.setApplicationRoleUser(new HashSet<>());
         roleEntityList.add(roleEntity);
-        when(roleRepository.findByUserId(any())).thenReturn(Optional.of(roleEntityList));
+        when(roleGraphLookupService.findByUserIdWithGraph(any())).thenReturn(Optional.of(roleEntityList));
         ResponseEntity<List<Role>> actualListResult = roleServiceImpl.listByUser(uuid);
         List<Role> body = actualListResult.getBody();
         assertTrue(Objects.nonNull(body));
         assertEquals(HttpStatus.OK, actualListResult.getStatusCode());
         assertTrue(actualListResult.getHeaders().isEmpty());
-        verify(roleRepository).findByUserId(any());
+        verify(roleGraphLookupService).findByUserIdWithGraph(any());
     }
 
     /**
@@ -173,7 +183,7 @@ class RoleServiceImplTest {
         ArrayList<RoleEntity> roleEntityList = new ArrayList<>();
         roleEntityList.add(roleEntity);
         Optional<List<RoleEntity>> ofResult = Optional.of(roleEntityList);
-        when(roleRepository.findByUserId(any())).thenReturn(ofResult);
+        when(roleGraphLookupService.findByUserIdWithGraph(any())).thenReturn(ofResult);
 
         Role role = new Role();
         role.setActive(true);
@@ -187,7 +197,7 @@ class RoleServiceImplTest {
         assertTrue(actualListResult.hasBody());
         assertTrue(actualListResult.getHeaders().isEmpty());
         assertEquals(HttpStatus.OK, actualListResult.getStatusCode());
-        verify(roleRepository).findByUserId(any());
+        verify(roleGraphLookupService).findByUserIdWithGraph(any());
         verify(roleMapper).toTarget(any(RoleEntity.class));
     }
 
@@ -218,7 +228,7 @@ class RoleServiceImplTest {
         roleEntityList.add(roleEntity1);
         roleEntityList.add(roleEntity);
         Optional<List<RoleEntity>> ofResult = Optional.of(roleEntityList);
-        when(roleRepository.findByUserId(any())).thenReturn(ofResult);
+        when(roleGraphLookupService.findByUserIdWithGraph(any())).thenReturn(ofResult);
 
         Role role = new Role();
         role.setActive(true);
@@ -232,7 +242,7 @@ class RoleServiceImplTest {
         assertTrue(actualListResult.hasBody());
         assertTrue(actualListResult.getHeaders().isEmpty());
         assertEquals(HttpStatus.OK, actualListResult.getStatusCode());
-        verify(roleRepository).findByUserId(any());
+        verify(roleGraphLookupService).findByUserIdWithGraph(any());
         verify(roleMapper, atLeast(1)).toTarget((RoleEntity) any());
     }
 
@@ -268,12 +278,12 @@ class RoleServiceImplTest {
         roleEntity1.setApplicationRoleUser(new HashSet<>());
 
         Optional<List<RoleEntity>> ofResult = Optional.of(new ArrayList<>());
-        when(roleRepository.findByUserId(any())).thenReturn(ofResult);
+        when(roleGraphLookupService.findByUserIdWithGraph(any())).thenReturn(ofResult);
         ResponseEntity<List<Role>> actualListResult = roleServiceImpl.listByUser(roleId);
         assertTrue(Objects.requireNonNull(actualListResult.getBody()).isEmpty());
         assertEquals(HttpStatus.OK, actualListResult.getStatusCode());
         assertTrue(actualListResult.getHeaders().isEmpty());
-        verify(roleRepository).findByUserId(any());
+        verify(roleGraphLookupService).findByUserIdWithGraph(any());
     }
 
     @Test
@@ -296,11 +306,11 @@ class RoleServiceImplTest {
         roleFeatureEntity.setRole(roleEntity);
         roleFeatureEntity.setFeature(featureEntity);
 
-        Mockito.when(featureRepository.findById(ArgumentMatchers.any(UUID.class))).thenReturn(Optional.of(featureEntity));
-        Mockito.doReturn(roleEntity.getRoleFeatures()).when(featureMapperUtil).toRoleFeatureEntity(ArgumentMatchers.anyList());
-        Mockito.doReturn(roleEntity).when(roleMapper).toSource(ArgumentMatchers.any(Role.class));
-        Mockito.when(applicationRepository.findById(ArgumentMatchers.any(UUID.class))).thenReturn(Optional.of(new ApplicationEntity()));
-        Mockito.when(roleRepository.save(ArgumentMatchers.any(RoleEntity.class))).thenReturn(roleEntity);
+        when(featureGraphLookupService.findByIdWithGraph(ArgumentMatchers.any(UUID.class))).thenReturn(Optional.of(featureEntity));
+        doReturn(roleEntity.getRoleFeatures()).when(featureMapperUtil).toRoleFeatureEntity(ArgumentMatchers.anyList());
+        doReturn(roleEntity).when(roleMapper).toSource(ArgumentMatchers.any(Role.class));
+        when(applicationGraphLookupService.findByIdSafe(ArgumentMatchers.any(UUID.class))).thenReturn(Optional.of(new ApplicationEntity()));
+        when(roleRepository.save(ArgumentMatchers.any(RoleEntity.class))).thenReturn(roleEntity);
         final var responseEntity = roleServiceImpl.create(getRole());
         Assertions.assertNotNull(responseEntity);
     }
@@ -324,10 +334,10 @@ class RoleServiceImplTest {
         roleEntity.setRoleFeatures(null);
         roleEntity.setId(roleId);
         roleEntity.setName("Name");
-        when(roleRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.of(roleEntity));
-        when(roleMapper.toSource(Mockito.<Role>any())).thenReturn(roleEntity);
-        when(roleMapper.toTarget(Mockito.<RoleEntity>any())).thenReturn(role);
-        when(roleRepository.save(Mockito.<RoleEntity>any())).thenReturn(roleEntity);
+        when(roleGraphLookupService.findByIdWithGraph(Mockito.any())).thenReturn(Optional.of(roleEntity));
+        when(roleMapper.toSource(Mockito.any())).thenReturn(roleEntity);
+        when(roleMapper.toTarget(Mockito.any())).thenReturn(role);
+        when(roleRepository.save(Mockito.any())).thenReturn(roleEntity);
         ResponseEntity<Role> response = roleServiceImpl.update(roleId, role);
         assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
         assertTrue(Objects.nonNull(response.getBody()));
@@ -377,10 +387,10 @@ class RoleServiceImplTest {
         roleEntity.setRoleFeatures(new HashSet<>());
         roleEntity.getRoleFeatures().add(roleFeatureEntity);
 
-        when(roleRepository.findById(Mockito.<UUID>any())).thenReturn(Optional.of(roleEntity));
-        when(roleMapper.toSource(Mockito.<Role>any())).thenReturn(roleEntity);
-        when(roleMapper.toTarget(Mockito.<RoleEntity>any())).thenReturn(role);
-        when(roleRepository.save(Mockito.<RoleEntity>any())).thenReturn(roleEntity);
+        when(roleGraphLookupService.findByIdWithGraph(Mockito.any())).thenReturn(Optional.of(roleEntity));
+        when(roleMapper.toSource(Mockito.any())).thenReturn(roleEntity);
+        when(roleMapper.toTarget(Mockito.any())).thenReturn(role);
+        when(roleRepository.save(Mockito.any())).thenReturn(roleEntity);
         ResponseEntity<Role> response = roleServiceImpl.update(roleId, role);
         assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
         assertTrue(Objects.nonNull(response.getBody()));
@@ -435,8 +445,8 @@ class RoleServiceImplTest {
         roleEntity.setRoleFeatures(new HashSet<>());
         roleEntity.getRoleFeatures().add(roleFeatureEntity);
 
-        when(roleRepository.findByUserId(Mockito.<UUID>any())).thenReturn(Optional.of(List.of(roleEntity)));
-        when(roleMapper.toTarget(Mockito.<RoleEntity>any())).thenReturn(role);
+        when(roleGraphLookupService.findByUserIdWithGraph(Mockito.any())).thenReturn(Optional.of(List.of(roleEntity)));
+        when(roleMapper.toTarget(Mockito.any())).thenReturn(role);
         final var response = roleServiceImpl.listByUser(userId);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertTrue(Objects.nonNull(response.getBody()));
@@ -449,7 +459,7 @@ class RoleServiceImplTest {
     @Test
     @DisplayName("Test listing roles by user ID not found")
     void testListByUser_not_found() {
-        when(roleRepository.findByUserId(Mockito.<UUID>any())).thenReturn(Optional.empty());
+        when(roleGraphLookupService.findByUserIdWithGraph(Mockito.any())).thenReturn(Optional.empty());
         final var response = roleServiceImpl.listByUser(UUID.randomUUID());
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertTrue(Objects.isNull(response.getBody()));
@@ -477,14 +487,14 @@ class RoleServiceImplTest {
         role.setName("Name");
         role.setApplicationId(applicationId);
 
-        when(roleRepository.findByApplicationId(applicationId)).thenReturn(Optional.of(List.of(roleEntity)));
-        when(roleMapper.toTarget(Mockito.<RoleEntity>any())).thenReturn(role);
+        when(roleGraphLookupService.findByApplicationIdWithGraph(applicationId)).thenReturn(Optional.of(List.of(roleEntity)));
+        when(roleMapper.toTarget(Mockito.any())).thenReturn(role);
         final var response = roleServiceImpl.listByApplication(applicationId);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertTrue(Objects.nonNull(response.getBody()));
         assertEquals(1, response.getBody().size());
         assertEquals(applicationId, response.getBody().getFirst().getApplicationId());
-        verify(roleRepository).findByApplicationId(applicationId);
+        verify(roleGraphLookupService).findByApplicationIdWithGraph(applicationId);
     }
 
     /**
@@ -493,7 +503,7 @@ class RoleServiceImplTest {
     @Test
     @DisplayName("Test listing roles by application ID not found")
     void testListByApplication_not_found() {
-        when(roleRepository.findByApplicationId(Mockito.<UUID>any())).thenReturn(Optional.empty());
+        when(roleGraphLookupService.findByApplicationIdWithGraph(Mockito.any())).thenReturn(Optional.empty());
         final var response = roleServiceImpl.listByApplication(UUID.randomUUID());
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertTrue(Objects.isNull(response.getBody()));
@@ -513,7 +523,7 @@ class RoleServiceImplTest {
     @Test
     @DisplayName("Test listing roles not found")
     void testList_not_found() {
-        when(roleRepository.findAll()).thenReturn(null);
+        when(roleGraphLookupService.findAllWithGraph()).thenReturn(Optional.empty());
         final var response = roleServiceImpl.list();
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertTrue(Objects.isNull(response.getBody()));
@@ -566,8 +576,8 @@ class RoleServiceImplTest {
         roleEntity.setRoleFeatures(new HashSet<>());
         roleEntity.getRoleFeatures().add(roleFeatureEntity);
 
-        when(roleRepository.findAll()).thenReturn(List.of(roleEntity));
-        when(roleMapper.toTarget(Mockito.<RoleEntity>any())).thenReturn(role);
+        when(roleGraphLookupService.findAllWithGraph()).thenReturn(Optional.of(List.of(roleEntity)));
+        when(roleMapper.toTarget(Mockito.any())).thenReturn(role);
         final var response = roleServiceImpl.list();
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertTrue(Objects.nonNull(response.getBody()));
@@ -603,7 +613,7 @@ class RoleServiceImplTest {
     @Test
     @DisplayName("List roles with non-existent IDs")
     void listRolesWithNonExistentIds() {
-        when(roleRepository.findById(anyList())).thenReturn(Optional.empty());
+        when(roleGraphLookupService.findByIdsWithGraph(anyList())).thenReturn(Optional.empty());
 
         ResponseEntity<List<Role>> response = roleServiceImpl.list(UUID.randomUUID());
 
@@ -634,7 +644,7 @@ class RoleServiceImplTest {
         roleEntity.setActive(true);
 
         when(roleMapper.toSource(role)).thenReturn(roleEntity);
-        when(applicationRepository.findById(role.getApplicationId())).thenReturn(Optional.of(new ApplicationEntity()));
+        when(applicationGraphLookupService.findByIdSafe(role.getApplicationId())).thenReturn(Optional.of(new ApplicationEntity()));
         when(roleRepository.save(roleEntity)).thenReturn(roleEntity);
         when(roleMapper.toTarget(roleEntity)).thenReturn(role);
 
@@ -674,7 +684,7 @@ class RoleServiceImplTest {
 
         RoleEntity roleEntity = new RoleEntity();
         when(roleMapper.toSource(role)).thenReturn(roleEntity);
-        when(applicationRepository.findById(role.getApplicationId())).thenReturn(Optional.empty());
+        when(applicationGraphLookupService.findByIdSafe(role.getApplicationId())).thenReturn(Optional.empty());
 
         ResponseEntity<Role> response = roleServiceImpl.create(role);
 
@@ -701,8 +711,8 @@ class RoleServiceImplTest {
         featureEntity.setId(featureId);
 
         when(roleMapper.toSource(role)).thenReturn(roleEntity);
-        when(applicationRepository.findById(applicationId)).thenReturn(Optional.of(new ApplicationEntity()));
-        when(featureRepository.findById(featureId)).thenReturn(Optional.of(featureEntity));
+        when(applicationGraphLookupService.findByIdSafe(applicationId)).thenReturn(Optional.of(new ApplicationEntity()));
+        when(featureGraphLookupService.findByIdWithGraph(featureId)).thenReturn(Optional.of(featureEntity));
         when(roleRepository.save(roleEntity)).thenReturn(roleEntity);
         when(roleMapper.toTarget(roleEntity)).thenReturn(role);
 
@@ -735,9 +745,9 @@ class RoleServiceImplTest {
         createdFeatureEntity.setId(createdFeatureId);
 
         when(roleMapper.toSource(role)).thenReturn(roleEntity);
-        when(applicationRepository.findById(applicationId)).thenReturn(Optional.of(new ApplicationEntity()));
+        when(applicationGraphLookupService.findByIdSafe(applicationId)).thenReturn(Optional.of(new ApplicationEntity()));
         when(featureService.create(newFeature)).thenReturn(new ResponseEntity<>(createdFeature, HttpStatus.CREATED));
-        when(featureRepository.findById(createdFeatureId)).thenReturn(Optional.of(createdFeatureEntity));
+        when(featureGraphLookupService.findByIdWithGraph(createdFeatureId)).thenReturn(Optional.of(createdFeatureEntity));
         when(roleRepository.save(roleEntity)).thenReturn(roleEntity);
         when(roleMapper.toTarget(roleEntity)).thenReturn(role);
 
@@ -765,8 +775,8 @@ class RoleServiceImplTest {
 
         var roleEntity = new RoleEntity();
         when(roleMapper.toSource(role)).thenReturn(roleEntity);
-        when(applicationRepository.findById(applicationId)).thenReturn(Optional.of(new ApplicationEntity()));
-        when(featureRepository.findById(featureId)).thenReturn(Optional.empty());
+        when(applicationGraphLookupService.findByIdSafe(applicationId)).thenReturn(Optional.of(new ApplicationEntity()));
+        when(featureGraphLookupService.findByIdWithGraph(featureId)).thenReturn(Optional.empty());
 
         ResponseEntity<Role> response = roleServiceImpl.create(role);
 
@@ -790,7 +800,7 @@ class RoleServiceImplTest {
 
         var roleEntity = new RoleEntity();
         when(roleMapper.toSource(role)).thenReturn(roleEntity);
-        when(applicationRepository.findById(applicationId)).thenReturn(Optional.of(new ApplicationEntity()));
+        when(applicationGraphLookupService.findByIdSafe(applicationId)).thenReturn(Optional.of(new ApplicationEntity()));
         when(featureService.create(newFeature)).thenReturn(new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE));
 
         ResponseEntity<Role> response = roleServiceImpl.create(role);
@@ -803,7 +813,7 @@ class RoleServiceImplTest {
     @DisplayName("Update role with non-existent role ID")
     void updateRoleWithNonExistentRoleId() {
         var roleId = UUID.randomUUID();
-        when(roleRepository.findById(roleId)).thenReturn(Optional.empty());
+        when(roleGraphLookupService.findByIdWithGraph(roleId)).thenReturn(Optional.empty());
 
         ResponseEntity<Role> response = roleServiceImpl.update(roleId, getRole());
 

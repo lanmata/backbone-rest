@@ -38,11 +38,14 @@ import static com.umdc.commons.util.ValidatorCommonsUtil.esNulo;
 public class PersonServiceImpl implements PersonService {
 	private final PersonRepository personRepository;
 	private final PersonMapper personMapper;
+	private final PersonGraphLookupService personGraphLookupService;
 	private static final Logger LOGGER = LoggerFactory.getLogger(PersonServiceImpl.class);
 
-	public PersonServiceImpl(PersonRepository personRepository, PersonMapper personMapper) {
+	public PersonServiceImpl(PersonRepository personRepository, PersonMapper personMapper,
+							  PersonGraphLookupService personGraphLookupService) {
 		this.personRepository = personRepository;
 		this.personMapper = personMapper;
+		this.personGraphLookupService = personGraphLookupService;
 	}
 
 	/** {@inheritDoc} */
@@ -53,16 +56,12 @@ public class PersonServiceImpl implements PersonService {
 		}
 
 		// Check if the person already exists in the database
-		Optional<PersonEntity> existingEntity =Objects.nonNull(person.getId())? personRepository.findById(person.getId()): Optional.empty();
+		Optional<PersonEntity> existingEntity =Objects.nonNull(person.getId())? personGraphLookupService.findByIdWithContactsGraph(person.getId()): Optional.empty();
 		PersonEntity personEntity;
 
-		if (existingEntity.isPresent()) {
-			// Use the existing entity to avoid detached entity issues
-			personEntity = existingEntity.get();
-		} else {
-			// Map to a new entity if it does not exist
-			personEntity = personMapper.toSource(person);
-		}
+        // Use the existing entity to avoid detached entity issues
+        // Map to a new entity if it does not exist
+        personEntity = existingEntity.orElseGet(() -> personMapper.toSource(person));
 
 		// Fix: Set person reference in each contact entity
 		if (personEntity.getContacts() != null) {
@@ -84,7 +83,7 @@ public class PersonServiceImpl implements PersonService {
 		if(esNulo(person)){
 			return ResponseEntity.badRequest().header(MessageUtil.MESSAGE_HEADER_STR, "Person request invalid").build();
 		}
-		if(personRepository.findById(personId).isEmpty()){
+		if(personGraphLookupService.findByIdSafe(personId).isEmpty()){
 			return ResponseEntity.badRequest().header(MessageUtil.MESSAGE_HEADER_STR, "Person not founded").build();
 		}
 		var newValuePersonEntity = personMapper.toSource(person);
@@ -95,22 +94,23 @@ public class PersonServiceImpl implements PersonService {
 	@Override
 	public ResponseEntity<Person> find(UUID personId) {
 		if (esNulo(personId)) {
-			return ResponseEntity.unprocessableEntity().build();
+			return ResponseEntity.unprocessableContent().build();
 		}
-		var personEntity = personRepository.findById(personId);
+		var personEntity = personGraphLookupService.findByIdWithContactsGraph(personId);
 		return personEntity.map(entity -> ResponseEntity.ok(personMapper.toTarget(entity)))
 				.orElseGet(() -> ResponseEntity.notFound().build());
 	}
 
 	@Override
 	public ResponseEntity<List<Person>> list(UUID... ids) {
-		Iterable<PersonEntity> personEntityListResult;
+		List<PersonEntity> personEntityListResult;
 		List<Person> personList = new ArrayList<>();
 		List<UUID> uuidList = new ArrayList<>();
 		if(Objects.nonNull(ids) && ids.length > 0 && Objects.nonNull(ids[0])){
             uuidList.addAll(Arrays.stream(ids).toList());
 		}
-		personEntityListResult = uuidList.isEmpty() ? personRepository.findAll():personRepository.findAllById(uuidList);
+		personEntityListResult = uuidList.isEmpty() ? personGraphLookupService.findAllWithContactsGraph()
+				: personGraphLookupService.findByIdsWithContactsGraph(uuidList);
 		personEntityListResult.forEach(personEntity ->
 				personList.add(personMapper.toTarget(personEntity))
 		);

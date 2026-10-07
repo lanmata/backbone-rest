@@ -13,6 +13,7 @@
 
 package com.umdc.backoffice.v1.contacts.api;
 
+import com.umdc.backoffice.v1.contacts.api.to.ContactCreateRequest;
 import com.umdc.backoffice.v1.contacts.service.ContactService;
 import com.umdc.commons.general.pojo.Contact;
 import com.umdc.commons.util.HttpStatusUtil;
@@ -36,23 +37,24 @@ public interface ContactApi {
     /**
      * Creates a new contact.
      *
-     * @param contact The {@link Contact} object containing the details of the contact to be created.
+     * @param request the contact creation request, referencing its contact type by id
      * @return A {@link ResponseEntity} containing the created {@link Contact} object.
      */
     @Operation(description = "Create a contact.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "OK")
+            @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "OK"),
+            @ApiResponse(responseCode = HttpStatusUtil.BAD_REQUEST_STR, description = "Invalid contact payload")
     })
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/")
-    default ResponseEntity<Contact> create(@RequestBody final Contact contact) {
-        return getService().create(contact);
+    default ResponseEntity<Contact> create(@RequestBody final ContactCreateRequest request) {
+        return getService().create(request);
     }
 
     /**
      * Updates the specified contact with the provided details.
      *
      * @param contactId the unique identifier of the contact to be updated
-     * @param contact the contact object containing updated information
+     * @param request the request object containing updated information
      * @return the updated contact wrapped in a ResponseEntity
      */
     @Operation(description = "Update a contact.")
@@ -60,8 +62,8 @@ public interface ContactApi {
             @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "OK")
     })
     @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE, path = "/{contactId}")
-    default ResponseEntity<Contact> update(@PathVariable final UUID contactId, @RequestBody Contact contact) {
-        return getService().update(contactId, contact);
+    default ResponseEntity<Contact> update(@PathVariable final UUID contactId, @RequestBody ContactCreateRequest request) {
+        return getService().update(contactId, request);
     }
 
     /**

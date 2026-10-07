@@ -27,6 +27,13 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring", uses = {ContactTypeMapper.class})
 public interface ContactMapper {
 
+    // Contact.personId/applicationId are flat UUIDs; ContactEntity only has the full
+    // person/application associations — MapStruct can't bridge "person.id" -> "personId"
+    // without these explicit paths (name-based auto-mapping only matches identical property
+    // names), so without them the wire DTO always came back with personId/applicationId null
+    // regardless of what was actually persisted.
+    @Mapping(target = "personId", source = "person.id")
+    @Mapping(target = "applicationId", source = "application.id")
     Contact toTarget(ContactEntity contactEntity);
 
     @Mapping(target = "person", ignore = true)

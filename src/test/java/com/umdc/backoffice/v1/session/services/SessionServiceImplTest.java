@@ -50,9 +50,6 @@ class SessionServiceImplTest {
     private UserAliasMapper userAliasMapper;
 
     @Mock
-    private UserRepository userRepository;
-
-    @Mock
     private PasswordEncoder passwordEncoder;
 
     @Mock
@@ -83,7 +80,7 @@ class SessionServiceImplTest {
         when(jwtConfigProperties.getExpirationMs()).thenReturn(EXPIRATION_MS);
         sessionTokenService = new SessionTokenServiceImpl(jwtConfigProperties, jtiDenyListService);
         sessionService = new SessionServiceImpl(messageUtil, userMapper, userAliasMapper,
-                userRepository, passwordEncoder, loginAttemptService, auditEventService, sessionTokenService,
+                passwordEncoder, loginAttemptService, auditEventService, sessionTokenService,
                 sessionUserLookupService, requestContextUtil);
     }
 
@@ -226,7 +223,7 @@ class SessionServiceImplTest {
         userAliasTO.setLastname("Doe");
 
         mockUserLookup(Optional.of(userEntity));
-        when(userRepository.findUserInfo(userId)).thenReturn(userInfo);
+        when(sessionUserLookupService.findByIdWithGraph(userId)).thenReturn(Optional.of(userInfo));
         when(userMapper.toTarget(userInfo)).thenReturn(userTO);
         when(userAliasMapper.toTarget(userTO)).thenReturn(userAliasTO);
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
@@ -258,7 +255,7 @@ class SessionServiceImplTest {
 
         mockUserLookup(Optional.of(userEntity));
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
-        when(userRepository.findUserInfo(userId)).thenReturn(null);
+        when(sessionUserLookupService.findByIdWithGraph(userId)).thenReturn(Optional.empty());
 
         ResponseEntity<SessionResponse> response = sessionService.loadSession(request);
 
@@ -292,7 +289,7 @@ class SessionServiceImplTest {
 
         mockUserLookup(Optional.of(userEntity));
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
-        when(userRepository.findUserInfo(userId)).thenReturn(userInfo);
+        when(sessionUserLookupService.findByIdWithGraph(userId)).thenReturn(Optional.of(userInfo));
         when(userMapper.toTarget(userInfo)).thenReturn(userTO);
         when(userAliasMapper.toTarget(userTO)).thenReturn(userAliasTO);
 
@@ -409,7 +406,7 @@ class SessionServiceImplTest {
         userAliasTO.setUserId(userId);
 
         mockUserLookup(Optional.of(userEntity));
-        when(userRepository.findUserInfo(userId)).thenReturn(userInfo);
+        when(sessionUserLookupService.findByIdWithGraph(userId)).thenReturn(Optional.of(userInfo));
         when(userMapper.toTarget(userInfo)).thenReturn(userTO);
         when(userAliasMapper.toTarget(userTO)).thenReturn(userAliasTO);
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);

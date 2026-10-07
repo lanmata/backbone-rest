@@ -14,6 +14,7 @@ package com.umdc.backoffice.v1.addresses.service;
 
 import com.umdc.backoffice.v1.addresses.api.to.Address;
 import com.umdc.backoffice.v1.addresses.mapper.AddressMapper;
+import com.umdc.backoffice.v1.people.service.PersonGraphLookupService;
 import com.umdc.persistence.general.domains.AddressEntity;
 import com.umdc.persistence.general.domains.PersonEntity;
 import com.umdc.persistence.general.repositories.AddressRepository;
@@ -40,7 +41,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
-/// Unit tests for {@link AddressServiceImpl}.
+/// Unit tests for [AddressServiceImpl].
 @ExtendWith(MockitoExtension.class)
 class AddressServiceImplTest {
 
@@ -56,11 +57,18 @@ class AddressServiceImplTest {
     @Mock
     private AddressMapper addressMapper;
 
+    @Mock
+    private AddressGraphLookupService addressGraphLookupService;
+
+    @Mock
+    private PersonGraphLookupService personGraphLookupService;
+
     private AddressServiceImpl addressService;
 
     @BeforeEach
     void setUp() {
-        addressService = new AddressServiceImpl(addressRepository, personRepository, addressMapper);
+        addressService = new AddressServiceImpl(addressRepository, personRepository, addressMapper,
+                addressGraphLookupService, personGraphLookupService);
     }
 
     // ── create ────────────────────────────────────────────────────────────────
@@ -75,7 +83,7 @@ class AddressServiceImplTest {
         AddressEntity saved = buildEntity(person);
         Address created = buildPojo(personId);
 
-        doReturn(Optional.of(person)).when(personRepository).findById(personId);
+        doReturn(Optional.of(person)).when(personGraphLookupService).findByIdSafe(personId);
         doReturn(mapped).when(addressMapper).toSource(address);
         doReturn(saved).when(addressRepository).save(mapped);
         doReturn(created).when(addressMapper).toTarget(saved);
@@ -94,7 +102,7 @@ class AddressServiceImplTest {
         ResponseEntity<Address> response = addressService.create(null);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        verifyNoInteractions(personRepository, addressRepository, addressMapper);
+        verifyNoInteractions(personRepository, addressRepository, addressMapper, personGraphLookupService, addressGraphLookupService);
     }
 
     @Test
@@ -135,7 +143,7 @@ class AddressServiceImplTest {
         UUID personId = UUID.randomUUID();
         Address address = buildPojo(personId);
 
-        doReturn(Optional.empty()).when(personRepository).findById(personId);
+        doReturn(Optional.empty()).when(personGraphLookupService).findByIdSafe(personId);
 
         ResponseEntity<Address> response = addressService.create(address);
 
@@ -153,14 +161,14 @@ class AddressServiceImplTest {
         AddressEntity entity = buildEntity(person);
         Address pojo = buildPojo(person.getId());
 
-        doReturn(Optional.of(entity)).when(addressRepository).findById(id);
+        doReturn(Optional.of(entity)).when(addressGraphLookupService).findByIdWithGraph(id);
         doReturn(pojo).when(addressMapper).toTarget(entity);
 
         ResponseEntity<Address> response = addressService.find(id);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        verify(addressRepository).findById(id);
+        verify(addressGraphLookupService).findByIdWithGraph(id);
     }
 
     @Test
@@ -168,7 +176,7 @@ class AddressServiceImplTest {
     void find_returnsNotFound_whenAbsent() {
         UUID id = UUID.randomUUID();
 
-        doReturn(Optional.empty()).when(addressRepository).findById(id);
+        doReturn(Optional.empty()).when(addressGraphLookupService).findByIdWithGraph(id);
 
         ResponseEntity<Address> response = addressService.find(id);
 
@@ -187,8 +195,8 @@ class AddressServiceImplTest {
         AddressEntity existing = buildEntity(null);
         Address updated = buildPojo(personId);
 
-        doReturn(Optional.of(existing)).when(addressRepository).findById(id);
-        doReturn(Optional.of(person)).when(personRepository).findById(personId);
+        doReturn(Optional.of(existing)).when(addressGraphLookupService).findByIdWithGraph(id);
+        doReturn(Optional.of(person)).when(personGraphLookupService).findByIdSafe(personId);
         doReturn(existing).when(addressRepository).save(existing);
         doReturn(updated).when(addressMapper).toTarget(existing);
 
@@ -207,7 +215,7 @@ class AddressServiceImplTest {
         ResponseEntity<Address> response = addressService.update(UUID.randomUUID(), null);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        verifyNoInteractions(addressRepository, personRepository, addressMapper);
+        verifyNoInteractions(addressRepository, personRepository, addressMapper, personGraphLookupService, addressGraphLookupService);
     }
 
     @Test
@@ -237,12 +245,12 @@ class AddressServiceImplTest {
         UUID id = UUID.randomUUID();
         Address address = buildPojo(UUID.randomUUID());
 
-        doReturn(Optional.empty()).when(addressRepository).findById(id);
+        doReturn(Optional.empty()).when(addressGraphLookupService).findByIdWithGraph(id);
 
         ResponseEntity<Address> response = addressService.update(id, address);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        verifyNoInteractions(personRepository);
+        verifyNoInteractions(personGraphLookupService);
     }
 
     @Test
@@ -253,8 +261,8 @@ class AddressServiceImplTest {
         Address address = buildPojo(personId);
         AddressEntity existing = buildEntity(null);
 
-        doReturn(Optional.of(existing)).when(addressRepository).findById(id);
-        doReturn(Optional.empty()).when(personRepository).findById(personId);
+        doReturn(Optional.of(existing)).when(addressGraphLookupService).findByIdWithGraph(id);
+        doReturn(Optional.empty()).when(personGraphLookupService).findByIdSafe(personId);
 
         ResponseEntity<Address> response = addressService.update(id, address);
 
@@ -270,7 +278,7 @@ class AddressServiceImplTest {
         AddressEntity existing = buildEntity(null);
         Address pojo = buildPojo(UUID.randomUUID());
 
-        doReturn(Optional.of(existing)).when(addressRepository).findById(id);
+        doReturn(Optional.of(existing)).when(addressGraphLookupService).findByIdWithGraph(id);
         doReturn(pojo).when(addressMapper).toTarget(existing);
 
         ResponseEntity<Address> response = addressService.delete(id);
@@ -285,7 +293,7 @@ class AddressServiceImplTest {
     void delete_returnsNotFound_whenAbsent() {
         UUID id = UUID.randomUUID();
 
-        doReturn(Optional.empty()).when(addressRepository).findById(id);
+        doReturn(Optional.empty()).when(addressGraphLookupService).findByIdWithGraph(id);
 
         ResponseEntity<Address> response = addressService.delete(id);
 
@@ -304,7 +312,7 @@ class AddressServiceImplTest {
         Address pojo = buildPojo(personId);
 
         doReturn(true).when(personRepository).existsById(personId);
-        doReturn(List.of(entity)).when(addressRepository).findByPersonId(personId);
+        doReturn(List.of(entity)).when(addressGraphLookupService).findByPersonIdWithGraph(personId);
         doReturn(pojo).when(addressMapper).toTarget(entity);
 
         ResponseEntity<List<Address>> response = addressService.listByPerson(personId);
@@ -324,7 +332,7 @@ class AddressServiceImplTest {
         ResponseEntity<List<Address>> response = addressService.listByPerson(personId);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        verifyNoInteractions(addressRepository, addressMapper);
+        verifyNoInteractions(addressRepository, addressMapper, addressGraphLookupService);
     }
 
     @Test
@@ -333,7 +341,7 @@ class AddressServiceImplTest {
         UUID personId = UUID.randomUUID();
 
         doReturn(true).when(personRepository).existsById(personId);
-        doReturn(List.of()).when(addressRepository).findByPersonId(personId);
+        doReturn(List.of()).when(addressGraphLookupService).findByPersonIdWithGraph(personId);
 
         ResponseEntity<List<Address>> response = addressService.listByPerson(personId);
 

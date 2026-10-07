@@ -17,6 +17,7 @@ import com.umdc.backoffice.security.util.RolesClaimParser;
 import com.umdc.backoffice.v1.iam.permissions.api.to.PermissionCheckRequest;
 import com.umdc.backoffice.v1.iam.permissions.api.to.PermissionCheckResponse;
 import com.umdc.backoffice.v1.session.services.SessionService;
+import com.umdc.backoffice.v1.users.service.ApplicationRoleUserGraphLookupService;
 import com.umdc.persistence.general.domains.ApplicationRoleUserEntity;
 import com.umdc.persistence.general.domains.FeatureEntity;
 import com.umdc.persistence.general.domains.RoleEntity;
@@ -30,6 +31,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -65,18 +67,23 @@ public class PermissionCheckServiceImpl implements PermissionCheckService {
     private static final String PERMISSION_DENIED_SUFFIX = "' not present in token";
 
     private final SessionService sessionService;
-    private final ApplicationRoleUserRepository applicationRoleUserRepository;
+    private final ApplicationRoleUserGraphLookupService applicationRoleUserGraphLookupService;
 
     /**
      * Constructs a new {@code PermissionCheckServiceImpl}.
      *
-     * @param sessionService                the session service used for token validation and claims extraction
-     * @param applicationRoleUserRepository the existing user↔application↔role ACL repository
+     * @param sessionService                         the session service used for token validation and claims extraction
+     * @param applicationRoleUserGraphLookupService safe application-role-user lookups (user,
+     *                                               application and role — including the role's own
+     *                                               granted features — eagerly loaded); see
+     *                                               {@link ApplicationRoleUserGraphLookupService}
+     *                                               for why this replaces
+     *                                               {@link ApplicationRoleUserRepository#findByUserAndApplication}
      */
     public PermissionCheckServiceImpl(SessionService sessionService,
-                                      ApplicationRoleUserRepository applicationRoleUserRepository) {
+                                      ApplicationRoleUserGraphLookupService applicationRoleUserGraphLookupService) {
         this.sessionService = sessionService;
-        this.applicationRoleUserRepository = applicationRoleUserRepository;
+        this.applicationRoleUserGraphLookupService = applicationRoleUserGraphLookupService;
     }
 
     /**
@@ -114,14 +121,15 @@ public class PermissionCheckServiceImpl implements PermissionCheckService {
      * as opposed to the token's flattened cross-application {@code roles} claim.
      */
     private ResponseEntity<PermissionCheckResponse> checkApplicationScoped(UUID userId, UUID applicationId, String permission) {
-        ApplicationRoleUserEntity link = applicationRoleUserRepository.findByUserAndApplication(userId, applicationId);
+        Optional<ApplicationRoleUserEntity> linkOpt =
+                applicationRoleUserGraphLookupService.findByUserAndApplicationWithGraph(userId, applicationId);
 
-        if (Objects.isNull(link) || !Boolean.TRUE.equals(link.getActive())) {
+        if (linkOpt.isEmpty() || !Boolean.TRUE.equals(linkOpt.get().getActive())) {
             LOGGER.debug("No active application_role_user link — userId={}, applicationId={}", userId, applicationId);
             return ResponseEntity.ok(new PermissionCheckResponse(false, permission, NO_APPLICATION_ACCESS_MSG));
         }
 
-        boolean granted = roleGrants(link.getRole(), permission);
+        boolean granted = roleGrants(linkOpt.get().getRole(), permission);
         String reason = granted ? PERMISSION_GRANTED_MSG : deniedReason(permission);
 
         LOGGER.debug("Application-scoped permission check result — permission='{}', applicationId={}, granted={}",
