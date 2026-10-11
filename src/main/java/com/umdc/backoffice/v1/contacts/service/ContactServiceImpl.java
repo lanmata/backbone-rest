@@ -12,6 +12,7 @@
  */
 package com.umdc.backoffice.v1.contacts.service;
 
+import com.umdc.backoffice.util.PageResponse;
 import com.umdc.backoffice.v1.application.service.ApplicationGraphLookupService;
 import com.umdc.backoffice.v1.contacts.api.to.ContactCreateRequest;
 import com.umdc.backoffice.v1.contacts.mapper.ContactMapper;
@@ -22,6 +23,7 @@ import com.umdc.commons.general.pojo.ContactType;
 import com.umdc.persistence.general.domains.ApplicationEntity;
 import com.umdc.persistence.general.domains.ContactEntity;
 import com.umdc.persistence.general.domains.ContactTypeEntity;
+import com.umdc.persistence.general.domains.PersonEntity;
 import com.umdc.persistence.general.repositories.ContactRepository;
 import com.umdc.persistence.general.repositories.ContactTypeRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,9 +33,11 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.regex.Pattern;
 import static com.umdc.backoffice.util.MessageUtil.MESSAGE_HEADER_STR;
 
 /**
@@ -47,6 +51,18 @@ public class ContactServiceImpl implements ContactService {
 
     private static final String BAD_REQUEST_MSG =
             "Invalid request. The 'contact' body is required and must include a non-null 'personId'.";
+    private static final String SUBJECT_MSG =
+            "Invalid request. A contact belongs to exactly one subject: either a 'personId' or an "
+                    + "'ownerType' + 'ownerId' pair.";
+    private static final String OWNER_INCOMPLETE_MSG =
+            "Invalid request. An external owner requires 'ownerType', 'ownerId' and 'applicationId'.";
+    private static final String OWNER_TYPE_INVALID_MSG =
+            "Invalid request. 'ownerType' must start with a letter and contain only letters, digits, '_' or '-' "
+                    + "(2 to 50 characters).";
+    private static final String APPLICATION_REQUIRED_MSG =
+            "Invalid request. 'applicationId' is required: contacts are never listed across applications.";
+    private static final Pattern OWNER_TYPE_PATTERN = Pattern.compile("^[A-Za-z][A-Za-z0-9_-]{1,49}$");
+    static final int MAX_PAGE_SIZE = 100;
     private static final String PERSON_NOT_FOUND_MSG = "Person not found.";
     private static final String CONTACT_TYPE_NOT_FOUND_MSG = "Contact type not found.";
     private static final String APPLICATION_NOT_FOUND_MSG = "Application not found.";
@@ -99,8 +115,24 @@ public class ContactServiceImpl implements ContactService {
 
     @Override
     public ResponseEntity<Contact> create(ContactCreateRequest request) {
-        if (null == request || null == request.personId()) {
+        if (null == request) {
             return ResponseEntity.badRequest().header(MESSAGE_HEADER_STR, BAD_REQUEST_MSG).build();
+        }
+        boolean hasPerson = null != request.personId();
+        boolean hasOwner = null != request.ownerType() || null != request.ownerId();
+        if (!hasPerson && !hasOwner) {
+            return ResponseEntity.badRequest().header(MESSAGE_HEADER_STR, BAD_REQUEST_MSG).build();
+        }
+        if (hasPerson && hasOwner) {
+            return ResponseEntity.badRequest().header(MESSAGE_HEADER_STR, SUBJECT_MSG).build();
+        }
+        if (hasOwner) {
+            if (isBlank(request.ownerType()) || null == request.ownerId() || null == request.applicationId()) {
+                return ResponseEntity.badRequest().header(MESSAGE_HEADER_STR, OWNER_INCOMPLETE_MSG).build();
+            }
+            if (!OWNER_TYPE_PATTERN.matcher(request.ownerType().trim()).matches()) {
+                return ResponseEntity.badRequest().header(MESSAGE_HEADER_STR, OWNER_TYPE_INVALID_MSG).build();
+            }
         }
         ContactType contactType = null;
         if (Objects.nonNull(request.contentTypeId())) {
@@ -110,7 +142,12 @@ public class ContactServiceImpl implements ContactService {
             }
             contactType = contactTypeMapper.toTarget(contactTypeEntity.get());
         }
-        return create(request.personId(), toContact(request, contactType));
+        Contact contact = toContact(request, contactType);
+        return hasPerson ? create(request.personId(), contact) : createForOwner(contact);
+    }
+
+    private static boolean isBlank(String value) {
+        return null == value || value.isBlank();
     }
 
     /**
@@ -124,6 +161,8 @@ public class ContactServiceImpl implements ContactService {
         contact.setContent(request.content());
         contact.setPersonId(request.personId());
         contact.setApplicationId(request.applicationId());
+        contact.setOwnerType(isBlank(request.ownerType()) ? null : request.ownerType().trim().toUpperCase(Locale.ROOT));
+        contact.setOwnerId(request.ownerId());
         contact.setActive(request.active());
         contact.setContactType(contactType);
         return contact;
@@ -147,10 +186,35 @@ public class ContactServiceImpl implements ContactService {
             application = applicationResult.get();
         }
         List<ContactEntity> existingContacts = contactGraphLookupService.findByPersonIdWithGraph(personId);
+        return saveNew(contact, existingContacts, person.get(), application);
+    }
+
+    /**
+     * Creates a contact for an external owner (e.g. a merchant of an application), which is neither a
+     * person nor an application. The owner is identified by {@code ownerType} + {@code ownerId} inside
+     * the mandatory {@code applicationId}.
+     */
+    private ResponseEntity<Contact> createForOwner(Contact contact) {
+        var applicationResult = applicationGraphLookupService.findByIdSafe(contact.getApplicationId());
+        if (applicationResult.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).header(MESSAGE_HEADER_STR, APPLICATION_NOT_FOUND_MSG).build();
+        }
+        List<ContactEntity> existingContacts = contactGraphLookupService.findByOwnerWithGraph(
+                contact.getOwnerType(), contact.getOwnerId(), contact.getApplicationId());
+        return saveNew(contact, existingContacts, null, applicationResult.get());
+    }
+
+    private ResponseEntity<Contact> saveNew(Contact contact, List<ContactEntity> existingContacts,
+                                            PersonEntity person, ApplicationEntity application) {
         if (isDuplicateContact(existingContacts, contact.getApplicationId(), contact.getContent(), null)) {
             return ResponseEntity.status(HttpStatus.CONFLICT).header(MESSAGE_HEADER_STR, DUPLICATE_CONTACT_MSG).build();
         }
-        if (existingContacts.size() >= contactLimit) {
+        // The limit is per subject AND application: the same person (or merchant) may hold up to
+        // contactLimit contacts in each application independently.
+        long inApplication = existingContacts.stream()
+                .filter(existing -> sameApplication(existing.getApplication(), contact.getApplicationId()))
+                .count();
+        if (inApplication >= contactLimit) {
             return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).header(MESSAGE_HEADER_STR, "Contact NOT created. Contact limit has been reached.").build();
         }
         // ContactEntity.id is @GeneratedValue(strategy = IDENTITY) (DB-generated) — a
@@ -168,7 +232,7 @@ public class ContactServiceImpl implements ContactService {
         // name mismatch (applicationId UUID vs. application entity reference) means
         // "application" needs the identical explicit treatment.
         var contactEntity = contactMapper.toSource(contact);
-        contactEntity.setPerson(person.get());
+        contactEntity.setPerson(person);
         contactEntity.setApplication(application);
         var response = contactRepository.save(contactEntity);
         return ResponseEntity.status(HttpStatus.CREATED).header(MESSAGE_HEADER_STR, "Contact created").body(contactMapper.toTarget(response));
@@ -216,11 +280,16 @@ public class ContactServiceImpl implements ContactService {
         var contactEntity = contactOptionResult.get();
         UUID personId = Objects.isNull(contactEntity.getPerson()) ? null : contactEntity.getPerson().getId();
         UUID applicationId = Objects.isNull(contactEntity.getApplication()) ? null : contactEntity.getApplication().getId();
+        List<ContactEntity> existingContacts = null;
         if (Objects.nonNull(personId)) {
-            List<ContactEntity> existingContacts = contactGraphLookupService.findByPersonIdWithGraph(personId);
-            if (isDuplicateContact(existingContacts, applicationId, contact.getContent(), contactId)) {
-                return ResponseEntity.status(HttpStatus.CONFLICT).header(MESSAGE_HEADER_STR, DUPLICATE_CONTACT_MSG).build();
-            }
+            existingContacts = contactGraphLookupService.findByPersonIdWithGraph(personId);
+        } else if (Objects.nonNull(contactEntity.getOwnerId())) {
+            existingContacts = contactGraphLookupService.findByOwnerWithGraph(
+                    contactEntity.getOwnerType(), contactEntity.getOwnerId(), applicationId);
+        }
+        if (Objects.nonNull(existingContacts)
+                && isDuplicateContact(existingContacts, applicationId, contact.getContent(), contactId)) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).header(MESSAGE_HEADER_STR, DUPLICATE_CONTACT_MSG).build();
         }
         contactEntity.setContent(contact.getContent());
         contactEntity.setActive(contact.getActive());
@@ -271,6 +340,33 @@ public class ContactServiceImpl implements ContactService {
         var contactList = new ArrayList<Contact>();
         contactEntities.forEach(contactEntity -> contactList.add(contactMapper.toTarget(contactEntity)));
         return ResponseEntity.ok(contactList);
+    }
+
+    @Override
+    public ResponseEntity<List<Contact>> listByPersonId(UUID personId, UUID applicationId) {
+        var contactEntities = contactGraphLookupService.findByPersonIdWithGraph(personId, applicationId);
+        return ResponseEntity.ok(contactEntities.stream().map(contactMapper::toTarget).toList());
+    }
+
+    @Override
+    public ResponseEntity<List<Contact>> listByOwner(String ownerType, UUID ownerId, UUID applicationId) {
+        if (isBlank(ownerType) || null == ownerId) {
+            return ResponseEntity.badRequest().header(MESSAGE_HEADER_STR, OWNER_INCOMPLETE_MSG).build();
+        }
+        var contactEntities = contactGraphLookupService.findByOwnerWithGraph(
+                ownerType.trim().toUpperCase(Locale.ROOT), ownerId, applicationId);
+        return ResponseEntity.ok(contactEntities.stream().map(contactMapper::toTarget).toList());
+    }
+
+    @Override
+    public ResponseEntity<PageResponse<Contact>> search(ContactSearchCriteria criteria, int page, int size) {
+        if (null == criteria || null == criteria.applicationId()) {
+            return ResponseEntity.badRequest().header(MESSAGE_HEADER_STR, APPLICATION_REQUIRED_MSG).build();
+        }
+        int safePage = Math.max(page, 0);
+        int safeSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
+        var result = contactGraphLookupService.search(criteria, safePage, safeSize).map(contactMapper::toTarget);
+        return ResponseEntity.ok(PageResponse.of(result));
     }
 
     @Override

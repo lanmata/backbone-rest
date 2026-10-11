@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] - 2026-10-07
+
+### Changed (scalability — contacts and features are segmented, never listed whole)
+- **Contacts are scoped.** `GET /api/v1/contacts/list-all` (already `501`) is removed. The new
+  `GET /api/v1/contacts/?applicationId=...` is the contact directory of ONE application: `applicationId` is
+  mandatory (`400` otherwise), filtering (`contactTypeId`, `active`, `q`) and pagination (`page`, `size`, max 100)
+  run on the server and the response is a `{content, page, size, totalElements, totalPages}` envelope.
+- **Contacts may belong to an external owner.** `ContactCreateRequest`/`Contact` gain `ownerType` + `ownerId`
+  for subjects that are neither a person nor an application (e.g. a merchant of a commerce-index application).
+  A contact has exactly one subject (`personId` XOR `ownerType`+`ownerId`); an owner requires `applicationId`.
+  New `GET /api/v1/contacts/owner/{ownerType}/{ownerId}?applicationId=`; `GET /contacts/person/{personId}` accepts
+  an optional `applicationId`.
+- **The contact limit and the duplicate check are per subject AND application** (a person may hold
+  `app.environments.contact.limit` contacts in each application, not in total).
+- **The feature catalog is paginated.** New `GET /api/v1/features/?q=&active=&page=&size=` (max 50) returns
+  lightweight `FeatureSummary` items without role links; new `GET /api/v1/features/{featureId}/roles` lists the
+  roles, and owning applications, a feature is linked to. `GET /api/v1/features/{includeInactive}` (unbounded)
+  is **deprecated**.
+- Requires `com.umdc:persistence` and `com.umdc:commons` `0.0.4-SNAPSHOT` (new `owner_type`/`owner_id` columns) and
+  the database migration `docs/sql/V0.0.4__contact_owner_and_scoped_indexes.sql` (`ddl-auto` is `none`).
+
 ## [Unreleased] - 2026-09-29
 
 ### Fixed

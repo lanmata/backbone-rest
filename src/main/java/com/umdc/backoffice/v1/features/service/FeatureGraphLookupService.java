@@ -13,7 +13,10 @@
 
 package com.umdc.backoffice.v1.features.service;
 
+import com.umdc.backoffice.v1.features.api.to.FeatureRoleLink;
+import com.umdc.backoffice.v1.features.api.to.FeatureSummary;
 import com.umdc.persistence.general.domains.FeatureEntity;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 import java.util.Optional;
@@ -56,4 +59,25 @@ public interface FeatureGraphLookupService {
      * @return the features linked to that role, with the same graph as {@link #findByIdWithGraph}
      */
     List<FeatureEntity> findByRoleIdWithGraph(UUID roleId);
+
+    /**
+     * Server-side paginated catalog search; never loads role links.
+     *
+     * @param q      optional case-insensitive "contains" filter on name or description
+     * @param active optional active filter
+     * @param page   zero-based page index
+     * @param size   page size
+     * @return the requested page of lightweight summaries, ordered by name
+     */
+    Page<FeatureSummary> searchSummaries(String q, Boolean active, int page, int size);
+
+    /**
+     * Roles a feature is linked to, with their application, paginated.
+     *
+     * @param featureId the feature id
+     * @param page      zero-based page index
+     * @param size      page size
+     * @return the requested page, ordered by application and role name
+     */
+    Page<FeatureRoleLink> findRoleLinks(UUID featureId, int page, int size);
 }

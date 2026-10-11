@@ -14,6 +14,9 @@ package com.umdc.backoffice.v1.features.api.controller;
 
 import com.umdc.backoffice.v1.features.api.to.FeatureRequest;
 import com.umdc.backoffice.v1.features.service.FeatureService;
+import com.umdc.backoffice.util.PageResponse;
+import com.umdc.backoffice.v1.features.api.to.FeatureRoleLink;
+import com.umdc.backoffice.v1.features.api.to.FeatureSummary;
 import com.umdc.commons.general.pojo.Feature;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -71,5 +74,15 @@ public class FeatureController implements FeatureApi {
     @Override
     public ResponseEntity<List<Feature>> listByRole(UUID roleId) {
         return featureService.listByRole(roleId);
+    }
+
+    @Override
+    public ResponseEntity<PageResponse<FeatureSummary>> search(String q, Boolean active, int page, int size) {
+        return featureService.search(q, active, page, size);
+    }
+
+    @Override
+    public ResponseEntity<PageResponse<FeatureRoleLink>> listRoles(UUID featureId, int page, int size) {
+        return featureService.listRoles(featureId, page, size);
     }
 }

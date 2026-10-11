@@ -1,5 +1,6 @@
 package com.umdc.backoffice.config;
 
+import com.umdc.backoffice.util.PageResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aot.hint.MemberCategory;
@@ -79,6 +80,9 @@ public class ApiResponseNativeRuntimeHints {
                 throw new IllegalStateException(
                         "Failed to scan '" + DTO_CLASSPATH_PATTERN + "' for native-image reflection hints", e);
             }
+            // Shared pagination envelope lives outside the scanned api/to packages.
+            hints.reflection().registerType(PageResponse.class, FULL_ACCESS);
+            registered++;
             LOGGER.info("Registered native-image reflection hints for {} api/to DTOs", registered);
         }
     }

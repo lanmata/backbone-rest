@@ -28,6 +28,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import com.umdc.backoffice.util.PageResponse;
+import com.umdc.backoffice.v1.features.api.to.FeatureRoleLink;
+import com.umdc.backoffice.v1.features.api.to.FeatureSummary;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -526,5 +531,45 @@ class FeatureServiceImplTest {
             feature.setId(featureEntity.getId());
             return feature;
         }).toList();
+    }
+
+    @Test
+    @DisplayName("Search the feature catalog is paginated and the page size is capped")
+    void searchFeaturesIsPagedAndCapped() {
+        var summary = new FeatureSummary(UUID.randomUUID(), "READ", "desc", true);
+        when(featureGraphLookupService.searchSummaries("rea", true, 0, FeatureServiceImpl.MAX_PAGE_SIZE))
+                .thenReturn(new PageImpl<>(List.of(summary), PageRequest.of(0, FeatureServiceImpl.MAX_PAGE_SIZE), 1));
+
+        ResponseEntity<PageResponse<FeatureSummary>> result = featureServiceImpl.search("rea", true, -1, 5000);
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertEquals(1, result.getBody().totalElements());
+        assertEquals("READ", result.getBody().content().get(0).name());
+    }
+
+    @Test
+    @DisplayName("List the roles a feature is linked to")
+    void listRolesOfFeature() {
+        var featureId = UUID.randomUUID();
+        var link = new FeatureRoleLink(UUID.randomUUID(), "Admin", true, UUID.randomUUID(), "Shop");
+        when(featureGraphLookupService.findByIdWithGraph(featureId)).thenReturn(Optional.of(new FeatureEntity()));
+        when(featureGraphLookupService.findRoleLinks(featureId, 0, 20))
+                .thenReturn(new PageImpl<>(List.of(link), PageRequest.of(0, 20), 1));
+
+        ResponseEntity<PageResponse<FeatureRoleLink>> result = featureServiceImpl.listRoles(featureId, 0, 20);
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertEquals("Shop", result.getBody().content().get(0).applicationName());
+    }
+
+    @Test
+    @DisplayName("List the roles of a null or unknown feature")
+    void listRolesOfMissingFeature() {
+        var featureId = UUID.randomUUID();
+        when(featureGraphLookupService.findByIdWithGraph(featureId)).thenReturn(Optional.empty());
+
+        assertEquals(HttpStatus.BAD_REQUEST, featureServiceImpl.listRoles(null, 0, 20).getStatusCode());
+        assertEquals(HttpStatus.NOT_FOUND, featureServiceImpl.listRoles(featureId, 0, 20).getStatusCode());
+        verify(featureGraphLookupService, never()).findRoleLinks(any(), anyInt(), anyInt());
     }
 }

@@ -13,7 +13,9 @@
 
 package com.umdc.backoffice.v1.contacts.api;
 
+import com.umdc.backoffice.util.PageResponse;
 import com.umdc.backoffice.v1.contacts.api.to.ContactCreateRequest;
+import com.umdc.backoffice.v1.contacts.service.ContactSearchCriteria;
 import com.umdc.backoffice.v1.contacts.service.ContactService;
 import com.umdc.commons.general.pojo.Contact;
 import com.umdc.commons.util.HttpStatusUtil;
@@ -97,32 +99,65 @@ public interface ContactApi {
     }
 
     /**
-     * Lists contacts for a given person by their unique identifier.
+     * Lists the contacts of a person, optionally limited to one application.
      *
-     * @param personId the UUID of the person whose contacts are to be retrieved
-     * @return a ResponseEntity containing the list of contacts associated with the specified person
+     * @param personId      the UUID of the person whose contacts are to be retrieved
+     * @param applicationId optional application filter
+     * @return a ResponseEntity containing the contacts associated with the person
      */
-    @Operation(description = "List contacts by person Id.")
+    @Operation(description = "List contacts by person Id, optionally limited to one application.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "OK")
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/person/{personId}")
-    default ResponseEntity<List<Contact>> list(@PathVariable UUID personId){
-        return getService().listByPersonId(personId);
+    default ResponseEntity<List<Contact>> listByPerson(@PathVariable UUID personId,
+                                                       @RequestParam(required = false) UUID applicationId) {
+        return getService().listByPersonId(personId, applicationId);
     }
 
     /**
-     * Retrieves a list of contacts.
+     * Lists the contacts of an external owner that is neither a person nor an application.
      *
-     * @return a ResponseEntity containing a list of Contact objects and the HTTP response status.
+     * @param ownerType     kind of the owner (e.g. {@code MERCHANT})
+     * @param ownerId       id of the owner
+     * @param applicationId optional application filter
+     * @return a ResponseEntity containing the owner's contacts
      */
-    @Operation(description = "Get a contact list.")
+    @Operation(description = "List contacts of an external owner (e.g. a merchant of an application).")
     @ApiResponses(value = {
             @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "OK")
     })
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/list-all")
-    default ResponseEntity<List<Contact>> list(){
-        return ResponseEntity.status(org.springframework.http.HttpStatus.NOT_IMPLEMENTED).build();
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/owner/{ownerType}/{ownerId}")
+    default ResponseEntity<List<Contact>> listByOwner(@PathVariable String ownerType, @PathVariable UUID ownerId,
+                                                      @RequestParam(required = false) UUID applicationId) {
+        return getService().listByOwner(ownerType, ownerId, applicationId);
+    }
+
+    /**
+     * Paginated contact directory of ONE application. {@code applicationId} is mandatory: contacts are
+     * never listed across applications.
+     *
+     * @param applicationId the owning application (required)
+     * @param contactTypeId optional contact type filter
+     * @param active        optional active filter
+     * @param q             optional case-insensitive "contains" filter on the content
+     * @param page          zero-based page index (default 0)
+     * @param size          page size (default 20, maximum 100)
+     * @return the requested {@link PageResponse}
+     */
+    @Operation(description = "Paginated contact directory of one application (applicationId is mandatory).")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "OK"),
+            @ApiResponse(responseCode = HttpStatusUtil.BAD_REQUEST_STR, description = "applicationId is missing")
+    })
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/")
+    default ResponseEntity<PageResponse<Contact>> search(@RequestParam(required = false) UUID applicationId,
+                                                         @RequestParam(required = false) UUID contactTypeId,
+                                                         @RequestParam(required = false) Boolean active,
+                                                         @RequestParam(required = false) String q,
+                                                         @RequestParam(defaultValue = "0") int page,
+                                                         @RequestParam(defaultValue = "20") int size) {
+        return getService().search(new ContactSearchCriteria(applicationId, contactTypeId, active, q), page, size);
     }
 
     /**
