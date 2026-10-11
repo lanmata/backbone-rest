@@ -18,6 +18,7 @@ import com.umdc.backoffice.v1.contacts.mapper.ContactMapper;
 import com.umdc.backoffice.v1.contacttypes.mapper.ContactTypeMapper;
 import com.umdc.backoffice.v1.application.service.ApplicationGraphLookupService;
 import com.umdc.backoffice.v1.people.service.PersonGraphLookupService;
+import com.umdc.backoffice.util.PageResponse;
 import com.umdc.commons.general.pojo.Contact;
 import com.umdc.commons.general.pojo.ContactType;
 import com.umdc.persistence.general.domains.ApplicationEntity;
@@ -34,6 +35,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -584,7 +587,7 @@ class ContactServiceImplTest {
         UUID contentTypeId = UUID.randomUUID();
         UUID applicationId = UUID.randomUUID();
         ContactCreateRequest request = new ContactCreateRequest(
-                UUID.randomUUID(), "4588569874", contentTypeId, personId, applicationId, true);
+                UUID.randomUUID(), "4588569874", contentTypeId, personId, applicationId, null, null, true);
 
         PersonEntity personEntity = new PersonEntity();
         personEntity.setId(personId);
@@ -628,7 +631,7 @@ class ContactServiceImplTest {
         UUID personId = UUID.randomUUID();
         UUID contentTypeId = UUID.randomUUID();
         ContactCreateRequest request = new ContactCreateRequest(
-                UUID.randomUUID(), "4588569874", contentTypeId, personId, UUID.randomUUID(), true);
+                UUID.randomUUID(), "4588569874", contentTypeId, personId, UUID.randomUUID(), null, null, true);
 
         when(contactTypeRepository.findById(contentTypeId)).thenReturn(Optional.empty());
 
@@ -645,7 +648,7 @@ class ContactServiceImplTest {
     @DisplayName("Test creating a contact from a request with no personId returns 400")
     void testCreate_fromRequest_noPersonId() {
         ContactCreateRequest request = new ContactCreateRequest(
-                UUID.randomUUID(), "4588569874", UUID.randomUUID(), null, UUID.randomUUID(), true);
+                UUID.randomUUID(), "4588569874", UUID.randomUUID(), null, UUID.randomUUID(), null, null, true);
 
         ResponseEntity<Contact> actualCreateResult = contactServiceImpl.create(request);
 
@@ -662,7 +665,7 @@ class ContactServiceImplTest {
         UUID contactId = UUID.randomUUID();
         UUID contentTypeId = UUID.randomUUID();
         ContactCreateRequest request = new ContactCreateRequest(
-                null, "updated-value", contentTypeId, null, null, true);
+                null, "updated-value", contentTypeId, null, null, null, null, true);
 
         ContactTypeEntity contactTypeEntity = new ContactTypeEntity();
         contactTypeEntity.setId(contentTypeId);
@@ -941,5 +944,224 @@ class ContactServiceImplTest {
         ResponseEntity<Contact> response = contactServiceImpl.find(UUID.randomUUID());
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    private ContactCreateRequest ownerRequest(String ownerType, UUID ownerId, UUID applicationId, UUID personId) {
+        return new ContactCreateRequest(null, "merchant@shop.com", UUID.randomUUID(), personId, applicationId,
+                ownerType, ownerId, true);
+    }
+
+    private void stubTypeLookup(ContactCreateRequest request) {
+        ContactTypeEntity typeEntity = new ContactTypeEntity();
+        typeEntity.setId(request.contentTypeId());
+        when(contactTypeRepository.findById(request.contentTypeId())).thenReturn(Optional.of(typeEntity));
+        when(contactTypeMapper.toTarget(typeEntity)).thenReturn(new ContactType());
+    }
+
+    @Test
+    @DisplayName("Create a contact for an external owner (merchant) inside an application")
+    void testCreate_externalOwner_created() {
+        UUID ownerId = UUID.randomUUID();
+        UUID applicationId = UUID.randomUUID();
+        ContactCreateRequest request = ownerRequest("merchant", ownerId, applicationId, null);
+        stubTypeLookup(request);
+        ApplicationEntity application = new ApplicationEntity();
+        application.setId(applicationId);
+        ContactEntity source = new ContactEntity();
+        ContactEntity saved = new ContactEntity();
+        when(applicationGraphLookupService.findByIdSafe(applicationId)).thenReturn(Optional.of(application));
+        when(contactGraphLookupService.findByOwnerWithGraph("MERCHANT", ownerId, applicationId)).thenReturn(List.of());
+        when(contactMapper.toSource(any(Contact.class))).thenReturn(source);
+        when(contactRepository.save(source)).thenReturn(saved);
+        when(contactMapper.toTarget(saved)).thenReturn(new Contact());
+
+        ResponseEntity<Contact> result = contactServiceImpl.create(request);
+
+        assertEquals(HttpStatus.CREATED, result.getStatusCode());
+        assertNull(source.getPerson());
+        assertSame(application, source.getApplication());
+        verifyNoInteractions(personGraphLookupService);
+    }
+
+    @Test
+    @DisplayName("A contact cannot belong to a person and an external owner at once")
+    void testCreate_personAndOwner_badRequest() {
+        ContactCreateRequest request = ownerRequest("MERCHANT", UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID());
+
+        assertEquals(HttpStatus.BAD_REQUEST, contactServiceImpl.create(request).getStatusCode());
+        verifyNoInteractions(contactRepository, contactTypeRepository);
+    }
+
+    @Test
+    @DisplayName("An external owner requires ownerType, ownerId and applicationId")
+    void testCreate_incompleteOwner_badRequest() {
+        assertEquals(HttpStatus.BAD_REQUEST,
+                contactServiceImpl.create(ownerRequest("MERCHANT", UUID.randomUUID(), null, null)).getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST,
+                contactServiceImpl.create(ownerRequest(" ", UUID.randomUUID(), UUID.randomUUID(), null)).getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST,
+                contactServiceImpl.create(ownerRequest("MERCHANT", null, UUID.randomUUID(), null)).getStatusCode());
+        verifyNoInteractions(contactRepository);
+    }
+
+    @Test
+    @DisplayName("ownerType must be a short identifier")
+    void testCreate_invalidOwnerType_badRequest() {
+        ContactCreateRequest request = ownerRequest("bad type!", UUID.randomUUID(), UUID.randomUUID(), null);
+
+        assertEquals(HttpStatus.BAD_REQUEST, contactServiceImpl.create(request).getStatusCode());
+        verifyNoInteractions(contactRepository);
+    }
+
+    @Test
+    @DisplayName("Create for an external owner of an unknown application returns 404")
+    void testCreate_externalOwner_applicationNotFound() {
+        UUID applicationId = UUID.randomUUID();
+        ContactCreateRequest request = ownerRequest("MERCHANT", UUID.randomUUID(), applicationId, null);
+        stubTypeLookup(request);
+        when(applicationGraphLookupService.findByIdSafe(applicationId)).thenReturn(Optional.empty());
+
+        assertEquals(HttpStatus.NOT_FOUND, contactServiceImpl.create(request).getStatusCode());
+        verify(contactRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Create for an external owner rejects the same content in the same application")
+    void testCreate_externalOwner_duplicate() {
+        UUID ownerId = UUID.randomUUID();
+        UUID applicationId = UUID.randomUUID();
+        ContactCreateRequest request = ownerRequest("MERCHANT", ownerId, applicationId, null);
+        stubTypeLookup(request);
+        ApplicationEntity application = new ApplicationEntity();
+        application.setId(applicationId);
+        ContactEntity existing = new ContactEntity();
+        existing.setId(UUID.randomUUID());
+        existing.setContent("MERCHANT@shop.com");
+        existing.setApplication(application);
+        when(applicationGraphLookupService.findByIdSafe(applicationId)).thenReturn(Optional.of(application));
+        when(contactGraphLookupService.findByOwnerWithGraph("MERCHANT", ownerId, applicationId))
+                .thenReturn(List.of(existing));
+
+        assertEquals(HttpStatus.CONFLICT, contactServiceImpl.create(request).getStatusCode());
+        verify(contactRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("The contact limit is counted per application, not across all of a person's applications")
+    void testCreate_limitIsPerApplication() {
+        ReflectionTestUtils.setField(contactServiceImpl, "contactLimit", 1);
+        UUID personId = UUID.randomUUID();
+        UUID applicationA = UUID.randomUUID();
+        UUID applicationB = UUID.randomUUID();
+        ApplicationEntity appA = new ApplicationEntity();
+        appA.setId(applicationA);
+        ApplicationEntity appB = new ApplicationEntity();
+        appB.setId(applicationB);
+        ContactEntity inA = new ContactEntity();
+        inA.setId(UUID.randomUUID());
+        inA.setContent("a@a.com");
+        inA.setApplication(appA);
+        ContactCreateRequest request = new ContactCreateRequest(null, "b@b.com", UUID.randomUUID(), personId,
+                applicationB, null, null, true);
+        stubTypeLookup(request);
+        PersonEntity person = new PersonEntity();
+        person.setId(personId);
+        ContactEntity source = new ContactEntity();
+        ContactEntity saved = new ContactEntity();
+        when(personGraphLookupService.findByIdSafe(personId)).thenReturn(Optional.of(person));
+        when(applicationGraphLookupService.findByIdSafe(applicationB)).thenReturn(Optional.of(appB));
+        when(contactGraphLookupService.findByPersonIdWithGraph(personId)).thenReturn(List.of(inA));
+        when(contactMapper.toSource(any(Contact.class))).thenReturn(source);
+        when(contactRepository.save(source)).thenReturn(saved);
+        when(contactMapper.toTarget(saved)).thenReturn(new Contact());
+
+        assertEquals(HttpStatus.CREATED, contactServiceImpl.create(request).getStatusCode());
+
+        ContactCreateRequest sameApp = new ContactCreateRequest(null, "c@c.com", request.contentTypeId(), personId,
+                applicationA, null, null, true);
+        when(applicationGraphLookupService.findByIdSafe(applicationA)).thenReturn(Optional.of(appA));
+
+        assertEquals(HttpStatus.NOT_ACCEPTABLE, contactServiceImpl.create(sameApp).getStatusCode());
+    }
+
+    @Test
+    @DisplayName("Updating an external-owner contact checks duplicates among that owner's contacts")
+    void testUpdate_externalOwner_duplicate() {
+        UUID contactId = UUID.randomUUID();
+        UUID ownerId = UUID.randomUUID();
+        UUID applicationId = UUID.randomUUID();
+        ApplicationEntity application = new ApplicationEntity();
+        application.setId(applicationId);
+        ContactEntity target = new ContactEntity();
+        target.setId(contactId);
+        target.setOwnerType("MERCHANT");
+        target.setOwnerId(ownerId);
+        target.setApplication(application);
+        ContactEntity other = new ContactEntity();
+        other.setId(UUID.randomUUID());
+        other.setContent("dup@shop.com");
+        other.setApplication(application);
+        Contact update = new Contact();
+        update.setContent("DUP@shop.com");
+        when(contactGraphLookupService.findByIdWithGraph(contactId)).thenReturn(Optional.of(target));
+        when(contactGraphLookupService.findByOwnerWithGraph("MERCHANT", ownerId, applicationId))
+                .thenReturn(List.of(target, other));
+
+        assertEquals(HttpStatus.CONFLICT, contactServiceImpl.update(contactId, update).getStatusCode());
+    }
+
+    @Test
+    @DisplayName("List a person's contacts limited to one application")
+    void testListByPersonId_forApplication() {
+        UUID personId = UUID.randomUUID();
+        UUID applicationId = UUID.randomUUID();
+        ContactEntity entity = new ContactEntity();
+        when(contactGraphLookupService.findByPersonIdWithGraph(personId, applicationId)).thenReturn(List.of(entity));
+        when(contactMapper.toTarget(entity)).thenReturn(new Contact());
+
+        ResponseEntity<List<Contact>> result = contactServiceImpl.listByPersonId(personId, applicationId);
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertEquals(1, result.getBody().size());
+    }
+
+    @Test
+    @DisplayName("List an external owner's contacts normalizes the owner type")
+    void testListByOwner() {
+        UUID ownerId = UUID.randomUUID();
+        when(contactGraphLookupService.findByOwnerWithGraph("MERCHANT", ownerId, null)).thenReturn(List.of());
+
+        ResponseEntity<List<Contact>> result = contactServiceImpl.listByOwner("merchant", ownerId, null);
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertTrue(result.getBody().isEmpty());
+        assertEquals(HttpStatus.BAD_REQUEST, contactServiceImpl.listByOwner(" ", ownerId, null).getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST, contactServiceImpl.listByOwner("MERCHANT", null, null).getStatusCode());
+    }
+
+    @Test
+    @DisplayName("The contact directory requires an application and never lists across applications")
+    void testSearch_requiresApplication() {
+        assertEquals(HttpStatus.BAD_REQUEST,
+                contactServiceImpl.search(new ContactSearchCriteria(null, null, null, null), 0, 20).getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST, contactServiceImpl.search(null, 0, 20).getStatusCode());
+        verifyNoInteractions(contactGraphLookupService);
+    }
+
+    @Test
+    @DisplayName("The contact directory is paginated and the page size is capped")
+    void testSearch_pagedAndCapped() {
+        ContactSearchCriteria criteria = new ContactSearchCriteria(UUID.randomUUID(), null, true, "mail");
+        ContactEntity entity = new ContactEntity();
+        when(contactGraphLookupService.search(eq(criteria), eq(0), eq(ContactServiceImpl.MAX_PAGE_SIZE)))
+                .thenReturn(new PageImpl<>(List.of(entity), PageRequest.of(0, ContactServiceImpl.MAX_PAGE_SIZE), 1));
+        when(contactMapper.toTarget(entity)).thenReturn(new Contact());
+
+        ResponseEntity<PageResponse<Contact>> result = contactServiceImpl.search(criteria, -5, 100000);
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertEquals(1, result.getBody().totalElements());
+        assertEquals(1, result.getBody().content().size());
+        assertEquals(0, result.getBody().page());
     }
 }

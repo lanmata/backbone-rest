@@ -13,6 +13,9 @@
 
 package com.umdc.backoffice.v1.features.service;
 
+import com.umdc.backoffice.util.PageResponse;
+import com.umdc.backoffice.v1.features.api.to.FeatureRoleLink;
+import com.umdc.backoffice.v1.features.api.to.FeatureSummary;
 import com.umdc.commons.services.CrudService;
 import com.umdc.commons.general.pojo.Feature;
 import org.apache.commons.lang3.NotImplementedException;
@@ -93,6 +96,32 @@ public interface FeatureService extends CrudService <UUID, Feature> {
      * @return {@link ResponseEntity}<{@link List}<{@link Feature}>> object type.
      */
     default ResponseEntity<List<Feature>> listByRole(UUID roleId) {
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Paginated, filtered feature catalog (lightweight summaries). Use it to pick features while creating a
+     * role; never list the whole catalog.
+     *
+     * @param q      optional case-insensitive "contains" filter on name or description
+     * @param active optional active filter
+     * @param page   zero-based page index
+     * @param size   page size (capped by the service)
+     * @return the requested {@link PageResponse}
+     */
+    default ResponseEntity<PageResponse<FeatureSummary>> search(String q, Boolean active, int page, int size) {
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Roles (and their applications) a feature is linked to, paginated.
+     *
+     * @param featureId the feature id
+     * @param page      zero-based page index
+     * @param size      page size (capped by the service)
+     * @return the requested {@link PageResponse}
+     */
+    default ResponseEntity<PageResponse<FeatureRoleLink>> listRoles(UUID featureId, int page, int size) {
         throw new NotImplementedException();
     }
 }

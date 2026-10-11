@@ -25,8 +25,12 @@ import java.util.UUID;
  * @param id             optional client-supplied contact id
  * @param content        the contact value (phone number, email, etc.)
  * @param contentTypeId  the id of the existing {@code ContactType} this contact belongs to
- * @param personId       the id of the person this contact belongs to
- * @param applicationId  the id of the owning application
+ * @param personId       the id of the person this contact belongs to (mutually exclusive with
+ *                       {@code ownerType}/{@code ownerId})
+ * @param applicationId  the id of the owning application (mandatory for external owners)
+ * @param ownerType      kind of an external owner that is neither a person nor an application
+ *                       (e.g. {@code MERCHANT}); requires {@code ownerId} and {@code applicationId}
+ * @param ownerId        id of the external owner, in the namespace of {@code applicationId}
  * @param active         whether the contact is active
  */
 public record ContactCreateRequest(
@@ -35,6 +39,8 @@ public record ContactCreateRequest(
         UUID contentTypeId,
         UUID personId,
         UUID applicationId,
+        String ownerType,
+        UUID ownerId,
         Boolean active
 ) {
 }

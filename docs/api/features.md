@@ -7,7 +7,38 @@
 |-----------|--------|-------------|
 | OAuth2 Bearer JWT | `Authorization: Bearer <jwt>` | All endpoints |
 
+> **Scalability rule.** The feature catalog grows with every application using backbone and a feature is only meaningful through the **roles** it is linked to (an application owns its roles, a role links one or more features). It is therefore **never listed whole**: use the paginated search (`GET /?q=`) only while creating a role, and `GET /{featureId}/roles` to know which roles (and applications) use a feature. `GET /{includeInactive}` is **deprecated**.
+
 Features are fine-grained capability flags grouped into Roles. A Feature has a unique name (e.g. `EXPORT_REPORTS`), an optional description, and an active flag. Features are linked to Roles — not directly to Users. A User inherits features through their assigned roles.
+
+---
+
+## 🟢 GET /api/v1/features/
+
+> Paginated, filtered catalog of lightweight summaries (no role links). Meant to pick features while creating a role.
+
+| Query | Required | Description |
+|-------|----------|-------------|
+| `q` | — | Case-insensitive "contains" filter on name or description (`%` and `_` are literal) |
+| `active` | — | Filter by status |
+| `page` | — | Zero-based page, default `0` |
+| `size` | — | Page size, default `20`, maximum `50` |
+
+```json
+{ "content": [ { "id": "…", "name": "EXPORT_REPORTS", "description": "…", "active": true } ],
+  "page": 0, "size": 20, "totalElements": 312, "totalPages": 16 }
+```
+
+---
+
+## 🟢 GET /api/v1/features/{featureId}/roles
+
+> Roles, with the application that owns each, a feature is linked to (paginated with `page`/`size`, max 50). `404` when the feature does not exist.
+
+```json
+{ "content": [ { "roleId": "…", "roleName": "Admin", "roleActive": true, "applicationId": "…", "applicationName": "shop-index" } ],
+  "page": 0, "size": 20, "totalElements": 2, "totalPages": 1 }
+```
 
 ---
 
@@ -56,6 +87,8 @@ curl -k -X GET \
 ---
 
 ## 🟢 GET /api/v1/features/{includeInactive}
+
+> ⚠️ **Deprecated** — unbounded listing of the whole catalog. Use `GET /api/v1/features/?q=&page=&size=`.
 
 > List features filtered by their active status.
 

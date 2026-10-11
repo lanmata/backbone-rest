@@ -14,6 +14,9 @@ package com.umdc.backoffice.v1.features.service;
 
 import com.umdc.backoffice.constant.keys.RoleMessageKey;
 import com.umdc.backoffice.util.MessageUtil;
+import com.umdc.backoffice.util.PageResponse;
+import com.umdc.backoffice.v1.features.api.to.FeatureRoleLink;
+import com.umdc.backoffice.v1.features.api.to.FeatureSummary;
 import com.umdc.backoffice.v1.features.mapper.FeatureMapper;
 import com.umdc.backoffice.v1.rolefeatures.service.RoleFeatureLinkService;
 import com.umdc.backoffice.v1.roles.service.RoleGraphLookupService;
@@ -41,6 +44,8 @@ import static com.umdc.commons.util.ValidatorCommonsUtil.esNulo;
  */
 @Service
 public class FeatureServiceImpl implements FeatureService {
+
+	static final int MAX_PAGE_SIZE = 50;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(FeatureServiceImpl.class);
 
@@ -151,6 +156,30 @@ public class FeatureServiceImpl implements FeatureService {
 		} else {
 			return ResponseEntity.ok(sort(featureListResult));
 		}
+	}
+
+	/** {@inheritDoc} */
+	@Override
+	public ResponseEntity<PageResponse<FeatureSummary>> search(String q, Boolean active, int page, int size) {
+		final var result = featureGraphLookupService.searchSummaries(q, active, Math.max(page, 0), boundedSize(size));
+		return ResponseEntity.ok(PageResponse.of(result));
+	}
+
+	/** {@inheritDoc} */
+	@Override
+	public ResponseEntity<PageResponse<FeatureRoleLink>> listRoles(UUID featureId, int page, int size) {
+		if (Objects.isNull(featureId)) {
+			return ResponseEntity.badRequest().build();
+		}
+		if (featureGraphLookupService.findByIdWithGraph(featureId).isEmpty()) {
+			return ResponseEntity.notFound().build();
+		}
+		final var result = featureGraphLookupService.findRoleLinks(featureId, Math.max(page, 0), boundedSize(size));
+		return ResponseEntity.ok(PageResponse.of(result));
+	}
+
+	private static int boundedSize(int size) {
+		return Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
 	}
 
 	/** {@inheritDoc} */

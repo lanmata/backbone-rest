@@ -11,7 +11,14 @@
 | Content-Type | `application/json` |
 | Response header | `X-Message` — human-readable status |
 
-A **Contact** is a communication entry (phone number, email address, postal address) linked to a **Person**. One person can have many contacts of different types.
+A **Contact** is a communication entry (phone number, email address, messaging account) that belongs to exactly **one subject**, inside an **application**:
+
+| Subject | Identified by | Typical use |
+|---------|---------------|-------------|
+| A person | `personId` | A user's contacts; the same person can hold different contacts in different applications |
+| An external owner (neither a person nor an application) | `ownerType` + `ownerId` + `applicationId` | A merchant of a commerce-index application, a branch, a supplier… |
+
+> **Scalability rule.** Contacts grow with every application using backbone, so they are **never listed across applications**. Every listing is scoped: by person (`/person/{id}`), by external owner (`/owner/{type}/{id}`) or by application (`GET /?applicationId=`, server-side paginated). The contact limit (`app.environments.contact.limit`) and the duplicate check apply **per subject and per application**.
 
 ---
 
@@ -30,17 +37,22 @@ A **Contact** is a communication entry (phone number, email address, postal addr
 
 | Field | Type | Required | Constraints | Description |
 |-------|------|----------|-------------|-------------|
-| `personId` | `UUID` | ✅ | Valid UUID | The person this contact belongs to |
-| `contactTypeId` | `UUID` | ✅ | Valid UUID | Reference to a contact type |
-| `value` | `string` | ✅ | Non-empty | The contact value (e.g. phone number, email) |
-| `primary` | `boolean` | — | Default `false` | Whether this is the person's primary contact |
+| `contentTypeId` | `UUID` | ✅ | Existing contact type | Reference to a contact type |
+| `content` | `string` | ✅ | Non-empty | The contact value (e.g. phone number, email) |
+| `personId` | `UUID` | one of | Valid UUID | Subject = a person. Mutually exclusive with `ownerType`/`ownerId` |
+| `ownerType` | `string` | one of | `^[A-Za-z][A-Za-z0-9_-]{1,49}$`, stored upper-case | Subject = an external owner (e.g. `MERCHANT`) |
+| `ownerId` | `UUID` | with `ownerType` | Valid UUID | Id of the external owner in the namespace of `applicationId` |
+| `applicationId` | `UUID` | for owners | Existing application | Application the contact belongs to (optional for persons) |
+| `active` | `boolean` | — | | Whether the contact is active |
 
 ```json
 {
-  "personId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-  "contactTypeId": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
-  "value": "+1-555-0100",
-  "primary": true
+  "content": "+1-555-0100",
+  "contentTypeId": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+  "ownerType": "MERCHANT",
+  "ownerId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "applicationId": "d4e5f6a7-b8c9-0123-def0-123456789abc",
+  "active": true
 }
 ```
 
@@ -248,6 +260,8 @@ curl -k -s -X GET \
 
 ## 🟢 GET /api/v1/contacts/person/{personId}
 
+> Optional `?applicationId=` limits the result to one application.
+
 > Retrieve all contacts belonging to a specific person.
 
 ### 🛤️ Path Parameters
@@ -293,26 +307,29 @@ curl -k -s -X GET \
 
 ---
 
-## 🟢 GET /api/v1/contacts/list-all
+## 🟢 GET /api/v1/contacts/?applicationId=
 
-> List all contacts across all persons.
+> Paginated contact directory of **one application** (persons' and external owners' contacts). Replaces the removed `GET /list-all`.
 
-> [!CAUTION]
-> This endpoint is **not implemented** and will always return `501 Not Implemented`. Do not call it in production.
+| Query | Required | Description |
+|-------|----------|-------------|
+| `applicationId` | ✅ | The application. `400` when missing |
+| `contactTypeId` | — | Filter by contact type |
+| `active` | — | Filter by status |
+| `q` | — | Case-insensitive "contains" filter on the content (`%` and `_` are literal) |
+| `page` | — | Zero-based page, default `0` |
+| `size` | — | Page size, default `20`, maximum `100` |
 
-### 📡 Responses
-
-| Status | Meaning | When |
-|--------|---------|------|
-| `501 Not Implemented` | Stub | Endpoint is planned but not yet active |
-
-### 💡 Example
-
-```bash
-curl -k -s -X GET https://<host>:8084/api/v1/contacts/list-all \
-  -H "Authorization: Bearer <oauth2-jwt>"
-# Always returns 501
+```json
+{ "content": [ { "id": "…", "content": "shop@a.com", "ownerType": "MERCHANT", "ownerId": "…", "applicationId": "…", "active": true } ],
+  "page": 0, "size": 20, "totalElements": 134, "totalPages": 7 }
 ```
+
+---
+
+## 🟢 GET /api/v1/contacts/owner/{ownerType}/{ownerId}
+
+> Contacts of an external owner, optionally limited with `?applicationId=`. Bounded by the per-application contact limit. `400` when `ownerType`/`ownerId` is blank.
 
 ---
 

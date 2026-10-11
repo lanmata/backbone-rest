@@ -17,9 +17,14 @@ import com.umdc.persistence.general.domains.ContactEntity;
 import com.umdc.persistence.general.repositories.ContactRepository;
 import jakarta.persistence.EntityGraph;
 import jakarta.persistence.EntityManager;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -56,6 +61,17 @@ public class ContactGraphLookupServiceImpl implements ContactGraphLookupService 
     private static final String FIND_BY_PERSON_ID =
             "SELECT ce FROM ContactEntity ce WHERE ce.person.id = :personId ORDER BY ce.contactType.name";
 
+    private static final String ORDER_BY = " ORDER BY ce.contactType.name, ce.content, ce.id";
+
+    private static final String FIND_BY_PERSON_AND_APPLICATION =
+            "SELECT ce FROM ContactEntity ce WHERE ce.person.id = :personId AND ce.application.id = :applicationId"
+                    + ORDER_BY;
+
+    private static final String FIND_BY_OWNER =
+            "SELECT ce FROM ContactEntity ce WHERE ce.ownerType = :ownerType AND ce.ownerId = :ownerId";
+
+    private static final String SEARCH_FROM = " FROM ContactEntity ce WHERE ce.application.id = :applicationId";
+
     private final EntityManager entityManager;
 
     /**
@@ -86,6 +102,70 @@ public class ContactGraphLookupServiceImpl implements ContactGraphLookupService 
                 .setParameter("personId", personId)
                 .setHint(FETCH_GRAPH_HINT, buildGraph())
                 .getResultList();
+    }
+
+    @Override
+    public List<ContactEntity> findByPersonIdWithGraph(UUID personId, UUID applicationId) {
+        if (applicationId == null) {
+            return findByPersonIdWithGraph(personId);
+        }
+        return entityManager.createQuery(FIND_BY_PERSON_AND_APPLICATION, ContactEntity.class)
+                .setParameter("personId", personId)
+                .setParameter("applicationId", applicationId)
+                .setHint(FETCH_GRAPH_HINT, buildGraph())
+                .getResultList();
+    }
+
+    @Override
+    public List<ContactEntity> findByOwnerWithGraph(String ownerType, UUID ownerId, UUID applicationId) {
+        String jpql = FIND_BY_OWNER + (applicationId == null ? "" : " AND ce.application.id = :applicationId")
+                + ORDER_BY;
+        var query = entityManager.createQuery(jpql, ContactEntity.class)
+                .setParameter("ownerType", ownerType)
+                .setParameter("ownerId", ownerId);
+        if (applicationId != null) {
+            query.setParameter("applicationId", applicationId);
+        }
+        return query.setHint(FETCH_GRAPH_HINT, buildGraph()).getResultList();
+    }
+
+    @Override
+    public Page<ContactEntity> search(ContactSearchCriteria criteria, int page, int size) {
+        // Only the filters actually supplied are added: binding a null parameter to
+        // "(:p IS NULL OR ...)" is rejected by PostgreSQL ("could not determine data type").
+        StringBuilder where = new StringBuilder(256);
+        List<Object[]> params = new ArrayList<>();
+        params.add(new Object[] {"applicationId", criteria.applicationId()});
+        if (criteria.contactTypeId() != null) {
+            where.append(" AND ce.contactType.id = :contactTypeId");
+            params.add(new Object[] {"contactTypeId", criteria.contactTypeId()});
+        }
+        if (criteria.active() != null) {
+            where.append(" AND ce.active = :active");
+            params.add(new Object[] {"active", criteria.active()});
+        }
+        if (criteria.q() != null && !criteria.q().isBlank()) {
+            where.append(" AND LOWER(ce.content) LIKE :q ESCAPE '\\'");
+            params.add(new Object[] {"q", "%" + escapeLike(criteria.q().trim().toLowerCase(Locale.ROOT)) + "%"});
+        }
+
+        var count = entityManager.createQuery("SELECT COUNT(ce)" + SEARCH_FROM + where, Long.class);
+        var select = entityManager.createQuery("SELECT ce" + SEARCH_FROM + where + ORDER_BY, ContactEntity.class);
+        for (Object[] param : params) {
+            count.setParameter((String) param[0], param[1]);
+            select.setParameter((String) param[0], param[1]);
+        }
+        long total = count.getSingleResult();
+        List<ContactEntity> content = select
+                .setFirstResult(page * size)
+                .setMaxResults(size)
+                .setHint(FETCH_GRAPH_HINT, buildGraph())
+                .getResultList();
+        return new PageImpl<>(content, PageRequest.of(page, size), total);
+    }
+
+    private static String escapeLike(String value) {
+        return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
     }
 
     private EntityGraph<ContactEntity> buildGraph() {

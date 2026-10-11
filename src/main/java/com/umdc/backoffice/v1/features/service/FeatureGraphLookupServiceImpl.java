@@ -13,15 +13,21 @@
 
 package com.umdc.backoffice.v1.features.service;
 
+import com.umdc.backoffice.v1.features.api.to.FeatureRoleLink;
+import com.umdc.backoffice.v1.features.api.to.FeatureSummary;
 import com.umdc.persistence.general.domains.FeatureEntity;
 import com.umdc.persistence.general.domains.RoleFeatureEntity;
 import com.umdc.persistence.general.repositories.FeatureRepository;
 import jakarta.persistence.EntityGraph;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Subgraph;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -140,6 +146,57 @@ public class FeatureGraphLookupServiceImpl implements FeatureGraphLookupService 
                 .setParameter("roleId", roleId)
                 .setHint(FETCH_GRAPH_HINT, buildGraph())
                 .getResultList();
+    }
+
+    @Override
+    public Page<FeatureSummary> searchSummaries(String q, Boolean active, int page, int size) {
+        StringBuilder where = new StringBuilder(256).append(" WHERE 1 = 1");
+        boolean hasQuery = q != null && !q.isBlank();
+        if (active != null) {
+            where.append(" AND f.active = :active");
+        }
+        if (hasQuery) {
+            where.append(" AND (LOWER(f.name) LIKE :q ESCAPE '\\' OR LOWER(f.description) LIKE :q ESCAPE '\\')");
+        }
+        var count = entityManager.createQuery("SELECT COUNT(f) FROM FeatureEntity f" + where, Long.class);
+        var select = entityManager.createQuery(
+                "SELECT new com.umdc.backoffice.v1.features.api.to.FeatureSummary("
+                        + "f.id, f.name, f.description, f.active) FROM FeatureEntity f" + where
+                        + " ORDER BY f.name, f.id", FeatureSummary.class);
+        if (active != null) {
+            count.setParameter("active", active);
+            select.setParameter("active", active);
+        }
+        if (hasQuery) {
+            String pattern = "%" + escapeLike(q.trim().toLowerCase(Locale.ROOT)) + "%";
+            count.setParameter("q", pattern);
+            select.setParameter("q", pattern);
+        }
+        long total = count.getSingleResult();
+        var content = select.setFirstResult(page * size).setMaxResults(size).getResultList();
+        return new PageImpl<>(content, PageRequest.of(page, size), total);
+    }
+
+    @Override
+    public Page<FeatureRoleLink> findRoleLinks(UUID featureId, int page, int size) {
+        long total = entityManager.createQuery(
+                        "SELECT COUNT(rf) FROM RoleFeatureEntity rf WHERE rf.feature.id = :featureId", Long.class)
+                .setParameter("featureId", featureId)
+                .getSingleResult();
+        var content = entityManager.createQuery(
+                        "SELECT new com.umdc.backoffice.v1.features.api.to.FeatureRoleLink("
+                                + "r.id, r.name, r.active, a.id, a.name) FROM RoleFeatureEntity rf "
+                                + "JOIN rf.role r JOIN r.application a WHERE rf.feature.id = :featureId "
+                                + "ORDER BY a.name, r.name, r.id", FeatureRoleLink.class)
+                .setParameter("featureId", featureId)
+                .setFirstResult(page * size)
+                .setMaxResults(size)
+                .getResultList();
+        return new PageImpl<>(content, PageRequest.of(page, size), total);
+    }
+
+    private static String escapeLike(String value) {
+        return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
     }
 
     private EntityGraph<FeatureEntity> buildGraph() {

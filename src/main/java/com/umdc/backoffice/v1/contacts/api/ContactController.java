@@ -13,10 +13,11 @@
 
 package com.umdc.backoffice.v1.contacts.api;
 
+import com.umdc.backoffice.util.PageResponse;
 import com.umdc.backoffice.v1.contacts.api.to.ContactCreateRequest;
+import com.umdc.backoffice.v1.contacts.service.ContactSearchCriteria;
 import com.umdc.backoffice.v1.contacts.service.ContactService;
 import com.umdc.commons.general.pojo.Contact;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -62,13 +63,21 @@ public class ContactController implements ContactApi {
     }
 
     @Override
-    public ResponseEntity<List<Contact>> list(UUID personId) {
-        return contactService.listByPersonId(personId);
+    public ResponseEntity<List<Contact>> listByPerson(final UUID personId, final UUID applicationId) {
+        return contactService.listByPersonId(personId, applicationId);
     }
 
     @Override
-    public ResponseEntity<List<Contact>> list() {
-        return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+    public ResponseEntity<List<Contact>> listByOwner(final String ownerType, final UUID ownerId,
+                                                     final UUID applicationId) {
+        return contactService.listByOwner(ownerType, ownerId, applicationId);
+    }
+
+    @Override
+    public ResponseEntity<PageResponse<Contact>> search(final UUID applicationId, final UUID contactTypeId,
+                                                        final Boolean active, final String q, final int page,
+                                                        final int size) {
+        return contactService.search(new ContactSearchCriteria(applicationId, contactTypeId, active, q), page, size);
     }
 
     @Override

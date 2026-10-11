@@ -81,7 +81,9 @@ CREATE TABLE general.contact (
     active          BOOLEAN      NOT NULL,
     contact_type_id UUID REFERENCES general.contact_type (id),
     person_id       UUID REFERENCES general.person (id),
-    application_id  UUID REFERENCES general.application (id)
+    application_id  UUID REFERENCES general.application (id),
+    owner_type      VARCHAR(50),
+    owner_id        UUID
 );
 
 CREATE TABLE general.application_role_user (

@@ -13,6 +13,7 @@
 
 package com.umdc.backoffice.v1.contacts.service;
 
+import com.umdc.backoffice.util.PageResponse;
 import com.umdc.backoffice.v1.contacts.api.to.ContactCreateRequest;
 import com.umdc.commons.general.pojo.Contact;
 import com.umdc.commons.services.CrudService;
@@ -101,6 +102,42 @@ public interface ContactService extends CrudService<UUID, Contact> {
      * @return {@link ResponseEntity} object type with a {@link Contact} object type.
      */
     default ResponseEntity<List<Contact>> listByPersonId(UUID personId) {
+        throw new NotImplementedException();
+    }
+
+    /**
+     * List the contacts of a person, optionally limited to one application.
+     *
+     * @param personId      {@link UUID} of the person.
+     * @param applicationId {@link UUID} of the application, or {@code null} for every application.
+     * @return {@link ResponseEntity} with the person's contacts.
+     */
+    default ResponseEntity<List<Contact>> listByPersonId(UUID personId, UUID applicationId) {
+        throw new NotImplementedException();
+    }
+
+    /**
+     * List the contacts of an external owner (neither a person nor an application).
+     *
+     * @param ownerType     kind of the owner, e.g. {@code MERCHANT}.
+     * @param ownerId       {@link UUID} of the owner.
+     * @param applicationId {@link UUID} of the application, or {@code null} for every application.
+     * @return {@link ResponseEntity} with the owner's contacts.
+     */
+    default ResponseEntity<List<Contact>> listByOwner(String ownerType, UUID ownerId, UUID applicationId) {
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Paginated, filtered contact directory of a single application. Contacts are never listed
+     * across applications.
+     *
+     * @param criteria the filters; {@code applicationId} is mandatory.
+     * @param page     zero-based page index.
+     * @param size     page size (capped by the service).
+     * @return {@link ResponseEntity} with the requested {@link PageResponse}.
+     */
+    default ResponseEntity<PageResponse<Contact>> search(ContactSearchCriteria criteria, int page, int size) {
         throw new NotImplementedException();
     }
 

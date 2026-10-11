@@ -15,6 +15,9 @@ package com.umdc.backoffice.v1.features.api.controller;
 
 import com.umdc.backoffice.v1.features.service.FeatureService;
 import com.umdc.backoffice.v1.features.api.to.FeatureRequest;
+import com.umdc.backoffice.util.PageResponse;
+import com.umdc.backoffice.v1.features.api.to.FeatureRoleLink;
+import com.umdc.backoffice.v1.features.api.to.FeatureSummary;
 import com.umdc.commons.general.pojo.Feature;
 import com.umdc.commons.util.HttpStatusUtil;
 import io.swagger.v3.oas.annotations.Operation;
@@ -65,7 +68,8 @@ public interface FeatureApi {
      * @param includeInactive a boolean indicating whether to include inactive features in the result
      * @return a {@link ResponseEntity} containing a list of {@link Feature} objects
      */
-    @Operation(description = "Get a list of active and/or inactive features.")
+    @Operation(description = "DEPRECATED - unbounded full catalog listing. Use GET /features/?q=&page=&size= instead.",
+            deprecated = true)
     @ApiResponses(value = {
             @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "OK"),
             @ApiResponse(responseCode = HttpStatusUtil.NOT_FOUND_STR, description = "NOT FOUND")
@@ -93,6 +97,48 @@ public interface FeatureApi {
                                                @PathVariable boolean includeInactive,
                                                @Parameter(description = "Features id list") @PathVariable List<String> featuresIds){
         return getService().list(featuresIds,includeInactive);
+    }
+
+    /**
+     * Paginated, filtered feature catalog. Meant for picking features while creating a role; the catalog can
+     * grow with every application using backbone, so it is never returned whole.
+     *
+     * @param q      optional case-insensitive "contains" filter on name or description
+     * @param active optional active filter
+     * @param page   zero-based page index (default 0)
+     * @param size   page size (default 20, maximum 50)
+     * @return the requested {@link PageResponse}
+     */
+    @Operation(description = "Paginated feature catalog search (lightweight summaries, no role links).")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "OK")
+    })
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/")
+    default ResponseEntity<PageResponse<FeatureSummary>> search(@RequestParam(required = false) String q,
+                                                                @RequestParam(required = false) Boolean active,
+                                                                @RequestParam(defaultValue = "0") int page,
+                                                                @RequestParam(defaultValue = "20") int size) {
+        return getService().search(q, active, page, size);
+    }
+
+    /**
+     * Roles (with their application) a feature is linked to.
+     *
+     * @param featureId the feature id
+     * @param page      zero-based page index (default 0)
+     * @param size      page size (default 20, maximum 50)
+     * @return the requested {@link PageResponse}
+     */
+    @Operation(description = "Roles, and the applications that own them, a feature is linked to.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "OK"),
+            @ApiResponse(responseCode = HttpStatusUtil.NOT_FOUND_STR, description = "Feature not found")
+    })
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE, path = "/{featureId}/roles")
+    default ResponseEntity<PageResponse<FeatureRoleLink>> listRoles(@PathVariable UUID featureId,
+                                                                    @RequestParam(defaultValue = "0") int page,
+                                                                    @RequestParam(defaultValue = "20") int size) {
+        return getService().listRoles(featureId, page, size);
     }
 
     /**
