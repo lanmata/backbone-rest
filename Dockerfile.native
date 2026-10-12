@@ -81,10 +81,15 @@ COPY certs/backbone ./certs/backbone
 # compile, slower peak throughput at runtime. For local smoke-test images only — leave it at the
 # default (false) for anything that gets deployed:
 # `docker build --build-arg NATIVE_QUICK_BUILD=true -f Dockerfile.native ...`
+#
+# The com.umdc artifacts (commons, persistence, ...) are purged from the cache mount first: Maven
+# never re-downloads a release it already has, so a re-published 0.0.x would otherwise keep
+# compiling against the stale jar left in the maven-repo cache.
 ARG NATIVE_QUICK_BUILD=false
 RUN --mount=type=secret,id=maven_settings,target=/root/.m2/settings.xml \
     --mount=type=cache,id=maven-repo,target=/root/.m2/repository,sharing=locked \
-    sh -c 'set -a; . ./config/native.env; set +a; \
+    sh -c 'rm -rf /root/.m2/repository/com/umdc; \
+    set -a; . ./config/native.env; set +a; \
     mvn -Pnative -B -Dmaven.test.skip=true -Dpmd.skip=true -Dcpd.skip=true -Djacoco.skip=true \
         -DquickBuild="${NATIVE_QUICK_BUILD}" package native:compile'
 
