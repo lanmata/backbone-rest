@@ -32,6 +32,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
@@ -167,6 +168,18 @@ class ServiceTypeServiceImplTest {
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertNotNull(response.getBody());
+        assertNull(entity.getId());
+    }
+
+    @Test
+    @DisplayName("create: returns 400 when name is blank")
+    void create_returnsBadRequest_whenNameBlank() {
+        ServiceType pojo = buildPojo();
+        pojo.setName(" ");
+
+        ResponseEntity<ServiceType> response = serviceTypeService.create(pojo);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
     @Test
