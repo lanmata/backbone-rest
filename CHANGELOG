@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - 2026-10-07
 
+### Fixed
+- **`GET /api/v1/session/validate` reads the `session-token` header** (as documented), not only `Authorization`. The raw `Authorization`
+  header is still honoured when `session-token` is absent (deprecated; security-oauth's `BackbonePublicClient.validate` and mercury use it
+  until aligned). The service already returned `true` for a current token and `false` for a wrong `type` or a revoked JTI, `401` for
+  expired/malformed and `400` for none; the new `SessionControllerValidateTest` covers the header handling.
+
 ### Changed (scalability — contacts and features are segmented, never listed whole)
 - **Contacts are scoped.** `GET /api/v1/contacts/list-all` (already `501`) is removed. The new
   `GET /api/v1/contacts/?applicationId=...` is the contact directory of ONE application: `applicationId` is

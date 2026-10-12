@@ -157,13 +157,15 @@ curl -k -s -X POST https://<host>:8084/api/v1/session/token \
 | Header | Required | Description |
 |--------|----------|-------------|
 | `session-token` | Yes | The session JWT to validate |
+| `Authorization` | No (deprecated) | Raw token, read only when `session-token` is absent (legacy callers such as security-oauth's `BackbonePublicClient.validate`) |
 
 ### 📡 Responses
 
 | Status | Meaning | When |
 |--------|---------|------|
-| `200 OK` | Token is valid | Session is active and not expired |
-| `401 Unauthorized` | Token invalid | Expired, tampered, or missing token |
+| `200 OK` | `true` for a current `session-token` whose JTI is not revoked; `false` for a wrong `type` or a revoked JTI | |
+| `400 Bad Request` | Missing or blank header | body `false` |
+| `401 Unauthorized` | Token invalid | Expired or malformed token (body `false`) |
 
 **200 OK — Response body:**
 

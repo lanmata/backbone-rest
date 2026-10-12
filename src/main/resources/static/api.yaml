@@ -113,13 +113,20 @@ paths:
       tags: ["session"]
       operationId: "validateSessionToken"
       summary: "Validate session token"
-      description: "Validates the session JWT supplied in the Authorization header."
+      description: "Validates the session JWT supplied in the session-token header (checks type=session-token, expiry and the JTI deny-list)."
       security: []
       parameters:
-        - name: "Authorization"
+        - name: "session-token"
           in: "header"
           required: true
           description: "The session JWT to validate"
+          schema:
+            type: "string"
+        - name: "Authorization"
+          in: "header"
+          required: false
+          deprecated: true
+          description: "Legacy fallback read only when session-token is absent; callers must migrate to session-token"
           schema:
             type: "string"
       responses:
@@ -130,7 +137,7 @@ paths:
               schema:
                 type: "boolean"
         "400":
-          description: "Missing or empty Authorization header"
+          description: "Missing or empty session-token header"
         "401":
           description: "Expired or malformed session token (body: false)"
 

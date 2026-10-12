@@ -32,8 +32,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.util.Map;
+import java.util.Objects;
 
 import static com.umdc.backoffice.v1.session.services.SessionJwtService.AUTHORIZATION_HEADER;
+import static com.umdc.backoffice.v1.session.services.SessionJwtService.SESSION_TOKEN_KEY;
 
 @Tag(name = "session", description = "The Session API")
 public interface SessionApi {
@@ -90,18 +92,21 @@ public interface SessionApi {
     /**
      * Endpoint to validate a session token.
      *
-     * @param sessionToken the session token to be validated
+     * @param sessionToken  the session token from the {@code session-token} header
+     * @param authorization  legacy fallback: the same token in the {@code Authorization} header (deprecated)
      * @return a ResponseEntity containing a boolean indicating whether the token is valid
      */
-    @Operation(summary = "Validate session token", description = "Validates the session token supplied in the Authorization header")
+    @Operation(summary = "Validate session token", description = "Validates the session token supplied in the session-token header "
+            + "(the Authorization header is still read when session-token is absent, for callers not yet migrated; deprecated)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "Validation result: true if valid, false if wrong type or revoked"),
-            @ApiResponse(responseCode = HttpStatusUtil.BAD_REQUEST_STR, description = "Missing or empty Authorization header"),
+            @ApiResponse(responseCode = HttpStatusUtil.BAD_REQUEST_STR, description = "Missing or empty session-token header"),
             @ApiResponse(responseCode = HttpStatusUtil.UNAUTHORIZED_STR, description = "Expired or malformed session token")
     })
     @GetMapping("/validate")
-    default ResponseEntity<Boolean> validateSessionToken(@RequestHeader(AUTHORIZATION_HEADER) String sessionToken) {
-        return this.getSessionService().validateToken(sessionToken);
+    default ResponseEntity<Boolean> validateSessionToken(@RequestHeader(name = SESSION_TOKEN_KEY, required = false) String sessionToken,
+                                                         @RequestHeader(name = AUTHORIZATION_HEADER, required = false) String authorization) {
+        return this.getSessionService().validateToken(Objects.nonNull(sessionToken) ? sessionToken : authorization);
     }
 
     /**

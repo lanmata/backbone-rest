@@ -20,6 +20,8 @@ import com.umdc.backoffice.v1.session.to.SessionResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Objects;
+
 /**
  * REST controller for managing session-related operations.
  * Provides endpoints for generating and validating session tokens.
@@ -56,8 +58,8 @@ public class SessionController implements SessionApi {
     }
 
     @Override
-    public ResponseEntity<Boolean> validateSessionToken(String sessionToken) {
-        return sessionService.validateToken(sessionToken);
+    public ResponseEntity<Boolean> validateSessionToken(String sessionToken, String authorization) {
+        return sessionService.validateToken(Objects.nonNull(sessionToken) ? sessionToken : authorization);
     }
 
     @Override

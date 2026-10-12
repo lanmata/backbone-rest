@@ -60,7 +60,7 @@ service, no REST surface), `roles`, `servicetype`, `session`, `users`
 - **Shared with Mercury:** Mercury verifies this service's session JWT locally with the *same* `APP_TOKEN_SECRET`, requires
   `iss`/`aud` (`JWT_ISSUER`/`JWT_AUDIENCE` must be non-empty and listed in Mercury's `APP_TOKEN_TRUSTED_ISSUERS`/
   `_AUDIENCES`), requires `type=session-token` (refresh tokens share the key and carry `uid` — never accept one as a
-  session), and calls `GET /api/v1/session/validate` (public; token in the `Authorization` header, raw) to honour the
+  session), and calls `GET /api/v1/session/validate` (public; token in the `session-token` header; the raw `Authorization` header is still accepted when `session-token` is absent, until security-oauth's `BackbonePublicClient.validate` is aligned) to honour the
   JTI deny-list. Treat those as a cross-service contract. See `docs/v1/00-prerequisites.md`.
 - **`APP_TOKEN_SECRET`**: sourced from `${APP_TOKEN_SECRET}` (no default/fallback),
   injected via Vault + Spring Cloud Config (`spring.config.import` in `application.yml`). Never hardcoded.
