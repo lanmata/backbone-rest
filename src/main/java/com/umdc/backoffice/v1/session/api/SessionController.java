@@ -63,8 +63,13 @@ public class SessionController implements SessionApi {
     }
 
     @Override
-    public ResponseEntity<SessionResponse> renewSessionToken(String sessionToken) {
-        return sessionService.renewToken(sessionToken);
+    public ResponseEntity<SessionResponse> renewSessionToken(String sessionToken, String authorization) {
+        return sessionService.renewToken(Objects.nonNull(sessionToken) ? sessionToken : authorization);
+    }
+
+    @Override
+    public ResponseEntity<Void> logout(String sessionToken, SessionRefreshRequest request) {
+        return sessionService.logout(sessionToken, Objects.isNull(request) ? null : request.refreshToken());
     }
 
     @Override

@@ -92,12 +92,27 @@ public class SessionTokenServiceImpl implements SessionJwtService {
      * @return the compact refresh token string
      */
     public String generateRefreshToken(UUID userId) {
+        return generateRefreshToken(userId, null);
+    }
+
+    /**
+     * Generates a refresh token bound to the application the session was opened for, so that the access token
+     * obtained with it keeps the same {@code aid} claim.
+     *
+     * @param userId        the user the token belongs to
+     * @param applicationId the application of the session; {@code null} leaves the claim out
+     * @return the signed refresh token
+     */
+    public String generateRefreshToken(UUID userId, UUID applicationId) {
         long refreshTtlMs = jwtConfigProperties.getExpirationMs() * REFRESH_TOKEN_MULTIPLIER;
         Map<String, Object> refreshClaims = new ConcurrentHashMap<>();
         refreshClaims.put(AuthKey.JTI.value, UUID.randomUUID().toString());
         refreshClaims.put(AuthKey.TYPE.value, REFRESH_TOKEN_KEY);
         refreshClaims.put(AuthKey.USER_ID.value, userId.toString());
         refreshClaims.put(AuthKey.IAT.value, new Date());
+        if (Objects.nonNull(applicationId)) {
+            refreshClaims.put(AuthKey.APPLICATION_ID.value, applicationId.toString());
+        }
 
         var builder = Jwts.builder()
                 .claims(refreshClaims)
@@ -184,6 +199,15 @@ public class SessionTokenServiceImpl implements SessionJwtService {
      * @param token the session token to revoke
      * @throws IllegalArgumentException if the token has no {@code jti} claim
      */
+    /**
+     * @param token a signed token of this service
+     * @return whether its JTI is on the deny-list (a token without JTI cannot be revoked and is never denied)
+     */
+    public boolean isDenied(String token) {
+        String jti = (String) getTokenClaims(token).get(AuthKey.JTI.value);
+        return Objects.nonNull(jti) && jtiDenyListService.isDenied(jti);
+    }
+
     public void denyToken(String token) {
         Claims claims = getTokenClaims(token);
         String jti = (String) claims.get(AuthKey.JTI.value);

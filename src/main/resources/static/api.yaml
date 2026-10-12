@@ -63,8 +63,10 @@ paths:
       tags: ["session"]
       operationId: "generateSessionToken"
       summary: "Generate session token (alias + password)"
-      description: "Generates a session JWT using the user alias and password. Public endpoint."
+      description: "Generates a session JWT (and its refresh token) for a user of ONE application, using alias and password. Both tokens carry the application in the `aid` claim. Public endpoint; a front end identifies itself with its managed client (ApplicationClientBearer)."
       security: []
+      parameters:
+        - $ref: "#/components/parameters/ApplicationClientBearer"
       requestBody:
         required: true
         content:
@@ -79,17 +81,21 @@ paths:
               schema:
                 $ref: "#/components/schemas/SessionResponse"
         "401":
-          description: "Invalid credentials"
+          description: "Invalid credentials, or the application requires a managed client and none was presented (see ApplicationClientBearer)"
+        "403":
+          description: "The managed client presented is inactive or does not belong to the application of the session"
         "404":
-          description: "Invalid request payload"
+          description: "Invalid request payload, or no such user in that application"
 
   /api/v1/session/token:
     post:
       tags: ["session"]
       operationId: "generateSessionTokenByEmail"
       summary: "Generate session token (email + password)"
-      description: "Generates a session JWT using email, password, and application ID. Public endpoint."
+      description: "Generates a session JWT (and its refresh token) for a user of ONE application, using email and password. Both tokens carry the application in the `aid` claim. Public endpoint; a front end identifies itself with its managed client (ApplicationClientBearer)."
       security: []
+      parameters:
+        - $ref: "#/components/parameters/ApplicationClientBearer"
       requestBody:
         required: true
         content:
@@ -104,9 +110,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/SessionResponse"
         "401":
-          description: "Invalid credentials"
+          description: "Invalid credentials, or the application requires a managed client and none was presented (see ApplicationClientBearer)"
+        "403":
+          description: "The managed client presented is inactive or does not belong to the application of the session"
         "404":
-          description: "Invalid request payload"
+          description: "Invalid request payload, or no such user in that application"
 
   /api/v1/session/validate:
     get:
@@ -146,13 +154,19 @@ paths:
       tags: ["session"]
       operationId: "renewSessionToken"
       summary: "Renew session token"
-      description: "Validates the current session token and issues a fresh one."
+      description: "Validates the current session token and issues a fresh one for the same application (`aid`). The user must still belong to it."
       security: []
       parameters:
-        - name: "Authorization"
+        - name: "session-token"
           in: "header"
           required: true
           description: "The current session JWT to renew"
+          schema:
+            type: "string"
+        - name: "Authorization"
+          in: "header"
+          required: false
+          description: "Either `Bearer <M2M access token>` of the application's managed client (ApplicationClientBearer), or, deprecated, the raw session JWT when session-token is absent"
           schema:
             type: "string"
       responses:
@@ -165,7 +179,9 @@ paths:
         "400":
           description: "Token is required"
         "401":
-          description: "Invalid or expired session token"
+          description: "Invalid or expired session token, user removed from the application, or managed client required and missing"
+        "403":
+          description: "The managed client presented does not belong to the application of the session"
         "404":
           description: "User not found"
         "500":
@@ -176,8 +192,10 @@ paths:
       tags: ["session"]
       operationId: "refreshSessionToken"
       summary: "Refresh session token"
-      description: "Exchanges a refresh token for a new access token and refresh token. Public endpoint."
+      description: "Exchanges a refresh token for a new access token and refresh token of the same application (`aid`). Refused for a revoked refresh token or a user removed from the application. Public endpoint."
       security: []
+      parameters:
+        - $ref: "#/components/parameters/ApplicationClientBearer"
       requestBody:
         required: true
         content:
@@ -194,9 +212,37 @@ paths:
         "400":
           description: "Missing or empty refresh token"
         "401":
-          description: "Invalid or expired token"
+          description: "Invalid, expired or revoked token, user removed from the application, or managed client required and missing"
+        "403":
+          description: "The managed client presented does not belong to the application of the session"
         "500":
           description: "Token generation failed"
+
+  /api/v1/session/logout:
+    post:
+      tags: ["session"]
+      operationId: "logout"
+      summary: "Logout"
+      description: "Revokes the session token and, when the body carries it, the refresh token of the same user. Both stay on the JTI deny-list (Redis, `jti:<jti>`) until they would have expired, so `/session/validate`, `/session/refresh` and every service that reads the deny-list reject them at once. Public endpoint: holding the token is the proof."
+      security: []
+      parameters:
+        - name: "session-token"
+          in: "header"
+          required: true
+          description: "The session JWT to revoke"
+          schema:
+            type: "string"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SessionRefreshRequest"
+      responses:
+        "204":
+          description: "Session revoked"
+        "400":
+          description: "Missing session-token header, or not a token of this service"
 
   # ── Users ────────────────────────────────────────────────────────────────────
 
@@ -2677,6 +2723,14 @@ paths:
 # ── Components ──────────────────────────────────────────────────────────────────
 
 components:
+  parameters:
+    ApplicationClientBearer:
+      name: "Authorization"
+      in: "header"
+      required: false
+      description: "`Bearer <M2M access token>` of the managed client (MCAM, POST /api/v1/managed-clients/token) of the front end that opens the session. When present, the client must be active and belong to the application of the session (403 otherwise). Applications listed in SESSION_CLIENT_REQUIRED_APPLICATIONS (or all, with SESSION_CLIENT_REQUIRED=true) must present it (401 otherwise)."
+      schema:
+        type: "string"
 
   securitySchemes:
     bearerAuth:

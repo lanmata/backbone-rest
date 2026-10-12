@@ -145,7 +145,8 @@ Check whether a session token is still valid (correct type, not expired, **not o
 
 | Header | Required | Description |
 |--------|----------|-------------|
-| `Authorization` | ✅ | The **raw session JWT** — no `Bearer ` prefix. (Not `session-token`: that header name was replaced by `Authorization` for this endpoint and for `/renew`.) |
+| `session-token` | ✅ | The session JWT. |
+| `Authorization` | — | Deprecated fallback, read only when `session-token` is absent: the **raw session JWT**, no `Bearer ` prefix. Mercury's `BackboneSessionClient` and security-oauth's `BackbonePublicClient.validate` still use it; both must move to `session-token`, because `Authorization: Bearer` now carries the application client on the session endpoints. |
 
 #### Response
 
@@ -153,7 +154,7 @@ Check whether a session token is still valid (correct type, not expired, **not o
 |--------|------|---------|
 | `200` | `true` | Valid |
 | `200` | `false` | Wrong type (e.g. a refresh token) or revoked (logged out) |
-| `400` | `false` | Missing or empty `Authorization` header |
+| `400` | `false` | Neither header present |
 | `401` | `false` | Expired or malformed token |
 
 > **Consumer: Mercury.** Mercury calls this endpoint for every end-user `session-token` it receives (cached for
@@ -237,6 +238,15 @@ Exchange a valid (or recently expired) **refresh token** for a new access token 
 | `400 Bad Request` | Missing or empty refresh token |
 | `401 Unauthorized` | Invalid token, wrong token type, or beyond grace period |
 | `500 Internal Server Error` | Token generation failed |
+
+---
+
+### Logout, application binding and application clients
+
+`POST /api/v1/session/logout` (header `session-token`, optional body `{refreshToken}`) revokes the session. Session and refresh
+tokens carry the application they were issued for (`aid`), and a front end opens sessions with its managed client
+(`Authorization: Bearer <M2M>`). The full model, the rules and the settings (`SESSION_CLIENT_REQUIRED`,
+`SESSION_CLIENT_REQUIRED_APPLICATIONS`) are in [`docs/api/session.md`](../api/session.md#-applications-users-and-application-clients).
 
 ---
 

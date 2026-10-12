@@ -6,6 +6,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - 2026-10-07
 
+### Added (a session belongs to one application; front ends log in with their application client)
+- **`aid` claim.** Session and refresh tokens carry the application they were issued for. Renew and refresh keep it and answer
+  `401` when the user was removed from that application. Every service shares the signing secret, so resource servers must
+  require `aid` to be their own application (zerobound-rest does); before this a session of any application was valid everywhere.
+- **Application client on the session endpoints.** `Authorization: Bearer <M2M>` (managed client, MCAM) on login / renew /
+  refresh: the client must be active and belong to the application of the session (`403`). `SESSION_CLIENT_REQUIRED_APPLICATIONS`
+  (comma-separated application ids) or `SESSION_CLIENT_REQUIRED=true` make it mandatory (`401`); default: nobody is forced, so
+  existing front ends keep working until they are listed.
+- **`POST /api/v1/session/logout`** (public; header `session-token`, optional body `{refreshToken}`): both tokens go on the JTI
+  deny-list and a `LOGOUT` audit event is recorded. Until now nothing ever wrote a session to the deny-list
+  (`SessionService.revokeToken` had no endpoint), so "logout" only happened in the browser.
+- `POST /api/v1/session/refresh` refuses a revoked refresh token.
+- `GET /api/v1/session/renew` reads `session-token` (raw `Authorization` still accepted when absent), leaving `Authorization`
+  for the application client.
+- Runbook `docs/runbooks/zerobound-application-client.md`; model and rules in `docs/api/session.md`.
+
 ### Fixed
 - **`GET /api/v1/session/validate` reads the `session-token` header** (as documented), not only `Authorization`. The raw `Authorization`
   header is still honoured when `session-token` is absent (deprecated; security-oauth's `BackbonePublicClient.validate` and mercury use it

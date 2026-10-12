@@ -68,11 +68,15 @@ public class SessionServiceImpl implements SessionService {
     private final SessionTokenServiceImpl sessionTokenService;
     private final SessionUserLookupService sessionUserLookupService;
     private final RequestContextUtil requestContextUtil;
+    private final SessionClientGuard sessionClientGuard;
 
     private static final String INVALID_APPLICATION_ID_MSG = "Invalid application ID";
     private static final String ACCOUNT_LOCKED_MSG = "Account temporarily locked due to too many failed attempts";
     private static final String INVALID_TOKEN_TYPE_MSG = "Token type is not valid for refresh";
     private static final String USER_INACTIVE_MSG = "User not found or account is inactive";
+    private static final String CLIENT_REJECTED_MSG = "Application client missing or not allowed for this application";
+    private static final String NOT_A_MEMBER_MSG = "User no longer belongs to the application of this session";
+    private static final String TOKEN_REVOKED_MSG = "Token has been revoked";
 
     /**
      * Constructs a new SessionServiceImpl with the specified dependencies.
@@ -88,6 +92,7 @@ public class SessionServiceImpl implements SessionService {
      *                                 {@link SessionUserLookupServiceImpl} for why this replaces
      *                                 every direct {@code UserRepository} query method in this class
      * @param requestContextUtil resolves source IP / User-Agent from the current request for audit records
+     * @param sessionClientGuard binds a session to the managed client (application front end) that asks for it
      */
     public SessionServiceImpl(MessageUtil messageUtil,
                               UserMapper userMapper, UserAliasMapper userAliasMapper,
@@ -96,7 +101,8 @@ public class SessionServiceImpl implements SessionService {
                               AuditEventService auditEventService,
                               SessionTokenServiceImpl sessionTokenService,
                               SessionUserLookupService sessionUserLookupService,
-                              RequestContextUtil requestContextUtil) {
+                              RequestContextUtil requestContextUtil,
+                              SessionClientGuard sessionClientGuard) {
         this.userMapper = userMapper;
         this.userAliasMapper = userAliasMapper;
         this.messageUtil = messageUtil;
@@ -106,6 +112,7 @@ public class SessionServiceImpl implements SessionService {
         this.sessionTokenService = sessionTokenService;
         this.sessionUserLookupService = sessionUserLookupService;
         this.requestContextUtil = requestContextUtil;
+        this.sessionClientGuard = sessionClientGuard;
     }
 
     /**
@@ -147,6 +154,11 @@ public class SessionServiceImpl implements SessionService {
             return responseEntity;
         }
 
+        Optional<ResponseEntity<SessionResponse>> clientRejection = rejectedClient(sessionRequest.applicationId());
+        if (clientRejection.isPresent()) {
+            return clientRejection.get();
+        }
+
         // Lookup user scoped to the target application
         optionalUserEntity = sessionUserLookupService.findByAliasAndApplication(
                 sessionRequest.alias(), sessionRequest.applicationId());
@@ -181,6 +193,8 @@ public class SessionServiceImpl implements SessionService {
                 // Required so downstream per-application ACL checks (e.g. PermissionCheckServiceImpl)
                 // can resolve the caller's identity from the token — see AuthKey.USER_ID usage there.
                 parameters.put(AuthKey.USER_ID.value, userEntity.getId().toString());
+                // The application this session was opened for: its resource servers require it
+                parameters.put(AuthKey.APPLICATION_ID.value, sessionRequest.applicationId().toString());
                 parameters.put(AuthKey.ROLES_ID.value, userAlias.getRoles().toString());
                 parameters.put(AuthKey.FIRSTNAME.value, userAlias.getFirstname());
                 parameters.put(AuthKey.LASTNAME.value, userAlias.getLastname());
@@ -188,7 +202,8 @@ public class SessionServiceImpl implements SessionService {
                 loginAttemptService.recordSuccess(sessionRequest.alias(), sessionRequest.applicationId());
                 auditEventService.saveRecord(userEntity.getId(), sessionRequest.applicationId(), AuditEventType.LOGIN_SUCCESS,
                         ipAddress, userAgent, buildDescription("Login successful", sessionRequest.alias()));
-                String refreshToken = sessionTokenService.generateRefreshToken(userEntity.getId());
+                String refreshToken = sessionTokenService.generateRefreshToken(userEntity.getId(),
+                        sessionRequest.applicationId());
                 return ResponseEntity.ok(new SessionResponse(sessionToken, refreshToken));
             }
         }
@@ -228,6 +243,11 @@ public class SessionServiceImpl implements SessionService {
             return responseEntity;
         }
 
+        Optional<ResponseEntity<SessionResponse>> clientRejection = rejectedClient(sessionEmailRequest.applicationId());
+        if (clientRejection.isPresent()) {
+            return clientRejection.get();
+        }
+
         optionalUserEntity = sessionUserLookupService.findByEmailAndApplication(
                 sessionEmailRequest.email(), sessionEmailRequest.applicationId());
         if (optionalUserEntity.isEmpty()) {
@@ -261,12 +281,13 @@ public class SessionServiceImpl implements SessionService {
             auditEventService.saveRecord(userEntity.getId(), sessionEmailRequest.applicationId(),
                     AuditEventType.LOGIN_SUCCESS, ipAddress, userAgent,
                     buildDescription("Login successful", sessionEmailRequest.email()));
-            String newToken = generateSessionToken(userEntity.getId());
+            String newToken = generateSessionToken(userEntity.getId(), sessionEmailRequest.applicationId());
             if (Objects.isNull(newToken)) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                         .body(new SessionResponse(messageUtil.getSinDatos()));
             }
-            String newRefreshToken = sessionTokenService.generateRefreshToken(userEntity.getId());
+            String newRefreshToken = sessionTokenService.generateRefreshToken(userEntity.getId(),
+                    sessionEmailRequest.applicationId());
             return ResponseEntity.ok(new SessionResponse(newToken, newRefreshToken));
         }
         loginAttemptService.recordFailure(sessionEmailRequest.email(), sessionEmailRequest.applicationId());
@@ -315,6 +336,77 @@ public class SessionServiceImpl implements SessionService {
     /**
      * {@inheritDoc}
      */
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ResponseEntity<Void> logout(String sessionToken, String refreshToken) {
+        if (Objects.isNull(sessionToken) || sessionToken.isBlank()) {
+            return ResponseEntity.badRequest().build();
+        }
+        try {
+            Claims claims = getTokenClaims(sessionToken);
+            sessionTokenService.denyToken(sessionToken);
+            if (Objects.nonNull(refreshToken) && !refreshToken.isBlank()) {
+                revokeRefreshTokenOf(claims, refreshToken);
+            }
+            auditLogout(claims);
+            return ResponseEntity.noContent().build();
+        } catch (Exception _) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    /** Only the refresh token of the same user is revoked: a session cannot end somebody else's. */
+    private void revokeRefreshTokenOf(Claims sessionClaims, String refreshToken) {
+        try {
+            Claims refreshClaims = getTokenClaims(refreshToken);
+            if (Objects.equals(sessionClaims.get(AuthKey.USER_ID.value), refreshClaims.get(AuthKey.USER_ID.value))) {
+                sessionTokenService.denyToken(refreshToken);
+            }
+        } catch (Exception e) {
+            // the session token is already revoked; an unusable refresh token needs no revocation
+            LOGGER.debug("Logout: refresh token not revoked: {}", e.getMessage());
+        }
+    }
+
+    private void auditLogout(Claims claims) {
+        try {
+            UUID userId = UUID.fromString((String) claims.get(AuthKey.USER_ID.value));
+            auditEventService.saveRecord(userId, applicationIdOf(claims), AuditEventType.LOGOUT,
+                    requestContextUtil.extractIpAddress(), requestContextUtil.extractUserAgent(),
+                    buildDescription("Logout", claims.getSubject()));
+        } catch (RuntimeException e) {
+            // a legacy token without uid still logs out; it just leaves no audit record
+            LOGGER.debug("Logout not audited: {}", e.getMessage());
+        }
+    }
+
+    private Optional<ResponseEntity<SessionResponse>> rejectedClient(UUID applicationId) {
+        return sessionClientGuard.reject(applicationId)
+                .map(status -> ResponseEntity.status(status).body(new SessionResponse(CLIENT_REJECTED_MSG)));
+    }
+
+    /** The {@code aid} claim; {@code null} for a token issued before sessions were bound to an application. */
+    private static @Nullable UUID applicationIdOf(Claims claims) {
+        Object value = claims.get(AuthKey.APPLICATION_ID.value);
+        if (Objects.isNull(value)) {
+            return null;
+        }
+        try {
+            return UUID.fromString(value.toString());
+        } catch (IllegalArgumentException _) {
+            return null;
+        }
+    }
+
+    /** A token without application (legacy) is not checked; otherwise the user must still be linked to it. */
+    private static boolean belongsTo(UserEntity user, @Nullable UUID applicationId) {
+        return Objects.isNull(applicationId) || (Objects.nonNull(user.getApplicationRoleUser())
+                && user.getApplicationRoleUser().stream().anyMatch(link -> Objects.nonNull(link.getApplication())
+                && applicationId.equals(link.getApplication().getId())));
+    }
+
     @Override
     public Claims getTokenClaims(String token) {
         return sessionTokenService.getTokenClaims(token);
@@ -339,7 +431,11 @@ public class SessionServiceImpl implements SessionService {
         return userInfo.isPresent() ? userAliasMapper.toTarget(userMapper.toTarget(userInfo.get())) : null;
     }
 
-    private String generateSessionToken(UUID userId) {
+    /**
+     * @param applicationId the application the session belongs to; {@code null} only for a legacy token that never
+     *                      carried the claim (the new token then does not carry it either)
+     */
+    private String generateSessionToken(UUID userId, UUID applicationId) {
         Map<String, String> parameters;
         String sessionId = UUID.randomUUID().toString();
         var userAlias = loadUserAlias(userId);
@@ -347,6 +443,9 @@ public class SessionServiceImpl implements SessionService {
             parameters = new ConcurrentHashMap<>();
             parameters.put(AuthKey.ALIAS.value, userAlias.getAlias());
             parameters.put(AuthKey.USER_ID.value, userAlias.getUserId().toString());
+            if (Objects.nonNull(applicationId)) {
+                parameters.put(AuthKey.APPLICATION_ID.value, applicationId.toString());
+            }
             parameters.put(AuthKey.ROLES_ID.value, userAlias.getRoles().toString());
             parameters.put(AuthKey.FIRSTNAME.value, userAlias.getFirstname());
             parameters.put(AuthKey.LASTNAME.value, userAlias.getLastname());
@@ -402,6 +501,11 @@ public class SessionServiceImpl implements SessionService {
         // Extract user information from the current token
         Claims claims = getTokenClaims(currentToken);
         String username = claims.getSubject();
+        UUID applicationId = applicationIdOf(claims);
+        Optional<ResponseEntity<SessionResponse>> clientRejection = rejectedClient(applicationId);
+        if (clientRejection.isPresent()) {
+            return clientRejection.get();
+        }
 
         // Get user details to generate new token
         String userIdStr = (String) claims.get(AuthKey.USER_ID.value);
@@ -414,12 +518,12 @@ public class SessionServiceImpl implements SessionService {
             }
             UserEntity userEntity = userEntityOpt.get();
 
-            if (!userEntity.getActive()) {
+            if (!userEntity.getActive() || !belongsTo(userEntity, applicationId)) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(new SessionResponse(messageUtil.getUserInvalido()));
             }
 
-            String newToken = generateSessionToken(userEntity.getId());
+            String newToken = generateSessionToken(userEntity.getId(), applicationId);
             if (Objects.nonNull(newToken)) {
                 return ResponseEntity.ok(new SessionResponse(newToken));
             }
@@ -433,12 +537,12 @@ public class SessionServiceImpl implements SessionService {
                         .body(new SessionResponse(messageUtil.getSinDatos()));
             }
 
-            if (!userEntity.get().getActive()) {
+            if (!userEntity.get().getActive() || !belongsTo(userEntity.get(), applicationId)) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(new SessionResponse(messageUtil.getUserInvalido()));
             }
 
-            String newToken = generateSessionToken(userId);
+            String newToken = generateSessionToken(userId, applicationId);
             if (Objects.nonNull(newToken)) {
                 return ResponseEntity.ok(new SessionResponse(newToken));
             }
@@ -465,6 +569,7 @@ public class SessionServiceImpl implements SessionService {
     @Override
     public ResponseEntity<SessionResponse> refreshSession(String refreshToken) {
         UUID userId = null;
+        UUID applicationId;
         Claims claims;
         if (refreshToken == null || refreshToken.isBlank()) {
             return ResponseEntity.badRequest().body(new SessionResponse());
@@ -477,6 +582,13 @@ public class SessionServiceImpl implements SessionService {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(new SessionResponse(INVALID_TOKEN_TYPE_MSG));
             }
+            // A refresh token revoked at logout must not mint new sessions
+            String jti = (String) claims.get(AuthKey.JTI.value);
+            if (Objects.nonNull(jti) && sessionTokenService.isDenied(refreshToken)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(new SessionResponse(TOKEN_REVOKED_MSG));
+            }
+            applicationId = applicationIdOf(claims);
             userId = getUserId(claims);
         } catch (Exception e) {
             if (e instanceof StandardException se) {
@@ -488,14 +600,23 @@ public class SessionServiceImpl implements SessionService {
         }
 
         assert userId != null;
+        Optional<ResponseEntity<SessionResponse>> clientRejection = rejectedClient(applicationId);
+        if (clientRejection.isPresent()) {
+            return clientRejection.get();
+        }
         Optional<UserEntity> userEntityOpt = sessionUserLookupService.findByIdWithGraph(userId);
         if (userEntityOpt.isEmpty() || !userEntityOpt.get().getActive()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new SessionResponse(USER_INACTIVE_MSG));
         }
+        // Removed from the application since the login: the session of that application ends here
+        if (!belongsTo(userEntityOpt.get(), applicationId)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new SessionResponse(NOT_A_MEMBER_MSG));
+        }
 
-        String newAccessToken = generateSessionToken(userId);
-        String newRefreshToken = sessionTokenService.generateRefreshToken(userId);
+        String newAccessToken = generateSessionToken(userId, applicationId);
+        String newRefreshToken = sessionTokenService.generateRefreshToken(userId, applicationId);
 
         if (Objects.isNull(newAccessToken)) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

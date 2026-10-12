@@ -15,6 +15,7 @@ package com.umdc.backoffice.security.filter;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.umdc.backoffice.v1.managedclient.service.ManagedClientTokenService;
+import com.umdc.backoffice.v1.session.services.SessionClientGuard;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -115,6 +116,8 @@ public class ManagedClientTokenFilter extends OncePerRequestFilter {
 
             var authentication = new UsernamePasswordAuthenticationToken(subject, null, authorities);
             SecurityContextHolder.getContext().setAuthentication(authentication);
+            // SessionClientGuard binds user sessions to the application of this client
+            request.setAttribute(SessionClientGuard.CLIENT_ID_ATTRIBUTE, subject);
             LOGGER.debug("M2M authentication set for clientId='{}'", subject);
         } catch (Exception e) {
             LOGGER.error("M2M token processing failed from {}: {}", request.getRemoteAddr(), e.getMessage(), e);

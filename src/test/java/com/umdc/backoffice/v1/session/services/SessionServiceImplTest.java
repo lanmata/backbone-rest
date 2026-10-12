@@ -67,6 +67,9 @@ class SessionServiceImplTest {
     @Mock
     private RequestContextUtil requestContextUtil;
 
+    @Mock
+    private SessionClientGuard sessionClientGuard;
+
     private SessionServiceImpl sessionService;
     private SessionTokenServiceImpl sessionTokenService;
 
@@ -81,7 +84,7 @@ class SessionServiceImplTest {
         sessionTokenService = new SessionTokenServiceImpl(jwtConfigProperties, jtiDenyListService);
         sessionService = new SessionServiceImpl(messageUtil, userMapper, userAliasMapper,
                 passwordEncoder, loginAttemptService, auditEventService, sessionTokenService,
-                sessionUserLookupService, requestContextUtil);
+                sessionUserLookupService, requestContextUtil, sessionClientGuard);
     }
 
     /**
