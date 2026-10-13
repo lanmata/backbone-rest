@@ -229,7 +229,7 @@ Notes:
 
 - `CHANGELOG` — project changelog and migration notes (Keep a Changelog / SemVer)
 - `CLAUDE.md` — architecture, package structure, mandatory conventions, security model
-- `src/main/resources/static/api.yaml` — OpenAPI 3.1 spec, served at `/api.yaml`
+- OpenAPI 3.1 spec — generated at runtime from the `*Api` interfaces: `/v3/api-docs` (JSON), `/v3/api-docs.yaml` (YAML; `/api.yaml` redirects to it)
 - `LICENSE` — proprietary, all rights reserved (see below)
 
 Domain modules (`v1/`)

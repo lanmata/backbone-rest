@@ -23,6 +23,7 @@ import com.umdc.commons.util.HttpStatusUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -37,6 +38,7 @@ import java.util.Objects;
 import static com.umdc.backoffice.v1.session.services.SessionJwtService.AUTHORIZATION_HEADER;
 import static com.umdc.backoffice.v1.session.services.SessionJwtService.SESSION_TOKEN_KEY;
 
+@SecurityRequirements
 @Tag(name = "session", description = "The Session API")
 public interface SessionApi {
 

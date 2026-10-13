@@ -5,7 +5,7 @@
 > (MCAM) module (`/api/v1/managed-clients`).
 
 Source of truth verified against `ManagedClientApi.java`, the DTOs in
-`v1/managedclient/api/to/`, and `src/main/resources/static/api.yaml`.
+`v1/managedclient/api/to/`, and the `@ApiResponse` annotations of `ManagedClientApi` (the spec is generated from them).
 
 > [!NOTE]
 > A pre-existing keystore alias `mercury-api-client` exists in `keystore.jks`

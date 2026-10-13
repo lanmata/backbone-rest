@@ -21,6 +21,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -32,6 +33,7 @@ import static com.umdc.backoffice.v1.session.services.SessionJwtService.SESSION_
 /**
  * ProfileImageApi defines the API operations for managing profile images.
  */
+@Tag(name = "profile-image", description = "User profile image management")
 public interface ProfileImageApi {
 
     default ProfileImageService getService() {
