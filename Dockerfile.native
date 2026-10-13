@@ -12,6 +12,10 @@
 # and fails immediately ("Fatal glibc error: CPU does not support x86-64-v3") on deployment
 # platforms whose CPU/VM doesn't offer those extensions. Debian/Ubuntu keep the original x86-64
 # baseline, so GraalVM and Maven are installed manually here instead.
+# Empty placeholder for the optional `umdc-local` build context — see the Repsy outage fallback
+# note above the Maven RUN step below.
+FROM scratch AS umdc-local
+
 FROM debian:12-slim AS builder
 ARG TARGETARCH
 WORKDIR /build
@@ -85,10 +89,27 @@ COPY certs/backbone ./certs/backbone
 # The com.umdc artifacts (commons, persistence, ...) are purged from the cache mount first: Maven
 # never re-downloads a release it already has, so a re-published 0.0.x would otherwise keep
 # compiling against the stale jar left in the maven-repo cache.
+#
+# Repsy outage fallback: the purge above means every build needs Repsy, so a Repsy 5xx fails the
+# build even though nothing changed. Passing the host's own copies as a named build context
+# re-seeds them after the purge and Maven resolves them locally instead:
+# `docker build --build-context umdc-local=$HOME/.m2/repository/com/umdc -f Dockerfile.native ...`
+# The context overrides the empty `umdc-local` stage declared at the top of this file; without
+# it the mount is empty and the build downloads from Repsy as usual. _remote.repositories is
+# dropped from the seeded copy so Maven doesn't try to re-verify the jars against Repsy. This
+# compiles against whatever the host has — only as fresh as its last `mvn` run — so use it to
+# get through an outage, not as the default.
 ARG NATIVE_QUICK_BUILD=false
 RUN --mount=type=secret,id=maven_settings,target=/root/.m2/settings.xml \
     --mount=type=cache,id=maven-repo,target=/root/.m2/repository,sharing=locked \
+    --mount=type=bind,from=umdc-local,target=/umdc-local \
     sh -c 'rm -rf /root/.m2/repository/com/umdc; \
+    if [ -n "$(ls -A /umdc-local 2>/dev/null)" ]; then \
+      echo "Seeding com.umdc artifacts from the umdc-local build context (Repsy bypassed)"; \
+      mkdir -p /root/.m2/repository/com/umdc && cp -R /umdc-local/. /root/.m2/repository/com/umdc/ && \
+      find /root/.m2/repository/com/umdc -name _remote.repositories -delete && \
+      find /root/.m2/repository/com/umdc -name "*.lastUpdated" -delete; \
+    fi; \
     set -a; . ./config/native.env; set +a; \
     mvn -Pnative -B -Dmaven.test.skip=true -Dpmd.skip=true -Dcpd.skip=true -Djacoco.skip=true \
         -DquickBuild="${NATIVE_QUICK_BUILD}" package native:compile'

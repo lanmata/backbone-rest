@@ -157,7 +157,10 @@ The image build skips PMD/CPD/JaCoCo and test compilation (they don't affect the
 `mvn test` separately), and `Dockerfile.native.dockerignore` limits the build context to
 `pom.xml`, `src/main`, `config/native.env` and `certs/backbone`. For a local smoke-test image, add
 `--build-arg NATIVE_QUICK_BUILD=true` (native-image `-Ob`: faster compile, lower peak throughput —
-not for deployed images).
+not for deployed images). If Repsy is down, add
+`--build-context umdc-local=$HOME/.m2/repository/com/umdc` to build against the `com.umdc`
+artifacts already in the host's local Maven repository instead of downloading them (outage
+fallback only — it compiles against whatever the host last resolved).
 
 **What does NOT run the same way in native mode:**
 - `mvn test` (the JUnit 5 + Mockito suite) is **not** run against the native image — Mockito's

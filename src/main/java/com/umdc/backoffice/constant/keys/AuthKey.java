@@ -70,7 +70,14 @@ public enum AuthKey {
     /**
      * Key for alias.
      */
-    ALIAS("alias");
+    ALIAS("alias"),
+
+    /**
+     * Application the session was opened for ({@code applicationId} of the login request). A resource server that
+     * belongs to one application must require it to equal its own id: every service shares the signing secret, so
+     * without this claim a session of application A would be accepted by application B.
+     */
+    APPLICATION_ID("aid");
 
     /**
      * The value of the key.

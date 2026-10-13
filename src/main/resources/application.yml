@@ -70,6 +70,14 @@ umdc:
         location: ${SSL_KEYSTORE_LOCATION:classpath:backbone.jks}
         password: ${SSL_KEYSTORE_PASSWORD:changeit}
         type: JKS
+    session:
+      client:
+        # A front end opens user sessions on behalf of its application with a managed client (MCAM, M2M bearer in
+        # Authorization). A client that is presented must always belong to the application of the session (403
+        # otherwise). These two settings say who MUST present one (401 otherwise): every application, or the listed
+        # ones (comma-separated application ids), so applications can move to client-bound logins one at a time.
+        required: ${SESSION_CLIENT_REQUIRED:false}
+        required-applications: ${SESSION_CLIENT_REQUIRED_APPLICATIONS:}
     jwt:
       secret: ${APP_TOKEN_SECRET}
       expirationMs: ${APP_TOKEN_EXPIRATION}

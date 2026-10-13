@@ -91,6 +91,18 @@ public interface SessionService extends SessionJwtService {
      * @return a {@link ResponseEntity} with a new {@link SessionResponse}; 401 if the token
      *         is invalid, revoked, or beyond the grace period; 404 if the user is not found
      */
+    /**
+     * Ends a session: the session token (and the refresh token, when given and of the same user) go on the JTI
+     * deny-list for their remaining life, so every service that honours the deny-list rejects them at once.
+     *
+     * @param sessionToken the session token from the {@code session-token} header
+     * @param refreshToken the refresh token of that session, optional
+     * @return 204 when revoked, 400 when the session token is missing or not a token of this service
+     */
+    default ResponseEntity<Void> logout(String sessionToken, String refreshToken) {
+        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+    }
+
     default ResponseEntity<SessionResponse> refreshSession(String refreshToken) {
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }

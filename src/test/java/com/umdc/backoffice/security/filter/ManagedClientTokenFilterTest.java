@@ -2,6 +2,7 @@ package com.umdc.backoffice.security.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.umdc.backoffice.v1.managedclient.service.ManagedClientTokenService;
+import com.umdc.backoffice.v1.session.services.SessionClientGuard;
 import jakarta.servlet.ServletException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -72,6 +73,8 @@ class ManagedClientTokenFilterTest {
 
         assertNotNull(chain.getRequest(), "Filter chain must be invoked for valid M2M token");
         assertNotNull(SecurityContextHolder.getContext().getAuthentication());
+        assertEquals(clientId.toString(), request.getAttribute(SessionClientGuard.CLIENT_ID_ATTRIBUTE),
+                "the session endpoints bind the session to this client's application");
     }
 
     // ── revoked / invalid M2M token ───────────────────────────────────────────

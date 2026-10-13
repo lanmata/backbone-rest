@@ -54,13 +54,20 @@ service, no REST surface), `roles`, `servicetype`, `session`, `users`
 - **Session JWT** (JJWT 0.12.3): minted in `SessionServiceImpl`, transmitted via
   `session-token` header. Separate from OAuth2 validation.
 - Endpoints `/api/v1/session/token` and `/api/v1/session/validate` bypass OAuth2 filter.
+- **A session belongs to one application.** Session and refresh tokens carry `aid` (`AuthKey.APPLICATION_ID`, the
+  `applicationId` of the login); renew/refresh keep it and re-check membership. Resource servers of an application must
+  require it (zerobound-rest does). `SessionClientGuard` binds login/renew/refresh to the front end's managed client
+  (`Authorization: Bearer <M2M>`, id left in the request by `ManagedClientTokenFilter`): the client must belong to the
+  application (`403`), and applications in `SESSION_CLIENT_REQUIRED_APPLICATIONS` (or all with `SESSION_CLIENT_REQUIRED`)
+  must present one (`401`). `POST /api/v1/session/logout` (public) revokes session + refresh token. That is why the session
+  token travels in `session-token` on validate/renew/logout: `Authorization` is the client's. See `docs/api/session.md`.
 - **JTI deny-list**: `JtiDenyListServiceImpl` stores revoked JTIs in Redis under
   `jti:<value>` with the token's remaining TTL — Redis expires them natively,
   no scheduled cleanup job needed.
 - **Shared with Mercury:** Mercury verifies this service's session JWT locally with the *same* `APP_TOKEN_SECRET`, requires
   `iss`/`aud` (`JWT_ISSUER`/`JWT_AUDIENCE` must be non-empty and listed in Mercury's `APP_TOKEN_TRUSTED_ISSUERS`/
   `_AUDIENCES`), requires `type=session-token` (refresh tokens share the key and carry `uid` — never accept one as a
-  session), and calls `GET /api/v1/session/validate` (public; token in the `Authorization` header, raw) to honour the
+  session), and calls `GET /api/v1/session/validate` (public; token in the `session-token` header; the raw `Authorization` header is still accepted when `session-token` is absent, until security-oauth's `BackbonePublicClient.validate` is aligned) to honour the
   JTI deny-list. Treat those as a cross-service contract. See `docs/v1/00-prerequisites.md`.
 - **`APP_TOKEN_SECRET`**: sourced from `${APP_TOKEN_SECRET}` (no default/fallback),
   injected via Vault + Spring Cloud Config (`spring.config.import` in `application.yml`). Never hardcoded.

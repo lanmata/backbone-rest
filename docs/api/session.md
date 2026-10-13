@@ -1,16 +1,63 @@
 # 🔑 Sessions & Authentication
 
 > **Base path:** `/api/v1/session`  
-> **Auth:** All endpoints are public — no Bearer token required
+> **Auth:** Public for a user (no session needed). A front end identifies itself with its managed client: `Authorization: Bearer <M2M>` — see *Applications, users and application clients*
 
 | | |
 |---|---|
-| **Auth type** | None (public) |
+| **Auth type** | None for the user; optional/required application client (M2M bearer) per application |
 | **Token issued** | Session JWT + Refresh JWT (JJWT 0.12.3) |
 | **Session TTL** | ~1 hour |
 | **Refresh TTL** | ~7 days |
 
 [← Back to API Index](./README.md)
+
+---
+
+## 🧭 Applications, users and application clients
+
+Backbone owns identity for every product. Three things take part in a login, and none is optional in the model:
+
+| Piece | What it is | Managed with |
+|---|---|---|
+| **Application** | The product (tenant): `zerobound`, `mercury`, the backoffice… Users and roles exist *inside* an application (`ApplicationRoleUser`). | `/api/v1/applications` |
+| **Application user** | A person linked to that application with a role (administrator, customer, …). The same person may be a user of several applications. | `/api/v1/users`, role links |
+| **Application client** | The front end / BFF of the application, as a managed client (MCAM): `clientId` + `clientSecret`, bound to **one** `applicationId`. | `/api/v1/managed-clients` |
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant F as Front end (BFF) of application X
+    participant B as backbone-rest
+    participant R as Resource server of X
+    F->>B: POST /managed-clients/token {clientId, clientSecret, scopes}
+    B-->>F: M2M accessToken (RS256, 1 h)
+    U->>F: email + password
+    F->>B: POST /session/token {email, password, applicationId: X}<br/>Authorization: Bearer ⟨M2M⟩
+    Note over B: client active AND client.applicationId == X (else 403)<br/>user linked to X, active, password, lock-out (else 401/404/429)
+    B-->>F: {token, refreshToken} — both carry aid = X
+    F->>R: business call, session-token: ⟨token⟩
+    Note over R: verifies signature, iss/aud, type, exp, deny-list AND aid == X
+    U->>F: logout
+    F->>B: POST /session/logout, session-token: ⟨token⟩ {refreshToken}
+    Note over B: both JTIs on the deny-list until they would expire
+```
+
+Rules backbone enforces:
+
+- **`aid` claim.** Session and refresh tokens name the application they were issued for (`aid`). Every service shares the
+  signing secret, so a resource server **must** require `aid` to equal its own application id; otherwise a session of
+  application A is accepted by application B. Renew and refresh keep the `aid` and re-check that the user still belongs to it.
+- **Client ↔ application.** A managed client presented in `Authorization: Bearer` on login / renew / refresh must be active
+  and belong to the application of the session: `403` otherwise.
+- **Client required.** Applications listed in `SESSION_CLIENT_REQUIRED_APPLICATIONS` (comma-separated ids), or all of them
+  with `SESSION_CLIENT_REQUIRED=true`, cannot open, renew or refresh a session without their client: `401`. Applications not
+  listed keep working without a client, so each one moves over when its front end is ready.
+- **Logout.** `POST /api/v1/session/logout` puts the session token (and the refresh token of the same user) on the deny-list.
+- Tokens issued before this (no `aid`) still renew/refresh as before and stay without `aid`; a resource server that requires
+  the claim rejects them, i.e. those users sign in again.
+
+Setting up an application end to end: [`docs/runbooks/zerobound-application-client.md`](../runbooks/zerobound-application-client.md).
 
 ---
 
@@ -157,13 +204,15 @@ curl -k -s -X POST https://<host>:8084/api/v1/session/token \
 | Header | Required | Description |
 |--------|----------|-------------|
 | `session-token` | Yes | The session JWT to validate |
+| `Authorization` | No (deprecated) | Raw token, read only when `session-token` is absent (legacy callers such as security-oauth's `BackbonePublicClient.validate`) |
 
 ### 📡 Responses
 
 | Status | Meaning | When |
 |--------|---------|------|
-| `200 OK` | Token is valid | Session is active and not expired |
-| `401 Unauthorized` | Token invalid | Expired, tampered, or missing token |
+| `200 OK` | `true` for a current `session-token` whose JTI is not revoked; `false` for a wrong `type` or a revoked JTI | |
+| `400 Bad Request` | Missing or blank header | body `false` |
+| `401 Unauthorized` | Token invalid | Expired or malformed token (body `false`) |
 
 **200 OK — Response body:**
 
@@ -201,8 +250,9 @@ curl -k -s -X GET https://<host>:8084/api/v1/session/validate \
 | Status | Meaning | When |
 |--------|---------|------|
 | `200 OK` | Token renewed | New session JWT issued |
-| `400 Bad Request` | Missing token | `session-token` header not present |
-| `401 Unauthorized` | Token invalid | Expired or tampered token |
+| `400 Bad Request` | Missing token | neither `session-token` nor (deprecated) raw `Authorization` present |
+| `401 Unauthorized` | Token invalid | Expired or tampered token, user removed from the application of the session, or application client required and missing |
+| `403 Forbidden` | Wrong client | The managed client presented does not belong to the application of the session |
 | `404 Not Found` | User not found | Subject in token no longer exists |
 | `500 Internal Server Error` | Server error | Unexpected failure during renewal |
 
@@ -226,7 +276,36 @@ curl -k -s -X GET https://<host>:8084/api/v1/session/renew \
 
 ---
 
+## 🔵 POST /api/v1/session/logout
+
+> End a session: revoke its session token and, optionally, its refresh token.
+
+| Header | Required | Description |
+|--------|----------|-------------|
+| `session-token` | Yes | The session JWT to revoke |
+
+Body (optional): `{ "refreshToken": "<refresh-jwt>" }`. It is revoked only when it belongs to the same user as the session token.
+
+| Status | Meaning | When |
+|--------|---------|------|
+| `204 No Content` | Revoked | Both JTIs are on the deny-list (`jti:<jti>` in Redis) until the tokens would have expired |
+| `400 Bad Request` | Nothing revoked | Header missing, or not a token signed by this service |
+
+After it: `GET /session/validate` answers `false`, `POST /session/refresh` answers `401`, and services that read the deny-list
+(zerobound-rest, mercury) reject the token. A `LOGOUT` audit event is recorded.
+
+```bash
+curl -k -s -X POST https://<host>:8084/api/v1/session/logout \
+  -H "session-token: eyJhbGciOiJIUzUxMiJ9..." -H "Content-Type: application/json" \
+  -d '{"refreshToken":"eyJhbGciOiJIUzUxMiJ9..."}' -o /dev/null -w '%{http_code}\n'    # 204
+```
+
+---
+
 ## 🔵 POST /api/v1/session/refresh
+
+> The new tokens keep the application (`aid`) of the refresh token. `401` when the refresh token was revoked at logout or the
+> user no longer belongs to that application; `401`/`403` for the application client as in login.
 
 > Exchange a refresh token for a fresh session token and a new refresh token.
 

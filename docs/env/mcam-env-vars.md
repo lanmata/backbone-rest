@@ -19,3 +19,13 @@
 - The keystore referenced by `MCAM_KEYSTORE_LOCATION` must contain an RSA key pair for RS256 signing.
 - Reduce `MCAM_TOKEN_TTL_SECONDS` for high-security environments; increase `MCAM_ROTATION_GRACE_SECONDS`  
   if your deployment pipeline requires more than 5 minutes to distribute the new secret.
+
+## Session ↔ application client
+
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `SESSION_CLIENT_REQUIRED` | No | `false` | `true`: every application must present its managed client (`Authorization: Bearer <M2M>`) to open, renew or refresh a user session |
+| `SESSION_CLIENT_REQUIRED_APPLICATIONS` | No | empty | Comma-separated application ids that must present their client even when the flag above is `false` |
+
+A client that is presented is always checked (active, same application as the session) regardless of these settings.
+See `docs/api/session.md` and `docs/runbooks/zerobound-application-client.md`.

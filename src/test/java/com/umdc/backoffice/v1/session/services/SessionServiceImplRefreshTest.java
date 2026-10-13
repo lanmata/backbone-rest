@@ -71,6 +71,9 @@ class SessionServiceImplRefreshTest {
     @Mock
     private RequestContextUtil requestContextUtil;
 
+    @Mock
+    private SessionClientGuard sessionClientGuard;
+
     private SessionServiceImpl sessionService;
     private SessionTokenServiceImpl sessionTokenService;
 
@@ -83,7 +86,7 @@ class SessionServiceImplRefreshTest {
         sessionService = new SessionServiceImpl(
                 messageUtil, userMapper, userAliasMapper,
                 passwordEncoder, loginAttemptService,
-                auditEventService, sessionTokenService, sessionUserLookupService, requestContextUtil);
+                auditEventService, sessionTokenService, sessionUserLookupService, requestContextUtil, sessionClientGuard);
     }
 
     // ── null / blank token ─────────────────────────────────────────────────────

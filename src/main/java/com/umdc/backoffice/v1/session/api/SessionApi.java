@@ -32,8 +32,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.util.Map;
+import java.util.Objects;
 
 import static com.umdc.backoffice.v1.session.services.SessionJwtService.AUTHORIZATION_HEADER;
+import static com.umdc.backoffice.v1.session.services.SessionJwtService.SESSION_TOKEN_KEY;
 
 @Tag(name = "session", description = "The Session API")
 public interface SessionApi {
@@ -90,18 +92,21 @@ public interface SessionApi {
     /**
      * Endpoint to validate a session token.
      *
-     * @param sessionToken the session token to be validated
+     * @param sessionToken  the session token from the {@code session-token} header
+     * @param authorization  legacy fallback: the same token in the {@code Authorization} header (deprecated)
      * @return a ResponseEntity containing a boolean indicating whether the token is valid
      */
-    @Operation(summary = "Validate session token", description = "Validates the session token supplied in the Authorization header")
+    @Operation(summary = "Validate session token", description = "Validates the session token supplied in the session-token header "
+            + "(the Authorization header is still read when session-token is absent, for callers not yet migrated; deprecated)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "Validation result: true if valid, false if wrong type or revoked"),
-            @ApiResponse(responseCode = HttpStatusUtil.BAD_REQUEST_STR, description = "Missing or empty Authorization header"),
+            @ApiResponse(responseCode = HttpStatusUtil.BAD_REQUEST_STR, description = "Missing or empty session-token header"),
             @ApiResponse(responseCode = HttpStatusUtil.UNAUTHORIZED_STR, description = "Expired or malformed session token")
     })
     @GetMapping("/validate")
-    default ResponseEntity<Boolean> validateSessionToken(@RequestHeader(AUTHORIZATION_HEADER) String sessionToken) {
-        return this.getSessionService().validateToken(sessionToken);
+    default ResponseEntity<Boolean> validateSessionToken(@RequestHeader(name = SESSION_TOKEN_KEY, required = false) String sessionToken,
+                                                         @RequestHeader(name = AUTHORIZATION_HEADER, required = false) String authorization) {
+        return this.getSessionService().validateToken(Objects.nonNull(sessionToken) ? sessionToken : authorization);
     }
 
     /**
@@ -110,7 +115,8 @@ public interface SessionApi {
      * @param sessionToken the current session token to be renewed
      * @return a ResponseEntity containing the session response with the new token
      */
-    @Operation(summary = "Renew session token", description = "Renews the provided session token by validating it and generating a new one")
+    @Operation(summary = "Renew session token", description = "Renews the session token of the session-token header (the raw Authorization "
+            + "header is read when session-token is absent; deprecated) by validating it and generating a new one for the same application")
     @ApiResponses(value = {
             @ApiResponse(responseCode = HttpStatusUtil.OK_STR, description = "Session token renewed successfully"),
             @ApiResponse(responseCode = HttpStatusUtil.BAD_REQUEST_STR, description = "Invalid request - token is required"),
@@ -119,8 +125,29 @@ public interface SessionApi {
             @ApiResponse(responseCode = HttpStatusUtil.INTERNAL_SERVER_ERROR_STR, description = "Token generation failed")
     })
     @GetMapping(value = "/renew", produces = {MediaType.APPLICATION_JSON_VALUE})
-    default ResponseEntity<SessionResponse> renewSessionToken(@RequestHeader(AUTHORIZATION_HEADER) String sessionToken) {
-        return this.getSessionService().renewToken(sessionToken);
+    default ResponseEntity<SessionResponse> renewSessionToken(@RequestHeader(name = SESSION_TOKEN_KEY, required = false) String sessionToken,
+                                                              @RequestHeader(name = AUTHORIZATION_HEADER, required = false) String authorization) {
+        return this.getSessionService().renewToken(Objects.nonNull(sessionToken) ? sessionToken : authorization);
+    }
+
+    /**
+     * Endpoint to end a session (logout).
+     *
+     * @param sessionToken the session token to revoke, from the {@code session-token} header
+     * @param request      optional body with the refresh token of the same session, revoked too
+     * @return 204 when the tokens are on the deny-list
+     */
+    @Operation(summary = "Logout", description = "Revokes the session token of the session-token header and, when the body carries it, "
+            + "the refresh token of the same user. Both stay on the JTI deny-list until they would have expired. Public endpoint: "
+            + "holding the token is the proof.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = HttpStatusUtil.NO_CONTENT_STR, description = "Session revoked"),
+            @ApiResponse(responseCode = HttpStatusUtil.BAD_REQUEST_STR, description = "Missing session-token header, or not a token of this service")
+    })
+    @PostMapping(value = "/logout")
+    default ResponseEntity<Void> logout(@RequestHeader(name = SESSION_TOKEN_KEY, required = false) String sessionToken,
+                                        @RequestBody(required = false) SessionRefreshRequest request) {
+        return this.getSessionService().logout(sessionToken, Objects.isNull(request) ? null : request.refreshToken());
     }
 
     /**

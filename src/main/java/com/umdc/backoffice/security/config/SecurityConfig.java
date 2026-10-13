@@ -122,6 +122,9 @@ public class SecurityConfig {
                     // Refresh endpoint — public because it IS the mechanism to obtain a new session
                     // token when the access token has expired. Analogous to the login endpoints.
                     auth.requestMatchers(HttpMethod.POST, "/api/v1/session/refresh").permitAll();
+                    // Logout — public for the same reason: the token being revoked is the proof, and it may
+                    // already be expired when the user leaves.
+                    auth.requestMatchers(HttpMethod.POST, "/api/v1/session/logout").permitAll();
                     // MCAM M2M public endpoints — token issuance and introspection (Phase 2 pre-registration)
                     auth.requestMatchers(HttpMethod.POST, "/api/v1/managed-clients/token").permitAll();
                     auth.requestMatchers(HttpMethod.POST, "/api/v1/managed-clients/introspect").permitAll();
