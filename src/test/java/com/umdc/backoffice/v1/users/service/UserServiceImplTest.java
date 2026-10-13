@@ -592,6 +592,70 @@ class UserServiceImplTest {
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
+    private static com.umdc.commons.general.pojo.Person validPerson() {
+        var person = new com.umdc.commons.general.pojo.Person();
+        person.setFirstName("Elrond");
+        person.setLastName("Half-elven");
+        person.setGender("M");
+        person.setBirthdate(java.time.LocalDate.of(1990, 1, 1));
+        return person;
+    }
+
+    private UserCreateRequest requestWith(com.umdc.commons.general.pojo.Person person) {
+        UUID appId = UUID.randomUUID();
+        UserCreateRequest request = mock(UserCreateRequest.class);
+        when(request.alias()).thenReturn("elron_rivend");
+        when(request.password()).thenReturn("Password$123");
+        when(request.roleId()).thenReturn(UUID.randomUUID());
+        when(request.applicationId()).thenReturn(appId);
+        when(request.person()).thenReturn(person);
+        when(userGraphLookupService.findByAliasAndApplicationWithGraph("elron_rivend", appId)).thenReturn(Optional.empty());
+        return request;
+    }
+
+    private static Stream<Arguments> invalidPersons() {
+        return Stream.of(
+                Arguments.of("birthdate null", (java.util.function.Consumer<com.umdc.commons.general.pojo.Person>) p -> p.setBirthdate(null), "person.birthdate is required"),
+                Arguments.of("birthdate today", (java.util.function.Consumer<com.umdc.commons.general.pojo.Person>) p -> p.setBirthdate(java.time.LocalDate.now()), "person.birthdate must be in the past"),
+                Arguments.of("birthdate future", (java.util.function.Consumer<com.umdc.commons.general.pojo.Person>) p -> p.setBirthdate(java.time.LocalDate.now().plusDays(1)), "person.birthdate must be in the past"),
+                Arguments.of("firstName null", (java.util.function.Consumer<com.umdc.commons.general.pojo.Person>) p -> p.setFirstName(null), "person.firstName is required"),
+                Arguments.of("firstName blank", (java.util.function.Consumer<com.umdc.commons.general.pojo.Person>) p -> p.setFirstName(" "), "person.firstName is required"),
+                Arguments.of("lastName null", (java.util.function.Consumer<com.umdc.commons.general.pojo.Person>) p -> p.setLastName(null), "person.lastName is required"),
+                Arguments.of("gender null", (java.util.function.Consumer<com.umdc.commons.general.pojo.Person>) p -> p.setGender(null), "person.gender is required"),
+                Arguments.of("gender blank", (java.util.function.Consumer<com.umdc.commons.general.pojo.Person>) p -> p.setGender(""), "person.gender is required"));
+    }
+
+    @ParameterizedTest(name = "create: {0} returns 400 and nothing is persisted")
+    @MethodSource("invalidPersons")
+    void testCreate_InvalidPerson_BadRequestWithoutPersisting(String caseName,
+            java.util.function.Consumer<com.umdc.commons.general.pojo.Person> breakIt, String expectedWarning) {
+        var person = validPerson();
+        breakIt.accept(person);
+        UserCreateRequest request = requestWith(person);
+
+        ResponseEntity<UserCreateResponse> response = userService.create(request);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals(expectedWarning, response.getHeaders().getFirst(org.springframework.http.HttpHeaders.WARNING));
+        verify(userRepository, never()).save(any(UserEntity.class));
+        verify(userApplicationRoleService, never()).refreshRoleByApplication(any(), any());
+    }
+
+    @Test
+    void testCreate_ValidPerson_IsPersisted() {
+        UserCreateRequest request = requestWith(validPerson());
+        UserEntity userEntity = new UserEntity();
+        userEntity.setId(UUID.randomUUID());
+        when(userMapper.toSource(request)).thenReturn(userEntity);
+        when(userRepository.save(any(UserEntity.class))).thenReturn(userEntity);
+        when(userMapper.toUserCreateResponse(userEntity)).thenReturn(mock(UserCreateResponse.class));
+
+        ResponseEntity<UserCreateResponse> response = userService.create(request);
+
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        verify(userRepository, times(1)).save(any(UserEntity.class));
+    }
+
     @Test
     void testCreate_WithApplicationError() {
         UUID appId = UUID.randomUUID();
@@ -1039,6 +1103,142 @@ class UserServiceImplTest {
         assertNotNull(response.getBody());
         assertEquals(expectedUserTO, response.getBody());
         verify(userRepository, times(1)).save(any(UserEntity.class));
+    }
+
+    private static com.umdc.backoffice.v1.iam.passwords.api.to.PasswordPolicyViolation violation() {
+        return new com.umdc.backoffice.v1.iam.passwords.api.to.PasswordPolicyViolation("min-length", "too short");
+    }
+
+    @Test
+    void testCreate_PasswordPolicyViolation_returns422WithoutPersisting() {
+        UserCreateRequest request = requestWith(validPerson());
+        when(passwordPolicyService.validate("Password$123")).thenReturn(List.of(violation()));
+
+        ResponseEntity<UserCreateResponse> response = userService.create(request);
+
+        assertEquals(HttpStatus.UNPROCESSABLE_CONTENT, response.getStatusCode());
+        assertNotNull(response.getHeaders().getFirst(org.springframework.http.HttpHeaders.WARNING));
+        verify(userRepository, never()).save(any(UserEntity.class));
+    }
+
+    @Test
+    void testUpdate_PasswordPolicyViolation_returns422WithoutSaving() {
+        UUID userId = UUID.randomUUID();
+        UserEntity existingUser = new UserEntity();
+        existingUser.setId(userId);
+        UserTO updateData = new UserTO();
+        updateData.setPassword("weak");
+        when(userGraphLookupService.findByIdWithGraph(userId)).thenReturn(Optional.of(existingUser));
+        when(passwordPolicyService.validate("weak")).thenReturn(List.of(violation()));
+
+        ResponseEntity<UserTO> response = userService.update(userId, updateData);
+
+        assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, response.getStatusCode());
+        verify(userRepository, never()).save(any(UserEntity.class));
+    }
+
+    @Test
+    void testUpdate_RolesWithoutApplication_reusesExistingApplicationAndAudits() {
+        UUID userId = UUID.randomUUID();
+        UUID appId = UUID.randomUUID();
+        ApplicationEntity appEntity = new ApplicationEntity();
+        appEntity.setId(appId);
+        ApplicationRoleUserEntity aru = new ApplicationRoleUserEntity();
+        aru.setApplication(appEntity);
+        UserEntity existingUser = new UserEntity();
+        existingUser.setId(userId);
+        existingUser.setApplicationRoleUser(new HashSet<>(Set.of(aru)));
+
+        var role = new com.umdc.commons.general.pojo.Role();
+        role.setId(UUID.randomUUID());
+        UserTO updateData = new UserTO();
+        updateData.setRoles(Set.of(role));
+
+        when(userGraphLookupService.findByIdWithGraph(userId)).thenReturn(Optional.of(existingUser));
+        when(userRepository.save(any(UserEntity.class))).thenReturn(existingUser);
+        when(userMapper.toTarget(existingUser)).thenReturn(updateData);
+
+        ResponseEntity<UserTO> response = userService.update(userId, updateData);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(appId, updateData.getApplications().iterator().next().getId());
+        verify(auditEventService).saveRecord(eq(userId), eq(appId),
+                eq(com.umdc.commons.general.pojo.AuditEventType.ROLE_ASSIGNED), any(), any(), any());
+    }
+
+    @Test
+    void roleLink_nullParams_returnsBadRequest() {
+        assertEquals(HttpStatus.BAD_REQUEST, userService.roleLink(null, UUID.randomUUID()).getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST, userService.roleLink(UUID.randomUUID(), null).getStatusCode());
+    }
+
+    @Test
+    void roleLink_userNotFound_returnsNotFound() {
+        UUID userId = UUID.randomUUID();
+        when(userGraphLookupService.findByIdWithGraph(userId)).thenReturn(Optional.empty());
+
+        assertEquals(HttpStatus.NOT_FOUND, userService.roleLink(userId, UUID.randomUUID()).getStatusCode());
+    }
+
+    @Test
+    void roleLink_userWithoutApplication_returnsBadRequestWithWarning() {
+        UUID userId = UUID.randomUUID();
+        UserEntity userEntity = new UserEntity();
+        userEntity.setId(userId);
+        userEntity.setApplicationRoleUser(new HashSet<>());
+        when(userGraphLookupService.findByIdWithGraph(userId)).thenReturn(Optional.of(userEntity));
+
+        ResponseEntity<UserTO> response = userService.roleLink(userId, UUID.randomUUID());
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("User has no application to link the role to",
+                response.getHeaders().getFirst(org.springframework.http.HttpHeaders.WARNING));
+        verify(userApplicationRoleService, never()).refreshRoleByApplication(any(), any());
+    }
+
+    private UserEntity userWithApplication(UUID userId, UUID appId) {
+        ApplicationEntity appEntity = new ApplicationEntity();
+        appEntity.setId(appId);
+        ApplicationRoleUserEntity aru = new ApplicationRoleUserEntity();
+        aru.setApplication(appEntity);
+        UserEntity userEntity = new UserEntity();
+        userEntity.setId(userId);
+        userEntity.setApplicationRoleUser(new HashSet<>(Set.of(aru)));
+        userEntity.setApplication(appEntity);
+        return userEntity;
+    }
+
+    @Test
+    void roleLink_refreshFails_returnsBadRequest() {
+        UUID userId = UUID.randomUUID();
+        UserEntity userEntity = userWithApplication(userId, UUID.randomUUID());
+        when(userGraphLookupService.findByIdWithGraph(userId)).thenReturn(Optional.of(userEntity));
+        doThrow(new com.umdc.commons.exception.StandardException(UserMessageKey.USER_NOT_FOUND))
+                .when(userApplicationRoleService).refreshRoleByApplication(any(), any());
+
+        ResponseEntity<UserTO> response = userService.roleLink(userId, UUID.randomUUID());
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        verify(userRepository, never()).save(any(UserEntity.class));
+    }
+
+    @Test
+    void roleLink_success_savesAndAudits() {
+        UUID userId = UUID.randomUUID();
+        UUID appId = UUID.randomUUID();
+        UserEntity userEntity = userWithApplication(userId, appId);
+        UserTO expected = new UserTO();
+        expected.setId(userId);
+        when(userGraphLookupService.findByIdWithGraph(userId)).thenReturn(Optional.of(userEntity));
+        when(userRepository.save(any(UserEntity.class))).thenReturn(userEntity);
+        when(userMapper.toTarget(userEntity)).thenReturn(expected);
+
+        ResponseEntity<UserTO> response = userService.roleLink(userId, UUID.randomUUID());
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(expected, response.getBody());
+        verify(auditEventService).saveRecord(eq(userId), eq(appId),
+                eq(com.umdc.commons.general.pojo.AuditEventType.ROLE_ASSIGNED), any(), any(), any());
     }
 
 }
