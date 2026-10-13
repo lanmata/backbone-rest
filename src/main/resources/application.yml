@@ -17,34 +17,23 @@ server:
     min-response-size: 1024
 
 springdoc:
-  # api.yaml (src/main/resources/static/api.yaml) is the hand-maintained contract — see
-  # CLAUDE.md's "Mandatory Conventions" #9: update it directly whenever an *Api.java
-  # signature changes. Annotation-driven generation is unreliable here regardless: every
-  # *Api.java method returns ResponseEntity<?> (convention #3 — status decisions live in
-  # *ServiceImpl), and that wildcard erasure means springdoc can't resolve a response body
-  # schema from the method signature alone.
+  # The OpenAPI document is generated at runtime from the *Api.java interfaces (@Operation,
+  # @ApiResponse, @Tag, the mappings and the DTOs) — there is no hand-written spec. JSON at
+  # /v3/api-docs, YAML at /v3/api-docs.yaml; /api.yaml redirects to the YAML (OpenApiConfig),
+  # which also contributes the info block and the security schemes.
   #
   # api-docs.enabled is springdoc's master switch, NOT a toggle for just the /v3/api-docs
-  # JSON — setting it to false disables the entire autoconfiguration, which silently took
-  # Swagger UI down with it (no handler registered for /swagger-ui/** or /swagger-resources
-  # at all — see CLAUDE.md "Known Issues"). It must stay enabled for Swagger UI's own
-  # backend to register. The incomplete auto-generated spec is still not what gets shown:
-  # swagger-ui.url below points Swagger UI at the real /api.yaml instead, and /v3/api-docs
-  # itself is kept out of SecurityConfig's permitAll list (requires auth) so a client can't
-  # stumble onto the broken generated doc by mistake.
+  # JSON — setting it to false disables the entire autoconfiguration, Swagger UI included.
   api-docs:
     enabled: true
     path: /v3/api-docs
+    version: openapi_3_1
   swagger-ui:
     enabled: true
     path: /swagger-ui.html
-    # The only spec Swagger UI ever renders — never /v3/api-docs (disabled above).
-    url: /api.yaml
     display-request-duration: true
     operations-sorter: alpha
     tags-sorter: alpha
-  # Since api-docs generation is disabled, these have no effect today, but are set
-  # explicitly rather than left to defaults in case api-docs is ever re-enabled.
   show-actuator: false
   default-produces-media-type: application/json
   packages-to-scan: com.umdc.backoffice.v1

@@ -14,12 +14,22 @@ package com.umdc.backoffice.v1.managedclient.api.controller;
 
 import com.umdc.backoffice.v1.iam.tokens.api.to.TokenIntrospectRequest;
 import com.umdc.backoffice.v1.managedclient.api.to.ManagedClientCreateRequest;
+import com.umdc.backoffice.v1.managedclient.api.to.ManagedClientCreateResponse;
+import com.umdc.backoffice.v1.managedclient.api.to.ManagedClientErrorResponse;
+import com.umdc.backoffice.v1.managedclient.api.to.ManagedClientSecretRotateResponse;
+import com.umdc.backoffice.v1.managedclient.api.to.ManagedClientTO;
+import com.umdc.backoffice.v1.managedclient.api.to.ManagedClientTokenIntrospectResponse;
 import com.umdc.backoffice.v1.managedclient.api.to.ManagedClientTokenRequest;
+import com.umdc.backoffice.v1.managedclient.api.to.ManagedClientTokenResponse;
 import com.umdc.backoffice.v1.managedclient.api.to.ManagedClientUpdateRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.MediaType;
@@ -45,9 +55,9 @@ public interface ManagedClientApi {
     @Operation(summary = "Register a new managed client",
                description = "Returns the clientSecret exactly once in the response body.")
     @ApiResponses({
-        @ApiResponse(responseCode = "201", description = "Client registered"),
-        @ApiResponse(responseCode = "400", description = "Validation error"),
-        @ApiResponse(responseCode = "409", description = "Duplicate name for application")
+        @ApiResponse(responseCode = "201", description = "Client registered", content = @Content(schema = @Schema(implementation = ManagedClientCreateResponse.class))),
+        @ApiResponse(responseCode = "400", description = "Validation error", content = @Content),
+        @ApiResponse(responseCode = "409", description = "Duplicate name for application", content = @Content(schema = @Schema(implementation = ManagedClientErrorResponse.class)))
     })
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE,
                  consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -58,8 +68,8 @@ public interface ManagedClientApi {
 
     @Operation(summary = "List managed clients")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Client list"),
-        @ApiResponse(responseCode = "204", description = "No clients found")
+        @ApiResponse(responseCode = "200", description = "Client list", content = @Content(array = @ArraySchema(schema = @Schema(implementation = ManagedClientTO.class)))),
+        @ApiResponse(responseCode = "204", description = "No clients found", content = @Content)
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     default ResponseEntity<?> listManagedClients(
@@ -73,8 +83,8 @@ public interface ManagedClientApi {
 
     @Operation(summary = "Get a managed client by ID")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Client found"),
-        @ApiResponse(responseCode = "404", description = "Client not found")
+        @ApiResponse(responseCode = "200", description = "Client found", content = @Content(schema = @Schema(implementation = ManagedClientTO.class))),
+        @ApiResponse(responseCode = "404", description = "Client not found", content = @Content(schema = @Schema(implementation = ManagedClientErrorResponse.class)))
     })
     @GetMapping(value = "/{clientId}", produces = MediaType.APPLICATION_JSON_VALUE)
     default ResponseEntity<?> getManagedClient(@PathVariable UUID clientId) {
@@ -83,8 +93,8 @@ public interface ManagedClientApi {
 
     @Operation(summary = "Update a managed client")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Client updated"),
-        @ApiResponse(responseCode = "404", description = "Client not found")
+        @ApiResponse(responseCode = "200", description = "Client updated", content = @Content(schema = @Schema(implementation = ManagedClientTO.class))),
+        @ApiResponse(responseCode = "404", description = "Client not found", content = @Content(schema = @Schema(implementation = ManagedClientErrorResponse.class)))
     })
     @PutMapping(value = "/{clientId}", produces = MediaType.APPLICATION_JSON_VALUE,
                 consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -97,8 +107,8 @@ public interface ManagedClientApi {
 
     @Operation(summary = "Delete a managed client")
     @ApiResponses({
-        @ApiResponse(responseCode = "204", description = "Client deleted"),
-        @ApiResponse(responseCode = "404", description = "Client not found")
+        @ApiResponse(responseCode = "204", description = "Client deleted", content = @Content),
+        @ApiResponse(responseCode = "404", description = "Client not found", content = @Content(schema = @Schema(implementation = ManagedClientErrorResponse.class)))
     })
     @DeleteMapping(value = "/{clientId}")
     default ResponseEntity<?> deleteManagedClient(@PathVariable UUID clientId) {
@@ -108,11 +118,12 @@ public interface ManagedClientApi {
     @Operation(summary = "Issue an M2M access token",
                description = "Client credentials grant — public endpoint, no bearer token required.")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Token issued"),
-        @ApiResponse(responseCode = "400", description = "Invalid scope"),
-        @ApiResponse(responseCode = "401", description = "Invalid credentials"),
-        @ApiResponse(responseCode = "429", description = "Rate limit exceeded")
+        @ApiResponse(responseCode = "200", description = "Token issued", content = @Content(schema = @Schema(implementation = ManagedClientTokenResponse.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid scope", content = @Content(schema = @Schema(implementation = ManagedClientErrorResponse.class))),
+        @ApiResponse(responseCode = "401", description = "Invalid credentials", content = @Content(schema = @Schema(implementation = ManagedClientErrorResponse.class))),
+        @ApiResponse(responseCode = "429", description = "Rate limit exceeded", content = @Content(schema = @Schema(implementation = ManagedClientErrorResponse.class)))
     })
+    @SecurityRequirements
     @PostMapping(value = "/token", produces = MediaType.APPLICATION_JSON_VALUE,
                  consumes = MediaType.APPLICATION_JSON_VALUE)
     default ResponseEntity<?> issueToken(@Valid @RequestBody ManagedClientTokenRequest request) {
@@ -121,8 +132,8 @@ public interface ManagedClientApi {
 
     @Operation(summary = "Revoke all tokens for a managed client")
     @ApiResponses({
-        @ApiResponse(responseCode = "204", description = "All tokens revoked"),
-        @ApiResponse(responseCode = "404", description = "Client not found")
+        @ApiResponse(responseCode = "204", description = "All tokens revoked", content = @Content),
+        @ApiResponse(responseCode = "404", description = "Client not found", content = @Content(schema = @Schema(implementation = ManagedClientErrorResponse.class)))
     })
     @DeleteMapping(value = "/{clientId}/tokens")
     default ResponseEntity<?> revokeAllTokens(@PathVariable UUID clientId) {
@@ -132,8 +143,9 @@ public interface ManagedClientApi {
     @Operation(summary = "Introspect an M2M token",
                description = "Always returns HTTP 200. active=false for invalid/expired/revoked tokens.")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Introspection result")
+        @ApiResponse(responseCode = "200", description = "Introspection result", content = @Content(schema = @Schema(implementation = ManagedClientTokenIntrospectResponse.class)))
     })
+    @SecurityRequirements
     @PostMapping(value = "/introspect", produces = MediaType.APPLICATION_JSON_VALUE,
                  consumes = MediaType.APPLICATION_JSON_VALUE)
     default ResponseEntity<?> introspectToken(@Valid @RequestBody TokenIntrospectRequest request) {
@@ -143,8 +155,8 @@ public interface ManagedClientApi {
     @Operation(summary = "Rotate the secret for a managed client",
                description = "Returns the new plaintext clientSecret once. Grace period allows old secret temporarily.")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Secret rotated"),
-        @ApiResponse(responseCode = "404", description = "Client not found or inactive")
+        @ApiResponse(responseCode = "200", description = "Secret rotated", content = @Content(schema = @Schema(implementation = ManagedClientSecretRotateResponse.class))),
+        @ApiResponse(responseCode = "404", description = "Client not found or inactive", content = @Content(schema = @Schema(implementation = ManagedClientErrorResponse.class)))
     })
     @PostMapping(value = "/{clientId}/rotate-secret",
                  produces = MediaType.APPLICATION_JSON_VALUE)

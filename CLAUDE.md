@@ -44,9 +44,13 @@ service, no REST surface), `roles`, `servicetype`, `session`, `users`
 6. **MapStruct** with `config = MapperAppConfig.class` from `com.umdc.commons.services`.
 7. **SLF4J logging** via `LoggerFactory.getLogger`.
 8. **PMD zero violations** — `ruleset.xml` is enforced at test phase.
-9. **OpenAPI YAML** at `src/main/resources/static/api.yaml` (served statically at
-   `/api.yaml`, per `springdoc.swagger-ui.url` in `application.yml`) — update
-   it when any `*Api.java` contract changes.
+9. **OpenAPI is generated, not written**: springdoc builds the spec at runtime from the `*Api.java` interfaces
+   (`@Tag`, `@Operation`, `@ApiResponses`, mappings, DTOs). JSON at `/v3/api-docs`, YAML at `/v3/api-docs.yaml`
+   (`/api.yaml` redirects to it); `OpenApiConfig` adds the info block and security schemes. Because services
+   return `ResponseEntity<?>` (#3), the `*Api` method must declare the body type itself —
+   `@ApiResponse(..., content = @Content(schema = @Schema(implementation = X.class)))` — whenever its return type
+   is a wildcard. Public operations carry `@SecurityRequirements`; everything else inherits `bearerAuth`.
+   Every `*Api` needs a `@Tag`. `OpenApiGenerationTest` generates the spec offline and fails if it regresses.
 
 ## Security Architecture
 - **OAuth2 Resource Server** (Supabase / Keycloak JWT): all `/api/v1/**` GETs require
@@ -74,49 +78,25 @@ service, no REST surface), `roles`, `servicetype`, `session`, `users`
   Rotation is an operational Vault procedure, not application code — the
   rotation cadence/runbook is not documented here; owner to fill in.
 
-## Known Issues (fixed 2026-09-30 — see below for the current, working config)
-Two bugs made Swagger UI return a bare `403 Forbidden` instead of loading, and masked real
-error status codes app-wide. Both are now fixed in `SecurityConfig.java` / `application.yml`;
-documenting them here since the symptom is non-obvious and the fix touches security config.
+## Known Issues (Swagger UI / security — 2026-09-30, updated 2026-10-13)
+Two bugs made Swagger UI return a bare `403 Forbidden` and masked real error status codes app-wide.
+Both are fixed in `SecurityConfig.java` / `application.yml`; the symptom is non-obvious, so they stay documented.
 
-1. **`/error` was not `permitAll`.** Any request that internally forwards to `/error` (a 404
-   from a missing static resource, a 400 from `HttpMessageNotReadableException`, a 500,
-   anything) gets re-evaluated by the security filter chain on that forward. Since `/error`
-   fell under `anyRequest().authenticated()` and the request is anonymous, `AuthorizationFilter`
-   denied it and the client saw a bare `403 Forbidden` instead of the real status code — e.g. a
-   genuine 404 or 400 both came back as indistinguishable 403s. Verified with
-   `-Dlogging.level.org.springframework.security=TRACE`: the original request was correctly
-   authorized (`SingleResultAuthorizationManager` granted it), the handler threw/resolved to
-   `/error`, and *that* forwarded dispatch is what got `AuthorizationDeniedException`'d.
-   **Fix**: `"/error"` added to the permitAll matcher list, with a comment explaining why.
-2. **`springdoc.api-docs.enabled: false` is springdoc's master switch, not just a toggle for
-   `/v3/api-docs`.** It had been set to `false` to avoid exposing the auto-generated OpenAPI doc
-   (incomplete because every `*Api.java` method returns `ResponseEntity<?>` — convention #3 —
-   and that wildcard erasure means springdoc can't resolve a response schema). But disabling it
-   took down the *entire* springdoc-openapi-starter-webmvc-ui autoconfiguration, including the
-   resource handlers for `/swagger-ui.html`, `/swagger-ui/**`, and `/swagger-resources` — there
-   was no controller registered for them at all (confirmed via
-   `NoResourceFoundException: No static resource swagger-resources ...` in the TRACE log).
-   Combined with bug #1, this presented as `403 Forbidden` rather than `404`, which looked like
-   a permissions problem instead of "the UI isn't wired up."
-   **Fix**: `springdoc.api-docs.enabled` set back to `true` (required for the UI backend to
-   register at all), while `/v3/api-docs` — the actual generated spec document — is deliberately
-   **excluded** from `SecurityConfig.SWAGGER_PATHS`, so it still requires auth and a client can't
-   stumble onto the broken generated doc by mistake. Swagger UI itself renders the real,
-   hand-maintained `api.yaml` instead, via `springdoc.swagger-ui.url: /api.yaml` (already set).
-3. **Follow-on gotcha from fix #2**: once the page loaded, it showed "Failed to load remote
-   configuration." Swagger UI's own bootstrap JS unconditionally fetches
-   `/v3/api-docs/swagger-config` (a small JSON describing which spec URL to render — no schema/
-   path data in it) regardless of `swagger-ui.url`, and that path was still blocked by the same
-   exclusion as `/v3/api-docs`. **Fix**: `/v3/api-docs/swagger-config` added as its own explicit
-   `permitAll` entry in `SWAGGER_PATHS`, separate from `/v3/api-docs` itself.
-   `/swagger-ui.html` also needed its own explicit entry — the `/swagger-ui/**` pattern doesn't
-   match the exact literal `/swagger-ui.html` (no `/` after `swagger-ui`), which is the actual
-   page entry point (it 302-redirects to `/swagger-ui/index.html`).
+1. **`/error` must be `permitAll`.** A request that forwards to `/error` (404, 400, 500…) is re-evaluated by the
+   filter chain; anonymous + `anyRequest().authenticated()` turned every real status into a blank `403`.
+   Diagnose with `-Dlogging.level.org.springframework.security=TRACE`.
+2. **`springdoc.api-docs.enabled: false` is springdoc's master switch**, not just a toggle for `/v3/api-docs` —
+   it removes the Swagger UI resource handlers too (`NoResourceFoundException: No static resource swagger-resources`),
+   which combined with #1 looked like a permissions problem. Keep it `true`.
+3. **Swagger UI fetches `/v3/api-docs/swagger-config` unconditionally** and `/swagger-ui.html` needs its own
+   `permitAll` entry (`/swagger-ui/**` does not match that literal path). `SWAGGER_PATHS` now permits `/v3/api-docs`,
+   `/v3/api-docs.yaml`, `/v3/api-docs/**`, `/swagger-ui*`, `/swagger-resources*` and `/api.yaml`.
+
+History: until 2026-10-13 the spec was a hand-maintained `static/api.yaml` and `/v3/api-docs` was kept behind auth
+because the generated document had no response schemas. The annotations were completed and the static file removed.
 
 **Current working state**: `GET https://localhost:8084/swagger-ui.html` → 302 →
-`/swagger-ui/index.html` → 200, rendering `api.yaml`. `GET /v3/api-docs` stays `403` (by
-design). Verify after any future springdoc/security change with the curl checks above, not just
+`/swagger-ui/index.html` → 200, rendering `/v3/api-docs`; `GET /v3/api-docs.yaml` → 200. Verify after any future springdoc/security change with the curl checks above, not just
 by eyeballing the page — the "page loads" and "page's own API calls succeed" states are
 different failure surfaces, as bug #3 showed.
 
@@ -163,7 +143,7 @@ like your code change had no effect when it's actually a stale second instance s
 | File | Purpose |
 |------|---------|
 | `src/main/resources/application.yml` | Central config — Vault, Config Server, OAuth (migrated off the legacy `bootstrap.yml`/`spring-cloud-starter-bootstrap` mechanism for GraalVM AOT compatibility — see `spring.config.import`) |
-| `src/main/resources/static/api.yaml` | OpenAPI 3.1 spec (served at `/api.yaml`) |
+| `src/main/java/com/umdc/backoffice/config/OpenApiConfig.java` | OpenAPI info + security schemes; the paths come from the `*Api` interfaces (`/v3/api-docs`, `/v3/api-docs.yaml`) |
 | `src/main/resources/default.env` | Runtime env stubs (no real secrets in git) |
 | `ruleset.xml` | PMD rules — check before committing |
 | `pom.xml` | Dependencies + JaCoCo + PMD plugin config |
