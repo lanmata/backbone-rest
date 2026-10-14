@@ -28,6 +28,7 @@ import com.umdc.commons.exception.StandardException;
 import com.umdc.commons.general.pojo.Application;
 import com.umdc.commons.general.pojo.AuditEventType;
 import com.umdc.commons.general.pojo.Contact;
+import com.umdc.commons.general.pojo.Person;
 import com.umdc.commons.general.pojo.Role;
 import com.umdc.persistence.general.domains.*;
 import com.umdc.persistence.general.repositories.ApplicationRoleUserRepository;
@@ -41,6 +42,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
@@ -405,6 +407,15 @@ public class UserServiceImpl implements UserService {
             return ResponseEntity.badRequest().header(HttpHeaders.WARNING, "User previously exist.").build();
         }
 
+        // PersonEntity is persisted by cascade and enforces its own constraints at commit time, where a
+        // violation surfaces as a 500 (TransactionSystemException). Reject the request here instead.
+        var invalidPersonField = findInvalidPersonField(userCreateRequest.person());
+        if (invalidPersonField.isPresent()) {
+            return ResponseEntity.badRequest()
+                    .header(HttpHeaders.WARNING, invalidPersonField.get())
+                    .build();
+        }
+
         // Validate password complexity before encoding
         var createPolicyViolations = passwordPolicyService.validate(userCreateRequest.password());
         if (!createPolicyViolations.isEmpty()) {
@@ -464,6 +475,35 @@ public class UserServiceImpl implements UserService {
         var userResult = userMapper.toUserCreateResponse(userEntityResult);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(userResult);
+    }
+
+    /**
+     * Checks the {@link Person} fields that {@code PersonEntity} requires, so the failure is a 400 with the
+     * field named rather than a constraint violation at commit.
+     *
+     * @param person the person of the create request; {@code null} is left to the {@code @NotNull} of the request
+     * @return the message naming the first invalid field, or empty when the person can be persisted
+     */
+    private static Optional<String> findInvalidPersonField(Person person) {
+        if (Objects.isNull(person)) {
+            return Optional.empty();
+        }
+        if (Objects.isNull(person.getFirstName()) || person.getFirstName().isBlank()) {
+            return Optional.of("person.firstName is required");
+        }
+        if (Objects.isNull(person.getLastName())) {
+            return Optional.of("person.lastName is required");
+        }
+        if (Objects.isNull(person.getGender()) || person.getGender().isBlank()) {
+            return Optional.of("person.gender is required");
+        }
+        if (Objects.isNull(person.getBirthdate())) {
+            return Optional.of("person.birthdate is required");
+        }
+        if (!person.getBirthdate().isBefore(LocalDate.now(ZoneId.systemDefault()))) {
+            return Optional.of("person.birthdate must be in the past");
+        }
+        return Optional.empty();
     }
 
     /**
